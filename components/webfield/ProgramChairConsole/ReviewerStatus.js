@@ -373,9 +373,7 @@ const ReviewerStatusTab = ({
               userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
             }
           })
-          // eslint-disable-next-line no-param-reassign
           profile.registrationNotes = userRegNotes
-          // eslint-disable-next-line no-param-reassign
           profile.title = formatProfileContent(profile.content).title
 
           usernames.concat(profile.email ?? []).forEach((key) => {

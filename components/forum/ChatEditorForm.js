@@ -327,7 +327,6 @@ export default function ChatEditorForm({
                 try {
                   MathJax.typesetPromise()
                 } catch (error) {
-                  // eslint-disable-next-line no-console
                   console.warn('Could not format math notation')
                 }
               }

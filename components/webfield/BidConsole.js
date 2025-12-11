@@ -537,12 +537,12 @@ const NoBidTab = ({
       if (existingBidToDelete) {
         updatedBidEdges = bidEdges.filter((p) => p.id !== existingBidToDelete.id)
         setBidEdges(updatedBidEdges)
-        setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
+        setNotes((notes) => notes.filter((p) => p.id !== note.id))
         return
       }
 
       setBidEdges([...bidEdges.filter((p) => p.id !== existingBidToUpdate?.id), result])
-      setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
+      setNotes((notes) => notes.filter((p) => p.id !== note.id))
     } catch (error) {
       promptError(error.message)
       setBidUpdateStatus((status) => !status)
@@ -626,12 +626,12 @@ const BidOptionTab = ({
       if (existingBidToDelete) {
         updatedBidEdges = bidEdges.filter((p) => p.id !== existingBidToDelete.id)
         setBidEdges(updatedBidEdges)
-        setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
+        setNotes((notes) => notes.filter((p) => p.id !== note.id))
         return
       }
 
       setBidEdges([...bidEdges.filter((p) => p.id !== existingBidToUpdate?.id), result])
-      setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
+      setNotes((notes) => notes.filter((p) => p.id !== note.id))
     } catch (error) {
       promptError(error.message)
       setBidUpdateStatus((status) => !status)

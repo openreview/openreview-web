@@ -14,7 +14,6 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .click(loginButton)
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Messages`
   .page`http://localhost:${process.env.NEXT_PORT}/messages`
 

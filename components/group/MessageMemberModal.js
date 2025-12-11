@@ -102,7 +102,6 @@ const MessageMemberModal = ({
         try {
           localStorage.setItem(`${groupId}|${member}`, Date.now())
         } catch (e) {
-          // eslint-disable-next-line no-console
           console.warn(`Could not save timestamp for ${member}`)
         }
       })

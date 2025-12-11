@@ -1,9 +1,6 @@
 const nextBuildId = require('next-build-id')
 
 module.exports = {
-  eslint: {
-    dirs: ['pages', 'components', 'hooks', 'lib', 'tests', 'unitTests'],
-  },
   env: {
     SERVER_ENV: process.env.NODE_ENV,
     API_URL: process.env.API_URL,

@@ -25,7 +25,6 @@ export default function useTurnstileToken(key, renderWidget) {
         })
         setWidgetId(id)
       } catch (error) {
-        // eslint-disable-next-line no-console
         console.log('Error rendering Turnstile widget:', error)
       }
     } else {

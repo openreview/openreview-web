@@ -109,11 +109,10 @@ export default function page() {
 
           <p>
             OpenReview.net is built over an earlier version described in the paper{' '}
-            {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
             <a href="/forum?id=xf0zSBd2iufMg" target="_blank">
               Open Scholarship and Peer Review: a Time for Experimentation
             </a>{' '}
-            published in the {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
+            published in the
             <a href="/group?id=ICML.cc/2013/PeerReview" target="_blank">
               ICML 2013 Peer Review Workshop
             </a>

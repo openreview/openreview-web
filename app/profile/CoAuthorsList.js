@@ -42,6 +42,7 @@ export default function CoAuthorsList({ coAuthors }) {
       </ul>
 
       {coAuthors.length > visibleCoAuthors.length && (
+        // eslint-disable-next-line jsx-a11y/anchor-is-valid
         <a href="#" onClick={handleViewAllClick} role="button">
           View all {coAuthors.length} co-authors
         </a>

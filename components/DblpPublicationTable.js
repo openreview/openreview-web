@@ -168,7 +168,6 @@ export default function DblpPublicationTable({
                   const existingPublication = orPublications.find(titleMatch)
                   const existingPublicationOfOtherProfile =
                     orPublicationsImportedByOtherProfile.find(titleMatch)
-                  // eslint-disable-next-line no-nested-ternary
                   const category = existingPublication
                     ? 'existing-publication'
                     : existingPublicationOfOtherProfile
@@ -177,7 +176,6 @@ export default function DblpPublicationTable({
 
                   return (
                     <DblpPublicationRow
-                      // eslint-disable-next-line react/no-array-index-key
                       key={publication.key}
                       title={publication.title}
                       authors={publication.authorNames}

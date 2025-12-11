@@ -1,5 +1,4 @@
 /* globals promptError: false */
-/* eslint-disable no-cond-assign */
 
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import pick from 'lodash/pick'
