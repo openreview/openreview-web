@@ -905,7 +905,6 @@ export default function Column(props) {
         if (allItems.find((p) => p.id === item.id)) return
         allItems.push({
           ...item,
-
           editEdgeTemplates: editInvitations.map((editInvitation) =>
             buildNewEditEdge(editInvitation, item.id)
           ),
@@ -947,7 +946,6 @@ export default function Column(props) {
         if (item.searchText.match(searchRegex)) {
           matchingItems.push({
             ...item,
-
             editEdgeTemplates: editInvitations.map((editInvitation) =>
               buildNewEditEdge(editInvitation, item.id)
             ),
