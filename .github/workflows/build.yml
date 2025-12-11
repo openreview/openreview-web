@@ -222,5 +222,26 @@ jobs:
           skip_install: true
       - name: Deploy to dev
         run: |
-          gcloud compute ssh --zone "us-central1-b" --tunnel-through-iap openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-web.sh' --quiet
-          gcloud compute ssh --zone "us-central1-b" --tunnel-through-iap openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-openreview-py.sh' --quiet
+          instance_prefix='openreview-dev-'
+
+          instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
+
+          instances_arr=(${instances// / })
+
+          instance_names=()
+          zones=()
+
+          for i in ${!instances_arr[@]}; do
+            if echo "${instances_arr[$i]}" | grep -q "$instance_prefix"; then
+              instance_names+=(${instances_arr[$i]})
+            else
+              zones+=(${instances_arr[$i]})
+            fi
+          done
+
+          for i in ${!instance_names[@]}; do
+            echo Deploying to ${instance_names[$i]}
+
+            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-web.sh' --quiet
+            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-openreview-py.sh' --quiet
+          done
