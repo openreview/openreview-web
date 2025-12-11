@@ -60,5 +60,5 @@ jobs:
 
           for i in ${!instance_names[@]}; do
             echo Deploying to ${instance_names[$i]}
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command "bash bin/deploy-web.sh ${TAG}"
+            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command "bash bin/build-web.sh ${TAG} && bash bin/deploy-web.sh ${TAG}"
           done
