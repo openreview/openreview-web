@@ -1,0 +1,146 @@
+@use '../utils/constants';
+
+.donateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.section {
+  display: flex;
+  width: 100%;
+}
+
+.messageDonate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+
+  .message {
+    padding: 2rem;
+    padding-bottom: 0;
+    flex: 1 1 400px;
+    order: 0;
+  }
+
+  .donateContainer {
+    margin-top: 10%;
+    margin-bottom: 2rem;
+    flex: 1 1 400px;
+    order: 1;
+
+    .frequencyButtons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+
+      button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        cursor: pointer;
+        border-radius: 4px;
+
+        &.active {
+          background-color: #ff7a1a;
+          color: #fff;
+          border-color: #ff7a1a;
+        }
+      }
+    }
+
+    .amountButtons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+
+      .amountButton {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        cursor: pointer;
+        border-radius: 4px;
+        text-align: center;
+        min-width: 4rem;
+
+        input {
+          border: none;
+          outline: none;
+          width: 100%;
+          text-align: center;
+        }
+      }
+
+      .activeAmountButton {
+        background-color: #ff7a1a;
+        color: #fff;
+        border-color: #ff7a1a;
+      }
+
+      .activeAmountInput {
+        box-shadow: 0 0 5px rgba(255, 122, 26, 0.5);
+      }
+    }
+
+    .coverFeesLabel {
+      vertical-align: top;
+      margin-left: 0.25rem;
+    }
+
+    button {
+      background-color: #ff7a1a;
+      border: 2px solid #ff7a1a;
+    }
+
+    .contactUsMessage {
+      margin-top: 1rem;
+      color: #757575;
+      font-size: 0.9rem;
+      word-break: break-word;
+    }
+  }
+}
+
+.benefits {
+  display: flex;
+  flex-direction: column;
+  padding-left: 2rem;
+  padding-top: 2rem;
+}
+
+.supporters {
+  padding-left: 2rem;
+  padding-top: 2rem;
+}
+
+.statistics {
+  padding-left: 2rem;
+
+  .statisticsCards {
+    display: flex;
+    gap: 3rem;
+    width: 100%;
+    flex-wrap: wrap;
+
+    .card {
+      padding: 0.25rem 3rem;
+      border: 1px solid #ccc;
+      border-radius: 2px;
+      text-align: center;
+      flex: 1 1 15rem;
+      min-width: 15rem;
+
+      // width: 15rem;
+
+      :global {
+        h3 {
+          font-weight: bold;
+        }
+        p {
+          color: #757575;
+        }
+      }
+    }
+  }
+}
