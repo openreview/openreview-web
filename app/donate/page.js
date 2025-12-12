@@ -2,7 +2,7 @@
 
 /* globals promptError,promptMessage: false */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import { useSearchParams } from 'next/navigation'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -17,56 +17,100 @@ const benefits = [
 ]
 
 const Max = 10000
+const feeRate = 1.03
+
+const defaultDonateForum = {
+  mode: 'subscription',
+  presetAmount: null,
+  customAmount: '',
+  coverFees: false,
+  finalAmount: null,
+  disableDonateButton: true,
+  donateButtonText: 'Make a Donation',
+  maxAmountError: null,
+}
+
+const donationReducer = (state, action) => {
+  switch (action.type) {
+    case 'SET_MODE':
+      return {
+        ...state,
+        mode: action.payload.mode,
+        donateButtonText: state.finalAmount
+          ? `Make a Donation of $${state.finalAmount.toFixed(2)}${action.payload.mode === 'subscription' ? ' /month' : ''}`
+          : 'Make a Donation',
+      }
+    case 'SET_PRESET_AMOUNT':
+      return {
+        ...state,
+        presetAmount: action.payload.amount,
+        customAmount: '',
+        finalAmount: state.coverFees ? action.payload.amount * feeRate : action.payload.amount,
+        disableDonateButton: false,
+        donateButtonText: `Make a Donation of $${state.coverFees ? (action.payload.amount * feeRate).toFixed(2) : action.payload.amount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
+      }
+    case 'SET_CUSTOM_AMOUNT': {
+      const rawAmount = action.payload.amount
+      const cleanValue = Number(rawAmount.replace(/^\$ /, '').replace(/[^0-9]/g, ''))
+      if (Number.isNaN(cleanValue) || cleanValue <= 0) return defaultDonateForum
+      const updatedFinalAmount = state.coverFees ? cleanValue * feeRate : cleanValue
+      if (updatedFinalAmount > Max) {
+        return {
+          ...defaultDonateForum,
+          maxAmountError: true,
+        }
+      }
+      return {
+        ...state,
+        customAmount: cleanValue,
+        presetAmount: null,
+        finalAmount: updatedFinalAmount,
+        disableDonateButton: false,
+        donateButtonText: `Make a Donation of $${updatedFinalAmount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
+      }
+    }
+    case 'TOGGLE_COVER_FEE': {
+      if (!state.finalAmount) return state
+      const updatedFinalAmount = Number(
+        state.coverFees ? state.finalAmount / feeRate : state.finalAmount * feeRate.toFixed(2)
+      )
+      if (updatedFinalAmount > Max) {
+        return {
+          ...defaultDonateForum,
+          maxAmountError: true,
+        }
+      }
+      return {
+        ...state,
+        coverFees: !state.coverFees,
+        finalAmount: updatedFinalAmount,
+        disableDonateButton: false,
+        donateButtonText: `Make a Donation of $${updatedFinalAmount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
+      }
+    }
+    default:
+      return state
+  }
+}
 
 export default function Page() {
-  const [presetAmount, setPresetAmount] = useState(null)
-  const [customAmount, setCustomAmount] = useState('')
-  const [baseAmount, setBaseAmount] = useState(null)
-  const [coverFees, setCoverFees] = useState(false)
-  const [mode, setMode] = useState('subscription')
   const { accessToken, user } = useUser()
   const searchParams = useSearchParams()
   const success = searchParams.get('success')
 
-  const finalAmount = baseAmount && coverFees ? baseAmount * 1.03 : baseAmount
-
-  const disableDonateButton =
-    !finalAmount || Number.isNaN(finalAmount) || Number(finalAmount) <= 0
-  const donateButtonText = disableDonateButton
-    ? 'Make a Donation'
-    : `Make a Donation ${finalAmount && !Number.isNaN(finalAmount) ? `of $${finalAmount.toFixed(2)}` : ''}
-              ${mode === 'subscription' ? ' /month' : ''}`
+  const [donateForm, setDonateForm] = useReducer(donationReducer, defaultDonateForum)
 
   const email = user?.profile?.preferredEmail
 
-  const handleCustomAmountChange = (value) => {
-    let cleanValue = Number(value.replace(/^\$ /, '').replace(/[^0-9]/g, ''))
-    if (cleanValue > Max) {
-      cleanValue = Max
-      promptMessage(
-        `To make a donation over $${Max}, please contact us at [donate@openreview.net](mailto:donate@openreview.net)`,
-        8
-      )
-    }
-    setCustomAmount(cleanValue)
-    setBaseAmount(cleanValue)
-    setPresetAmount(null)
-  }
-
   const handlePresetAmountClick = (amount) => {
-    setPresetAmount(amount)
-    setBaseAmount(amount)
-    setCustomAmount('')
+    setDonateForm({ type: 'SET_PRESET_AMOUNT', payload: { amount } })
   }
 
   const handleDonate = async () => {
     try {
-      if (!finalAmount || Number.isNaN(finalAmount) || Number(finalAmount) <= 0) {
-        throw new Error('Please enter a valid donation amount')
-      }
       const result = await api.post(
         '/user/donate-session',
-        { amount: finalAmount, mode, email },
+        { amount: donateForm.finalAmount, mode: donateForm.mode, email },
         { accessToken }
       )
       if (!result.url) {
@@ -77,6 +121,15 @@ export default function Page() {
       promptError(error.message)
     }
   }
+
+  useEffect(() => {
+    if (donateForm.maxAmountError) {
+      promptMessage(
+        `To make a donation over $${Max}, please contact us at [donate@openreview.net](mailto:donate@openreview.net)`,
+        8
+      )
+    }
+  }, [donateForm.maxAmountError])
 
   useEffect(() => {
     if (success === 'true') {
@@ -124,90 +177,109 @@ export default function Page() {
           <div className={styles.donateContainer}>
             <div className={styles.frequencyButtons}>
               <button
-                className={mode === 'subscription' ? styles.active : ''}
-                onClick={() => setMode('subscription')}
+                className={donateForm.mode === 'subscription' ? styles.active : ''}
+                onClick={() =>
+                  setDonateForm({ type: 'SET_MODE', payload: { mode: 'subscription' } })
+                }
               >
                 Monthly
               </button>
               <button
-                className={mode === 'payment' ? styles.active : ''}
-                onClick={() => setMode('payment')}
+                className={donateForm.mode === 'payment' ? styles.active : ''}
+                onClick={() =>
+                  setDonateForm({ type: 'SET_MODE', payload: { mode: 'payment' } })
+                }
               >
                 One-Time
               </button>
             </div>
             <div className={styles.amountButtons}>
               <div
-                className={`${styles.amountButton} ${presetAmount === 10 ? styles.activeAmountButton : ''}`}
+                className={`${styles.amountButton} ${donateForm.presetAmount === 10 ? styles.activeAmountButton : ''}`}
                 onClick={() => handlePresetAmountClick(10)}
               >
                 $10
               </div>
               <div
-                className={`${styles.amountButton} ${presetAmount === 50 ? styles.activeAmountButton : ''}`}
+                className={`${styles.amountButton} ${donateForm.presetAmount === 50 ? styles.activeAmountButton : ''}`}
                 onClick={() => handlePresetAmountClick(50)}
               >
                 $50
               </div>
               <div
-                className={`${styles.amountButton} ${presetAmount === 100 ? styles.activeAmountButton : ''}`}
+                className={`${styles.amountButton} ${donateForm.presetAmount === 100 ? styles.activeAmountButton : ''}`}
                 onClick={() => handlePresetAmountClick(100)}
               >
                 $100
               </div>
-            </div>
-            <div className={styles.amountButtons}>
               <div
-                className={`${styles.amountButton} ${presetAmount === 500 ? styles.activeAmountButton : ''}`}
+                className={`${styles.amountButton} ${donateForm.presetAmount === 500 ? styles.activeAmountButton : ''}`}
                 onClick={() => handlePresetAmountClick(500)}
               >
                 $500
               </div>
+            </div>
+            <div className={styles.amountButtons}>
               <div
-                className={`${styles.amountButton} ${presetAmount === 1000 ? styles.activeAmountButton : ''}`}
+                className={`${styles.amountButton} ${donateForm.presetAmount === 1000 ? styles.activeAmountButton : ''}`}
                 onClick={() => handlePresetAmountClick(1000)}
               >
                 $1k
               </div>
               <div
-                className={`${styles.amountButton} ${presetAmount === 5000 ? styles.activeAmountButton : ''}`}
+                className={`${styles.amountButton} ${donateForm.presetAmount === 5000 ? styles.activeAmountButton : ''}`}
                 onClick={() => handlePresetAmountClick(5000)}
               >
                 $5k
               </div>
               <div
-                className={`${styles.amountButton} ${presetAmount === 10000 ? styles.activeAmountButton : ''}`}
-                onClick={() => handlePresetAmountClick(10000)}
+                className={styles.amountButton}
+                onClick={() =>
+                  promptMessage(
+                    `To make a donation over $${Max}, please contact us at [donate@openreview.net](mailto:donate@openreview.net)`,
+                    8
+                  )
+                }
               >
-                $10k
+                {'> $10k'}
               </div>
             </div>
             <div className={styles.amountButtons}>
               <div
-                className={`${styles.amountButton} ${customAmount !== '' ? styles.activeAmountInput : ''}`}
+                className={`${styles.amountButton} ${donateForm.customAmount !== '' ? styles.activeAmountInput : ''}`}
               >
                 <input
                   type="text"
                   placeholder="$ Other Amount"
-                  value={customAmount ? `$ ${customAmount}` : ''}
-                  onChange={(e) => handleCustomAmountChange(e.target.value)}
+                  value={donateForm.customAmount ? `$ ${donateForm.customAmount}` : ''}
+                  onChange={(e) =>
+                    setDonateForm({
+                      type: 'SET_CUSTOM_AMOUNT',
+                      payload: {
+                        amount: e.target.value,
+                      },
+                    })
+                  }
                 />
               </div>
             </div>
             <div>
               <input
                 type="checkbox"
-                name="coverFees"
-                checked={coverFees}
-                disabled={!baseAmount || Number.isNaN(baseAmount)}
-                onChange={(e) => setCoverFees(e.target.checked)}
+                id="coverFees"
+                checked={donateForm.coverFees}
+                onChange={(e) => setDonateForm({ type: 'TOGGLE_COVER_FEE' })}
               />
               <label htmlFor="coverFees" className={styles.coverFeesLabel}>
                 I would like to cover the transaction fees
               </label>
             </div>
-            <button className="btn" onClick={handleDonate} disabled={disableDonateButton}>
-              {donateButtonText}
+            <button
+              className="btn"
+              onClick={handleDonate}
+              disabled={donateForm.disableDonateButton}
+            >
+              {donateForm.donateButtonText}
             </button>
           </div>
         </div>
