@@ -1280,6 +1280,9 @@
         font-size: 1.25rem;
       }
       .group-workflow-container {
+        .subgroups-container {
+          margin-left: 2rem;
+        }
         .group-workflow {
           display: flex;
           justify-content: left;
