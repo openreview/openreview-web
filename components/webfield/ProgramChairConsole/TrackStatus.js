@@ -7,6 +7,7 @@ import WebFieldContext from '../../WebFieldContext'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { getProfileName, prettyId } from '../../../lib/utils'
+import { isSuperUser } from '../../../lib/clientAuth'
 
 const TrackStatus = () => {
   const {
@@ -151,15 +152,16 @@ const TrackStatus = () => {
             { accessToken }
           )
         : Promise.resolve([])
-      const getProfilesByEmailsP = emails.length
-        ? api.post(
-            '/profiles/search',
-            {
-              emails,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
+      const getProfilesByEmailsP =
+        emails.length && isSuperUser(user)
+          ? api.post(
+              '/profiles/search',
+              {
+                emails,
+              },
+              { accessToken }
+            )
+          : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
       const allProfiles = (profileResults[0].profiles ?? [])
         .concat(profileResults[1].profiles ?? [])
