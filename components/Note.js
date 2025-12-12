@@ -3,7 +3,7 @@ import NoteAuthors, { NoteAuthorsV2 } from './NoteAuthors'
 import NoteReaders from './NoteReaders'
 import NoteContent, { NoteContentV2 } from './NoteContent'
 import Icon from './Icon'
-import { prettyId, forumDate, inflect } from '../lib/utils'
+import { prettyId, forumDate, inflect, getNoteAuthorIds, getNoteAuthors } from '../lib/utils'
 import Collapse from './Collapse'
 import ClientForumDate from './ClientForumDate'
 
@@ -112,6 +112,8 @@ const Note = ({ note, invitation, options }) => {
 export const NoteV2 = ({ note, options }) => {
   const privatelyRevealed = options.showPrivateIcon && !note.readers.includes('everyone')
   const omitContentFields = ['pdf', 'html'].concat(options.omitFields ?? [])
+  const authorIds = getNoteAuthorIds(note, true)
+  const authors = getNoteAuthors(note, true)
 
   const renderNoteContent = () => {
     if (!options.showContents || (note.ddate && note.ddate <= Date.now())) return null
@@ -172,8 +174,8 @@ export const NoteV2 = ({ note, options }) => {
           options.customAuthor(note)
         ) : (
           <NoteAuthorsV2
-            authors={note.content?.authors}
-            authorIds={note.content?.authorids}
+            authors={authors}
+            authorIds={authorIds}
             signatures={note.signatures}
             noteReaders={note.readers}
           />
