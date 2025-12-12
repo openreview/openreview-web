@@ -263,4 +263,59 @@ return officialReview.length;
       })
     )
   })
+
+  test('not to add customStageInvitation to sort options (no display field or no extra display fields)', () => {
+    const providerProps = {
+      value: {
+        reviewerName: 'Reviewers',
+        anonReviewerName: 'Reviewer_',
+        officialReviewName: 'Offical_Review',
+        customStageInvitations: [
+          {
+            // no extra display fields
+            name: 'Custom_Stage_Field_One',
+            displayField: 'custom_stage_field_one',
+            extraDisplayFields: undefined,
+          },
+          {
+            // no display field
+            name: 'Custom_Stage_Field_Two',
+            displayField: undefined,
+            extraDisplayFields: ['some_field', 'some_other_field'],
+          },
+          {
+            // not for display, overview statistics only
+            name: 'Custom_Stage_Field_Three',
+            displayField: undefined,
+            extraDisplayFields: undefined,
+          },
+        ],
+      },
+    }
+    const componentProps = { reviewRatingName: 'rating' }
+    renderWithWebFieldContext(<PaperStatusMenuBar {...componentProps} />, providerProps)
+
+    const allLabels = baseMenuBarProps.sortOptions.map((option) => option.label)
+
+    expect(baseMenuBarProps.sortOptions).toContainEqual(
+      expect.objectContaining({
+        label: 'Custom Stage Field One',
+      })
+    )
+    expect(allLabels.filter((p) => p.includes('One')).length).toBe(1) // Custom Stage Field One
+
+    expect(baseMenuBarProps.sortOptions).toContainEqual(
+      expect.objectContaining({
+        label: 'Custom Stage Field Two - Some Field',
+      })
+    )
+    expect(baseMenuBarProps.sortOptions).toContainEqual(
+      expect.objectContaining({
+        label: 'Custom Stage Field Two - Some Other Field',
+      })
+    )
+    expect(allLabels.filter((p) => p.includes('Two')).length).toBe(2) // 2 extra display fields
+
+    expect(allLabels.filter((p) => p.includes('Three')).length).toBe(0) // not added
+  })
 })

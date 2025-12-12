@@ -445,23 +445,30 @@ const PaperStatusMenuBar = ({
     },
     ...(customStageInvitations?.length > 0
       ? customStageInvitations
-          .map((invitation) =>
-            invitation.extraDisplayFields
-              .map((extraDisplayField) => ({
-                label: `${prettyId(invitation.name)} - ${prettyField(extraDisplayField)}`,
-                value: `${invitation.name} ${extraDisplayField}`,
-                getValue: (p) =>
-                  p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
-                    ?.content?.[extraDisplayField]?.value ?? 'N/A',
-              }))
-              .concat({
+          .map((invitation) => {
+            const items = []
+            if (invitation.extraDisplayFields?.length) {
+              invitation.extraDisplayFields.forEach((extraDisplayField) => {
+                items.push({
+                  label: `${prettyId(invitation.name)} - ${prettyField(extraDisplayField)}`,
+                  value: `${invitation.name} ${extraDisplayField}`,
+                  getValue: (p) =>
+                    p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
+                      ?.content?.[extraDisplayField]?.value ?? 'N/A',
+                })
+              })
+            }
+            if (invitation.displayField) {
+              items.push({
                 label: prettyField(invitation.displayField),
                 value: invitation.name,
                 getValue: (p) =>
                   p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
                     ?.searchValue,
               })
-          )
+            }
+            return items
+          })
           .flat()
       : []),
     {
