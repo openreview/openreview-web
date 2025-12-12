@@ -1,11 +1,13 @@
 'use client'
 
+/* globals promptError,promptMessage: false */
+
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
 import styles from '../../styles/components/Donate.module.scss'
-import { useSearchParams } from 'next/navigation'
 
 const benefits = [
   'Support the long-term sustainability of open science infrastructure.',
@@ -14,53 +16,57 @@ const benefits = [
   'Have your name listed among our supporters (optional).',
 ]
 
-const Max = 50000
+const Max = 10000
 
 export default function Page() {
   const [presetAmount, setPresetAmount] = useState(null)
   const [customAmount, setCustomAmount] = useState('')
-  const [finalAmount, setFinalAmount] = useState(null)
+  const [baseAmount, setBaseAmount] = useState(null)
+  const [coverFees, setCoverFees] = useState(false)
   const [mode, setMode] = useState('subscription')
   const { accessToken, user } = useUser()
   const searchParams = useSearchParams()
   const success = searchParams.get('success')
 
-  const disableDonateButton = !finalAmount || isNaN(finalAmount) || Number(finalAmount) <= 0
+  const finalAmount = baseAmount && coverFees ? baseAmount * 1.03 : baseAmount
+
+  const disableDonateButton =
+    !finalAmount || Number.isNaN(finalAmount) || Number(finalAmount) <= 0
   const donateButtonText = disableDonateButton
     ? 'Make a Donation'
-    : `Make a Donation ${finalAmount && !isNaN(finalAmount) ? `of $${finalAmount}` : ''}
+    : `Make a Donation ${finalAmount && !Number.isNaN(finalAmount) ? `of $${finalAmount.toFixed(2)}` : ''}
               ${mode === 'subscription' ? ' /month' : ''}`
 
   const email = user?.profile?.preferredEmail
 
   const handleCustomAmountChange = (value) => {
-    let cleanValue = value.replace(/^\$ /, '').replace(/[^0-9]/g, '')
+    let cleanValue = Number(value.replace(/^\$ /, '').replace(/[^0-9]/g, ''))
     if (cleanValue > Max) {
       cleanValue = Max
       promptMessage(
-        'To make a donation over $50000, please contact us at [donate@openreview.net](mailto:donate@openreview.net)',
+        `To make a donation over $${Max}, please contact us at [donate@openreview.net](mailto:donate@openreview.net)`,
         8
       )
     }
     setCustomAmount(cleanValue)
-    setFinalAmount(cleanValue)
+    setBaseAmount(cleanValue)
     setPresetAmount(null)
   }
 
   const handlePresetAmountClick = (amount) => {
     setPresetAmount(amount)
-    setFinalAmount(amount)
+    setBaseAmount(amount)
     setCustomAmount('')
   }
 
   const handleDonate = async () => {
     try {
-      if (!finalAmount || isNaN(finalAmount) || Number(finalAmount) <= 0) {
+      if (!finalAmount || Number.isNaN(finalAmount) || Number(finalAmount) <= 0) {
         throw new Error('Please enter a valid donation amount')
       }
       const result = await api.post(
         '/user/donate-session',
-        { amount: finalAmount, mode: mode, email },
+        { amount: finalAmount, mode, email },
         { accessToken }
       )
       if (!result.url) {
@@ -192,15 +198,9 @@ export default function Page() {
               <input
                 type="checkbox"
                 name="coverFees"
-                disabled={!finalAmount || isNaN(finalAmount)}
-                onChange={(e) => {
-                  const isChecked = e.target.checked
-                  if (isChecked) {
-                    setFinalAmount(finalAmount * 1.03)
-                  } else {
-                    setFinalAmount(finalAmount / 1.03)
-                  }
-                }}
+                checked={coverFees}
+                disabled={!baseAmount || Number.isNaN(baseAmount)}
+                onChange={(e) => setCoverFees(e.target.checked)}
               />
               <label htmlFor="coverFees" className={styles.coverFeesLabel}>
                 I would like to cover the transaction fees
