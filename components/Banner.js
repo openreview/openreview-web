@@ -1,9 +1,14 @@
 export default function Banner({ hidden, children }) {
   const defaultContent = (
     <span className="tagline">
-      Open Peer Review. Open Publishing. Open Access.{' '}
-      <span className="hidden-xs">Open Discussion. Open Recommendations.</span>{' '}
-      <span className="hidden-xs hidden-sm">Open Directory. Open API. Open Source.</span>
+      Support Open Science! Help us maintain OpenReview by{' '}
+      <a href="https://donate.stripe.com/eVqdR8fP48bK1R61fi0oM00" className="donate-link">
+        making a donation
+      </a>{' '}
+      today.{' '}
+      <span className="hidden-xs">
+        Your contribution keeps our platform free and accessible.
+      </span>
     </span>
   )
 
