@@ -162,6 +162,7 @@ describe('Donation Page', () => {
       },
       expect.anything()
     )
+    expect(screen.getByText('Make a Donation of $100.00 /month')).toBeDisabled() // button disabled after submit
 
     // fixed amount with transaction fee
     await userEvent.click(screen.getByText('$100'))

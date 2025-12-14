@@ -88,6 +88,11 @@ const donationReducer = (state, action) => {
         donateButtonText: `Make a Donation of $${updatedFinalAmount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
       }
     }
+    case 'SUBMIT':
+      return {
+        ...state,
+        disableDonateButton: true,
+      }
     default:
       return state
   }
@@ -107,6 +112,7 @@ export default function Page() {
   }
 
   const handleDonate = async () => {
+    setDonateForm({ type: 'SUBMIT' })
     try {
       const result = await api.post(
         '/user/donate-session',
