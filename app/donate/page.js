@@ -173,34 +173,217 @@ export default function Page() {
         <div className={styles.messageDonate}>
           <div className={styles.message}>
             <p>
-              Since we launched OpenReview, our goal has been simple: to make scientific
-              knowledge accessible, transparent, and useful for everyone — researchers,
-              educators, and curious minds alike. We have built a platform that centers open
-              dialogue, rigorous peer review, and community-led improvements. None of this
-              would have been possible without your contributions, feedback, and trust.
+              <strong>The OpenReview Foundation is a 501(c)3 nonprofit.</strong>
             </p>
-            <p>
-              Today, we need your help to keep this mission thriving. Running a secure, fast,
-              and feature-rich platform takes ongoing investment: server costs, developer time
-              to build and maintain tooling, and support for community programs that broaden
-              participation. Your donation directly enables us to continue operating without
-              paywalls or advertising — preserving independence and user privacy.
-            </p>
-            <p>
-              Donations fund priorities like performance improvements, reviewer tooling,
-              accessibility enhancements, and moderation resources that keep conversations
-              constructive and welcoming. Even a modest monthly gift allows us to plan
-              longer-term work and respond quickly to community needs.
-            </p>
-            <p>
-              If you believe in the value of open science and want to help sustain a platform
-              that serves researchers around the world, please consider donating. We’re
-              committed to transparency and will share how donations are used to support the
-              community. Thank you for being part of this project and for helping us keep
-              knowledge open and accessible to all.
-            </p>
-            <p>Andrew McCallum</p>
-            <p>Founder, OpenReview</p>
+            <strong>What is OpenReview?</strong>
+            <ul>
+              <li>
+                <span>
+                  OpenReview is a nonprofit dedicated to improving scientific dialogue by
+                  providing the peer-review infrastructure on which the majority of the
+                  artificial intelligence research community’s flagship publication venues
+                  depend.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>A trusted, fast-growing service.</strong> OpenReview has earned deep
+                  respect through tireless, highly customized support for leading AI research
+                  venues. As a result, its usage has grown dramatically—approximately doubling
+                  each of the past nine years in the number of venues, users, and publications.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>Critical infrastructure for AI research.</strong> OpenReview
+                  underpins the vast majority of the flagship AI conferences we know and love:
+                  NeurIPS, ICLR, ICML, AAAI, UAI, AISTATS, CVPR, ICCV, ECCV, ACL, EMNLP, NAACL,
+                  ARR, COLM, TMLR, TheWebConf, KDD, and many more.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>Size of service.</strong> In 2025 alone, OpenReview supported more
+                  than 1,300 conferences and workshops, serving a community of 3.3 million
+                  active monthly users, handling more than 278,000 papers (more than all of
+                  ArXiv, double that of ACM).
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>Designed as a laboratory for peer-review innovation.</strong> Since
+                  OpenReview’s inception, founder Andrew McCallum has believed that the time is
+                  ripe for revolutionary new ideas in peer review. OpenReview was intentionally
+                  designed to support not just one style of peer review, but to offer great
+                  flexibility for designing innovations in peer review, so that different
+                  publication venues and communities could experiment with new ideas, as ICLR
+                  has done.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>Born from the community it serves.</strong> OpenReview emerged
+                  organically from the AI research community. It is designed by researchers,
+                  for researchers, for the benefit of the research community, and governed in
+                  service of scientific values—not commercial trends or external agendas.
+                </span>
+              </li>
+            </ul>
+            <strong>Why is OpenReview important?</strong>
+            <ul>
+              <li>
+                <span>
+                  <strong>
+                    AI is reshaping the world—and peer review is where its science is debated
+                    and refined.
+                  </strong>{' '}
+                  As the world grapples with the promise and peril of artificial intelligence,
+                  OpenReview has become a central venue where AI research is rigorously
+                  scrutinized, openly examined. Many of the most important AI research advances
+                  of the last decade have gone through OpenReview, and have been shaped by the
+                  feedback of the community.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>Scientific evaluation is under growing pressure.</strong> Commercial,
+                  political, and geopolitical interests increasingly press on AI research.
+                  Independent, trusted peer review has never been more essential.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>There is no practical alternative at scale.</strong> Conferences like
+                  NeurIPS, ICML, and AAAI would struggle to function without OpenReview. No
+                  other platform today can reliably support submission volumes of 30,000+
+                  papers per deadline, and the ensuing reviewer matching and dialog.
+                </span>
+              </li>
+            </ul>
+            <strong>Why is OpenReview a nonprofit?</strong>
+            <ul>
+              <li>
+                <span>
+                  <strong>Peer review must remain a public good.</strong> Peer review and the
+                  scientific discussion at its core should be sacrosanct, not monetized or
+                  distorted to enrich investors.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>For-profit incentives inevitably diverge.</strong> Commercial
+                  publishing, discussion, and review platforms face unavoidable pressure to
+                  optimize for revenue, lock-in, or control. Over time, these incentives risk
+                  conflict with the openness, fairness, and scientific integrity that the
+                  research community depends on. Nonprofit stewardship is the most reliable way
+                  to safeguard these values for the scientific community and society at large.
+                </span>
+              </li>
+              <li>
+                <span>
+                  To sustain its vital mission, OpenReview relies on the generosity of its
+                  donors: corporations, philanthropic foundations, conferences, and
+                  individuals.
+                </span>
+              </li>
+            </ul>
+            <strong>Why donate now?</strong>
+            <ul>
+              <li>
+                <span>
+                  <strong>
+                    AI is rapidly becoming a foundational technology with wide-ranging and
+                    long-lasting societal impact.
+                  </strong>{' '}
+                  The science of AI—its innovation, evaluation, safety, and governance—will
+                  shape society for generations. The AI research community needs a robust,
+                  open, unbiased, nonprofit institution to support scientific debate and peer
+                  review at scale.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>OpenReview is at a true inflection point.</strong> The OpenReview
+                  organization is transitioning from its roots as (1) a university lab project,
+                  through its current status as (2) a scrappy nonprofit, to a (3) fully
+                  staffed, professionally structured, high-velocity and adaptive organization
+                  capable of building sophisticated features in response to rapidly evolving
+                  community needs.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>Attracting exceptional talent.</strong> Visible financial commitments
+                  send a powerful signal of confidence and stability, significantly
+                  strengthening OpenReview’s ability to attract a truly outstanding additional
+                  executive and technical talent across key roles.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>The stakes have risen.</strong> AI institutions—and peer review
+                  itself—are increasingly targeted by cyberattacks, coordinated manipulation,
+                  and social engineering attacks. OpenReview must rapidly strengthen its
+                  security, resilience, and operational maturity.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>A narrow window for multiplicative impact.</strong> These are the
+                  final weeks of the calendar year and ahead of changes to U.S.
+                  charitable-giving tax policy.
+                </span>
+              </li>
+            </ul>
+            <strong>How can we have confidence in OpenReview’s future?</strong>
+            <ul>
+              <li>
+                <span>
+                  <strong>The community is stepping up.</strong> Leading conferences—including
+                  NeurIPS, ICML, and ICLR—have doubled or more their financial support for
+                  OpenReview.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>More than a decade of earned trust.</strong> Since its founding in
+                  2012, OpenReview has built extraordinary goodwill, credibility, and
+                  admiration within the global AI research community.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>Strong governance.</strong> The OpenReview Foundation is a 501(c)(3)
+                  nonprofit with a formal Board, robust governance structures, and active
+                  community engagement and oversight.
+                </span>
+              </li>
+            </ul>
+            <strong>What will the donated funds enable?</strong>
+            <ul>
+              <li>
+                <span>
+                  <strong>Scaling the organization.</strong> Growing staff from roughly
+                  one-third the size of ArXiv’s to a level commensurate with OpenReview’s scope
+                  and responsibility (from ~8 today toward ~25+).
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>Security and resilience.</strong> Immediate investment in higher-tier
+                  professional security audits, dedicated security staff, and long-term
+                  robustness against technical and social attacks.
+                </span>
+              </li>
+              <li>
+                <span>
+                  <strong>Eventually, endowment for stability.</strong> Building an endowment
+                  to ensure OpenReview’s independence, financial stability, and longevity—so
+                  this infrastructure remains strong and trusted beyond any individual’s
+                  lifetime.
+                </span>
+              </li>
+            </ul>
           </div>
           <div className={styles.donateContainer}>
             <div className={styles.frequencyButtons}>
