@@ -45,15 +45,24 @@ describe('Donation Page', () => {
       screen.queryByRole('checkbox', { name: 'I would like to cover the transaction fees' })
     ).not.toBeInTheDocument() // only show after amount selection/input
 
-    expect(screen.getByRole('button', { name: 'Make a Donation' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Make a Donation' })).toBeDisabled()
+    expect(
+      screen.getByRole('button', { name: 'Make a Donation through Stripe' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('button', { name: 'Make a Donation through Stripe' })
+    ).toBeDisabled()
   })
 
   test('update selection in button text', async () => {
     render(<Donate />)
 
     await userEvent.click(screen.getByRole('button', { name: 'One-Time' }))
-    expect(screen.getByRole('button', { name: 'Make a Donation' })).toBeInTheDocument() // no change when no amount
+    expect(
+      screen.getByRole('button', { name: 'Make a Donation through Stripe' })
+    ).toBeInTheDocument() // no change when no amount
+    expect(
+      screen.queryByRole('checkbox', { name: 'I would like to cover the transaction fees' })
+    ).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByText('$10'))
     expect(screen.getByText('Make a Donation of $10.00')) // no month
@@ -131,7 +140,7 @@ describe('Donation Page', () => {
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '12345', {
       replace: true,
     })
-    expect(screen.getByText('Make a Donation')).toBeDisabled()
+    expect(screen.getByText('Make a Donation through Stripe')).toBeDisabled()
     expect(global.promptMessage).toHaveBeenCalled()
   })
 
@@ -149,7 +158,7 @@ describe('Donation Page', () => {
         name: 'I would like to add $299.97 to cover the transaction fees',
       })
     ) // check to add fee
-    expect(screen.getByText('Make a Donation')).toBeDisabled()
+    expect(screen.getByText('Make a Donation through Stripe')).toBeDisabled()
     expect(global.promptMessage).toHaveBeenCalled()
   })
 
@@ -171,7 +180,7 @@ describe('Donation Page', () => {
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '9999', {
       replace: true,
     })
-    expect(screen.getByText('Make a Donation')).toBeDisabled()
+    expect(screen.getByText('Make a Donation through Stripe')).toBeDisabled()
     expect(global.promptMessage).toHaveBeenCalled()
   })
 
@@ -188,6 +197,7 @@ describe('Donation Page', () => {
         amount: 100,
         mode: 'subscription',
         email: undefined,
+        irsReceipt: false,
       },
       expect.anything()
     )
@@ -207,21 +217,27 @@ describe('Donation Page', () => {
         amount: 103,
         mode: 'subscription',
         email: undefined,
+        irsReceipt: false,
       },
       expect.anything()
     )
 
     // custom amount with transactio fee(already checked)
-    await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '123', {
+    await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '249', {
       replace: true,
     })
-    await userEvent.click(screen.getByText('Make a Donation of $126.69 /month'))
+    expect(
+      screen.getByRole('checkbox', { name: 'Send me an IRS receipt for tax purposes' })
+    ).toBeChecked() // over 250 auto check
+
+    await userEvent.click(screen.getByText('Make a Donation of $256.47 /month'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
       {
-        amount: 126.69,
+        amount: 256.47,
         mode: 'subscription',
         email: undefined,
+        irsReceipt: true,
       },
       expect.anything()
     )
@@ -229,16 +245,17 @@ describe('Donation Page', () => {
     // custom amount with no transaction fee
     await userEvent.click(
       screen.getByRole('checkbox', {
-        name: 'I would like to add $3.69 to cover the transaction fees',
+        name: 'I would like to add $7.47 to cover the transaction fees',
       })
     ) // uncheck to remove fee
-    await userEvent.click(screen.getByText('Make a Donation of $123.00 /month'))
+    await userEvent.click(screen.getByText('Make a Donation of $249.00 /month'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
       {
-        amount: 123,
+        amount: 249,
         mode: 'subscription',
         email: undefined,
+        irsReceipt: true,
       },
       expect.anything()
     )
@@ -261,6 +278,7 @@ describe('Donation Page', () => {
         amount: 100,
         mode: 'payment',
         email: 'test@email.com',
+        irsReceipt: false,
       },
       expect.anything()
     )
@@ -279,6 +297,7 @@ describe('Donation Page', () => {
         amount: 103,
         mode: 'payment',
         email: 'test@email.com',
+        irsReceipt: false,
       },
       expect.anything()
     )
@@ -294,6 +313,7 @@ describe('Donation Page', () => {
         amount: 126.69,
         mode: 'payment',
         email: 'test@email.com',
+        irsReceipt: false,
       },
       expect.anything()
     )
@@ -311,6 +331,7 @@ describe('Donation Page', () => {
         amount: 123,
         mode: 'payment',
         email: 'test@email.com',
+        irsReceipt: false,
       },
       expect.anything()
     )

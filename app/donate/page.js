@@ -10,6 +10,7 @@ import api from '../../lib/api-client'
 import styles from '../../styles/components/Donate.module.scss'
 
 const Max = 10000
+const MaxString = Max.toLocaleString()
 const feeRate = 1.03
 
 const defaultDonateForum = {
@@ -18,9 +19,10 @@ const defaultDonateForum = {
   customAmount: '',
   showCoverFeesCheckbox: false,
   coverFees: false,
+  requireIRSReceipt: false,
   finalAmount: null,
   disableDonateButton: true,
-  donateButtonText: 'Make a Donation',
+  donateButtonText: 'Make a Donation through Stripe',
   maxAmountError: null,
 }
 
@@ -29,23 +31,28 @@ const donationReducer = (state, action) => {
     case 'SET_MODE':
       return {
         ...state,
-        showCoverFeesCheckbox: true,
+        showCoverFeesCheckbox: !!state.finalAmount,
         mode: action.payload.mode,
         donateButtonText: state.finalAmount
           ? `Make a Donation of $${state.finalAmount.toFixed(2)}${action.payload.mode === 'subscription' ? ' /month' : ''}`
-          : 'Make a Donation',
+          : 'Make a Donation through Stripe',
       }
-    case 'SET_PRESET_AMOUNT':
+    case 'SET_PRESET_AMOUNT': {
+      const updatedFinalAmount = state.coverFees
+        ? action.payload.amount * feeRate
+        : action.payload.amount
       return {
         ...state,
         showCoverFeesCheckbox: true,
         presetAmount: action.payload.amount,
         customAmount: '',
-        finalAmount: state.coverFees ? action.payload.amount * feeRate : action.payload.amount,
+        finalAmount: updatedFinalAmount,
         disableDonateButton: false,
-        donateButtonText: `Make a Donation of $${state.coverFees ? (action.payload.amount * feeRate).toFixed(2) : action.payload.amount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
+        donateButtonText: `Make a Donation of $${updatedFinalAmount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
         coverFeesCheckboxText: `I would like to add $${(action.payload.amount * (feeRate - 1)).toFixed(2)} to cover the transaction fees`,
+        requireIRSReceipt: updatedFinalAmount >= 250 ? true : state.requireIRSReceipt,
       }
+    }
     case 'SET_CUSTOM_AMOUNT': {
       const rawAmount = action.payload.amount
       const cleanValue = Number(rawAmount.replace(/^\$ /, '').replace(/[^0-9]/g, ''))
@@ -66,12 +73,15 @@ const donationReducer = (state, action) => {
         disableDonateButton: false,
         donateButtonText: `Make a Donation of $${updatedFinalAmount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
         coverFeesCheckboxText: `I would like to add $${(cleanValue * (feeRate - 1)).toFixed(2)} to cover the transaction fees`,
+        requireIRSReceipt: updatedFinalAmount >= 250 ? true : state.requireIRSReceipt,
       }
     }
     case 'TOGGLE_COVER_FEE': {
       if (!state.finalAmount) return state
       const updatedFinalAmount = Number(
-        state.coverFees ? state.finalAmount / feeRate : state.finalAmount * feeRate.toFixed(2)
+        state.coverFees
+          ? (state.finalAmount / feeRate).toFixed(2)
+          : (state.finalAmount * feeRate).toFixed(2)
       )
       if (updatedFinalAmount > Max) {
         return {
@@ -85,8 +95,14 @@ const donationReducer = (state, action) => {
         finalAmount: updatedFinalAmount,
         disableDonateButton: false,
         donateButtonText: `Make a Donation of $${updatedFinalAmount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
+        requireIRSReceipt: updatedFinalAmount >= 250 ? true : state.requireIRSReceipt,
       }
     }
+    case 'TOGGLE_IRS_RECEIPT':
+      return {
+        ...state,
+        requireIRSReceipt: !state.requireIRSReceipt,
+      }
     case 'SUBMIT':
       return {
         ...state,
@@ -115,7 +131,12 @@ export default function Page() {
     try {
       const result = await api.post(
         '/donate-session',
-        { amount: donateForm.finalAmount, mode: donateForm.mode, email },
+        {
+          amount: donateForm.finalAmount,
+          mode: donateForm.mode,
+          email,
+          irsReceipt: donateForm.requireIRSReceipt,
+        },
         { accessToken }
       )
       if (!result.url) {
@@ -130,7 +151,7 @@ export default function Page() {
   useEffect(() => {
     if (donateForm.maxAmountError) {
       promptMessage(
-        `To make a donation over $${Max}, please contact us at [donate@openreview.net](mailto:donate@openreview.net)`,
+        `To make a donation over $${MaxString}, please contact us at [donate@openreview.net](mailto:donate@openreview.net)`,
         8
       )
     }
@@ -145,10 +166,12 @@ export default function Page() {
   return (
     <div className={styles.donateContainer}>
       <div className={styles.section}>
+        <h2 className={styles.headerText}>Donate to the nonprofit OpenReview Foundation</h2>
+        <hr />
+      </div>
+      <div className={styles.section}>
         <div className={styles.messageDonate}>
           <div className={styles.message}>
-            <h2>A Message from Founder</h2>
-            <hr />
             <p>
               Since we launched OpenReview, our goal has been simple: to make scientific
               knowledge accessible, transparent, and useful for everyone — researchers,
@@ -241,13 +264,19 @@ export default function Page() {
                 className={styles.amountButton}
                 onClick={() =>
                   promptMessage(
-                    `To make a donation over $${Max}, please contact us at [donate@openreview.net](mailto:donate@openreview.net)`,
+                    `To make a donation over $${MaxString}, please contact us at [donations@openreview.net](mailto:donations@openreview.net)`,
                     8
                   )
                 }
               >
                 {'> $10k'}
               </div>
+            </div>
+            <div className={styles.maxAmountMessage}>
+              <span>
+                {`To make a donation over $${MaxString} or greater, please contact us at `}
+                <a href="mailto:donations@openreview.net">donations@openreview.net</a>
+              </span>
             </div>
             <div className={styles.amountButtons}>
               <div
@@ -269,16 +298,29 @@ export default function Page() {
               </div>
             </div>
             {donateForm.showCoverFeesCheckbox && (
-              <div>
-                <input
-                  type="checkbox"
-                  id="coverFees"
-                  checked={donateForm.coverFees}
-                  onChange={(e) => setDonateForm({ type: 'TOGGLE_COVER_FEE' })}
-                />
-                <label htmlFor="coverFees" className={styles.coverFeesLabel}>
-                  {donateForm.coverFeesCheckboxText}
-                </label>
+              <div className={styles.checkboxContainer}>
+                <div>
+                  <input
+                    type="checkbox"
+                    id="coverFees"
+                    checked={donateForm.coverFees}
+                    onChange={(e) => setDonateForm({ type: 'TOGGLE_COVER_FEE' })}
+                  />
+                  <label htmlFor="coverFees" className={styles.coverFeesLabel}>
+                    {donateForm.coverFeesCheckboxText}
+                  </label>
+                </div>
+                <div>
+                  <input
+                    type="checkbox"
+                    id="irsReceipt"
+                    checked={donateForm.requireIRSReceipt}
+                    onChange={(e) => setDonateForm({ type: 'TOGGLE_IRS_RECEIPT' })}
+                  />
+                  <label htmlFor="irsReceipt" className={styles.irsReceiptLabel}>
+                    Send me an IRS receipt for tax purposes
+                  </label>
+                </div>
               </div>
             )}
             <button
@@ -288,6 +330,13 @@ export default function Page() {
             >
               {donateForm.donateButtonText}
             </button>
+            <div className={styles.csrText}>
+              <span>
+                The OpenReview Foundation nonprofit is not yet registered with
+                <br />
+                Benevity, Bonterra, YourCause, Blackbaud, Submittable, or Optimy.
+              </span>
+            </div>
           </div>
         </div>
       </div>
