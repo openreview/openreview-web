@@ -9,13 +9,6 @@ import api from '../../lib/api-client'
 
 import styles from '../../styles/components/Donate.module.scss'
 
-const benefits = [
-  'Support the long-term sustainability of open science infrastructure.',
-  'Enjoy a distraction-free experience with no donation prompts while logged in.',
-  'Help fund new community features and reviewer tooling.',
-  'Have your name listed among our supporters (optional).',
-]
-
 const Max = 10000
 const feeRate = 1.03
 
@@ -23,6 +16,7 @@ const defaultDonateForum = {
   mode: 'subscription',
   presetAmount: null,
   customAmount: '',
+  showCoverFeesCheckbox: false,
   coverFees: false,
   finalAmount: null,
   disableDonateButton: true,
@@ -35,6 +29,7 @@ const donationReducer = (state, action) => {
     case 'SET_MODE':
       return {
         ...state,
+        showCoverFeesCheckbox: true,
         mode: action.payload.mode,
         donateButtonText: state.finalAmount
           ? `Make a Donation of $${state.finalAmount.toFixed(2)}${action.payload.mode === 'subscription' ? ' /month' : ''}`
@@ -43,11 +38,13 @@ const donationReducer = (state, action) => {
     case 'SET_PRESET_AMOUNT':
       return {
         ...state,
+        showCoverFeesCheckbox: true,
         presetAmount: action.payload.amount,
         customAmount: '',
         finalAmount: state.coverFees ? action.payload.amount * feeRate : action.payload.amount,
         disableDonateButton: false,
         donateButtonText: `Make a Donation of $${state.coverFees ? (action.payload.amount * feeRate).toFixed(2) : action.payload.amount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
+        coverFeesCheckboxText: `I would like to add $${(action.payload.amount * (feeRate - 1)).toFixed(2)} to cover the transaction fees`,
       }
     case 'SET_CUSTOM_AMOUNT': {
       const rawAmount = action.payload.amount
@@ -62,11 +59,13 @@ const donationReducer = (state, action) => {
       }
       return {
         ...state,
+        showCoverFeesCheckbox: true,
         customAmount: cleanValue,
         presetAmount: null,
         finalAmount: updatedFinalAmount,
         disableDonateButton: false,
         donateButtonText: `Make a Donation of $${updatedFinalAmount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''}`,
+        coverFeesCheckboxText: `I would like to add $${(cleanValue * (feeRate - 1)).toFixed(2)} to cover the transaction fees`,
       }
     }
     case 'TOGGLE_COVER_FEE': {
@@ -115,7 +114,7 @@ export default function Page() {
     setDonateForm({ type: 'SUBMIT' })
     try {
       const result = await api.post(
-        '/user/donate-session',
+        '/donate-session',
         { amount: donateForm.finalAmount, mode: donateForm.mode, email },
         { accessToken }
       )
@@ -269,17 +268,19 @@ export default function Page() {
                 />
               </div>
             </div>
-            <div>
-              <input
-                type="checkbox"
-                id="coverFees"
-                checked={donateForm.coverFees}
-                onChange={(e) => setDonateForm({ type: 'TOGGLE_COVER_FEE' })}
-              />
-              <label htmlFor="coverFees" className={styles.coverFeesLabel}>
-                I would like to cover the transaction fees
-              </label>
-            </div>
+            {donateForm.showCoverFeesCheckbox && (
+              <div>
+                <input
+                  type="checkbox"
+                  id="coverFees"
+                  checked={donateForm.coverFees}
+                  onChange={(e) => setDonateForm({ type: 'TOGGLE_COVER_FEE' })}
+                />
+                <label htmlFor="coverFees" className={styles.coverFeesLabel}>
+                  {donateForm.coverFeesCheckboxText}
+                </label>
+              </div>
+            )}
             <button
               className="btn"
               onClick={handleDonate}
@@ -295,7 +296,7 @@ export default function Page() {
           <h2>Some statistics</h2>
           <div className={styles.statisticsCards}>
             <div className={styles.card}>
-              <h3>1.7M</h3>
+              <h3>3.5M</h3>
               <p>Monthly Active Users</p>
             </div>
             <div className={styles.card}>
@@ -311,16 +312,6 @@ export default function Page() {
               <p>Papers Reviewed</p>
             </div>
           </div>
-        </div>
-      </div>
-      <div className={styles.section}>
-        <div className={styles.benefits}>
-          <h2>Benefits of supporting OpenReview</h2>
-          <ul>
-            {benefits.map((benefit, index) => (
-              <li key={index}>{benefit}</li>
-            ))}
-          </ul>
         </div>
       </div>
     </div>

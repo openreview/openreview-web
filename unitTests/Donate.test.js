@@ -42,8 +42,8 @@ describe('Donation Page', () => {
     expect(screen.getByPlaceholderText('$ Other Amount')).toBeInTheDocument()
 
     expect(
-      screen.getByRole('checkbox', { name: 'I would like to cover the transaction fees' })
-    ).toBeInTheDocument()
+      screen.queryByRole('checkbox', { name: 'I would like to cover the transaction fees' })
+    ).not.toBeInTheDocument() // only show after amount selection/input
 
     expect(screen.getByRole('button', { name: 'Make a Donation' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Make a Donation' })).toBeDisabled()
@@ -84,12 +84,25 @@ describe('Donation Page', () => {
     render(<Donate />)
 
     await userEvent.click(screen.getByText('$100'))
+    expect(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.00 to cover the transaction fees',
+      })
+    ).toBeInTheDocument()
     expect(screen.getByText('Make a Donation of $100.00 /month'))
 
-    await userEvent.click(screen.getByRole('checkbox')) // check to add fee
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.00 to cover the transaction fees',
+      })
+    ) // check to add fee
     expect(screen.getByText('Make a Donation of $103.00 /month'))
 
-    await userEvent.click(screen.getByRole('checkbox')) // uncheck to remove fee
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.00 to cover the transaction fees',
+      })
+    ) // uncheck to remove fee
     expect(screen.getByText('Make a Donation of $100.00 /month'))
 
     // enter custom amount
@@ -97,10 +110,18 @@ describe('Donation Page', () => {
       replace: true,
     })
     expect(screen.getByText('Make a Donation of $123.00 /month'))
-    await userEvent.click(screen.getByRole('checkbox')) // check to add fee
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.69 to cover the transaction fees',
+      })
+    ) // check to add fee
     expect(screen.getByText('Make a Donation of $126.69 /month'))
 
-    await userEvent.click(screen.getByRole('checkbox')) // uncheck to remove fee
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.69 to cover the transaction fees',
+      })
+    ) // uncheck to remove fee
     expect(screen.getByText('Make a Donation of $123.00 /month'))
   })
 
@@ -123,7 +144,11 @@ describe('Donation Page', () => {
     expect(screen.getByText('Make a Donation of $9999.00 /month'))
     expect(global.promptMessage).not.toHaveBeenCalled()
 
-    await userEvent.click(screen.getByRole('checkbox')) // check to add fee
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $299.97 to cover the transaction fees',
+      })
+    ) // check to add fee
     expect(screen.getByText('Make a Donation')).toBeDisabled()
     expect(global.promptMessage).toHaveBeenCalled()
   })
@@ -135,7 +160,11 @@ describe('Donation Page', () => {
     expect(screen.getByText('Make a Donation of $100.00 /month'))
     expect(global.promptMessage).not.toHaveBeenCalled()
 
-    await userEvent.click(screen.getByRole('checkbox')) // check to add fee
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.00 to cover the transaction fees',
+      })
+    ) // check to add fee
     expect(screen.getByText('Make a Donation of $103.00 /month'))
     expect(global.promptMessage).not.toHaveBeenCalled()
 
@@ -166,7 +195,11 @@ describe('Donation Page', () => {
 
     // fixed amount with transaction fee
     await userEvent.click(screen.getByText('$100'))
-    await userEvent.click(screen.getByRole('checkbox'))
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.00 to cover the transaction fees',
+      })
+    )
     await userEvent.click(screen.getByText('Make a Donation of $103.00 /month'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
@@ -194,7 +227,11 @@ describe('Donation Page', () => {
     )
 
     // custom amount with no transaction fee
-    await userEvent.click(screen.getByRole('checkbox')) // uncheck to remove fee
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.69 to cover the transaction fees',
+      })
+    ) // uncheck to remove fee
     await userEvent.click(screen.getByText('Make a Donation of $123.00 /month'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
@@ -230,7 +267,11 @@ describe('Donation Page', () => {
 
     // fixed amount with transaction fee
     await userEvent.click(screen.getByText('$100'))
-    await userEvent.click(screen.getByRole('checkbox'))
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.00 to cover the transaction fees',
+      })
+    )
     await userEvent.click(screen.getByText('Make a Donation of $103.00'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
@@ -258,7 +299,11 @@ describe('Donation Page', () => {
     )
 
     // custom amount with no transaction fee
-    await userEvent.click(screen.getByRole('checkbox')) // uncheck to remove fee
+    await userEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'I would like to add $3.69 to cover the transaction fees',
+      })
+    ) // uncheck to remove fee
     await userEvent.click(screen.getByText('Make a Donation of $123.00'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
