@@ -151,7 +151,7 @@ export default function Page() {
   useEffect(() => {
     if (donateForm.maxAmountError) {
       promptMessage(
-        `To make a donation over $${MaxString}, please contact us at [donate@openreview.net](mailto:donate@openreview.net)`,
+        `To make a donation of $${MaxString} or greater, please contact us at [donate@openreview.net](mailto:donate@openreview.net)`,
         8
       )
     }
@@ -264,7 +264,7 @@ export default function Page() {
                 className={styles.amountButton}
                 onClick={() =>
                   promptMessage(
-                    `To make a donation over $${MaxString}, please contact us at [donations@openreview.net](mailto:donations@openreview.net)`,
+                    `To make a donation of $${MaxString} or greater, please contact us at [donations@openreview.net](mailto:donations@openreview.net)`,
                     8
                   )
                 }
@@ -274,7 +274,7 @@ export default function Page() {
             </div>
             <div className={styles.maxAmountMessage}>
               <span>
-                {`To make a donation over $${MaxString} or greater, please contact us at `}
+                {`To make a donation of $${MaxString} or greater, please contact us at `}
                 <a href="mailto:donations@openreview.net">donations@openreview.net</a>
               </span>
             </div>
