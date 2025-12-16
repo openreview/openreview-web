@@ -33,9 +33,9 @@ describe('Donation Page', () => {
     expect(screen.getByText('$50')).toBeInTheDocument()
     expect(screen.getByText('$100')).toBeInTheDocument()
     expect(screen.getByText('$500')).toBeInTheDocument()
-    expect(screen.getByText('$1k')).toBeInTheDocument()
-    expect(screen.getByText('$5k')).toBeInTheDocument()
-    expect(screen.getByText('$10k')).toBeInTheDocument()
+    expect(screen.getByText('$1,000')).toBeInTheDocument()
+    expect(screen.getByText('$5,000')).toBeInTheDocument()
+    expect(screen.getByText('$10,000')).toBeInTheDocument()
 
     expect(screen.getByPlaceholderText('$ Other Amount')).toBeInTheDocument()
 
@@ -57,7 +57,7 @@ describe('Donation Page', () => {
     await userEvent.click(screen.getByText('$10'))
     expect(screen.getByText('Make a Donation of $10.00 through Stripe'))
 
-    await userEvent.click(screen.getByText('$10k'))
+    await userEvent.click(screen.getByText('$10,000'))
     expect(screen.getByText('Make a Donation of $10000.00 through Stripe'))
 
     // enter custom amount
