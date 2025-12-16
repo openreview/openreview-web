@@ -3,6 +3,7 @@
 /* globals promptError,promptMessage: false */
 
 import { useEffect, useReducer } from 'react'
+import { useSearchParams } from 'next/navigation'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import Icon from '../../components/Icon'
@@ -81,6 +82,8 @@ const donationReducer = (state, action) => {
 
 export default function Page() {
   const { accessToken, user } = useUser()
+  const searchParams = useSearchParams()
+  const success = searchParams.get('success')
 
   const [donateForm, setDonateForm] = useReducer(donationReducer, defaultDonateForum)
 
@@ -120,6 +123,13 @@ export default function Page() {
       )
     }
   }, [donateForm.maxAmountError])
+
+  useEffect(() => {
+    if (success === 'true') {
+      promptMessage('Thank you for your generous donation to support OpenReview!')
+      window.history.replaceState({}, null, '/donate')
+    }
+  }, [success])
 
   return (
     <div className={styles.donateContainer}>
