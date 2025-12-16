@@ -220,19 +220,19 @@ export default function Page() {
                 className={`${styles.amountButton} ${donateForm.presetAmount === 1000 ? styles.activeAmountButton : ''}`}
                 onClick={() => handlePresetAmountClick(1000)}
               >
-                $1k
+                $1,000
               </div>
               <div
                 className={`${styles.amountButton} ${donateForm.presetAmount === 5000 ? styles.activeAmountButton : ''}`}
                 onClick={() => handlePresetAmountClick(5000)}
               >
-                $5k
+                $5,000
               </div>
               <div
                 className={`${styles.amountButton} ${donateForm.presetAmount === 10000 ? styles.activeAmountButton : ''}`}
                 onClick={() => handlePresetAmountClick(10000)}
               >
-                $10k
+                $10,000
               </div>
             </div>
             <div className={styles.maxAmountMessage}>
