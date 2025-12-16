@@ -26,10 +26,8 @@ describe('Donation Page', () => {
   test('render all required buttons', () => {
     render(<Donate />)
 
-    expect(screen.getByRole('button', { name: 'Monthly' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Monthly' })).toHaveClass('active') // default selection
-    expect(screen.getByRole('button', { name: 'One-Time' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'One-Time' })).not.toHaveClass('active')
+    expect(screen.queryByRole('button', { name: 'Monthly' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'One-Time' })).not.toBeInTheDocument()
 
     expect(screen.getByText('$10')).toBeInTheDocument()
     expect(screen.getByText('$50')).toBeInTheDocument()
@@ -37,13 +35,9 @@ describe('Donation Page', () => {
     expect(screen.getByText('$500')).toBeInTheDocument()
     expect(screen.getByText('$1k')).toBeInTheDocument()
     expect(screen.getByText('$5k')).toBeInTheDocument()
-    expect(screen.getByText('> $10k')).toBeInTheDocument()
+    expect(screen.getByText('$10k')).toBeInTheDocument()
 
     expect(screen.getByPlaceholderText('$ Other Amount')).toBeInTheDocument()
-
-    expect(
-      screen.queryByRole('checkbox', { name: 'I would like to cover the transaction fees' })
-    ).not.toBeInTheDocument() // only show after amount selection/input
 
     expect(
       screen.getByRole('button', { name: 'Make a Donation through Stripe' })
@@ -56,82 +50,25 @@ describe('Donation Page', () => {
   test('update selection in button text', async () => {
     render(<Donate />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'One-Time' }))
     expect(
       screen.getByRole('button', { name: 'Make a Donation through Stripe' })
     ).toBeInTheDocument() // no change when no amount
-    expect(
-      screen.queryByRole('checkbox', { name: 'I would like to cover the transaction fees' })
-    ).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByText('$10'))
-    expect(screen.getByText('Make a Donation of $10.00')) // no month
+    expect(screen.getByText('Make a Donation of $10.00 through Stripe'))
 
-    await userEvent.click(screen.getByRole('button', { name: 'Monthly' }))
-    expect(screen.getByText('Make a Donation of $10.00 /month')) // show / month
-
-    await userEvent.click(screen.getByText('$5k'))
-    expect(screen.getByText('Make a Donation of $5000.00 /month'))
-
-    await userEvent.click(screen.getByRole('button', { name: 'One-Time' }))
-    expect(screen.getByText('Make a Donation of $5000.00'))
+    await userEvent.click(screen.getByText('$10k'))
+    expect(screen.getByText('Make a Donation of $10000.00 through Stripe'))
 
     // enter custom amount
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '999')
-    expect(screen.getByText('Make a Donation of $999.00'))
-    await userEvent.click(screen.getByRole('button', { name: 'Monthly' }))
-    expect(screen.getByText('Make a Donation of $999.00 /month'))
+    expect(screen.getByText('Make a Donation of $999.00 through Stripe'))
 
     await userEvent.clear(screen.getByPlaceholderText('$ Other Amount'))
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '666', {
       replace: true,
     })
-    expect(screen.getByText('Make a Donation of $666.00 /month'))
-  })
-
-  test('handle transaction fee', async () => {
-    render(<Donate />)
-
-    await userEvent.click(screen.getByText('$100'))
-    expect(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $3.00 to cover the transaction fees',
-      })
-    ).toBeInTheDocument()
-    expect(screen.getByText('Make a Donation of $100.00 /month'))
-
-    await userEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $3.00 to cover the transaction fees',
-      })
-    ) // check to add fee
-    expect(screen.getByText('Make a Donation of $103.00 /month'))
-
-    await userEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $3.00 to cover the transaction fees',
-      })
-    ) // uncheck to remove fee
-    expect(screen.getByText('Make a Donation of $100.00 /month'))
-
-    // enter custom amount
-    await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '123', {
-      replace: true,
-    })
-    expect(screen.getByText('Make a Donation of $123.00 /month'))
-    await userEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $3.69 to cover the transaction fees',
-      })
-    ) // check to add fee
-    expect(screen.getByText('Make a Donation of $126.69 /month'))
-
-    await userEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $3.69 to cover the transaction fees',
-      })
-    ) // uncheck to remove fee
-    expect(screen.getByText('Make a Donation of $123.00 /month'))
+    expect(screen.getByText('Make a Donation of $666.00 through Stripe'))
   })
 
   test('handle max amount (custom amount)', async () => {
@@ -144,134 +81,53 @@ describe('Donation Page', () => {
     expect(global.promptMessage).toHaveBeenCalled()
   })
 
-  test('handle max amount (custom amount with transaction fee)', async () => {
-    render(<Donate />)
-
-    await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '9999', {
-      replace: true,
-    })
-    expect(screen.getByText('Make a Donation of $9999.00 /month'))
-    expect(global.promptMessage).not.toHaveBeenCalled()
-
-    await userEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $299.97 to cover the transaction fees',
-      })
-    ) // check to add fee
-    expect(screen.getByText('Make a Donation through Stripe')).toBeDisabled()
-    expect(global.promptMessage).toHaveBeenCalled()
-  })
-
-  test('handle max amount (transaction fee then custom amount)', async () => {
-    render(<Donate />)
-
-    await userEvent.click(screen.getByText('$100'))
-    expect(screen.getByText('Make a Donation of $100.00 /month'))
-    expect(global.promptMessage).not.toHaveBeenCalled()
-
-    await userEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $3.00 to cover the transaction fees',
-      })
-    ) // check to add fee
-    expect(screen.getByText('Make a Donation of $103.00 /month'))
-    expect(global.promptMessage).not.toHaveBeenCalled()
-
-    await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '9999', {
-      replace: true,
-    })
-    expect(screen.getByText('Make a Donation through Stripe')).toBeDisabled()
-    expect(global.promptMessage).toHaveBeenCalled()
-  })
-
-  test('post correct amount and mode (monthly no user)', async () => {
+  test('post correct amount (no user)', async () => {
     render(<Donate />)
 
     // fixed amount
     await userEvent.click(screen.getByText('$100'))
-    await userEvent.click(screen.getByText('Make a Donation of $100.00 /month'))
+    await userEvent.click(screen.getByText('Make a Donation of $100.00 through Stripe'))
     expect(api.post).toHaveBeenCalledWith(
       // would fail though
       expect.anything(),
       {
         amount: 100,
-        mode: 'subscription',
+        mode: 'payment',
         email: undefined,
         irsReceipt: false,
       },
       expect.anything()
     )
-    expect(screen.getByText('Make a Donation of $100.00 /month')).toBeDisabled() // button disabled after submit
+    expect(screen.getByText('Make a Donation of $100.00 through Stripe')).toBeDisabled() // button disabled after submit
 
-    // fixed amount with transaction fee
-    await userEvent.click(screen.getByText('$100'))
-    await userEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $3.00 to cover the transaction fees',
-      })
-    )
-    await userEvent.click(screen.getByText('Make a Donation of $103.00 /month'))
-    expect(api.post).toHaveBeenLastCalledWith(
-      expect.anything(),
-      {
-        amount: 103,
-        mode: 'subscription',
-        email: undefined,
-        irsReceipt: false,
-      },
-      expect.anything()
-    )
-
-    // custom amount with transactio fee(already checked)
-    await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '249', {
+    // custom amount
+    await userEvent.clear(screen.getByPlaceholderText('$ Other Amount'))
+    await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '10000', {
       replace: true,
     })
-    expect(
-      screen.getByRole('checkbox', { name: 'Send me an IRS receipt for tax purposes' })
-    ).toBeChecked() // over 250 auto check
-
-    await userEvent.click(screen.getByText('Make a Donation of $256.47 /month'))
+    await userEvent.click(screen.getByText('Make a Donation of $10000.00 through Stripe'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
       {
-        amount: 256.47,
-        mode: 'subscription',
+        amount: 10000,
+        mode: 'payment',
         email: undefined,
-        irsReceipt: true,
-      },
-      expect.anything()
-    )
-
-    // custom amount with no transaction fee
-    await userEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $7.47 to cover the transaction fees',
-      })
-    ) // uncheck to remove fee
-    await userEvent.click(screen.getByText('Make a Donation of $249.00 /month'))
-    expect(api.post).toHaveBeenLastCalledWith(
-      expect.anything(),
-      {
-        amount: 249,
-        mode: 'subscription',
-        email: undefined,
-        irsReceipt: true,
+        irsReceipt: true, // auto checked
       },
       expect.anything()
     )
   })
 
-  test('post correct amount and mode (one-time with user)', async () => {
+  test('post correct amount (with user)', async () => {
     mockedUser = {
       user: { profile: { preferredEmail: 'test@email.com' } },
     }
 
     render(<Donate />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'One-Time' }))
     // fixed amount
     await userEvent.click(screen.getByText('$100'))
-    await userEvent.click(screen.getByText('Make a Donation of $100.00'))
+    await userEvent.click(screen.getByText('Make a Donation of $100.00 through Stripe'))
     expect(api.post).toHaveBeenCalledWith(
       expect.anything(),
       {
@@ -283,55 +139,37 @@ describe('Donation Page', () => {
       expect.anything()
     )
 
-    // fixed amount with transaction fee
-    await userEvent.click(screen.getByText('$100'))
+    // check IRS receipt
+    await userEvent.click(screen.getByText('$10'))
     await userEvent.click(
       screen.getByRole('checkbox', {
-        name: 'I would like to add $3.00 to cover the transaction fees',
+        name: 'Send me an IRS receipt for tax purposes',
       })
     )
-    await userEvent.click(screen.getByText('Make a Donation of $103.00'))
+    await userEvent.click(screen.getByText('Make a Donation of $10.00 through Stripe'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
       {
-        amount: 103,
+        amount: 10,
         mode: 'payment',
         email: 'test@email.com',
-        irsReceipt: false,
+        irsReceipt: true,
       },
       expect.anything()
     )
 
-    // custom amount with transactio fee(already checked)
+    // custom amount
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '123', {
       replace: true,
     })
-    await userEvent.click(screen.getByText('Make a Donation of $126.69'))
-    expect(api.post).toHaveBeenLastCalledWith(
-      expect.anything(),
-      {
-        amount: 126.69,
-        mode: 'payment',
-        email: 'test@email.com',
-        irsReceipt: false,
-      },
-      expect.anything()
-    )
-
-    // custom amount with no transaction fee
-    await userEvent.click(
-      screen.getByRole('checkbox', {
-        name: 'I would like to add $3.69 to cover the transaction fees',
-      })
-    ) // uncheck to remove fee
-    await userEvent.click(screen.getByText('Make a Donation of $123.00'))
+    await userEvent.click(screen.getByText('Make a Donation of $123.00 through Stripe'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
       {
         amount: 123,
         mode: 'payment',
         email: 'test@email.com',
-        irsReceipt: false,
+        irsReceipt: true,
       },
       expect.anything()
     )
