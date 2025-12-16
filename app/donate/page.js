@@ -294,6 +294,11 @@ export default function Page() {
             >
               {donateForm.donateButtonText}
             </button>
+            <div className={styles.redirectText}>
+              <span>
+                You'll be securely redirected to Stripe to complete your payment
+              </span>
+            </div>
             <div className={styles.csrText}>
               <span>
                 The OpenReview Foundation nonprofit is not yet registered with
