@@ -22,10 +22,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
     bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken }
 
     try {
-      const { content } = await api.post('/register', bodyData)
+      await api.post('/register', bodyData)
       setSignupConfirmation({
         type: 'register',
-        registeredEmail: content?.preferredEmail || email,
+        registeredEmail: email,
       })
     } catch (apiError) {
       promptError(apiError.message, 8)
