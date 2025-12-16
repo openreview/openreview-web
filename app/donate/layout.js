@@ -1,13 +1,7 @@
-import { Suspense } from 'react'
 import CommonLayout from '../CommonLayout'
-import LoadingSpinner from '../../components/LoadingSpinner'
 
 export default function Layout({ children }) {
-  return (
-    <CommonLayout banner={null}>
-      <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
-    </CommonLayout>
-  )
+  return <CommonLayout banner={null}>{children}</CommonLayout>
 }
 
 export const metadata = {
