@@ -227,6 +227,7 @@ function ForumTitle({ id, title, pdf, html }) {
 
 function ForumMeta({ note }) {
   const licenseInfo = getLicenseInfo(note.license)
+  const isDBLPPublication = note.invitations?.[0] === 'DBLP.org/-/Record'
 
   return (
     <div className="forum-meta">
@@ -239,7 +240,9 @@ function ForumMeta({ note }) {
           note.tmdate,
           note.content?.year?.value,
           note.pdate,
-          false
+          false,
+          false,
+          isDBLPPublication
         )}
       </span>
 
