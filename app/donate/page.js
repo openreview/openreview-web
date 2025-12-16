@@ -280,7 +280,7 @@ export default function Page() {
                 Encrypted payment processing by Stripe
               </div>
               <div className={styles.securityFeature}>
-                Your card details are never stored by OpenReview
+                Your credit card details are never stored by OpenReview
               </div>
               <hr />
               <div className={styles.poweredBy}>
