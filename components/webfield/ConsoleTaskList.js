@@ -68,7 +68,7 @@ const ConsoleTaskList = ({
       const invitationsToReplace = new Set()
 
       // Match invitations to their mapped domains if they exist
-      allInvitations.forEach((inv) => {
+      noteInvitations.forEach((inv) => {
         const matchedSuffix = Object.keys(registrationFormDomainMap).find((suffix) =>
           inv.id.endsWith(suffix.replace('_Form', ''))
         )
