@@ -278,8 +278,7 @@ const AuthorSubmissionRowMobile = ({
 }
 
 const AuthorConsoleTasks = () => {
-  const { venueId, authorName, submissionName, apiVersion, additionalDomains = [] } =
-    useContext(WebFieldContext)
+  const { venueId, authorName, submissionName, apiVersion } = useContext(WebFieldContext)
   const referrer = encodeURIComponent(
     `[Author Console](/group?id=${venueId}/${authorName}#author-tasks)`
   )
@@ -292,7 +291,6 @@ const AuthorConsoleTasks = () => {
       filterAssignedInvitation={true}
       submissionName={submissionName}
       apiVersion={apiVersion}
-      additionalDomains={additionalDomains}
     />
   )
 }
