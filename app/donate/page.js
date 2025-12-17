@@ -141,33 +141,20 @@ export default function Page() {
         <div className={styles.messageDonate}>
           <div className={styles.message}>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec ornare interdum
-              purus id pellentesque. Proin ac dui eu velit feugiat semper sed posuere dolor. Ut
-              et bibendum enim. Class aptent taciti sociosqu ad litora torquent per conubia
-              nostra, per inceptos himenaeos. Nulla facilisi. Suspendisse gravida mi sit amet
-              ipsum porttitor consequat. Curabitur quis pellentesque tortor. Donec placerat mi
-              ac ligula condimentum, a dictum orci imperdiet. Sed in odio magna. Donec non
-              commodo mauris. Aliquam aliquet ac odio non accumsan. Pellentesque dignissim odio
-              neque, quis imperdiet metus iaculis in. Interdum et malesuada fames ac ante ipsum
-              primis in faucibus. Aliquam vehicula vehicula justo vitae commodo. Vestibulum
-              venenatis, lorem ut accumsan consectetur, tortor mauris condimentum quam, vel
-              pulvinar sapien magna non magna. Suspendisse potenti. Proin ullamcorper nec lorem
-              eleifend bibendum. Nullam nec venenatis elit. Pellentesque ornare egestas urna
-              non efficitur. In orci mi, lobortis vel ligula ac, imperdiet scelerisque metus.
-              Etiam quam dolor, gravida eu dictum hendrerit, congue ut leo. Duis vitae pharetra
-              justo, non dictum neque. Vestibulum placerat vel odio at porttitor. Praesent in
-              feugiat metus. Phasellus a tortor tincidunt, accumsan felis ac, sollicitudin
-              odio. Sed non tempus urna. Ut hendrerit egestas purus, maximus pulvinar augue
-              laoreet at. Pellentesque placerat, nulla quis mollis luctus, justo enim molestie
-              nibh, quis dictum libero lacus vitae tortor. Maecenas faucibus condimentum urna a
-              varius. Fusce sed dolor augue. Maecenas cursus eget tortor quis commodo. Cras at
-              eros tempus, euismod velit eu, ultrices velit. Duis ipsum lacus, dignissim sed
-              ipsum in, fringilla rutrum lorem. Nam orci risus, semper eu leo eu, placerat
-              luctus tortor. Quisque accumsan facilisis interdum. Sed porta, nisi imperdiet
-              semper aliquam, tortor massa iaculis odio, vel ullamcorper lorem risus non nisi.
-              Aliquam ex tortor, vestibulum et risus aliquam, commodo accumsan ante. Morbi ac
-              tincidunt erat. Vivamus rhoncus aliquet risus in dictum. Pellentesque nec dolor
-              quis massa vehicula lacinia.
+              OpenReview has operated on minimal resources since its founding. What began as a platform
+              has grown into critical infrastructure for our entire community—and infrastructure of this
+              importance requires sustainable funding. In response to your questions and offers of support,
+              we are establishing a donations page to make contributing straightforward.
+            </p>
+            <p>
+              Our commitment to remaining a nonprofit is central to our mission. This structure ensures we
+              can dedicate ourselves fully to advancing open, collaborative science rather than serving
+              financial stakeholders. Every contribution, regardless of size, strengthens the foundation on
+              which our community's peer review depends.
+            </p>
+            <p>
+              We invite you to support OpenReview in building the robust, secure infrastructure our field
+              deserves.
             </p>
           </div>
           <div className={styles.donateContainer}>
