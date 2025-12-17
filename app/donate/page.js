@@ -63,6 +63,7 @@ const donationReducer = (state, action) => {
         disableDonateButton: false,
         donateButtonText: `Make a Donation of $${cleanValue.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''} through Stripe`,
         requireIRSReceipt: cleanValue >= 250 ? true : state.requireIRSReceipt,
+        maxAmountError: null,
       }
     }
     case 'TOGGLE_IRS_RECEIPT':
