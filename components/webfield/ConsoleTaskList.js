@@ -78,7 +78,7 @@ const ConsoleTaskList = ({
             if (!domainInvitationMap[targetDomain]) {
               domainInvitationMap[targetDomain] = []
             }
-            domainInvitationMap[targetDomain].push(inv.id)
+            domainInvitationMap[targetDomain].push(inv.id.replace(venueId, targetDomain))
             invitationsToReplace.add(inv.id)
           }
         }
@@ -102,7 +102,6 @@ const ConsoleTaskList = ({
               { accessToken }
             ),
           ])
-
         replacementInvitations.push(
           ...domainNoteInvitations.map((inv) => ({ ...inv, noteInvitation: true })),
         )
