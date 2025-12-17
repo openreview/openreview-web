@@ -22,7 +22,6 @@ const ConsoleTaskList = ({
 
   const loadInvitations = async () => {
     try {
-      // Step 1: Query venueId for all invitations
       const [noteInvitations, edgeInvitations, tagInvitations] = await Promise.all([
         api.getAll(
           '/invitations',
@@ -65,10 +64,10 @@ const ConsoleTaskList = ({
         .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
         .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
 
-      // Step 2: Find invitations that need to come from a different domain
       const domainInvitationMap = {} // { domain: [invitation IDs] }
       const invitationsToReplace = new Set()
 
+      // Match invitations to their mapped domains if they exist
       allInvitations.forEach((inv) => {
         const matchedSuffix = Object.keys(registrationFormDomainMap).find((suffix) =>
           inv.id.endsWith(suffix.replace('_Form', ''))
@@ -85,10 +84,9 @@ const ConsoleTaskList = ({
         }
       })
 
-      // Step 3: Query each mapped domain for its specific invitations
       const replacementInvitations = []
       for (const [domain, invitationIds] of Object.entries(domainInvitationMap)) {
-        const [domainNoteInvitations, domainEdgeInvitations, domainTagInvitations] =
+        const [domainNoteInvitations] =
           await Promise.all([
             api.getAll(
               '/invitations',
@@ -103,44 +101,17 @@ const ConsoleTaskList = ({
               },
               { accessToken }
             ),
-            api.getAll(
-              '/invitations',
-              {
-                ids: invitationIds.join(','),
-                domain,
-                invitee: true,
-                duedate: true,
-                type: 'edge',
-                details: 'repliedEdges',
-              },
-              { accessToken }
-            ),
-            api.getAll(
-              '/invitations',
-              {
-                ids: invitationIds.join(','),
-                domain,
-                invitee: true,
-                duedate: true,
-                type: 'tag',
-                details: 'repliedTags',
-              },
-              { accessToken }
-            ),
           ])
 
         replacementInvitations.push(
           ...domainNoteInvitations.map((inv) => ({ ...inv, noteInvitation: true })),
-          ...domainEdgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })),
-          ...domainTagInvitations.map((inv) => ({ ...inv, tagInvitation: true }))
         )
       }
 
-      // Step 4: Replace invitations with ones from correct domain or remove if not found
+      // Remove invitations that need to come from a mapped domain and add replacements
       allInvitations = allInvitations.filter((inv) => {
         if (invitationsToReplace.has(inv.id)) {
-          // This invitation needs to come from a mapped domain
-          return false // Remove it, will be added back if found in replacement
+          return false
         }
         return true
       })

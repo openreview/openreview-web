@@ -256,7 +256,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           )
           if (matchedKey) {
             formsToReplace.add(form.id)
-            console.log('matchedKey', matchedKey)
             const override = registrationFormOverrides[matchedKey]
             // Only add query if not already added for this key
             if (!overrideQueries.some((q) => q.key === matchedKey)) {
@@ -271,8 +270,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
         // Query replacement forms from override domains
         if (overrideQueries.length > 0) {
-          console.log(`Querying ${overrideQueries.length} replacement forms`)
-          console.log('overrideQueries', overrideQueries.map((q) => q.invitation))
           const replacementResults = await Promise.all(
             overrideQueries.map((q) =>
               api.getAll(
@@ -287,14 +284,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               )
             )
           )
-          console.log('replacementResults', replacementResults.flat())
           // Remove original forms and add replacements
-          console.log('registrationForms', registrationForms)
-          console.log('formsToReplace', formsToReplace)
           registrationForms = registrationForms.filter((form) => !formsToReplace.has(form.id))
-          console.log('registrationForms after filter', registrationForms)
           registrationForms.push(...replacementResults.flat())
-          console.log('registrationForms after push', registrationForms)
         }
       }
       // #endregion
@@ -1336,7 +1328,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       setPcConsoleData((data) => ({ ...data, registrationNoteMap }))
     } catch (error) {
-      promptError(`Error loading registration notes: ${error.message}`)
+      promptError(`Erro loading registration notes: ${error.message}`)
     }
   }
 
