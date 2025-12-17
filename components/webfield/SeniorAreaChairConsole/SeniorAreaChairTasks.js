@@ -14,11 +14,7 @@ const SeniorAreaChairTasks = () => {
   )
 
   return (
-    <ConsoleTaskList
-      venueId={venueId}
-      roleName={seniorAreaChairName}
-      referrer={referrer}
-    />
+    <ConsoleTaskList venueId={venueId} roleName={seniorAreaChairName} referrer={referrer} />
   )
 }
 

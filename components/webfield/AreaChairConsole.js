@@ -368,9 +368,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
         {
           id: `${areaChairUrlFormat}-tasks`,
           label: `${getSingularRoleName(prettyField(areaChairName))} Tasks`,
-          content: (
-            <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />
-          ),
+          content: <AreaChairConsoleTasks venueId={venueId} areaChairName={areaChairName} />,
           visible: true,
         },
         ...(extraRoleNamesWithUrlFormat?.length > 0
