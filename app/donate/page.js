@@ -274,7 +274,7 @@ export default function Page() {
               </div>
             </div>
 
-            <div>
+            <div className={styles.irsReceiptContainer}>
               <input
                 type="checkbox"
                 id="irsReceipt"
