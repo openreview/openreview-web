@@ -315,7 +315,7 @@ export default function Page() {
             </div>
             <div className={styles.csrText}>
               <span>
-                The OpenReview Foundation nonprofit is registered with <a href="https://www.benevity.com/">Benevity</a>
+                The OpenReview Foundation nonprofit is registered with <a href="https://causes.benevity.org/causes/840-994025250">Benevity</a>
                 <br />
                 for employer gift matching, but not yet registered with
                 <br />
