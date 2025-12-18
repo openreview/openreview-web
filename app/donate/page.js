@@ -317,15 +317,13 @@ export default function Page() {
               <span>
                 The OpenReview Foundation nonprofit is registered with <a href="https://causes.benevity.org/causes/840-994025250">Benevity</a>
                 <br />
-                for employer gift matching.
+                for employer gift matching. Employer matching donation may be
                 <br />
-                Employer matching donation may be requested on
+                requested on Benevity after your donation here.
                 <br />
-                Benevity after your donation here.
+                The OpenReview Foundation is not yet registered with other
                 <br />
-                The OpenReview Foundation is not yet registered with
-                <br />
-                Bonterra, YourCause, Blackbaud, Submittable, or Optimy.
+                matching programs.
               </span>
             </div>
           </div>
