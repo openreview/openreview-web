@@ -123,7 +123,7 @@ const CheckboxWidget = ({
   return (
     <div className={styles.checkboxContainer}>
       {checkboxOptions.map((option) => (
-        <div className="checkbox" key={`${fieldName}-${option.value}`}>
+           <div className={styles.checkboxItem} key={`${fieldName}-${option.value}`}>
           <label>
             <input
               type="checkbox"

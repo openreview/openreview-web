@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition } from 'react'
 import dynamic from 'next/dynamic'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../../components/Tabs'
+import { OrTabs, Tab, TabList, TabPanel, TabPanels, Tabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import VenueRequestCount from './(VenueRequests)/VenueRequestCount'
@@ -16,9 +16,44 @@ const InstitutionTab = dynamic(() => import('./(Institution)/InstitutionTab'))
 const VenueRequestTab = dynamic(() => import('./(VenueRequests)/VenueRequestTab'))
 
 export default function Moderation({ accessToken }) {
-  const [activeTabId, setActiveTabId] = useState('#profiles')
-  const [isPending, startTransition] = useTransition()
   const [isClientRendering, setIsClientRendering] = useState(false)
+
+  const items = [
+    {
+      key: 'profiles',
+      label: 'User Moderation',
+      children: <UserModerationTab accessToken={accessToken} />,
+    },
+    {
+      key: 'email',
+      label: (
+        <>
+          Email Delete Requests <NameDeletionCount accessToken={accessToken} />{' '}
+        </>
+      ),
+      children: <EmailDeletionTab accessToken={accessToken} />,
+    },
+    {
+      key: 'name',
+      label: 'Name Delete Requests',
+      children: <NameDeletionTab accessToken={accessToken} />,
+    },
+    {
+      key: 'merge',
+      label: 'Profile Merge Requests',
+      children: <ProfileMergeTab accessToken={accessToken} />,
+    },
+    {
+      key: 'institution',
+      label: 'Institution List',
+      children: <InstitutionTab accessToken={accessToken} />,
+    },
+    {
+      key: 'requests',
+      label: 'Venue Requests',
+      children: <VenueRequestTab accessToken={accessToken} />,
+    },
+  ]
 
   useEffect(() => {
     setIsClientRendering(true)
@@ -26,19 +61,16 @@ export default function Moderation({ accessToken }) {
 
   if (!isClientRendering)
     return (
-      <Tabs>
-        <TabList>
-          <Tab>User Moderation</Tab>
-          <Tab>Email Delete Requests</Tab>
-          <Tab>Name Delete Requests</Tab>
-          <Tab>Profile Merge Requests</Tab>
-          <Tab>Institution List</Tab>
-          <Tab>Venue Requests</Tab>
-        </TabList>
-        <LoadingSpinner />
-      </Tabs>
+      <OrTabs
+        items={items.map((p) => ({
+          key: p.key,
+          label: p.label,
+          children: <LoadingSpinner />,
+        }))}
+      />
     )
 
+  return <OrTabs items={items} />
   return (
     <Tabs>
       <TabList>

@@ -17,6 +17,11 @@ import PaginationLinks from '../../../components/PaginationLinks'
 import BasicModal from '../../../components/BasicModal'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 
+import styles from '../../../styles//components/UserModerationTab.module.scss'
+import Button from '@components/Button'
+import Select from '@components/Select'
+import { Flex } from 'antd'
+
 export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
@@ -858,25 +863,23 @@ export default function UserModerationTab({ accessToken }) {
   return (
     <>
       {configNote && (
-        <div className="moderation-status">
+        <Flex gap='large' align='center'>
           <h4>Moderation Status:</h4>
 
-          <select
-            className="form-control input-sm"
+          <Select
+            options={[
+              { value: 'enabled', label: 'Enabled' },
+              { value: 'disabled', label: 'Disabled' },
+            ]}
             value={moderationDisabled ? 'disabled' : 'enabled'}
             onChange={enableDisableModeration}
-          >
-            <option value="enabled">Enabled</option>
-            <option value="disabled">Disabled</option>
-          </select>
+          />
 
           <span className="terms-timestamp">
             {`Terms Timestamp is ${configNote?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
-          <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
-            Update Terms Stamp
-          </button>
-        </div>
+          <Button onClick={updateTermStamp} size="small">Update Terms Stamp</Button>
+        </Flex>
       )}
 
       <div className="moderation-container">

@@ -1,6 +1,6 @@
 /* globals promptError: false */
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import difference from 'lodash/difference'
 import isEqual from 'lodash/isEqual'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
@@ -10,6 +10,8 @@ import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
 import CheckboxWidget from './EditorComponents/CheckboxWidget'
+
+import styles from '../styles/components/NoteEditorReaders.module.scss'
 
 export const NewNoteReaders = ({
   fieldDescription,
@@ -101,7 +103,7 @@ export const NewNoteReaders = ({
             label:
               useCheckboxWidget && p.optional === false ? (
                 <span>
-                  {p.description} <span className="mandatory-value">[Mandatory]</span>
+                  {p.description} <span className={styles.mandatoryValue}>[Mandatory]</span>
                 </span>
               ) : (
                 p.description
@@ -401,7 +403,7 @@ export const NewReplyEditNoteReaders = ({
             label:
               useCheckboxWidget && p.optional === false ? (
                 <span>
-                  {p.description} <span className="mandatory-value">[Mandatory]</span>
+                  {p.description} <span className={styles.mandatoryValue}>[Mandatory]</span>
                 </span>
               ) : (
                 p.description
