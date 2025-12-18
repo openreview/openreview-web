@@ -109,8 +109,9 @@ const ForumAuthors = ({ authors, authorIds, signatures, original }) => (
   </div>
 )
 
-const ForumMeta = ({ note }) => (
-  <div className="meta_row">
+const ForumMeta = ({ note }) => {
+  const isdblpPublication = note.invitation === 'dblp.org/-/record'
+  return <div className="meta_row">
     <span className="date item">
       {forumDate(
         note.cdate,
@@ -118,7 +119,10 @@ const ForumMeta = ({ note }) => (
         note.mdate,
         note.tmdate,
         note.content.year,
-        note.pdate
+        note.pdate,
+        false,
+        false,
+        isdblpPublication
       )}
     </span>
 
@@ -134,7 +138,7 @@ const ForumMeta = ({ note }) => (
       </span>
     )}
   </div>
-)
+}
 
 const ForumReplyCount = ({ count }) => (
   <div className="reply_row clearfix">
