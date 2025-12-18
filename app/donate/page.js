@@ -11,7 +11,7 @@ import Icon from '../../components/Icon'
 import styles from '../../styles/components/Donate.module.scss'
 
 const Max = 10000
-const MaxString = Max.toLocaleString()
+const MaxString = Max.toLocaleString('en-GB')
 
 const defaultDonateForum = {
   mode: 'payment',
@@ -41,7 +41,7 @@ const donationReducer = (state, action) => {
         customAmount: '',
         finalAmount: action.payload.amount,
         disableDonateButton: false,
-        donateButtonText: `Make a Donation of $${action.payload.amount.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''} through Stripe`,
+        donateButtonText: `Make a Donation of $${action.payload.amount.toLocaleString('en-GB')}${state.mode === 'subscription' ? ' /month' : ''} through Stripe`,
         requireIRSReceipt: action.payload.amount >= 250 ? true : state.requireIRSReceipt,
       }
     }
@@ -61,7 +61,7 @@ const donationReducer = (state, action) => {
         presetAmount: null,
         finalAmount: cleanValue,
         disableDonateButton: false,
-        donateButtonText: `Make a Donation of $${cleanValue.toFixed(2)}${state.mode === 'subscription' ? ' /month' : ''} through Stripe`,
+        donateButtonText: `Make a Donation of $${cleanValue.toLocaleString('en-GB')}${state.mode === 'subscription' ? ' /month' : ''} through Stripe`,
         requireIRSReceipt: cleanValue >= 250 ? true : state.requireIRSReceipt,
         maxAmountError: null,
       }
@@ -119,7 +119,7 @@ export default function Page() {
   useEffect(() => {
     if (donateForm.maxAmountError) {
       promptMessage(
-        `To make a donation of greater than $${MaxString}, please contact us at [donations@openreview.net](mailto:donations@openreview.net)`,
+        `To make a donation of greater than $${MaxString}, or to donate appreciated stock, please email [donations@openreview.net](mailto:donations@openreview.net)`,
         8
       )
     }
@@ -141,21 +141,43 @@ export default function Page() {
       <div className={styles.section}>
         <div className={styles.messageDonate}>
           <div className={styles.message}>
+            <p><b>A letter from recent supporters:</b></p>
             <p>
-              OpenReview has operated on minimal resources since its founding. What began as a platform
-              has grown into critical infrastructure for our entire community—and infrastructure of this
-              importance requires sustainable funding. In response to your questions and offers of support,
-              we are establishing a donations page to make contributing straightforward.
+              OpenReview is a pillar of progress in the AI research community.  Now it needs our increased support.
             </p>
             <p>
-              Our commitment to remaining a nonprofit is central to our mission. This structure ensures we
-              can dedicate ourselves fully to advancing open, collaborative science rather than serving
-              financial stakeholders. Every contribution, regardless of size, strengthens the foundation on
-              which our community's peer review depends.
+              As a nonprofit dedicated to improving scientific dialogue, OpenReview has earned tremendous respect through its tireless, highly customized support for leading research venues. Today, OpenReview underpins the vast majority of the flagship AI conferences we know and love, including NeurIPS, ICLR, ICML, AAAI, UAI, AISTATS, CVPR, ICCV, ECCV, ACL, EMNLP, NAACL, ARR, COLM, TMLR, The Web Conference, KDD, and many more.
             </p>
             <p>
-              We invite you to support OpenReview in building the robust, secure infrastructure our field
-              deserves.
+              In 2025 alone, OpenReview supported more than 1,300 conferences and workshops, served a community of 3.3 million active monthly users, and handled over 278,000 paper submissions—exceeding the annual submission volume of ArXiv and more than doubling that of ACM.
+            </p>
+            <p>
+              Yet despite its crucial role in the AI research ecosystem, OpenReview remains chronically underfunded, operating under severe financial constraints, with a staff less than one-third the size of ArXiv’s.
+            </p>
+            <p>
+              At this time when the impact of artificial intelligence is expanding at an unprecedented pace, we must ensure that this infrastructure supporting open scientific exchange and debate in AI has the resources to stay strong, innovative, independent, and secure.
+            </p>
+            <p>
+              We applaud the companies, philanthropic foundations, and conferences that already <a href="https://openreview.net/supporters">support OpenReview</a>. However, many organizations that benefit enormously from AI innovation have not yet chosen to contribute. We believe the moment has come for broader participation.
+            </p>
+            <p>
+              It is also time for individuals to step forward.
+            </p>
+            <p>
+              We, the undersigned, are collectively committing a total of <b>$1,000,000</b> to the OpenReview Foundation.
+            </p>
+            <p>
+              We invite researchers, leaders, and beneficiaries of AI to join us and demonstrate their commitment to scientific dialogue by joining the roster of OpenReview supporters. Contributions at any level make a difference.
+            </p>
+            <p>
+              To donate more than $10,000, or appreciated securities, please contact <a href="mailto:donations@openreview.net">donations@openreview.net</a>.
+            </p>
+            <p>
+              To donate online in amounts from $10 to $10,000, please use the interface to the right.
+            </p>
+            <p>
+              Signed: Joelle Pineau, Doina Precup, Kyunghyun Cho, Andrew Ng, Yoshua Bengio, Ruslan Salakhutdinov, and (Anonymous)
+
             </p>
           </div>
           <div className={styles.donateContainer}>
@@ -225,7 +247,10 @@ export default function Page() {
             </div>
             <div className={styles.maxAmountMessage}>
               <span>
-                {`To make a donation of greater than $${MaxString}, please contact us at `}
+                {`To make a donation of greater than $${MaxString}, or to donate appreciated stock`}
+              </span>
+              <br />
+              <span>please email{' '}
                 <a href="mailto:donations@openreview.net">donations@openreview.net</a>
               </span>
             </div>
@@ -257,7 +282,7 @@ export default function Page() {
                 onChange={(e) => setDonateForm({ type: 'TOGGLE_IRS_RECEIPT' })}
               />
               <label htmlFor="irsReceipt" className={styles.irsReceiptLabel}>
-                Send me an IRS receipt for tax purposes
+                Email me a charitable donation receipt for tax purposes.
               </label>
             </div>
             <div className={styles.poweredByStripe}>
@@ -269,7 +294,7 @@ export default function Page() {
                 Encrypted payment processing by Stripe
               </div>
               <div className={styles.securityFeature}>
-                Your credit card details are never stored by OpenReview
+                Your credit card details are only handled by Stripe
               </div>
               <hr />
               <div className={styles.poweredBy}>
@@ -290,9 +315,11 @@ export default function Page() {
             </div>
             <div className={styles.csrText}>
               <span>
-                The OpenReview Foundation nonprofit is not yet registered with
+                The OpenReview Foundation nonprofit is registered with <a href="https://www.benevity.com/">Benevity</a>
                 <br />
-                Benevity, Bonterra, YourCause, Blackbaud, Submittable, or Optimy.
+                for employer gift matching, but not yet registered with
+                <br />
+                Bonterra, YourCause, Blackbaud, Submittable, or Optimy.
               </span>
             </div>
           </div>
@@ -310,7 +337,7 @@ export default function Page() {
           </li>
           <li>
             <span>
-              <strong>A trusted, fast-growing service.</strong> OpenReview has earned deep
+              <strong>A widely used, fast-growing service.</strong> OpenReview has earned deep
               respect through tireless, highly customized support for leading AI research
               venues. As a result, its usage has grown dramatically—approximately doubling each
               of the past nine years in the number of venues, users, and publications.
@@ -339,8 +366,9 @@ export default function Page() {
               ripe for revolutionary new ideas in peer review. OpenReview was intentionally
               designed to support not just one style of peer review, but to offer great
               flexibility for designing innovations in peer review, so that different
-              publication venues and communities could experiment with new ideas, as ICLR has
-              done.
+              publication venues and communities could experiment with new ideas, as many of
+              its venues have, including ICLR's style and TMLR's style of open review, and the peer review experiments
+              at ICML and NeurIPS.
             </span>
           </li>
           <li>
@@ -379,7 +407,7 @@ export default function Page() {
               <strong>There is no practical alternative at scale.</strong> Conferences like
               NeurIPS, ICML, and AAAI would struggle to function without OpenReview. No other
               platform today can reliably support submission volumes of 30,000+ papers per
-              deadline, and the ensuing reviewer matching and dialog.
+              conference deadline, and the ensuing reviewer matching and dialog.
             </span>
           </li>
         </ul>
@@ -451,12 +479,12 @@ export default function Page() {
           <li>
             <span>
               <strong>A narrow window for multiplicative impact.</strong> These are the final
-              weeks of the calendar year and ahead of changes to U.S. charitable-giving tax
+              weeks of the calendar year ahead of changes to U.S. charitable-giving tax
               policy.
             </span>
           </li>
         </ul>
-        <strong>How can we have confidence in OpenReview’s future?</strong>
+        <strong>How can we have confidence in OpenReview's future?</strong>
         <ul>
           <li>
             <span>
@@ -475,7 +503,7 @@ export default function Page() {
           <li>
             <span>
               <strong>Strong governance.</strong> The OpenReview Foundation is a 501(c)(3)
-              nonprofit with a formal Board, robust governance structures, and active community
+              nonprofit with an established Board, robust governance structures, and active community
               engagement and oversight.
             </span>
           </li>
