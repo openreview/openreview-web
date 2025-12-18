@@ -44,7 +44,6 @@ export default function SubmissionButton({
         setIsNewWorkflow(domainResult?.groups?.[0]?.content?.request_form_invitation)
       }
     } catch (error) {
-      // eslint-disable-next-line no-console
       console.warn(`Invitation ${invitationId} could not be loaded:`, error.message)
     }
   }

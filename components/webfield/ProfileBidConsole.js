@@ -364,12 +364,12 @@ const BidOptionTab = ({
       if (existingBidToDelete) {
         updatedBidEdges = bidEdges.filter((p) => p.id !== existingBidToDelete.id)
         setBidEdges(updatedBidEdges)
-        setProfiles((profiles) => profiles.filter((p) => p.id !== profile.id)) // eslint-disable-line no-shadow
+        setProfiles((profiles) => profiles.filter((p) => p.id !== profile.id))
         return
       }
 
       setBidEdges([...bidEdges.filter((p) => p.id !== existingBidToUpdate?.id), result])
-      setProfiles((profiles) => profiles.filter((p) => p.id !== profile.id)) // eslint-disable-line no-shadow
+      setProfiles((profiles) => profiles.filter((p) => p.id !== profile.id))
     } catch (error) {
       promptError(error.message)
       setBidUpdateStatus((status) => !status)

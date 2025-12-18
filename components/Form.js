@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react'
+import { useEffect, useMemo, useReducer, useState } from 'react'
 import { debounce } from 'lodash'
 import { classNames, prettyField } from '../lib/utils'
 import styles from '../styles/components/Form.module.scss'
@@ -9,13 +9,12 @@ import Icon from './Icon'
 import FormEnumItemsFieldEditor from './FormEnumItemsFieldEditor'
 
 const Form = ({ fields, existingFieldsValue, onFormChange }) => {
-  const debouncedOnFormChange = useRef(debounce(onFormChange, 200)).current
+  const debouncedOnFormChange = useMemo(() => debounce(onFormChange, 200), [onFormChange])
   const [errors, setErrors] = useState([])
   const formDataReducer = (state, action) => {
     switch (action.type) {
       case 'INIT':
         return Object.keys(fields).reduce((prev, curr) => {
-          // eslint-disable-next-line no-param-reassign
           prev[curr] = fields[curr]?.getValue?.(existingFieldsValue)
           return prev
         }, {})

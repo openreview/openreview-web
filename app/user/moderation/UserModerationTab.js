@@ -17,6 +17,11 @@ import PaginationLinks from '../../../components/PaginationLinks'
 import BasicModal from '../../../components/BasicModal'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 
+import styles from '../../../styles//components/UserModerationTab.module.scss'
+import Button from '@components/Button'
+import Select from '@components/Select'
+import { Flex } from 'antd'
+
 export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
@@ -427,7 +432,7 @@ const UserModerationQueue = ({
       promptError(error.message)
     }
   }
-  
+
   const deleteRestoreUser = async (profile) => {
     if (!profile) return
 
@@ -449,7 +454,7 @@ const UserModerationQueue = ({
 
     const actionLabel = actionIsDelete ? 'delete' : 'restore'
     const name = profile.content?.names?.[0]?.fullname ?? 'this profile'
-    // eslint-disable-next-line no-alert
+
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionLabel} ${name}?\n\n${noteCountMessage}`
     )
@@ -810,7 +815,6 @@ export default function UserModerationTab({ accessToken }) {
   }, [])
 
   const enableDisableModeration = async () => {
-    // eslint-disable-next-line no-alert
     const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
     if (!result) return
 
@@ -832,7 +836,6 @@ export default function UserModerationTab({ accessToken }) {
 
   const updateTermStamp = async () => {
     const currentTimeStamp = dayjs().valueOf()
-    // eslint-disable-next-line no-alert
     const result = window.confirm(
       `Update terms of service timestamp to ${currentTimeStamp}? (${dayjs(
         currentTimeStamp
@@ -860,25 +863,23 @@ export default function UserModerationTab({ accessToken }) {
   return (
     <>
       {configNote && (
-        <div className="moderation-status">
+        <Flex gap='large' align='center'>
           <h4>Moderation Status:</h4>
 
-          <select
-            className="form-control input-sm"
+          <Select
+            options={[
+              { value: 'enabled', label: 'Enabled' },
+              { value: 'disabled', label: 'Disabled' },
+            ]}
             value={moderationDisabled ? 'disabled' : 'enabled'}
             onChange={enableDisableModeration}
-          >
-            <option value="enabled">Enabled</option>
-            <option value="disabled">Disabled</option>
-          </select>
+          />
 
           <span className="terms-timestamp">
             {`Terms Timestamp is ${configNote?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
-          <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
-            Update Terms Stamp
-          </button>
-        </div>
+          <Button onClick={updateTermStamp} size="small">Update Terms Stamp</Button>
+        </Flex>
       )}
 
       <div className="moderation-container">

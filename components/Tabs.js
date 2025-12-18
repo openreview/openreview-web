@@ -1,5 +1,8 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Icon from './Icon'
+
+import styles from '../styles//components/Tabs.module.scss'
+import { Activity } from 'react'
 
 export function Tabs({ children, className }) {
   return <div className={`tabs-container ${className || ''}`}>{children}</div>
@@ -59,4 +62,32 @@ export function TabPanel({ id, className, children }) {
       {children}
     </div>
   )
+}
+
+/*--------------------------------------------------------------*/
+
+export const OrTabs = ({items,defaultActiveKey})=>{
+  const [activeKey,setActiveKey]=useState(defaultActiveKey||items[0]?.key)
+
+  return <div className={styles.tabsContainer}>
+    <div className={styles.tabsNavContainer}>{
+      items.map(item=>{
+        const {key}=item
+        const isActive=key===activeKey
+        return <button key={key} role="tab" className={`${styles.tabsNavButton} ${isActive?styles.activeTabsNavButton:''}`} onClick={()=>setActiveKey(key)}>
+          {item.label}
+        </button>
+      })
+    }</div>
+    <div className={styles.tabsContentContainer}>
+      {items.map(item=>{
+        const {key,children}=item
+        const isActive=key===activeKey
+
+        return <div key={key} role="tabpanel">
+          <Activity mode={isActive?'visible':'hidden'}>{children}</Activity>
+          </div>
+      })}
+    </div>
+  </div>
 }

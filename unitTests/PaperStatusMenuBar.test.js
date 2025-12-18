@@ -133,7 +133,6 @@ return officialReviews.length;
   })
 
   test('not to throw error when function expression is invalid', () => {
-    // eslint-disable-next-line no-console
     console.error = jest.fn()
     const providerProps = {
       value: {
@@ -210,7 +209,6 @@ return officialReview.length;
 
     expect(baseMenuBarProps.tableRowsAll[0]).not.toHaveProperty('officialReviewCount')
     expect(baseMenuBarProps.tableRowsAll[1]).not.toHaveProperty('officialReviewCount')
-    // eslint-disable-next-line no-console
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining('officialReviewCount'))
   })
 

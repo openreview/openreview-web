@@ -2,7 +2,6 @@
 
 /* globals promptError: false */
 
-// eslint-disable-next-line object-curly-newline
 import { useState, useEffect, useCallback, useRef } from 'react'
 import debounce from 'lodash/debounce'
 import { usePathname, useRouter } from 'next/navigation'
@@ -23,7 +22,6 @@ const AutoCompleteInput = () => {
 
   useEffect(() => {
     if (searchTerm.trim().length > 2) {
-      // eslint-disable-next-line no-use-before-define
       searchByTerm(searchTerm)
       setHoverIndex(null)
       autoCompleteItemsRef.current = []
@@ -167,7 +165,6 @@ const AutoCompleteInput = () => {
             const activeClass = hoverIndex === index ? 'ui-state-active' : ''
             return item ? (
               <li
-                // eslint-disable-next-line react/no-array-index-key
                 key={`${item.value}${index}`}
                 className="menuItem ui-menu-item"
                 role="presentation"
@@ -176,13 +173,11 @@ const AutoCompleteInput = () => {
                   autoCompleteItemsRef.current[index] = element
                 }}
               >
-                {/* eslint-disable-next-line react/no-danger */}
                 <div
                   className={`ui-menu-item-wrapper ${activeClass}`}
                   dangerouslySetInnerHTML={{ __html: item.label }}
                 />
                 {item.subtitle && (
-                  // eslint-disable-next-line react/no-danger
                   <div
                     className={`authlist ui-menu-item-wrapper ${activeClass}`}
                     dangerouslySetInnerHTML={{ __html: item.subtitle }}

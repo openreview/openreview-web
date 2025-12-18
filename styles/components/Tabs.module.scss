@@ -1,0 +1,46 @@
+@use '../utils/constants';
+
+.tabsContainer {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.tabsNavContainer {
+  display: flex;
+  flex-wrap: wrap;
+
+  border-bottom: 1px solid #ddd;
+}
+
+.tabsNavButton {
+  border: 1px solid transparent;
+  border-radius: 2px 2px 0 0;
+  margin: 0 2px -1px 0;
+  padding: 10px 15px;
+
+  cursor: pointer;
+  user-select: none;
+
+  color: constants.$mediumBlue;
+  font-weight: bold;
+
+  &:hover {
+    border-color: #eee #eee #ddd;
+    background-color: white;
+  }
+}
+
+.activeTabsNavButton {
+  /* BS3 active tab */
+  color: #555;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-bottom-color: transparent;
+  cursor: default;
+}
+
+.tabsContentContainer {
+  padding-top: 15px; /* close to BS3 .tab-content spacing */
+  min-height: 0;
+}

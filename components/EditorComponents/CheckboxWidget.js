@@ -123,17 +123,15 @@ const CheckboxWidget = ({
   return (
     <div className={styles.checkboxContainer}>
       {checkboxOptions.map((option) => (
-        <div className="checkbox" key={`${fieldName}-${option.value}`}>
+           <div className={styles.checkboxItem} key={`${fieldName}-${option.value}`}>
           <label>
             <input
               type="checkbox"
               value={option.value ?? ''}
               checked={
                 isArrayType
-                  ? // eslint-disable-next-line eqeqeq
-                    value?.find((p) => p == option.value) ?? false
-                  : // eslint-disable-next-line eqeqeq
-                    value == option.value
+                  ? (value?.find((p) => p == option.value) ?? false)
+                  : value == option.value
               }
               disabled={option.optional === false}
               onChange={handleCheckboxClick}

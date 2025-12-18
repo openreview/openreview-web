@@ -18,7 +18,6 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
   const { id, content, details, signatures, editInvitations, deleteInvitation } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
-  // eslint-disable-next-line no-underscore-dangle
   const texDisabled = !!content?._disableTexRendering?.value
 
   const [activeInvitation, setActiveInvitation] = useState(null)
@@ -269,7 +268,6 @@ function ForumMeta({ note }) {
         </span>
       )}
 
-      {/* eslint-disable-next-line no-underscore-dangle */}
       {note.content?._bibtex?.value && (
         <span className="item">
           <Icon name="bookmark" />
@@ -278,7 +276,6 @@ function ForumMeta({ note }) {
             href="#"
             data-target="#bibtex-modal"
             data-toggle="modal"
-            // eslint-disable-next-line no-underscore-dangle
             data-bibtex={encodeURIComponent(note.content._bibtex.value)}
           >
             BibTeX

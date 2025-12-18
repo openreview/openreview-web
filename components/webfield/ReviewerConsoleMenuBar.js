@@ -37,8 +37,7 @@ const ReviewerConsoleMenuBar = ({
   ]
 
   const basicSearchFunction = (row, term) =>
-    row.note.number == term || // eslint-disable-line eqeqeq
-    row.note.content?.title?.value?.toLowerCase()?.includes(term)
+    row.note.number == term || row.note.content?.title?.value?.toLowerCase()?.includes(term)
 
   return (
     <BaseMenuBar

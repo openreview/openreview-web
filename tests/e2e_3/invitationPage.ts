@@ -25,7 +25,6 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .click(loginButton)
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Bidding page`
   .page`http://localhost:${process.env.NEXT_PORT}/invitation?id=ICLR.cc/2021/Conference/Reviewers/-/Bid`
 
@@ -87,7 +86,6 @@ test('logged in user should get a forbidden error', async (t) => {
     .eql("You don't have permission to read this invitation")
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Invitation page`.page`http://localhost:${process.env.NEXT_PORT}`
 
 test('accessing an invalid invitation should get a not found error', async (t) => {
