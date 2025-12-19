@@ -26,13 +26,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - name: Add SSH key
-        run: |
-          mkdir -p /home/runner/.ssh
-          echo "${{ secrets.GCLOUD_SSH_KEY }}" > /home/runner/.ssh/google_compute_engine
-          echo "${{ secrets.GCLOUD_SSH_KEY_PUB }}" > /home/runner/.ssh/google_compute_engine.pub
-          chmod 600 /home/runner/.ssh/google_compute_engine
-          chmod 600 /home/runner/.ssh/google_compute_engine.pub
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
@@ -49,9 +42,7 @@ jobs:
           skip_install: true
       - name: Run deploy script
         run: |
-          instance_prefix='dev-instance'
-
-          nvm='export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&'
+          instance_prefix='openreview-dev-'
 
           instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
 
@@ -69,5 +60,5 @@ jobs:
 
           for i in ${!instance_names[@]}; do
             echo Deploying to ${instance_names[$i]}
-            gcloud compute ssh --zone ${zones[$i]} openreview@${instance_names[$i]} --command "${nvm} bash bin/deploy-web.sh ${TAG}"
+            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command "bash bin/build-web.sh ${TAG} && bash bin/deploy-web.sh ${TAG}"
           done
