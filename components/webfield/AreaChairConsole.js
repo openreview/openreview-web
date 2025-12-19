@@ -570,7 +570,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.reviewerName
+ * @name AreaChairConsoleConfig.reviewerName
  * @description Used to construct label text and for filtering reviewers group
  * @type {string}
  * @default 'Reviewers'
@@ -579,7 +579,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.anonReviewerName
+ * @name AreaChairConsoleConfig.anonReviewerName
  * @description Used to filter anonymous reviewer groups
  * @type {string}
  * @default 'Reviewer_'
@@ -588,7 +588,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.metaReviewRecommendationName
+ * @name AreaChairConsoleConfig.metaReviewRecommendationName
  * @description Name of recommendation field in meta review
  * @type {string}
  * @default 'recommendation'
@@ -597,7 +597,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.additionalMetaReviewFields
+ * @name AreaChairConsoleConfig.additionalMetaReviewFields
  * @description Additional fields to display from meta review
  * @type {string[]}
  * @default []
@@ -606,7 +606,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.shortPhrase
+ * @name AreaChairConsoleConfig.shortPhrase
  * @description Used in text when messaging reviewers
  * @type {string}
  * @default no default value
@@ -615,7 +615,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.filterOperators
+ * @name AreaChairConsoleConfig.filterOperators
  * @description The query search operator allowed
  * @type {string[]}
  * @default no default value set in AC Console, default to ['!=', '>=', '<=', '>', '<', '==', '='] in menu bar
@@ -624,7 +624,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.propertiesAllowed
+ * @name AreaChairConsoleConfig.propertiesAllowed
  * @description Properties allowed in query search apart from default properties defined in menu bar
  * @type {object[]}
  * @default no default value
@@ -639,7 +639,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.enableQuerySearch
+ * @name AreaChairConsoleConfig.enableQuerySearch
  * @description Controls whether to enable query search in menu bar, if not set or set to false, only basic search is available (filterOperators and propertiesAllowed will be ignored)
  * @type {boolean}
  * @default no default value, equivalent to false
@@ -650,7 +650,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.emailReplyTo
+ * @name AreaChairConsoleConfig.emailReplyTo
  * @description replyto of the emails sent from console
  * @type {string}
  * @default no default value
@@ -661,7 +661,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.extraExportColumns
+ * @name AreaChairConsoleConfig.extraExportColumns
  * @description Extra data in the CSV export. Each object contains a header prop (header in exported csv) and a getValue string which is a function that takes row data as param and read the value required in export
  * @type {object[]}
  * @default no default value
@@ -686,7 +686,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.preferredEmailInvitationId
+ * @name AreaChairConsoleConfig.preferredEmailInvitationId
  * @description Invitation id to get preferred email edges to show SAC contact
  * @type {string}
  * @default no default value
@@ -697,7 +697,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.ithenticateInvitationId
+ * @name AreaChairConsoleConfig.ithenticateInvitationId
  * @description Invitation id to get iThenticate edges to show in paper summary
  * @type {string}
  * @default no default value
@@ -708,7 +708,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.extraRoleNames
+ * @name AreaChairConsoleConfig.extraRoleNames
  * @description The role names of the AC to display a task tab for, task of each role apart from the AC role will be displayed in a separate tab
  * @type {string[]}
  * @default no default value
@@ -719,7 +719,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.sortOptions
+ * @name AreaChairConsoleConfig.sortOptions
  * @description Custom sort options to be added apart from the default sort options in menu bar sorting dropdown, each object contains: label: the value to be shown in dropdown options, value: a value used as id of the dropdown options, getValue: a string function to calculate the order. getValue function has row data as input param
  * @type {object[]}
  * @default no default value
@@ -736,7 +736,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.displayReplyInvitations
+ * @name AreaChairConsoleConfig.displayReplyInvitations
  * @description The invitation id and field of the forum reply to be shown in a "Latest Replies" column. Each object has 2 fields: id: the invitation id to get reply, {number} in the id is replaced with the actual paper number. fields: an array of string specifying the reply field to show
  * @type {object[]}
  * @default no default value
@@ -756,7 +756,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  */
 
 /**
- * @name ReviewerConsoleConfig.customStageInvitations
+ * @name AreaChairConsoleConfig.customStageInvitations
  * @description config the custom stage replies to be shown under meta review status column. Each object can have 3 fields: name: construct the invitation id to fiter note replies, displayField: the field name to read from the custom stage note, extraDisplayFields: an string array with more fields to show from the custom stage note. Compared to the customStageInvitations config in PC/SAC console, it does not have role or repliesPerSubmission
  * @type {object[]}
  * @default no default value
