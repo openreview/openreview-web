@@ -176,7 +176,7 @@ export default function Page() {
               To donate online in amounts from $10 to $10,000, please use the interface to the right.
             </p>
             <p>
-              Signed: Joelle Pineau, Doina Precup, Kyunghyun Cho, Andrew Ng, Yoshua Bengio, Ruslan Salakhutdinov, and (Anonymous)
+              Signed: Joelle Pineau, Doina Precup, Kyunghyun Cho, Andrew Ng, Yoshua Bengio, Ruslan Salakhutdinov, Fernando Pereira, and (Anonymous)
 
             </p>
           </div>
