@@ -13,25 +13,7 @@ import useTurnstileToken from '../../hooks/useTurnstileToken'
 const SignupForm = ({ setSignupConfirmation }) => {
   const [fullName, setFullName] = useState('')
   const [confirmFullName, setConfirmFullName] = useState(false)
-  const [nameConfirmed, setNameConfirmed] = useState(false)
   const [isComposing, setIsComposing] = useState(false)
-  const [turnstileToken, setTurnstileToken] = useState(null)
-
-  const registerUser = async (email, password) => {
-    let bodyData = {}
-    bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken }
-
-    try {
-      await api.post('/register', bodyData)
-      setSignupConfirmation({
-        type: 'register',
-        registeredEmail: email,
-      })
-    } catch (apiError) {
-      promptError(apiError.message, 8)
-      setNameConfirmed(false)
-    }
-  }
 
   useEffect(() => {
     if (isComposing) return
@@ -91,30 +73,38 @@ const SignupForm = ({ setSignupConfirmation }) => {
         <>
           <hr className="spacer" />
 
-          <NewProfileForm registerUser={registerUser} nameConfirmed={nameConfirmed} />
-
-          <ConfirmNameModal
-            fullName={fullName}
-            onConfirm={() => {
-              setNameConfirmed(true)
-              $('#confirm-name-modal').modal('hide')
-            }}
-            setTurnstileToken={setTurnstileToken}
-          />
+          <NewProfileForm fullName={fullName} setSignupConfirmation={setSignupConfirmation} />
         </>
       )}
     </div>
   )
 }
 
-const NewProfileForm = ({ registerUser, nameConfirmed }) => {
+const NewProfileForm = ({ fullName, setSignupConfirmation }) => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [institutionDomains, setInstitutionDomains] = useState([])
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
+  const [isConfirmed, setIsConfirmed] = useState(false)
   const router = useRouter()
+  const [turnstileToken, setTurnstileToken] = useState(null)
+
+  const registerUser = async () => {
+    let bodyData = {}
+    bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken }
+
+    try {
+      await api.post('/register', bodyData)
+      setSignupConfirmation({
+        type: 'register',
+        registeredEmail: email,
+      })
+    } catch (apiError) {
+      promptError(apiError.message, 8)
+    }
+  }
 
   const storeFeedbackInfo = (e) => {
     e.preventDefault()
@@ -170,10 +160,10 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
   }, [email, passwordVisible])
 
   useEffect(() => {
-    if (nameConfirmed) {
+    if (isConfirmed) {
       registerUser(email, password)
     }
-  }, [nameConfirmed])
+  }, [isConfirmed])
 
   useEffect(() => {
     getInstitutionDomains()
@@ -265,11 +255,21 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
           </>
         )}
       </form>
+
+      <ConfirmNameModal
+        fullName={fullName}
+        email={email}
+        onConfirm={() => {
+          setIsConfirmed(true)
+          $('#confirm-name-modal').modal('hide')
+        }}
+        setTurnstileToken={setTurnstileToken}
+      />
     </>
   )
 }
 
-const ConfirmNameModal = ({ fullName, onConfirm, setTurnstileToken }) => {
+const ConfirmNameModal = ({ fullName, email, onConfirm, setTurnstileToken }) => {
   const [agreeTerms, setAgreeTerms] = useState(false)
   const [isOpen, setIsOpen] = useState(false)
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('registration', isOpen)
@@ -281,13 +281,13 @@ const ConfirmNameModal = ({ fullName, onConfirm, setTurnstileToken }) => {
   return (
     <BasicModal
       id="confirm-name-modal"
-      title="Confirm Full Name"
+      title="Confirm Registration"
       primaryButtonText="Register"
       onPrimaryButtonClick={() => {
         setIsOpen(false)
         onConfirm()
       }}
-      primaryButtonDisabled={!agreeTerms || !turnstileToken}
+      primaryButtonDisabled={!turnstileToken}
       onClose={() => {
         setAgreeTerms(false)
         setIsOpen(false)
@@ -297,15 +297,29 @@ const ConfirmNameModal = ({ fullName, onConfirm, setTurnstileToken }) => {
       <p className="mb-3">
         You are registering with the name <strong>{fullName}</strong>.
       </p>
-      <div className="checkbox mb-3">
-        <label>
-          <input
-            type="checkbox"
-            checked={agreeTerms}
-            onChange={() => setAgreeTerms((value) => !value)}
-          />{' '}
-          I confirm my name is correct
-        </label>
+      <div className="donation-container">
+        <p className="mb-2">
+          <strong>Support OpenReview</strong>
+        </p>
+        <p className="mb-2">
+          OpenReview is a non-profit organization that relies on community support. Your
+          donation helps us process your registration faster.{' '}
+        </p>
+        <p>
+          <a href="/donate" target="_blank" rel="noopener noreferrer">
+            Consider making a donation
+          </a>
+        </p>
+        <div className="checkbox mb-0">
+          <label>
+            <input
+              type="checkbox"
+              checked={agreeTerms}
+              onChange={() => setAgreeTerms((value) => !value)}
+            />{' '}
+            I made a donation using the email {email}
+          </label>
+        </div>
       </div>
       <div className="mt-3 mb-2 text-center" ref={turnstileContainerRef}></div>
     </BasicModal>

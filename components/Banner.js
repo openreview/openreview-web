@@ -1,9 +1,16 @@
+import Link from 'next/link'
+
 export default function Banner({ hidden, children }) {
   const defaultContent = (
     <span className="tagline">
-      Open Peer Review. Open Publishing. Open Access.{' '}
-      <span className="hidden-xs">Open Discussion. Open Recommendations.</span>{' '}
-      <span className="hidden-xs hidden-sm">Open Directory. Open API. Open Source.</span>
+      Support Open Science! Help us maintain OpenReview by{' '}
+      <Link href="/donate" className="donate-link">
+        making a donation
+      </Link>{' '}
+      today.{' '}
+      <span className="hidden-xs">
+        Your contribution keeps our platform free and accessible.
+      </span>
     </span>
   )
 
