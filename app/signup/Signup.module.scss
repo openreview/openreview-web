@@ -1,123 +1,97 @@
 @use '../../styles/utils/constants';
 
-.signup {
-  :global {
-    h1 {
-      margin-bottom: 1rem;
-    }
-    hr.spacer {
-      margin-top: 2rem;
-      margin-bottom: 2rem;
-    }
+.signupContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding-left: 10%;
 
-    #first-input {
-      max-width: 510px;
-    }
+  label {
+    color: constants.$orRed;
+  }
+}
 
-    .signup-form-container {
-      margin-top: 1.5rem;
-      margin-bottom: 2rem;
+.fullNameInput,
+.emailInput,
+.passwordInput,
+.repeatPasswordInput {
+  width: 50%;
 
-      .row {
-        margin-left: -5px;
-        margin-right: -5px;
-      }
-      .form-group {
-        padding-left: 5px;
-        padding-right: 5px;
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
 
-        @media #{constants.$tablet} {
-          margin-bottom: 0;
-        }
-      }
-      .name-confirmation {
-        color: #333;
-      }
-      label {
-        color: constants.$orRed;
-      }
-      .help-block {
-        font-size: 0.75rem;
-        margin-bottom: 0;
-      }
-      .form-inline {
-        margin-top: 0.5rem;
-        overflow: hidden;
+.confirmNameCheckbox {
+  margin-top: 0.25rem;
 
-        input {
-          width: 320px;
-          max-width: 100%;
-          margin-right: 10px;
-        }
-        button {
-          width: 180px;
-          margin-right: 10px;
-        }
-        .password-row,
-        .claim-button-row {
-          padding-top: 0.5rem;
-          white-space: nowrap;
-        }
+  @media (min-width: 769px) {
+    width: 70%;
+  }
 
-        .activation-message-row {
-          margin-top: 0.25rem;
-          font-size: 0.75rem;
-          color: constants.$orRed;
+  label {
+    display: flex;
+    color: #333;
+    font-weight: normal;
+    align-items: flex-start;
+    cursor: pointer;
+    gap: 0.5rem;
+  }
+}
 
-          .email-tooltip {
-            margin-right: 0.25rem;
-          }
-        }
+.emailInputContainer {
+  margin-top: 1rem;
+  width: 100%;
+}
 
-        .password-tooltip {
-          color: constants.$mediumBlue;
-        }
+.nonInstitutionEmailMessageContainer {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: constants.$orRed;
 
-        @media #{constants.$phone-only} {
-          input {
-            display: block;
-            width: 100%;
-            max-width: 510px;
-            margin-bottom: 15px;
-            margin-right: 0;
-          }
-        }
-      }
+  .emailTooltip {
+    margin-right: 0.25rem;
+  }
+}
 
-      .new-profile-title {
-        color: constants.$orRed;
-        font-size: 0.875rem;
-        font-weight: 700;
-      }
-    }
+.passwordContainer {
+  margin-top: 1rem;
+  width: 100%;
 
-    .confirm-message {
-      margin-bottom: 1.5rem;
-      span.email {
-        font-weight: bold;
-        color: constants.$mediumBlue;
-      }
-      strong {
-        color: constants.$orRed;
-      }
-    }
+  .passwordTooltip {
+    color: constants.$mediumBlue;
+  }
+}
 
-    .merge-message {
-      margin-top: 1rem;
-    }
+.repeatPasswordContainer {
+  margin-top: 1rem;
+  width: 100%;
+}
 
-    #confirm-name-modal {
-      label {
-        color: #333;
-      }
+.signUpButton {
+  margin-top: 1.5rem;
+}
 
-      .donation-container {
-        margin-top: 1rem;
-        padding: 1rem;
-        background-color: #f0f8ff;
-        border-left: 3px solid #5bc0de;
-        border-radius: 4px;
-      }
-    }
+.donationContainer {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #f0f8ff;
+  border-left: 3px solid #5bc0de;
+  border-radius: 4px;
+
+  label {
+    color: #333;
+  }
+}
+
+.successMessage {
+  margin-bottom: 1.5rem;
+
+  .successEmail {
+    font-weight: bold;
+    color: constants.$mediumBlue;
+  }
+  strong {
+    color: constants.$orRed;
   }
 }

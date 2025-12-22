@@ -1,29 +1,47 @@
 import Link from 'next/link'
+import useBreakpoint from '../hooks/useBreakPoint'
 
-export default function Banner({ hidden, children }) {
-  const defaultContent = (
-    <span className="tagline">
-      Support Open Science! Help us maintain OpenReview by{' '}
+import styles from '../styles/components/Banner.module.scss'
+
+const DonateBanner = () => {
+  const isMobile = !useBreakpoint('lg')
+  const defaultContent = isMobile ? (
+    <div className={styles.donateBanner}>
+      Help OpenReview,{' '}
       <Link href="/donate" className="donate-link">
-        making a donation
+        Donate
       </Link>{' '}
-      today.{' '}
-      <span className="hidden-xs">
-        Your contribution keeps our platform free and accessible.
-      </span>
-    </span>
+      today.
+    </div>
+  ) : (
+    <div className={styles.donateBanner}>
+      Help maintaining OpenReview by{' '}
+      <a href="/donate" className="donate-link" target="_blank" rel="noopener noreferrer">
+        donating
+      </a>{' '}
+      today. <span>Your contribution keeps OpenReview accessible.</span>
+    </div>
   )
-
   return (
-    <div
-      id="or-banner"
-      className="banner"
-      role="banner"
-      style={hidden ? { display: 'none' } : null}
-    >
+    <div id="or-banner" className="banner" role="banner">
       <div className="container">
         <div className="row">
-          <div className="col-xs-12">{children || defaultContent}</div>
+          <div className="col-xs-12">{defaultContent}</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export default function Banner({ hidden, children }) {
+  if (hidden) return null
+  if (!children) return <DonateBanner />
+
+  return (
+    <div id="or-banner" className="banner" role="banner">
+      <div className="container">
+        <div className="row">
+          <div className="col-xs-12">{children}</div>
         </div>
       </div>
     </div>
