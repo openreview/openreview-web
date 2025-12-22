@@ -148,7 +148,9 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         user: args.user,
         key: args.key,
         response: isAcceptResponse ? 'Yes' : 'No',
-        editSignatureInputValues: invitation.edit?.signatures?.param?.items ? [user ? user.profile.preferredId : '(guest)'] : undefined,
+        ...(invitation.edit?.signatures?.param?.items && {
+    editSignatureInputValues: [user ? user.profile.preferredId : '(guest)']
+        }),
         ...formData,
       }
       const noteToPost = view2.constructEdit({
@@ -296,7 +298,9 @@ const RecruitmentForm = () => {
             ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key)
           )
         ),
-        editSignatureInputValues: invitation.edit?.signatures?.param?.items ? [user ? user.profile.preferredId : '(guest)'] : undefined,
+        ...(invitation.edit?.signatures?.param?.items && {
+    editSignatureInputValues: [user ? user.profile.preferredId : '(guest)']
+        }),
       }
       const noteToPost = view2.constructEdit({
         formData: noteContent,
