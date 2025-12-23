@@ -113,7 +113,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     allowAcceptWithReducedLoad = false,
   } = useContext(WebFieldContext)
   const [isSaving, setIsSaving] = useState(false)
-  const { accessToken, user } = useUser()
+  const { user } = useUser()
   const hasReducedLoadField = invitation.edit?.note?.content?.reduced_load
   const hasCommentField = invitation.edit?.note?.content?.comment
   const fieldsToRender = orderNoteInvitationFields(
@@ -149,7 +149,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         key: args.key,
         response: isAcceptResponse ? 'Yes' : 'No',
         ...(invitation.edit?.signatures?.param?.items && {
-    editSignatureInputValues: [user ? user.profile.preferredId : '(guest)']
+          editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
         }),
         ...formData,
       }
@@ -265,7 +265,7 @@ const RecruitmentForm = () => {
   } = useContext(WebFieldContext)
   const responseDescription = invitation.edit?.note?.content?.response?.description
   const invitationContentFields = Object.keys(invitation.edit?.note?.content)
-  const { accessToken, user } = useUser()
+  const { user } = useUser()
 
   const defaultButtonState = [
     { response: 'Yes', loading: false, disabled: false },
@@ -299,7 +299,7 @@ const RecruitmentForm = () => {
           )
         ),
         ...(invitation.edit?.signatures?.param?.items && {
-    editSignatureInputValues: [user ? user.profile.preferredId : '(guest)']
+          editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
         }),
       }
       const noteToPost = view2.constructEdit({
