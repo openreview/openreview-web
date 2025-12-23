@@ -384,6 +384,7 @@ const ReviewerConsoleTabs = ({
  * @property {string} submissionInvitationId mandatory
  * @property {string} recruitmentInvitationId mandatory
  * @property {string} customMaxPapersInvitationId mandatory
+ * @property {string} reviewPolicyInvitationId optional
  * @property {string|number} reviewLoad mandatory
  * @property {boolean} hasPaperRanking mandatory
  * @property {string[]} reviewDisplayFields optional
@@ -498,6 +499,15 @@ const ReviewerConsoleTabs = ({
  */
 
 /**
+ * @name ReviewerConsoleConfig.reviewPolicyInvitationId
+ * @description The invitation to get review policy edge for the logged in reviewer. If edge exist the label is shown at top of page.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "reviewPolicyInvitationId": "ICLR.cc/202X/Conference/Reviewers/-/Review_Policy" }
+ */
+
+/**
  * @name ReviewerConsoleConfig.reviewLoad
  * @description Related to recruitmentInvitationId and customMaxPapersInvitationId. The default value to display in header when there's no custom load edge or recruitment note
  * @type {string|number}
@@ -538,6 +548,7 @@ const ReviewerConsole = ({ appContext }) => {
     submissionInvitationId,
     recruitmentInvitationId,
     customMaxPapersInvitationId, // to query custom load edges
+    reviewPolicyInvitationId,
     reviewLoad,
     hasPaperRanking,
     reviewDisplayFields = ['review'],
@@ -645,6 +656,21 @@ const ReviewerConsole = ({ appContext }) => {
           })
       })
     // #endregion
+    // #region get custom load
+    const getReviewPolicyP = reviewPolicyInvitationId
+      ? api
+          .get(
+            '/edges',
+            {
+              invitation: reviewPolicyInvitationId,
+              tail: user.profile.id,
+              domain: group.domain,
+            },
+            { accessToken }
+          )
+          .then((result) => result.edges?.[0]?.label)
+      : Promise.resolve(null)
+    // #endregion
 
     // #region get area chair groups
     const getAreaChairGroupsP = areaChairName
@@ -687,8 +713,14 @@ const ReviewerConsole = ({ appContext }) => {
       : Promise.resolve({})
     // #endregion
 
-    Promise.all([getNotesP, paperRankingInvitationP, getCustomLoadP, getAreaChairGroupsP])
-      .then(([notes, paperRankingInvitation, customLoad, areaChairMap]) => {
+    Promise.all([
+      getNotesP,
+      paperRankingInvitationP,
+      getCustomLoadP,
+      getAreaChairGroupsP,
+      getReviewPolicyP,
+    ])
+      .then(([notes, paperRankingInvitation, customLoad, areaChairMap, reviewPolicy]) => {
         const noteChunks = chunk(notes, 50)
         // get offical review invitations to show submit official review link
         const officalReviewInvitationPs = noteChunks.map((noteChunk) => {
@@ -714,6 +746,7 @@ const ReviewerConsole = ({ appContext }) => {
             customLoad,
             areaChairMap,
             officialReviewInvitationsResult,
+            reviewPolicy,
           ])
       })
       .then(
@@ -723,6 +756,7 @@ const ReviewerConsole = ({ appContext }) => {
           customLoad,
           areaChairMap,
           officialReviewInvitations,
+          reviewPolicy,
         ]) => {
           const anonGroupIds = anonGroups.map((p) => p.id)
           // get official reviews from notes details
@@ -753,6 +787,7 @@ const ReviewerConsole = ({ appContext }) => {
               paperNumberAnonGroupIdMap: groupByNumber,
               notes,
               customLoad,
+              reviewPolicy,
               officialReviews,
               paperRankingTags,
               areaChairMap,
@@ -827,6 +862,13 @@ const ReviewerConsole = ({ appContext }) => {
         instructions={header.instructions}
         customLoad={reviewerConsoleData.customLoad}
         submissionName={submissionName}
+        options={{
+          extra: reviewerConsoleData.reviewPolicy ? (
+            <p className="dark">
+              Your review policy: <strong>{reviewerConsoleData.reviewPolicy}</strong>
+            </p>
+          ) : undefined,
+        }}
       />
       {reviewerConsoleData.notes ? (
         <ReviewerConsoleTabs

@@ -45,7 +45,7 @@ global.marked = jest.fn()
 global.$ = jest.fn(() => ({ on: jest.fn(), off: jest.fn(), modal: jest.fn() }))
 
 beforeEach(() => {
-  useUserReturnValue = { user: {}, accessToken: 'some token' }
+  useUserReturnValue = { user: { profile: { id: '~Some_Id1' } }, accessToken: 'some token' }
   routerParams = null
   noteSummaryProps = jest.fn()
   noteReviewStatusProps = jest.fn()
@@ -180,6 +180,61 @@ describe('ReviewerConsole', () => {
     expect(
       screen.getByText('Console is missing required properties: reviewerName')
     ).toBeInTheDocument()
+  })
+
+  test('show review policy when specified', async () => {
+    api.getAll = jest.fn(() => Promise.resolve([]))
+    api.get = jest.fn((path, param) => {
+      switch (path) {
+        case '/edges':
+          if (param.tail?.startsWith('~'))
+            // review policy edge
+            return Promise.resolve({ edges: [{ label: 'Policy One' }] })
+          return Promise.resolve({ edges: [] })
+        case '/notes':
+          return Promise.resolve({ notes: [] })
+        case '/groups':
+          return Promise.resolve({ groups: [] })
+        case '/invitations':
+          return Promise.resolve({ invitations: [] })
+        default:
+          return null
+      }
+    })
+
+    const providerProps = {
+      value: {
+        header: {
+          title: 'Program Committee Console',
+          instructions: 'some instructions',
+        },
+        entity: { id: 'AAAI.org/2025/Conference/Program_Committee' },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerName: 'Program_Committee',
+        officialReviewName: 'Official_Review',
+        reviewRatingName: 'rating',
+        areaChairName: 'Senior_Program_Committee',
+        submissionName: 'Submission',
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        recruitmentInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Recruitment',
+        customMaxPapersInvitationId:
+          'AAAI.org/2025/Conference/Program_Committee/-/Custom_Max_Papers',
+        reviewPolicyInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Review_Policy',
+        reviewLoad: '',
+        hasPaperRanking: false,
+        reviewDisplayFields: undefined,
+      },
+    }
+
+    renderWithWebFieldContext(
+      <ReviewerConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    expect(api.getAll).toHaveBeenCalledTimes(1) // get member groups
+    await waitFor(() => {
+      expect(screen.getByText('Policy One')).toBeInTheDocument()
+    })
   })
 
   test('show assigned papers tab and tasks tab with correct name (basedo n submission name and reviewer name)', async () => {
