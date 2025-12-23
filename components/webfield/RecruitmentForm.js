@@ -14,6 +14,7 @@ import { translateInvitationMessage } from '../../lib/webfield-utils'
 import styles from '../../styles/components/RecruitmentForm.module.scss'
 import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
+import useUser from '../../hooks/useUser'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 
@@ -112,6 +113,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     allowAcceptWithReducedLoad = false,
   } = useContext(WebFieldContext)
   const [isSaving, setIsSaving] = useState(false)
+  const { user } = useUser()
   const hasReducedLoadField = invitation.edit?.note?.content?.reduced_load
   const hasCommentField = invitation.edit?.note?.content?.comment
   const fieldsToRender = orderNoteInvitationFields(
@@ -146,6 +148,9 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         user: args.user,
         key: args.key,
         response: isAcceptResponse ? 'Yes' : 'No',
+        ...(invitation.edit?.signatures?.param?.items && {
+          editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
+        }),
         ...formData,
       }
       const noteToPost = view2.constructEdit({
@@ -260,6 +265,7 @@ const RecruitmentForm = () => {
   } = useContext(WebFieldContext)
   const responseDescription = invitation.edit?.note?.content?.response?.description
   const invitationContentFields = Object.keys(invitation.edit?.note?.content)
+  const { user } = useUser()
 
   const defaultButtonState = [
     { response: 'Yes', loading: false, disabled: false },
@@ -292,6 +298,9 @@ const RecruitmentForm = () => {
             ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key)
           )
         ),
+        ...(invitation.edit?.signatures?.param?.items && {
+          editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
+        }),
       }
       const noteToPost = view2.constructEdit({
         formData: noteContent,
