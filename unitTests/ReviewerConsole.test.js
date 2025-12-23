@@ -187,9 +187,29 @@ describe('ReviewerConsole', () => {
     api.get = jest.fn((path, param) => {
       switch (path) {
         case '/edges':
-          if (param.tail?.startsWith('~'))
+          if (
+            param.invitation === 'AAAI.org/2025/Conference/Program_Committee/-/Review_Policy'
+          ) {
             // review policy edge
             return Promise.resolve({ edges: [{ label: 'Policy One' }] })
+          } else if (
+            param.invitation === 'AAAI.org/2025/Conference/Program_Committee/-/Review_Status'
+          ) {
+            // review status edge
+            return Promise.resolve({ edges: [{ weight: 0 }] })
+          } else if (
+            param.invitation === 'AAAI.org/2025/Conference/Program_Committee/-/Review_Track'
+          ) {
+            // review track edge
+            return Promise.resolve({
+              edges: [
+                { label: 'Track One' },
+                { label: 'Track Two' },
+                { label: 'Track Three' },
+              ],
+            })
+          }
+
           return Promise.resolve({ edges: [] })
         case '/notes':
           return Promise.resolve({ notes: [] })
@@ -219,7 +239,11 @@ describe('ReviewerConsole', () => {
         recruitmentInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Recruitment',
         customMaxPapersInvitationId:
           'AAAI.org/2025/Conference/Program_Committee/-/Custom_Max_Papers',
-        reviewPolicyInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Review_Policy',
+        edgeInvitationIds: [
+          'AAAI.org/2025/Conference/Program_Committee/-/Review_Policy',
+          'AAAI.org/2025/Conference/Program_Committee/-/Review_Status',
+          'AAAI.org/2025/Conference/Program_Committee/-/Review_Track',
+        ],
         reviewLoad: '',
         hasPaperRanking: false,
         reviewDisplayFields: undefined,
@@ -234,6 +258,9 @@ describe('ReviewerConsole', () => {
     expect(api.getAll).toHaveBeenCalledTimes(1) // get member groups
     await waitFor(() => {
       expect(screen.getByText('Policy One')).toBeInTheDocument()
+      expect(screen.getByText('Review Status:')).toBeInTheDocument()
+      expect(screen.getByText('Review Status:').lastChild.textContent).toBe('0')
+      expect(screen.getByText('Track One, Track Two, Track Three')).toBeInTheDocument()
     })
   })
 
