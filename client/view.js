@@ -2560,6 +2560,7 @@ module.exports = (function () {
 
     // Meta Info Row
     var $metaEditRow = $('<div>', { class: 'meta_row' })
+    var isdblpPublication = note.invitation === 'dblp.org/-/record'
     var formattedDate = forumDate(
       note.cdate,
       note.tcdate,
@@ -2567,7 +2568,9 @@ module.exports = (function () {
       note.tmdate,
       note.content.year,
       note.pdate,
-      note.id !== note.forum // include time if this a reply
+      note.id !== note.forum, // include time if this a reply
+      false,
+      isdblpPublication
     )
     var $replyCountLabel =
       params.withReplyCount && details.replyCount
@@ -3170,7 +3173,8 @@ module.exports = (function () {
     createdYear,
     pdate,
     withTime = false,
-    withTimezone = false
+    withTimezone = false,
+    pDateShowYear = false
   ) {
     var mdateSettings = {
       day: '2-digit',
@@ -3217,7 +3221,10 @@ module.exports = (function () {
       : ''
 
     if (pdate) {
-      var pdateFormatted = new Date(pdate).toLocaleDateString('en-GB', mdateSettings)
+      var pdateFormatted = new Date(pdate).toLocaleDateString(
+      'en-GB',
+      pDateShowYear ? { year: 'numeric' } : mdateSettings
+    )
       var secondaryDate = mdate
         ? `Last Modified: ${mdateFormatted}`
         : `Uploaded: ${cdateFormatted}`
