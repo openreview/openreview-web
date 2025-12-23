@@ -547,7 +547,7 @@ table.table-minimal {
 .venues-list {
   margin-bottom: 1.5rem;
 
-  & > li > a {
+  & > li > a:not(.all-venues-link) {
     font-size: 1.125rem;
     font-weight: bold;
     line-height: 1.875rem;
