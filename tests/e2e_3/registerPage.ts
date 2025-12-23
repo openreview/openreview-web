@@ -1,8 +1,5 @@
-import { Selector, ClientFunction, RequestLogger } from 'testcafe'
+import { Selector, ClientFunction } from 'testcafe'
 import {
-  inactiveUser,
-  inActiveUserNoPassword,
-  inActiveUserNoPasswordNoEmail,
   getToken,
   getMessages,
   superUserName,
@@ -11,18 +8,10 @@ import {
 
 
 const fullNameInputSelector = Selector('#first-input')
-const emailAddressInputSelector = Selector('input').withAttribute(
-  'placeholder',
-  'Email address'
-)
+const emailAddressInputSelector = Selector('#email-input')
 const signupButtonSelector = Selector('button').withText('Sign Up')
-const newPasswordInputSelector = Selector('input').withAttribute('placeholder', 'New password')
-const confirmPasswordInputSelector = Selector('input').withAttribute(
-  'placeholder',
-  'Confirm new password'
-)
-const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
-const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
+const newPasswordInputSelector = Selector('#password-input')
+const confirmPasswordInputSelector = Selector('#repeat-password-input')
 const messageSelector = Selector('.rc-notification-notice-content').nth(-1)
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
@@ -39,20 +28,19 @@ test('create new profile', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff,and may require two weeks processing time.'
       ).exists
     )
     .ok()
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(Selector('input[type="checkbox"]')) // confirm name
+    .expect(newPasswordInputSelector.hasAttribute('disabled')).ok()
+    .expect(confirmPasswordInputSelector.hasAttribute('disabled')).ok()
     .typeText(emailAddressInputSelector, 'melisa@test.com')
-    .expect(signupButtonSelector.hasAttribute('disabled'))
-    .notOk('not enabled yet', { timeout: 5000 })
-    .click(signupButtonSelector)
-    .expect(newPasswordInputSelector.exists)
-    .ok()
-    .expect(confirmPasswordInputSelector.exists)
-    .ok()
+    .expect(newPasswordInputSelector.hasAttribute('disabled')).notOk()
+    .expect(confirmPasswordInputSelector.hasAttribute('disabled')).ok()
+    .expect(signupButtonSelector.hasAttribute('disabled')).ok()
+    .click(newPasswordInputSelector) // blur email input to trigger validation
     .expect(
       Selector('span').withText(
         `test.com does not appear in our list of publishing institutions.`
@@ -63,7 +51,7 @@ test('create new profile', async (t) => {
     .selectText(emailAddressInputSelector)
     .pressKey('delete')
     .typeText(emailAddressInputSelector, 'non@institution.email')
-    .click(signupButtonSelector)
+    .click(newPasswordInputSelector)
     .expect(
       Selector('span').withText(
         `institution.email does not appear in our list of publishing institutions.`
@@ -74,20 +62,19 @@ test('create new profile', async (t) => {
     .selectText(emailAddressInputSelector)
     .pressKey('delete')
     .typeText(emailAddressInputSelector, 'validemail@umass.edu')
-    .click(signupButtonSelector)
+    .click(newPasswordInputSelector)
     .expect(Selector('div.activation-message-row').exists)
     .notOk() // no warning
     // change email to subdomain of institution email
     .selectText(emailAddressInputSelector)
     .pressKey('delete')
     .typeText(emailAddressInputSelector, 'validemail@test.umass.edu')
-    .click(signupButtonSelector)
+    .click(newPasswordInputSelector)
     .expect(Selector('div.activation-message-row').exists)
     .notOk() // no warning
     .selectText(emailAddressInputSelector)
     .pressKey('delete')
     .typeText(emailAddressInputSelector, 'melisa@test.com')
-    .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
@@ -101,8 +88,30 @@ test('create new profile', async (t) => {
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
-    .expect(Selector('span').withAttribute('class', 'email').innerText)
-    .eql('melisa@test.com')
+    .expect(Selector('strong').withText('Thank you for your donation!').exists)
+    .ok()
+    .expect(Selector('span').withText('melisa@test.com').exists).ok()
+
+  const messages = await getMessages({ to: 'melisa@test.com' }, t.fixtureCtx.superUserToken)
+  await t
+    .expect(messages[0].content.text)
+    .contains('http://localhost:3030/profile/activate?token=')
+})
+
+test('sign up using email of pending profile and fail', async (t) => {
+  await t
+    .typeText(fullNameInputSelector, 'Another Melisa Bok')
+    .click(Selector('input[type="checkbox"]'))
+    .typeText(emailAddressInputSelector, 'melisa@test.com')
+    .typeText(newPasswordInputSelector, strongPassword)
+    .typeText(confirmPasswordInputSelector, strongPassword)
+    .click(signupButtonSelector)
+    .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
+    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+    .notOk({ timeout: 8000 })
+    .click(Selector('#confirm-name-modal').find('.btn-primary'))
+    .expect(messageSelector.innerText)
+    .contains("User not confirmed.")
 
   const messages = await getMessages({ to: 'melisa@test.com' }, t.fixtureCtx.superUserToken)
   await t
@@ -117,16 +126,16 @@ test('create another new profile', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff,and may require two weeks processing time.'
       ).exists
     )
     .ok()
-    .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(Selector('label').withText(
+      'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff,and may require two weeks processing time.'
+    ))
     .typeText(emailAddressInputSelector, 'peter@test.com')
-    .expect(signupButtonSelector.hasAttribute('disabled'))
-    .notOk('not enabled yet', { timeout: 5000 })
-    .click(signupButtonSelector)
+    .expect(signupButtonSelector.hasAttribute('disabled')).ok()
+    .click(newPasswordInputSelector)
     .expect(newPasswordInputSelector.exists)
     .ok()
     .expect(confirmPasswordInputSelector.exists)
@@ -151,8 +160,7 @@ test('create another new profile', async (t) => {
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
-    .expect(Selector('span').withAttribute('class', 'email').innerText)
-    .eql('peter@test.com')
+    .expect(Selector('span').withText('peter@test.com').exists).ok()
 
   const messages = await getMessages({ to: 'peter@test.com' }, t.fixtureCtx.superUserToken)
   await t
@@ -167,21 +175,15 @@ test('create a new profile with an institutional email', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff,and may require two weeks processing time.'
       ).exists
     )
     .ok()
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(Selector('label').withText(
+      'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff,and may require two weeks processing time.'
+    ))
     .typeText(emailAddressInputSelector, 'kevin@umass.edu')
-    .expect(signupButtonSelector.hasAttribute('disabled'))
-    .notOk('not enabled yet', { timeout: 5000 })
-    .click(signupButtonSelector)
-    .expect(newPasswordInputSelector.exists)
-    .ok()
-    .expect(confirmPasswordInputSelector.exists)
-    .ok()
-
     .typeText(newPasswordInputSelector, strongPassword)
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
@@ -195,8 +197,7 @@ test('create a new profile with an institutional email', async (t) => {
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
-    .expect(Selector('span').withAttribute('class', 'email').innerText)
-    .eql('kevin@umass.edu')
+    .expect(Selector('span').withText('kevin@umass.edu').exists).ok()
 
   const messages = await getMessages({ to: 'kevin@umass.edu' }, t.fixtureCtx.superUserToken)
   await t
@@ -207,9 +208,8 @@ test('create a new profile with an institutional email', async (t) => {
 test('sign up with invalid name', async (t) => {
   await t
     .typeText(fullNameInputSelector, '1')
-    .click(Selector('label.name-confirmation'))
+    .click(Selector('input[type="checkbox"]'))
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
-    .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
@@ -226,9 +226,8 @@ test('sign up with invalid name', async (t) => {
 test('sign up with another invalid name', async (t) => {
   await t
     .typeText(fullNameInputSelector, 'abc `')
-    .click(Selector('label.name-confirmation'))
+    .click(Selector('input[type="checkbox"]'))
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
-    .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
@@ -248,18 +247,13 @@ test('enter valid name invalid email and change to valid email and register', as
   await t
     .typeText(fullNameInputSelector, fullName) // must be new each test run
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(Selector('input[type="checkbox"]'))
     .typeText(emailAddressInputSelector, `${email}@test.com`)
-    .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists)
     .notOk() // password input should not show when email is invalid
   await t
     .typeText(emailAddressInputSelector, email, { replace: true }) // enter a valid email
     .click(signupButtonSelector)
-    .expect(newPasswordInputSelector.exists)
-    .ok()
-    .expect(confirmPasswordInputSelector.exists)
-    .ok()
     .typeText(newPasswordInputSelector, strongPassword)
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
@@ -269,8 +263,7 @@ test('enter valid name invalid email and change to valid email and register', as
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
-    .expect(Selector('span').withAttribute('class', 'email').innerText)
-    .eql(email)
+    .expect(Selector('span').withText(email).exists).ok()
 })
 
 fixture`Resend Activation link`.page`http://localhost:${process.env.NEXT_PORT}/login`.before(
