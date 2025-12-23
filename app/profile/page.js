@@ -27,7 +27,8 @@ export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()
   const query = await searchParams
   const { id, email } = query
-  if (!user) redirect(`/login?redirect=/profile?${encodeURIComponent(stringify(query))}`)
+  if (!user && !id && !email)
+    redirect(`/login?redirect=/profile?${encodeURIComponent(stringify(query))}`)
 
   const headersList = await headers()
   const remoteIpAddress = headersList.get('x-forwarded-for')
