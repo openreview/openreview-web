@@ -249,8 +249,7 @@ test('enter valid name invalid email and change to valid email and register', as
     .wait(500)
     .click(Selector('input[type="checkbox"]'))
     .typeText(emailAddressInputSelector, `${email}@test.com`)
-    .expect(newPasswordInputSelector.exists)
-    .notOk() // password input should not show when email is invalid
+    .expect(newPasswordInputSelector.hasAttribute('disabled')).ok() // password input should be disabled show when email is invalid
   await t
     .typeText(emailAddressInputSelector, email, { replace: true }) // enter a valid email
     .click(signupButtonSelector)
