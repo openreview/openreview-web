@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import NavUserLinks from './NavUserLinks'
 import NavSearch from './NavSearch'
+import NavActiveConsoles from './NavActiveConsoles'
 
 function Nav() {
   return (
@@ -27,7 +28,10 @@ function Nav() {
 
         <div id="navbar" className="navbar-collapse collapse">
           <NavSearch />
-          <NavUserLinks />
+          <ul className="nav navbar-nav navbar-right">
+            <NavActiveConsoles />
+            <NavUserLinks />
+          </ul>
         </div>
       </div>
     </nav>
