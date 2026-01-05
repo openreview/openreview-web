@@ -29,13 +29,6 @@ jobs:
         with:
           ref: ${{ env.TAG }}
           fetch-depth: 0
-      - name: Add SSH key
-        run: |
-          mkdir -p /home/runner/.ssh
-          echo "${{ secrets.GCLOUD_SSH_KEY }}" > /home/runner/.ssh/google_compute_engine
-          echo "${{ secrets.GCLOUD_SSH_KEY_PUB }}" > /home/runner/.ssh/google_compute_engine.pub
-          chmod 600 /home/runner/.ssh/google_compute_engine
-          chmod 600 /home/runner/.ssh/google_compute_engine.pub
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
@@ -98,7 +91,7 @@ jobs:
 
           for i in ${!instance_names[@]}; do
             echo Deploying to ${instance_names[$i]}
-            gcloud compute ssh --zone ${zones[$i]} openreview@${instance_names[$i]} --command "bash bin/deploy-web.sh ${TAG}"
+            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command "bash bin/deploy-web.sh ${TAG}"
           done
 
           nginx='nginx'
@@ -111,4 +104,4 @@ jobs:
           nginx_name=${nginx_arr[0]}
           nginx_zone=${nginx_arr[1]}
 
-          gcloud compute --project "sunlit-realm-131518" ssh --zone $nginx_zone openreview@$nginx_name --command "${nvm} bash bin/deploy-web.sh ${TAG}" --quiet
+          gcloud compute --project "sunlit-realm-131518" ssh --zone $nginx_zone --tunnel-through-iap openreview@$nginx_name --command "${nvm} bash bin/deploy-web.sh ${TAG}" --quiet

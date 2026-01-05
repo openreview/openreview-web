@@ -1,8 +1,9 @@
+/* eslint-disable max-len */
 /* globals $,promptMessage,promptError,typesetMathJax: false */
 
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { chunk, orderBy } from 'lodash'
+import { camelCase, chunk, orderBy } from 'lodash'
 import Link from 'next/link'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
@@ -154,6 +155,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
     extraRoleNames,
     sortOptions,
     displayReplyInvitations,
+    customStageInvitations,
   } = useContext(WebFieldContext)
   const defaultActiveTabId = `assigned-${pluralizeString(submissionName).toLowerCase()}`
   const [activeTabId, setActiveTabId] = useState(defaultActiveTabId)
@@ -200,6 +202,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
             areaChairName={areaChairName}
             ithenticateInvitationId={ithenticateInvitationId}
             sortOptions={sortOptions}
+            customStageInvitations={customStageInvitations}
           />
           <p className="empty-message">
             No assigned {submissionName.toLowerCase()} matching search criteria.
@@ -229,6 +232,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
           areaChairName={areaChairName}
           ithenticateInvitationId={ithenticateInvitationId}
           sortOptions={sortOptions}
+          customStageInvitations={customStageInvitations}
         />
         <Table
           className="console-table table-striped areachair-console-table"
@@ -391,6 +395,385 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
   )
 }
 
+// #region config docs
+/** Area Chair Console config doc
+ *
+ * @typedef {Object} AreaChairConsoleConfig
+ *
+ // eslint-disable-next-line max-len
+ * @property {Object} header mandatory but can be empty object
+ * @property {string} venueId mandatory
+ * @property {Object} reviewerAssignment optional
+ * @property {string} submissionInvitationId mandatory
+ * @property {string} seniorAreaChairsId optional
+ * @property {string} areaChairName mandatory
+ * @property {string} secondaryAreaChairName optional
+ * @property {string} submissionName mandatory
+ * @property {string} officialReviewName mandatory
+ * @property {string|string[]|object[]} reviewRatingName mandatory
+ * @property {string} reviewConfidenceName optional
+ * @property {string} officialMetaReviewName mandatory
+ * @property {string} reviewerName mandatory
+ * @property {string} anonReviewerName mandatory
+ * @property {string} metaReviewRecommendationName optional
+ * @property {string[]} additionalMetaReviewFields optional
+ * @property {string} shortPhrase mandatory
+ * @property {string[]} filterOperators optional
+ * @property {Object[]} propertiesAllowed optional
+ * @property {boolean} enableQuerySearch optional
+ * @property {string} emailReplyTo optional
+ * @property {Object[]} extraExportColumns optional
+ * @property {string} preferredEmailInvitationId optional
+ * @property {string} ithenticateInvitationId optional
+ * @property {string[]} extraRoleNames optional
+ * @property {Object[]} sortOptions optional
+ * @property {Object[]} displayReplyInvitations optional
+ * @property {Object[]} customStageInvitations optional
+ */
+
+/**
+ * @name AreaChairConsoleConfig.header
+ * @description Page header. Contains two string fields: "title" and "instructions" (markdown supported)
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "header": {
+ *     "title": "Some conference",
+ *     "instructions": "some **instructions**"
+ *   }
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.venueId
+ * @description Used to construct banner content, referrer link and various group/invitation ids. The value is usually domain.id
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "venueId": "ICLR.cc/202X/Conference" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.reviewerAssignment
+ * @description An object which can contain the following fields:
+ * - showEdgeBrowserUrl (boolean): a flag to control whether to show link to edge browser to edit reviewer assignments
+ * - proposedAssignmentTitle (string): the title of the proposed assignment config note. if provided, edgeBrowserProposedUrl will be used as the link to the edge browser, otherwise edgeBrowserDeployedUrl will be used
+ * - edgeBrowserProposedUrl (string): the url to edge browser to edit (proposed) assignments. shown in instructions when showEdgeBrowserUrl is true and proposedAssignmentTitle is provided
+ * - edgeBrowserDeployedUrl (string): the url to edge browser to edit deployed assignments. shown in instructions when showEdgeBrowserUrl is true and proposedAssignmentTitle is not provided
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "reviewerAssignment": {
+ *     "showEdgeBrowserUrl": true,
+ *     "proposedAssignmentTitle": "Min0-Max3"
+ *     "edgeBrowserProposedUrl": "/edges/browse?start=ICLR.cc/202X/Conference/Area_Chairs/-/Assignment,tail:~Test_User1&traverse=ICLR.cc/202X/Conference/Reviewers/-/Proposed_Assignment,label:undefined&edit=ICLR.cc/202X/Conference/Reviewers/-/Proposed_Assignment,label:undefined;ICLR.cc/202X/Conference/Reviewers/-/Invite_Assignment&browse=ICLR.cc/202X/Conference/Reviewers/-/Aggregate_Score,label:undefined;ICLR.cc/202X/Conference/Reviewers/-/Affinity_Score;ICLR.cc/202X/Conference/Reviewers/-/Bid&maxColumns=2&version=2"
+ *     "edgeBrowserDeployedUrl": "/edges/browse?start=ICLR.cc/202X/Conference/Area_Chairs/-/Assignment,tail:~Test_User1&traverse=ICLR.cc/202X/Conference/Reviewers/-/Assignment&edit=ICLR.cc/202X/Conference/Reviewers/-/Invite_Assignment&browse=ICLR.cc/202X/Conference/Reviewers/-/Affinity_Score;ICLR.cc/202X/Conference/Reviewers/-/Bid;ICLR.cc/202X/Conference/Reviewers/-/Custom_Max_Papers,head:ignore&maxColumns=2&version=2"
+ *   }
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.submissionInvitationId
+ * @description Used as the invitation to query notes to be displayed in console
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionInvitationId": "ICLR.cc/202X/Conference/-/Submission" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.seniorAreaChairsId
+ * @description The SAC group id. Used to construct SAC-AC assignment invitation id to query SAC assignment edges and to construct the SAC display text
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "seniorAreaChairsId": "ICLR.cc/202X/Conference/Senior_Area_Chairs" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.areaChairName
+ * @description The name of ACs group used in group id. Used to identify ACs group anonymous AC group
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "areaChairName": "Area_Chairs" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.secondaryAreaChairName
+ * @description The name of Secondary ACs group used in group id. Used to identify Secondary ACs group to determine the submission to show in AC triplet(Secondary AC) tab
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "secondaryAreaChairName": "Secondary_Area_Chairs" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.submissionName
+ * @description Name of submission, used to construct group id, query param, error message etc
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionName": "Submission" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.officialReviewName
+ * @description Name of official reviews, used in label text and to construct official review invitation id
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "officialReviewName": "Official_Review" }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.reviewRatingName
+ * @description Used to get rating value from official review, support string, string array for displaying multiple rating fields and object array which allows custom rating name and fallback values
+ * @type {string|string[]|object[]}
+ * @default no default value
+ * @example <caption>string shows single rating</caption>
+ * { "reviewRatingName": "rating" }
+ * @example <caption>string array shows multiple ratings</caption>
+ * { "reviewRatingName": ["soundness","excitement","reproducibility"] }
+ * @example <caption>object array/mixed shows multiple ratings with fallback options the following config would show 2 ratings: "overall_rating" and "overall_recommendation" for "overall_rating", it's value will be final_rating field, when final_rating field is not available, it will take the next available value defined in the array, in this example it will take "preliminary_rating"</caption>
+ * {
+ *  "reviewRatingName": [
+ *    {
+ *      "overall_rating": [
+ *        "final_rating",
+ *        "preliminary_rating"
+ *      ]
+ *    },
+ *    "overall_recommendation",
+ *  ]
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.reviewConfidenceName
+ * @description Name of confidence field in official review.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "reviewConfidenceName": "confidence_level" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.officialMetaReviewName
+ * @description Name of meta review. Used in label text and to construct meta review invitation id.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "officialMetaReviewName": "Meta_Review" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.reviewerName
+ * @description Used to construct label text and for filtering reviewers group
+ * @type {string}
+ * @default 'Reviewers'
+ * @example
+ * { "reviewerName": "Reviewers" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.anonReviewerName
+ * @description Used to filter anonymous reviewer groups
+ * @type {string}
+ * @default 'Reviewer_'
+ * @example
+ * { "anonReviewerName": "Reviewer_" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.metaReviewRecommendationName
+ * @description Name of recommendation field in meta review
+ * @type {string}
+ * @default 'recommendation'
+ * @example
+ * { "metaReviewRecommendationName": "recommendation" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.additionalMetaReviewFields
+ * @description Additional fields to display from meta review
+ * @type {string[]}
+ * @default []
+ * @example
+ * { "additionalMetaReviewFields": ["final_recommendation"] }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.shortPhrase
+ * @description Used in text when messaging reviewers
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "shortPhrase": "ABCD 20XX" }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.filterOperators
+ * @description The query search operator allowed
+ * @type {string[]}
+ * @default no default value set in AC Console, default to ['!=', '>=', '<=', '>', '<', '==', '='] in menu bar
+ * @example
+ * { "filterOperators": [">","<"] }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.propertiesAllowed
+ * @description Properties allowed in query search apart from default properties defined in menu bar
+ * @type {object[]}
+ * @default no default value
+ * @example
+ * {
+ *  "propertiesAllowed": [
+ *    {
+ *      track:['note.content.track.value']
+ *    }
+ *  ]
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.enableQuerySearch
+ * @description Controls whether to enable query search in menu bar, if not set or set to false, only basic search is available (filterOperators and propertiesAllowed will be ignored)
+ * @type {boolean}
+ * @default no default value, equivalent to false
+ * @example
+ * {
+ *  "enableQuerySearch": true
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.emailReplyTo
+ * @description replyto of the emails sent from console
+ * @type {string}
+ * @default no default value
+ * @example
+ * {
+ *  "emailReplyTo": "conference@contact.email"
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.extraExportColumns
+ * @description Extra data in the CSV export. Each object contains a header prop (header in exported csv) and a getValue string which is a function that takes row data as param and read the value required in export
+ * @type {object[]}
+ * @default no default value
+ * @example
+ * {
+ *  "extraExportColumns": [
+ *    {
+ *      track:['note.content.track.value'],
+ *      getValue: `
+ *         return row.reviewers?.
+ *          map((reviewer) => {
+ *            const review = row.officialReviews?.find(
+ *              (review) => review.anonymousId === reviewer.anonymousId
+ *            );
+ *            return \`\${reviewer.preferredName}:rating-\${review?.rating??'N/A'}|confidence-\${review?.confidence??'N/A'}|first time reviewer-\${review?.content?.first_time_reviewer?.value ?? 'N/A'}\`;
+ *          })
+ *          .join(',')
+ *      `
+ *    }
+ *  ]
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.preferredEmailInvitationId
+ * @description Invitation id to get preferred email edges to show SAC contact
+ * @type {string}
+ * @default no default value
+ * @example
+ * {
+ *  "preferredEmailInvitationId": "conference/202XX/Conference/-/Preferred_Emails"
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.ithenticateInvitationId
+ * @description Invitation id to get iThenticate edges to show in paper summary
+ * @type {string}
+ * @default no default value
+ * @example
+ * {
+ *  "ithenticateInvitationId": 'conference/20XX/Conference/-/iThenticate_Plagiarism_Check'
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.extraRoleNames
+ * @description The role names of the AC to display a task tab for, task of each role apart from the AC role will be displayed in a separate tab
+ * @type {string[]}
+ * @default no default value
+ * @example <caption>Two Task tabs will be displayed: Area Chair Tasks and Secondary Area Chair Tasks</caption>
+ * {
+ *  "extraRoleNames": ["Secondary_Area_Chairs"]
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.sortOptions
+ * @description Custom sort options to be added apart from the default sort options in menu bar sorting dropdown, each object contains: label: the value to be shown in dropdown options, value: a value used as id of the dropdown options, getValue: a string function to calculate the order. getValue function has row data as input param
+ * @type {object[]}
+ * @default no default value
+ * @example <caption>Following config add "Confidence Spread" in sorting dropdown</caption>
+ * {
+ *  "sortOptions": [
+ *    {
+ *      label:'Confidence Spread',
+ *      value:'confidence spread',
+ *      getValue:"return row.reviewProgressData?.confidenceMax - row.reviewProgressData?.confidenceMin"
+ *    }
+ *  ]
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.displayReplyInvitations
+ * @description The invitation id and field of the forum reply to be shown in a "Latest Replies" column. Each object has 2 fields: id: the invitation id to get reply, {number} in the id is replaced with the actual paper number. fields: an array of string specifying the reply field to show
+ * @type {object[]}
+ * @default no default value
+ * @example
+ * {
+ *  "displayReplyInvitations": [
+ *    {
+ *      id: "abcd.org/20XX/Conference/Submission{number}/-/Official_Review",
+ *      fields: ["summary", "limitations"],
+ *    },
+ *    {
+ *      id: "abcd.org/20XX/Conference/Submission{number}/-/Public_Comment",
+ *      fields: ["strengths", "suitability"],
+ *    }
+ *  ]
+ * }
+ */
+
+/**
+ * @name AreaChairConsoleConfig.customStageInvitations
+ * @description config the custom stage replies to be shown under meta review status column. Each object can have 3 fields: name: construct the invitation id to fiter note replies, displayField: the field name to read from the custom stage note, extraDisplayFields: an string array with more fields to show from the custom stage note. Compared to the customStageInvitations config in PC/SAC console, it does not have role or repliesPerSubmission
+ * @type {object[]}
+ * @default no default value
+ * @example
+ * {
+ *  "customStageInvitations": [
+ *    {
+ *      name:"Meta_Review_Confirmation",
+ *      displayField: "decision",
+ *      extraDisplayFields: ["meta_review_agreement"],
+ *    }
+ *  ]
+ * }
+ */
+
+// #endregion
+
 const AreaChairConsole = ({ appContext }) => {
   const {
     header,
@@ -421,6 +804,7 @@ const AreaChairConsole = ({ appContext }) => {
     extraRoleNames,
     sortOptions,
     displayReplyInvitations,
+    customStageInvitations,
   } = useContext(WebFieldContext)
   const {
     showEdgeBrowserUrl,
@@ -688,6 +1072,9 @@ const AreaChairConsole = ({ appContext }) => {
           ...profile,
           title: formatProfileContent(profile.content).title,
         }))
+      const customStageInvitationIds = customStageInvitations
+        ? customStageInvitations.map((p) => `/-/${p.name}`)
+        : []
       const tableRows = notes.map((note) => {
         const assignedReviewers =
           result[1].find((p) => p.number === note.number)?.reviewers ?? []
@@ -773,6 +1160,29 @@ const AreaChairConsole = ({ appContext }) => {
           }
         })
         const metaReview = allMetaReviews.find((p) => !p.isByOtherAC)
+
+        const customStageReviews = customStageInvitations?.reduce((prev, curr) => {
+          const customStageReview = note.details.replies.find((p) =>
+            p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
+          )
+          if (!customStageReview) return prev
+          const customStageValue = customStageReview?.content?.[curr.displayField]?.value
+          const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
+          return {
+            ...prev,
+            [camelCase(curr.name)]: {
+              searchValue: customStageValue,
+              name: prettyId(curr.name),
+              value: customStageValue,
+              displayField: prettyField(curr.displayField),
+              extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
+                field: prettyField(field),
+                value: customStageReview?.content?.[field]?.value,
+              })),
+              ...customStageReview,
+            },
+          }
+        }, {})
         return {
           note,
           reviewers: result[1]
@@ -829,6 +1239,7 @@ const AreaChairConsole = ({ appContext }) => {
                 }
               return []
             }),
+            customStageReviews,
           },
           messageSignature: anonymousAreaChairIdByNumber[note.number],
           ...(ithenticateInvitationId && {
