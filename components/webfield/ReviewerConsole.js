@@ -671,22 +671,16 @@ const ReviewerConsole = ({ appContext }) => {
                 },
                 { accessToken }
               )
-              .then((result) =>
-                // result.edges?.map((p) => {
-                //   if ('label' in p) return p.label
-                //   return p.weight
-                // })
-                {
-                  const displayName = prettyInvitationId(invitationId)
-                  const displayValue = result.edges
-                    ?.map((p) => {
-                      if ('label' in p) return p.label
-                      return p.weight
-                    })
-                    ?.join(', ')
-                  return [{ displayName, displayValue }]
-                }
-              )
+              .then((result) => {
+                const displayName = prettyInvitationId(invitationId)
+                const displayValue = result.edges
+                  ?.map((p) => {
+                    if ('label' in p) return p.label
+                    return p.weight
+                  })
+                  ?.join(', ')
+                return [{ displayName, displayValue }]
+              })
           )
         ).then((edgeResults) => edgeResults.flat())
       : Promise.resolve(null)
