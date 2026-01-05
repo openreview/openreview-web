@@ -182,7 +182,7 @@ describe('ReviewerConsole', () => {
     ).toBeInTheDocument()
   })
 
-  test('show review policy when specified', async () => {
+  test('show review policy when specified in edgeInvitationIds', async () => {
     api.getAll = jest.fn(() => Promise.resolve([]))
     api.get = jest.fn((path, param) => {
       switch (path) {
@@ -208,6 +208,11 @@ describe('ReviewerConsole', () => {
                 { label: 'Track Three' },
               ],
             })
+          } else if (
+            param.invitation ===
+            'AAAI.org/2025/Conference/Program_Committee/-/Review_Preference'
+          ) {
+            return Promise.resolve([])
           }
 
           return Promise.resolve({ edges: [] })
@@ -243,6 +248,7 @@ describe('ReviewerConsole', () => {
           'AAAI.org/2025/Conference/Program_Committee/-/Review_Policy',
           'AAAI.org/2025/Conference/Program_Committee/-/Review_Status',
           'AAAI.org/2025/Conference/Program_Committee/-/Review_Track',
+          'AAAI.org/2025/Conference/Program_Committee/-/Review_Preference', // no edges returned
         ],
         reviewLoad: '',
         hasPaperRanking: false,
@@ -261,6 +267,7 @@ describe('ReviewerConsole', () => {
       expect(screen.getByText('Review Status:')).toBeInTheDocument()
       expect(screen.getByText('Review Status:').lastChild.textContent).toBe('0')
       expect(screen.getByText('Track One, Track Two, Track Three')).toBeInTheDocument()
+      expect(screen.queryByText('Preferences:')).not.toBeInTheDocument()
     })
   })
 

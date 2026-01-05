@@ -660,7 +660,7 @@ const ReviewerConsole = ({ appContext }) => {
     // #region get reviewer edges
     const getReviewerEdgesP = edgeInvitationIds.length
       ? Promise.all(
-          edgeInvitationIds.map((invitationId) =>
+          edgeInvitationIds.flatMap((invitationId) =>
             api
               .get(
                 '/edges',
@@ -672,13 +672,14 @@ const ReviewerConsole = ({ appContext }) => {
                 { accessToken }
               )
               .then((result) => {
+                if (!result.edges?.length) return []
                 const displayName = prettyInvitationId(invitationId)
                 const displayValue = result.edges
-                  ?.map((p) => {
+                  .map((p) => {
                     if ('label' in p) return p.label
                     return p.weight
                   })
-                  ?.join(', ')
+                  .join(', ')
                 return [{ displayName, displayValue }]
               })
           )
@@ -879,11 +880,13 @@ const ReviewerConsole = ({ appContext }) => {
         options={{
           extra: reviewerConsoleData.reviewerEdges?.length ? (
             <>
-              {reviewerConsoleData.reviewerEdges.map(({ displayName, displayValue }) => (
-                <p key={displayName} className="dark">
-                  {displayName}: <strong>{displayValue}</strong>
-                </p>
-              ))}
+              {reviewerConsoleData.reviewerEdges.map(
+                ({ displayName, displayValue }, index) => (
+                  <p key={`${displayName}${index}`} className="dark">
+                    {displayName}: <strong>{displayValue}</strong>
+                  </p>
+                )
+              )}
             </>
           ) : undefined,
         }}
