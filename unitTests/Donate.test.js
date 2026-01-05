@@ -55,20 +55,19 @@ describe('Donation Page', () => {
     ).toBeInTheDocument() // no change when no amount
 
     await userEvent.click(screen.getByText('$10'))
-    expect(screen.getByText('Make a Donation of $10.00 through Stripe'))
+    expect(screen.getByText('Make a Donation of $10 through Stripe'))
 
     await userEvent.click(screen.getByText('$10,000'))
-    expect(screen.getByText('Make a Donation of $10000.00 through Stripe'))
+    expect(screen.getByText('Make a Donation of $10,000 through Stripe'))
 
     // enter custom amount
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '999')
-    expect(screen.getByText('Make a Donation of $999.00 through Stripe'))
-
+    expect(screen.getByText('Make a Donation of $999 through Stripe'))
     await userEvent.clear(screen.getByPlaceholderText('$ Other Amount'))
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '666', {
       replace: true,
     })
-    expect(screen.getByText('Make a Donation of $666.00 through Stripe'))
+    expect(screen.getByText('Make a Donation of $666 through Stripe'))
   })
 
   test('handle max amount (custom amount)', async () => {
@@ -86,7 +85,7 @@ describe('Donation Page', () => {
 
     // fixed amount
     await userEvent.click(screen.getByText('$100'))
-    await userEvent.click(screen.getByText('Make a Donation of $100.00 through Stripe'))
+    await userEvent.click(screen.getByText('Make a Donation of $100 through Stripe'))
     expect(api.post).toHaveBeenCalledWith(
       // would fail though
       expect.anything(),
@@ -98,14 +97,14 @@ describe('Donation Page', () => {
       },
       expect.anything()
     )
-    expect(screen.getByText('Make a Donation of $100.00 through Stripe')).toBeDisabled() // button disabled after submit
+    expect(screen.getByText('Make a Donation of $100 through Stripe')).toBeDisabled() // button disabled after submit
 
     // custom amount
     await userEvent.clear(screen.getByPlaceholderText('$ Other Amount'))
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '10000', {
       replace: true,
     })
-    await userEvent.click(screen.getByText('Make a Donation of $10000.00 through Stripe'))
+    await userEvent.click(screen.getByText('Make a Donation of $10,000 through Stripe'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
       {
@@ -127,7 +126,7 @@ describe('Donation Page', () => {
 
     // fixed amount
     await userEvent.click(screen.getByText('$100'))
-    await userEvent.click(screen.getByText('Make a Donation of $100.00 through Stripe'))
+    await userEvent.click(screen.getByText('Make a Donation of $100 through Stripe'))
     expect(api.post).toHaveBeenCalledWith(
       expect.anything(),
       {
@@ -143,10 +142,10 @@ describe('Donation Page', () => {
     await userEvent.click(screen.getByText('$10'))
     await userEvent.click(
       screen.getByRole('checkbox', {
-        name: 'Send me an IRS receipt for tax purposes',
+        name: 'Email me a charitable donation receipt for tax purposes.',
       })
     )
-    await userEvent.click(screen.getByText('Make a Donation of $10.00 through Stripe'))
+    await userEvent.click(screen.getByText('Make a Donation of $10 through Stripe'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
       {
@@ -162,7 +161,7 @@ describe('Donation Page', () => {
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '123', {
       replace: true,
     })
-    await userEvent.click(screen.getByText('Make a Donation of $123.00 through Stripe'))
+    await userEvent.click(screen.getByText('Make a Donation of $123 through Stripe'))
     expect(api.post).toHaveBeenLastCalledWith(
       expect.anything(),
       {
