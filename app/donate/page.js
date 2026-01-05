@@ -141,43 +141,65 @@ export default function Page() {
       <div className={styles.section}>
         <div className={styles.messageDonate}>
           <div className={styles.message}>
-            <p><b>A letter from recent supporters:</b></p>
             <p>
-              OpenReview is a pillar of progress in the AI research community.  Now it needs our increased support.
+              <b>A letter from recent supporters:</b>
             </p>
             <p>
-              As a nonprofit dedicated to improving scientific dialogue, OpenReview has earned tremendous respect through its tireless, highly customized support for leading research venues. Today, OpenReview underpins the vast majority of the flagship AI conferences we know and love, including NeurIPS, ICLR, ICML, AAAI, UAI, AISTATS, CVPR, ICCV, ECCV, ACL, EMNLP, NAACL, ARR, COLM, TMLR, The Web Conference, KDD, and many more.
+              OpenReview is a pillar of progress in the AI research community. Now it needs our
+              increased support.
             </p>
             <p>
-              In 2025 alone, OpenReview supported more than 1,300 conferences and workshops, served a community of 3.3 million active monthly users, and handled over 278,000 paper submissions—exceeding the annual submission volume of ArXiv and more than doubling that of ACM.
+              As a nonprofit dedicated to improving scientific dialogue, OpenReview has earned
+              tremendous respect through its tireless, highly customized support for leading
+              research venues. Today, OpenReview underpins the vast majority of the flagship AI
+              conferences we know and love, including NeurIPS, ICLR, ICML, AAAI, UAI, AISTATS,
+              CVPR, ICCV, ECCV, ACL, EMNLP, NAACL, ARR, COLM, TMLR, The Web Conference, KDD,
+              and many more.
             </p>
             <p>
-              Yet despite its crucial role in the AI research ecosystem, OpenReview remains chronically underfunded, operating under severe financial constraints, with a staff less than one-third the size of ArXiv’s.
+              In 2025 alone, OpenReview supported more than 1,300 conferences and workshops,
+              served a community of 3.3 million active monthly users, and handled over 278,000
+              paper submissions—exceeding the annual submission volume of ArXiv and more than
+              doubling that of ACM.
             </p>
             <p>
-              At this time when the impact of artificial intelligence is expanding at an unprecedented pace, we must ensure that this infrastructure supporting open scientific exchange and debate in AI has the resources to stay strong, innovative, independent, and secure.
+              Yet despite its crucial role in the AI research ecosystem, OpenReview remains
+              chronically underfunded, operating under severe financial constraints, with a
+              staff less than one-third the size of ArXiv’s.
             </p>
             <p>
-              We applaud the companies, philanthropic foundations, and conferences that already <a href="https://openreview.net/supporters">support OpenReview</a>. However, many organizations that benefit enormously from AI innovation have not yet chosen to contribute. We believe the moment has come for broader participation.
+              At this time when the impact of artificial intelligence is expanding at an
+              unprecedented pace, we must ensure that this infrastructure supporting open
+              scientific exchange and debate in AI has the resources to stay strong,
+              innovative, independent, and secure.
             </p>
             <p>
-              It is also time for individuals to step forward.
+              We applaud the companies, philanthropic foundations, and conferences that already{' '}
+              <a href="https://openreview.net/supporters">support OpenReview</a>. However, many
+              organizations that benefit enormously from AI innovation have not yet chosen to
+              contribute. We believe the moment has come for broader participation.
+            </p>
+            <p>It is also time for individuals to step forward.</p>
+            <p>
+              We, the undersigned, are collectively committing a total of <b>$1,000,000</b> to
+              the OpenReview Foundation.
             </p>
             <p>
-              We, the undersigned, are collectively committing a total of <b>$1,000,000</b> to the OpenReview Foundation.
+              We invite researchers, leaders, and beneficiaries of AI to join us and
+              demonstrate their commitment to scientific dialogue by joining the roster of
+              OpenReview supporters. Contributions at any level make a difference.
             </p>
             <p>
-              We invite researchers, leaders, and beneficiaries of AI to join us and demonstrate their commitment to scientific dialogue by joining the roster of OpenReview supporters. Contributions at any level make a difference.
+              To donate more than $10,000, or appreciated securities, please contact{' '}
+              <a href="mailto:donations@openreview.net">donations@openreview.net</a>.
             </p>
             <p>
-              To donate more than $10,000, or appreciated securities, please contact <a href="mailto:donations@openreview.net">donations@openreview.net</a>.
+              To donate online in amounts from $10 to $10,000, please use the interface to the
+              right.
             </p>
             <p>
-              To donate online in amounts from $10 to $10,000, please use the interface to the right.
-            </p>
-            <p>
-              Signed: Joelle Pineau, Doina Precup, Kyunghyun Cho, Andrew Ng, Yoshua Bengio, Ruslan Salakhutdinov, and (Anonymous)
-
+              Signed: Joelle Pineau, Doina Precup, Kyunghyun Cho, Andrew Ng, Yoshua Bengio,
+              Ruslan Salakhutdinov, Fernando Pereira, and (Anonymous)
             </p>
           </div>
           <div className={styles.donateContainer}>
@@ -250,7 +272,8 @@ export default function Page() {
                 {`To make a donation of greater than $${MaxString}, or to donate appreciated stock`}
               </span>
               <br />
-              <span>please email{' '}
+              <span>
+                please email{' '}
                 <a href="mailto:donations@openreview.net">donations@openreview.net</a>
               </span>
             </div>
@@ -274,7 +297,7 @@ export default function Page() {
               </div>
             </div>
 
-            <div>
+            <div className={styles.irsReceiptContainer}>
               <input
                 type="checkbox"
                 id="irsReceipt"
@@ -315,11 +338,18 @@ export default function Page() {
             </div>
             <div className={styles.csrText}>
               <span>
-                The OpenReview Foundation nonprofit is registered with <a href="https://causes.benevity.org/causes/840-994025250">Benevity</a>
+                The OpenReview Foundation nonprofit is registered with{' '}
+                <a href="https://causes.benevity.org/causes/840-994025250">Benevity</a>
                 <br />
-                for employer gift matching, but not yet registered with
+                for employer gift matching. Employer matching donation may be
                 <br />
-                Bonterra, YourCause, Blackbaud, Submittable, or Optimy.
+                requested on Benevity after your donation here.
+                <br />
+                The OpenReview Foundation is not yet registered with other
+                <br />
+                matching programs.
+                <br />
+                <strong>EIN: 99-4025250</strong>
               </span>
             </div>
           </div>
@@ -367,8 +397,8 @@ export default function Page() {
               designed to support not just one style of peer review, but to offer great
               flexibility for designing innovations in peer review, so that different
               publication venues and communities could experiment with new ideas, as many of
-              its venues have, including ICLR's style and TMLR's style of open review, and the peer review experiments
-              at ICML and NeurIPS.
+              its venues have, including ICLR&apos;s style and TMLR&apos;s style of open
+              review, and the peer review experiments at ICML and NeurIPS.
             </span>
           </li>
           <li>
@@ -479,12 +509,11 @@ export default function Page() {
           <li>
             <span>
               <strong>A narrow window for multiplicative impact.</strong> These are the final
-              weeks of the calendar year ahead of changes to U.S. charitable-giving tax
-              policy.
+              weeks of the calendar year ahead of changes to U.S. charitable-giving tax policy.
             </span>
           </li>
         </ul>
-        <strong>How can we have confidence in OpenReview's future?</strong>
+        <strong>How can we have confidence in OpenReview&apos;s future?</strong>
         <ul>
           <li>
             <span>
@@ -503,8 +532,8 @@ export default function Page() {
           <li>
             <span>
               <strong>Strong governance.</strong> The OpenReview Foundation is a 501(c)(3)
-              nonprofit with an established Board, robust governance structures, and active community
-              engagement and oversight.
+              nonprofit with an established Board, robust governance structures, and active
+              community engagement and oversight.
             </span>
           </li>
         </ul>
