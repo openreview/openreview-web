@@ -7,19 +7,19 @@ const DonateBanner = () => {
   const isMobile = !useBreakpoint('lg')
   const defaultContent = isMobile ? (
     <div className={styles.donateBanner}>
-      Help OpenReview,{' '}
+      Open Peer Review. Open Publishing. Open Access.{' '}
       <Link href="/donate" className="donate-link">
         Donate
-      </Link>{' '}
-      today.
+      </Link>
     </div>
   ) : (
     <div className={styles.donateBanner}>
-      Help maintaining OpenReview by{' '}
-      <a href="/donate" className="donate-link" target="_blank" rel="noopener noreferrer">
-        donating
-      </a>{' '}
-      today. <span>Your contribution keeps OpenReview accessible.</span>
+      Open Peer Review. Open Publishing. Open Access.{' '}
+      <span className="hidden-xs">Open Discussion. Open Recommendations.</span>{' '}
+      <span className="hidden-xs hidden-sm">Open Directory. Open API. Open Source.</span>{' '}
+      <Link href="/donate" className="donate-link">
+        Donate
+      </Link>
     </div>
   )
   return (
