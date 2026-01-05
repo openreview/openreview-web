@@ -1,18 +1,18 @@
 @use '../utils/constants';
 
 .button {
-  font-size: 0.75rem;
-  font-weight: bold;
+  // font-size: 0.75rem;
+  // font-weight: bold;
 
-  color: #fff;
-  background-color: constants.$mediumBlue;
-  border: 2px solid constants.$mediumDarkBlue;
+  // color: #fff;
+  // background-color: constants.$mediumBlue;
+  // border: 2px solid constants.$mediumDarkBlue;
 
-  &:hover,
-  &:focus {
-    color: #fff !important;
-    background-color: constants.$mediumBlue !important;
-    border: 2px solid constants.$mediumDarkBlue !important;
-    opacity: 0.9;
-  }
+  // &:hover,
+  // &:focus {
+  //   color: #fff !important;
+  //   background-color: constants.$mediumBlue !important;
+  //   border: 2px solid constants.$mediumDarkBlue !important;
+  //   opacity: 0.9;
+  // }
 }

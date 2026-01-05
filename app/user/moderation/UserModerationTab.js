@@ -19,9 +19,9 @@ import BasicModal from '../../../components/BasicModal'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 
 import styles from '../../../styles//components/UserModerationTab.module.scss'
-import Button from '@components/Button'
+// import Button from '@components/Button'
 import Select from '@components/Select'
-import { Flex } from 'antd'
+import { Flex, Button } from 'antd'
 
 export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
@@ -474,9 +474,9 @@ const UserModerationQueue = ({
         {title} ({totalCount})
       </h4>
       {showSortButton && profiles && profiles.length !== 0 && (
-        <button className="btn btn-xs sort-button" onClick={() => setDescOrder((p) => !p)}>{`${
+        <Button type="primary" size="small" onClick={() => setDescOrder((p) => !p)}>{`${
           descOrder ? 'Sort: Most Recently Modified' : 'Sort: Least Recently Modified'
-        }`}</button>
+        }`}</Button>
       )}
 
       {!onlyModeration && (
@@ -740,8 +740,6 @@ export default function UserModerationTab({ accessToken }) {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
 
-  const moderationDisabled = configNote?.content?.moderate?.value === 'No'
-
   const getModerationStatus = async () => {
     try {
       const result = await api.get(
@@ -767,26 +765,6 @@ export default function UserModerationTab({ accessToken }) {
   useEffect(() => {
     getModerationStatus()
   }, [])
-
-  const enableDisableModeration = async () => {
-    const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
-    if (!result) return
-
-    try {
-      await api.post(
-        '/notes/edits',
-        view2.constructEdit({
-          formData: { moderate: moderationDisabled ? 'Yes' : 'No' },
-          invitationObj: configNote.details.invitation,
-          noteObj: configNote,
-        }),
-        { accessToken }
-      )
-      getModerationStatus()
-    } catch (error) {
-      promptError(error.message)
-    }
-  }
 
   const updateTermStamp = async () => {
     const currentTimeStamp = dayjs().valueOf()
@@ -817,22 +795,13 @@ export default function UserModerationTab({ accessToken }) {
   return (
     <>
       {configNote && (
-        <Flex gap='large' align='center'>
-          <h4>Moderation Status:</h4>
-
-          <Select
-            options={[
-              { value: 'enabled', label: 'Enabled' },
-              { value: 'disabled', label: 'Disabled' },
-            ]}
-            value={moderationDisabled ? 'disabled' : 'enabled'}
-            onChange={enableDisableModeration}
-          />
-
+        <Flex gap="large" align="center">
           <span className="terms-timestamp">
             {`Terms Timestamp is ${configNote?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
-          <Button onClick={updateTermStamp} size="small">Update Terms Stamp</Button>
+          <Button onClick={updateTermStamp} size="small" type="primary">
+            Update Terms Stamp
+          </Button>
         </Flex>
       )}
 
