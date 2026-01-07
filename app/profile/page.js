@@ -27,7 +27,9 @@ export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()
   const query = await searchParams
   const { id, email } = query
-  if (!user) redirect(`/login?redirect=/profile?${encodeURIComponent(stringify(query))}`)
+
+  if (!user && !id && !email)
+    redirect(`/login?redirect=/profile?${encodeURIComponent(stringify(query))}`)
   if (email && !isSuperUser(user)) return <ErrorDisplay message="Profile id is required" />
 
   const headersList = await headers()
