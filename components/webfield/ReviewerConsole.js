@@ -384,6 +384,7 @@ const ReviewerConsoleTabs = ({
  * @property {string} submissionInvitationId mandatory
  * @property {string} recruitmentInvitationId mandatory
  * @property {string} customMaxPapersInvitationId mandatory
+ * @property {string[]} edgeInvitationIds optional
  * @property {string|number} reviewLoad mandatory
  * @property {boolean} hasPaperRanking mandatory
  * @property {string[]} reviewDisplayFields optional
@@ -498,6 +499,15 @@ const ReviewerConsoleTabs = ({
  */
 
 /**
+ * @name ReviewerConsoleConfig.edgeInvitationIds
+ * @description The invitations to get edge for the logged in reviewer. If edge exist the label or weight is shown at top of page. When there are multiple edges, the value is joined
+ * @type {string[]}
+ * @default []
+ * @example
+ * { "edgeInvitationIds": ["ICLR.cc/202X/Conference/Reviewers/-/Review_Policy"] }
+ */
+
+/**
  * @name ReviewerConsoleConfig.reviewLoad
  * @description Related to recruitmentInvitationId and customMaxPapersInvitationId. The default value to display in header when there's no custom load edge or recruitment note
  * @type {string|number}
@@ -538,6 +548,7 @@ const ReviewerConsole = ({ appContext }) => {
     submissionInvitationId,
     recruitmentInvitationId,
     customMaxPapersInvitationId, // to query custom load edges
+    edgeInvitationIds = [],
     reviewLoad,
     hasPaperRanking,
     reviewDisplayFields = ['review'],
@@ -619,7 +630,7 @@ const ReviewerConsole = ({ appContext }) => {
         '/edges',
         {
           invitation: customMaxPapersInvitationId,
-          tail: user.id,
+          tail: user.profile.id,
           domain: group.domain,
         },
         { accessToken }
@@ -644,6 +655,36 @@ const ReviewerConsole = ({ appContext }) => {
             return parseInt(noteResult.notes[0].content?.reduced_load?.value, 10)
           })
       })
+    // #endregion
+
+    // #region get reviewer edges
+    const getReviewerEdgesP = edgeInvitationIds.length
+      ? Promise.all(
+          edgeInvitationIds.flatMap((invitationId) =>
+            api
+              .get(
+                '/edges',
+                {
+                  invitation: invitationId,
+                  tail: user.profile.id,
+                  domain: group.domain,
+                },
+                { accessToken }
+              )
+              .then((result) => {
+                if (!result.edges?.length) return []
+                const displayName = prettyInvitationId(invitationId)
+                const displayValue = result.edges
+                  .map((p) => {
+                    if ('label' in p) return p.label
+                    return p.weight
+                  })
+                  .join(', ')
+                return [{ displayName, displayValue }]
+              })
+          )
+        ).then((edgeResults) => edgeResults.flat())
+      : Promise.resolve(null)
     // #endregion
 
     // #region get area chair groups
@@ -687,8 +728,14 @@ const ReviewerConsole = ({ appContext }) => {
       : Promise.resolve({})
     // #endregion
 
-    Promise.all([getNotesP, paperRankingInvitationP, getCustomLoadP, getAreaChairGroupsP])
-      .then(([notes, paperRankingInvitation, customLoad, areaChairMap]) => {
+    Promise.all([
+      getNotesP,
+      paperRankingInvitationP,
+      getCustomLoadP,
+      getAreaChairGroupsP,
+      getReviewerEdgesP,
+    ])
+      .then(([notes, paperRankingInvitation, customLoad, areaChairMap, reviewerEdges]) => {
         const noteChunks = chunk(notes, 50)
         // get offical review invitations to show submit official review link
         const officalReviewInvitationPs = noteChunks.map((noteChunk) => {
@@ -714,6 +761,7 @@ const ReviewerConsole = ({ appContext }) => {
             customLoad,
             areaChairMap,
             officialReviewInvitationsResult,
+            reviewerEdges,
           ])
       })
       .then(
@@ -723,6 +771,7 @@ const ReviewerConsole = ({ appContext }) => {
           customLoad,
           areaChairMap,
           officialReviewInvitations,
+          reviewerEdges,
         ]) => {
           const anonGroupIds = anonGroups.map((p) => p.id)
           // get official reviews from notes details
@@ -753,6 +802,7 @@ const ReviewerConsole = ({ appContext }) => {
               paperNumberAnonGroupIdMap: groupByNumber,
               notes,
               customLoad,
+              reviewerEdges,
               officialReviews,
               paperRankingTags,
               areaChairMap,
@@ -827,6 +877,19 @@ const ReviewerConsole = ({ appContext }) => {
         instructions={header.instructions}
         customLoad={reviewerConsoleData.customLoad}
         submissionName={submissionName}
+        options={{
+          extra: reviewerConsoleData.reviewerEdges?.length ? (
+            <>
+              {reviewerConsoleData.reviewerEdges.map(
+                ({ displayName, displayValue }, index) => (
+                  <p key={`${displayName}${index}`} className="dark">
+                    {displayName}: <strong>{displayValue}</strong>
+                  </p>
+                )
+              )}
+            </>
+          ) : undefined,
+        }}
       />
       {reviewerConsoleData.notes ? (
         <ReviewerConsoleTabs

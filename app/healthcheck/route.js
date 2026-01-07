@@ -1,6 +1,6 @@
 export async function GET() {
   try {
-    const apiHealthyResult = await fetch(`${process.env.API_V2_URL}/profiles`)
+    const apiHealthyResult = await fetch(`${process.env.API_V2_URL}/healthcheck/api`)
     if (apiHealthyResult.ok) {
       return Response.json({ healthy: true })
     }
