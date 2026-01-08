@@ -20,8 +20,9 @@ import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal
 
 import styles from '../../../styles//components/UserModerationTab.module.scss'
 // import Button from '@components/Button'
-import Select from '@components/Select'
-import { Flex, Button } from 'antd'
+// import Select from 'components/Select'
+import { Select } from 'antd'
+import { Flex, Button, Input } from 'antd'
 
 export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
@@ -480,9 +481,11 @@ const UserModerationQueue = ({
       )}
 
       {!onlyModeration && (
-        <form className="filter-form well mt-3" onSubmit={filterProfiles}>
-          <input type="text" name="term" className="form-control input-sm" />
-          <Dropdown
+        <form className="filter-form123 well mt-3" onSubmit={filterProfiles}>
+          <Flex justify="space-around" align="center" gap="middle">
+            <Input type="text" />
+            {/* <input type="text" name="term" className="form-control input-sm" /> */}
+            {/* <Dropdown
             className="dropdown-select dropdown-profile-state dropdown-sm"
             options={profileStateOptions}
             placeholder="Select profile state"
@@ -491,10 +494,20 @@ const UserModerationQueue = ({
               setPageNumber(1)
               setProfileStateOption(e.value)
             }}
-          />
-          <button type="submit" className="btn btn-xs">
-            Search
-          </button>
+          /> */}
+            <Select
+              options={profileStateOptions}
+              value={profileStateOption}
+              placeholder="Select profile state"
+              onChange={(e) => {
+                setPageNumber(1)
+                setProfileStateOption(e)
+              }}
+            />
+            <Button type="primary" className="btn btn-xs">
+              Search
+            </Button>
+          </Flex>
         </form>
       )}
 
@@ -796,7 +809,7 @@ export default function UserModerationTab({ accessToken }) {
     <>
       {configNote && (
         <Flex gap="large" align="center">
-          <span className="terms-timestamp">
+          <span>
             {`Terms Timestamp is ${configNote?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
           <Button onClick={updateTermStamp} size="small" type="primary">
