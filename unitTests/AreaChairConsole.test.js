@@ -241,7 +241,7 @@ describe('AreaChairConsole', () => {
     })
   })
 
-  test('show assigned SACs in header instuction (No preferred email edge)', async () => {
+  test('not to show assigned SACs in header instuction if there is no preferred email edge', async () => {
     api.getAll = jest.fn((path) => {
       switch (path) {
         case '/groups': // all groups
@@ -268,32 +268,17 @@ describe('AreaChairConsole', () => {
       }
     })
     api.post = jest.fn((_, param) =>
-      Promise.resolve(
-        param.ids
-          ? {
-              profiles: [
-                {
-                  id: '~Senior_AC1',
-                  content: {
-                    names: [{ username: '~Senior_AC1' }],
-                    emails: ['senior@AC.one'],
-                  },
-                },
-              ],
-            }
-          : {
-              profiles: [
-                {
-                  id: '~Senior_AC2',
-                  content: {
-                    names: [{ username: '~Senior_AC2' }],
-                    emails: ['senior@AC.two'],
-                  },
-                  email: 'senior@AC.two',
-                },
-              ],
-            }
-      )
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~Senior_AC1',
+            content: {
+              names: [{ username: '~Senior_AC1' }],
+              emails: ['senior@AC.one'],
+            },
+          },
+        ],
+      })
     ) // profile search
 
     const providerProps = {
@@ -339,14 +324,15 @@ describe('AreaChairConsole', () => {
 
     await waitFor(() => {
       expect(global.marked).toHaveBeenCalledWith(
+        // senior@AC.two won't be shown because can't get the profile
         expect.stringContaining(
-          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a> and <a href="/profile?id=~Senior_AC2" >Senior AC</a>'
+          'Your assigned Area Chair is <a href="/profile?id=~Senior_AC1" >Senior AC</a>'
         )
       )
     })
   })
 
-  test('show assigned SACs in header instuction (With preferred email edge)', async () => {
+  test('show assigned SACs in header instuction (assigned using tilde id and has preferred email edge)', async () => {
     api.getAll = jest.fn((path) => {
       switch (path) {
         case '/groups': // all groups
@@ -373,39 +359,32 @@ describe('AreaChairConsole', () => {
             }) // call to get sac emails from edges
           }
           return Promise.resolve({
-            edges: [{ tail: '~Senior_AC1' }, { tail: 'senior@AC.two' }],
+            edges: [{ tail: '~Senior_AC1' }, { tail: '~Senior_AC2' }],
           })
         default:
           return null
       }
     })
     api.post = jest.fn((_, param) =>
-      Promise.resolve(
-        param.ids
-          ? {
-              profiles: [
-                {
-                  id: '~Senior_AC1',
-                  content: {
-                    names: [{ username: '~Senior_AC1' }],
-                    emails: ['senior@AC.one'],
-                  },
-                },
-              ],
-            }
-          : {
-              profiles: [
-                {
-                  id: '~Senior_AC2',
-                  content: {
-                    names: [{ username: '~Senior_AC2' }],
-                    emails: ['senior@AC.two'],
-                  },
-                  email: 'senior@AC.two',
-                },
-              ],
-            }
-      )
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~Senior_AC1',
+            content: {
+              names: [{ username: '~Senior_AC1' }],
+              emails: ['senior@AC.one'],
+            },
+          },
+          {
+            id: '~Senior_AC2',
+            content: {
+              names: [{ username: '~Senior_AC2' }],
+              emails: ['senior@AC.two'],
+            },
+            email: 'senior@AC.two',
+          },
+        ],
+      })
     ) // profile search
 
     const providerProps = {
