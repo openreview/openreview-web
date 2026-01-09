@@ -18,6 +18,12 @@ import PaginationLinks from '../../../components/PaginationLinks'
 import BasicModal from '../../../components/BasicModal'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 
+import styles from '../../../styles//components/UserModerationTab.module.scss'
+// import Button from '@components/Button'
+// import Select from 'components/Select'
+import { Select } from 'antd'
+import { Flex, Button, Input } from 'antd'
+
 export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
   const selectRef = useRef(null)
@@ -230,6 +236,7 @@ const UserModerationQueue = ({
   const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 15)
   const [profileToPreview, setProfileToPreview] = useState(null)
   const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
   const rejectModalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
   const blockModalId = `${onlyModeration ? 'new' : ''}-user-block-modal`
   const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
@@ -251,12 +258,12 @@ const UserModerationQueue = ({
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
-    const cleanSearchTerm = filters.term?.trim()
-    const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
+    const searchTerm = filters.term
+    const shouldSearchProfile = profileStateOption === 'All' && searchTerm
     const sortKey = onlyModeration ? 'tmdate' : 'tcdate'
-    let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
-    if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
-    if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
+    let searchQuery = { fullname: searchTerm?.toLowerCase() }
+    if (searchTerm?.startsWith('~')) searchQuery = { id: searchTerm }
+    if (searchTerm?.includes('@')) searchQuery = { email: searchTerm.toLowerCase() }
 
     try {
       const result = await api.get(
@@ -282,22 +289,12 @@ const UserModerationQueue = ({
     }
   }
 
-  const filterProfiles = (e) => {
-    e.preventDefault()
-
-    const formData = new FormData(e.target)
-    const newFilters = {}
-    formData.forEach((value, name) => {
-      if (name === 'id' && value.includes('@')) {
-        newFilters.email = value.trim()
-      } else {
-        newFilters[name] = value.trim()
-      }
-    })
+  const filterProfiles = () => {
+    const cleanSearchTerm = searchTerm.trim()
 
     setPageNumber(1)
     if (profileStateOption !== 'All') setProfileStateOption('All')
-    setFilters(newFilters)
+    setFilters({ term: cleanSearchTerm })
   }
 
   const acceptUser = async (profileId) => {
@@ -403,7 +400,7 @@ const UserModerationQueue = ({
 
     const actionLabel = actionIsDelete ? 'delete' : 'restore'
     const name = profile.content?.names?.[0]?.fullname ?? 'this profile'
-    // eslint-disable-next-line no-alert
+
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionLabel} ${name}?\n\n${noteCountMessage}`
     )
@@ -456,6 +453,7 @@ const UserModerationQueue = ({
   }
 
   useEffect(() => {
+    console.log('filters changed', filters)
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
 
@@ -464,33 +462,39 @@ const UserModerationQueue = ({
   }, [profileToPreview])
 
   return (
-    <div className="profiles-list">
+    <div className="profiles-list123">
       <h4>
         {title} ({totalCount})
       </h4>
       {showSortButton && profiles && profiles.length !== 0 && (
-        <button className="btn btn-xs sort-button" onClick={() => setDescOrder((p) => !p)}>{`${
+        <Button type="primary" size="small" onClick={() => setDescOrder((p) => !p)}>{`${
           descOrder ? 'Sort: Most Recently Modified' : 'Sort: Least Recently Modified'
-        }`}</button>
+        }`}</Button>
       )}
 
       {!onlyModeration && (
-        <form className="filter-form well mt-3" onSubmit={filterProfiles}>
-          <input type="text" name="term" className="form-control input-sm" />
-          <Dropdown
-            className="dropdown-select dropdown-profile-state dropdown-sm"
+        <Flex justify="space-start" align="center" gap="middle" wrap>
+          <Input
+            type="text"
+            style={{ flex: '5 1 200px' }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onPressEnter={filterProfiles}
+          />
+          <Select
+            style={{ flex: '2 1 150px' }}
             options={profileStateOptions}
+            value={profileStateOption}
             placeholder="Select profile state"
-            value={profileStateOptions.find((option) => option.value === profileStateOption)}
             onChange={(e) => {
               setPageNumber(1)
-              setProfileStateOption(e.value)
+              setProfileStateOption(e)
             }}
           />
-          <button type="submit" className="btn btn-xs">
+          <Button type="primary" className="btn btn-xs" onClick={filterProfiles}>
             Search
-          </button>
-        </form>
+          </Button>
+        </Flex>
       )}
 
       {profiles ? (
@@ -735,8 +739,6 @@ export default function UserModerationTab({ accessToken }) {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
 
-  const moderationDisabled = configNote?.content?.moderate?.value === 'No'
-
   const getModerationStatus = async () => {
     try {
       const result = await api.get(
@@ -763,30 +765,8 @@ export default function UserModerationTab({ accessToken }) {
     getModerationStatus()
   }, [])
 
-  const enableDisableModeration = async () => {
-    // eslint-disable-next-line no-alert
-    const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
-    if (!result) return
-
-    try {
-      await api.post(
-        '/notes/edits',
-        view2.constructEdit({
-          formData: { moderate: moderationDisabled ? 'Yes' : 'No' },
-          invitationObj: configNote.details.invitation,
-          noteObj: configNote,
-        }),
-        { accessToken }
-      )
-      getModerationStatus()
-    } catch (error) {
-      promptError(error.message)
-    }
-  }
-
   const updateTermStamp = async () => {
     const currentTimeStamp = dayjs().valueOf()
-    // eslint-disable-next-line no-alert
     const result = window.confirm(
       `Update terms of service timestamp to ${currentTimeStamp}? (${dayjs(
         currentTimeStamp
@@ -814,28 +794,17 @@ export default function UserModerationTab({ accessToken }) {
   return (
     <>
       {configNote && (
-        <div className="moderation-status">
-          <h4>Moderation Status:</h4>
-
-          <select
-            className="form-control input-sm"
-            value={moderationDisabled ? 'disabled' : 'enabled'}
-            onChange={enableDisableModeration}
-          >
-            <option value="enabled">Enabled</option>
-            <option value="disabled">Disabled</option>
-          </select>
-
-          <span className="terms-timestamp">
+        <Flex gap="large" align="center">
+          <span>
             {`Terms Timestamp is ${configNote?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
-          <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
+          <Button onClick={updateTermStamp} size="small" type="primary">
             Update Terms Stamp
-          </button>
-        </div>
+          </Button>
+        </Flex>
       )}
 
-      <div className="moderation-container">
+      <div className="moderation-container123">
         <UserModerationQueue
           accessToken={accessToken}
           title="Recently Created Profiles"

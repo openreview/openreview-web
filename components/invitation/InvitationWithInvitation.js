@@ -151,7 +151,6 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
           />
         )
       case 'contentProcessFunctions':
-        // eslint-disable-next-line no-case-declarations
         const contentScripts = Object.keys(invitation.content ?? {}).filter(
           (key) => key.endsWith('_script') && typeof invitation.content[key].value === 'string'
         )

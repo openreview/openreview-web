@@ -1,4 +1,3 @@
-// eslint-disable-next-line import/prefer-default-export
 export async function GET() {
   try {
     const apiHealthyResult = await fetch(`${process.env.API_V2_URL}/healthcheck/api`)

@@ -15,11 +15,8 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
 
   return Object.entries(diff).map(([fieldName, fieldValue]) => {
     if (fieldName.startsWith(prefixToRemove))
-      // eslint-disable-next-line no-param-reassign
       fieldName = fieldName.substring(prefixToRemove.length)
-    // eslint-disable-next-line no-param-reassign
     if (fieldName.endsWith('.value')) fieldName = fieldName.slice(0, -6)
-    // eslint-disable-next-line no-param-reassign
     if (fieldName.endsWith('.readers')) fieldName = `${fieldName.slice(0, -8)} readers`
 
     const prettifiedFieldName = shouldPrettyField ? prettyField(fieldName) : fieldName
@@ -31,7 +28,6 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
         <td>
           {fieldValue.left && (
             <>
-              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
               <strong>{prettifiedFieldName}:</strong> {prettifiedLeftValue}
             </>
           )}
@@ -39,7 +35,6 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
         <td>
           {fieldValue.right && (
             <>
-              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
               <strong>{prettifiedFieldName}:</strong> {prettifiedRightValue}
             </>
           )}

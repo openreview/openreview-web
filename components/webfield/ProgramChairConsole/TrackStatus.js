@@ -8,6 +8,49 @@ import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { getProfileName, prettyId } from '../../../lib/utils'
 
+const LoadRow = ({ index, track, loadObj, rowSpan }) => (
+  <tr>
+    {index === 0 && (
+      <>
+        <td rowSpan={rowSpan}>{track}</td>
+        <td rowSpan={rowSpan}>{submissionCounts[track]}</td>
+      </>
+    )}
+    {loadObj.averageLoad < submissionCounts[track] ? (
+      <>
+        <td>
+          <strong>{prettyId(loadObj.Role)}</strong>
+        </td>
+        <td>
+          <strong>{loadObj.averageLoad.toFixed(1)}</strong>
+        </td>
+      </>
+    ) : (
+      <>
+        <td>{prettyId(loadObj.Role)}</td>
+        <td>{loadObj.averageLoad.toFixed(1)}</td>
+      </>
+    )}
+    <td>{loadObj.maximumLoad}</td>
+  </tr>
+)
+
+const TracksTable = ({ loadData }) => (
+  <>
+    {Object.keys(loadData).map((track) =>
+      loadData[track].map((row, index) => (
+        <LoadRow
+          key={track.concat(index)}
+          index={index}
+          track={track}
+          loadObj={row}
+          rowSpan={loadData[track].length}
+        />
+      ))
+    )}
+  </>
+)
+
 const TrackStatus = () => {
   const {
     venueId,
@@ -179,7 +222,6 @@ const TrackStatus = () => {
             userRegNotes = userRegNotes.concat(registrationNoteMap[username])
           }
         })
-        // eslint-disable-next-line no-param-reassign
         profile.registrationNotes = userRegNotes
       })
       setTrackStatusData({
@@ -302,49 +344,6 @@ const TrackStatus = () => {
   })
 
   const rows = convertToTableRows(reviewLoadData)
-
-  const LoadRow = ({ index, track, loadObj, rowSpan }) => (
-    <tr key={index}>
-      {index === 0 && (
-        <>
-          <td rowSpan={rowSpan}>{track}</td>
-          <td rowSpan={rowSpan}>{submissionCounts[track]}</td>
-        </>
-      )}
-      {loadObj.averageLoad < submissionCounts[track] ? (
-        <>
-          <td>
-            <strong>{prettyId(loadObj.Role)}</strong>
-          </td>
-          <td>
-            <strong>{loadObj.averageLoad.toFixed(1)}</strong>
-          </td>
-        </>
-      ) : (
-        <>
-          <td>{prettyId(loadObj.Role)}</td>
-          <td>{loadObj.averageLoad.toFixed(1)}</td>
-        </>
-      )}
-      <td>{loadObj.maximumLoad}</td>
-    </tr>
-  )
-
-  const TracksTable = ({ loadData }) => (
-    <>
-      {Object.keys(loadData).map((track) =>
-        loadData[track].map((row, index) => (
-          <LoadRow
-            key={track.concat(index)}
-            index={index}
-            track={track}
-            loadObj={row}
-            rowSpan={loadData[track].length}
-          />
-        ))
-      )}
-    </>
-  )
 
   return (
     <div className="table-container">

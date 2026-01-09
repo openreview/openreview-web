@@ -1,5 +1,3 @@
-/* eslint-disable react/destructuring-assignment */
-/* eslint-disable react/no-access-state-in-setstate */
 /* globals promptError: false */
 
 import React from 'react'
@@ -241,7 +239,6 @@ export default class EdgeBrowser extends React.Component {
         return
       }
       if (index + 1 === this.maxColumns) {
-        // eslint-disable-next-line no-console
         console.warn('Cannot add new column: maxColumns limit reached')
         return
       }
@@ -425,7 +422,6 @@ export default class EdgeBrowser extends React.Component {
         >
           {this.state.columns.map((column, i) => (
             <Column
-              // eslint-disable-next-line react/no-array-index-key
               key={`${column.parentId || 'start-col'}-${i}`}
               type={column.type}
               entityType={column.entityType}

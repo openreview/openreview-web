@@ -596,9 +596,7 @@ const AuthorConsole = ({ appContext }) => {
                   .map((blindNote) => {
                     const originalNote = originalNotes.find((p) => p.id === blindNote.original)
                     if (originalNote) {
-                      // eslint-disable-next-line no-param-reassign
                       blindNote.content.authors = originalNote.content.authors
-                      // eslint-disable-next-line no-param-reassign
                       blindNote.content.authorids = originalNote.content.authorids
                     }
                     return blindNote

@@ -1,0 +1,18 @@
+@use '../utils/constants';
+@use 'sass:color';
+
+.select {
+  font-size: 0.75rem;
+  padding: 0.375rem 0.75rem;
+  background-color: #fffaf4;
+  border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
+  border-radius: 0;
+
+  &:focus {
+    border-color: constants.$mediumDarkBlue;
+  }
+}
+
+.popupRoot {
+  border-radius: 0;
+}
