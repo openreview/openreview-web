@@ -2,6 +2,8 @@ import { ConfigProvider } from 'antd'
 import { AntdRegistry } from '@ant-design/nextjs-registry'
 
 const primaryColor = '#3e6775'
+const backgroundWhite = '#fffdfa'
+
 const theme = {
   token: {
     borderRadius: 2,
@@ -31,13 +33,19 @@ const theme = {
       activeBorderColor: '#2e4f5a',
       lineWidth: 2,
     },
+    Layout: {
+      footerPadding: 0,
+      bodyBg: 'red',
+    },
   },
 }
 
 const ThemeProvider = ({ children }) => {
   return (
     <AntdRegistry>
-      <ConfigProvider theme={theme}>{children}</ConfigProvider>
+      <ConfigProvider theme={theme} wave={{ disabled: true }}>
+        {children}
+      </ConfigProvider>
     </AntdRegistry>
   )
 }

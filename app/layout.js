@@ -7,7 +7,7 @@ import AppInit from './AppInit'
 import StoreProvider from '../storeProvider'
 import Nav from './(Home)/Nav'
 import GoogleAnalyticsScript from './GoogleAnalyticsScript'
-import ThemeProvider from 'ThemeProvider'
+import ThemeProvider from '../ThemeProvider'
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
@@ -36,17 +36,19 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
       </head>
       <StoreProvider>
-        <ThemeProvider
-          theme={{
-            token: { colorBgContainer: 'red', borderRadius: 2 },
-          }}
-        >
-          <body className={notoSans.className}>
-            <div id="__next">
-              <Nav />
-              <AppInit />
-              {children}
-            </div>
+        <ThemeProvider>
+          <body
+            className={notoSans.className}
+            style={{
+              backgroundColor: '#fffdfa',
+              minHeight: '100vh',
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+          >
+            <Nav />
+            <AppInit />
+            {children}
           </body>
         </ThemeProvider>
       </StoreProvider>

@@ -236,6 +236,7 @@ const UserModerationQueue = ({
   const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 15)
   const [profileToPreview, setProfileToPreview] = useState(null)
   const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
   const rejectModalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
   const blockModalId = `${onlyModeration ? 'new' : ''}-user-block-modal`
   const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
@@ -257,12 +258,12 @@ const UserModerationQueue = ({
 
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
-    const cleanSearchTerm = filters.term?.trim()
-    const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
+    const searchTerm = filters.term
+    const shouldSearchProfile = profileStateOption === 'All' && searchTerm
     const sortKey = onlyModeration ? 'tmdate' : 'tcdate'
-    let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
-    if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
-    if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
+    let searchQuery = { fullname: searchTerm?.toLowerCase() }
+    if (searchTerm?.startsWith('~')) searchQuery = { id: searchTerm }
+    if (searchTerm?.includes('@')) searchQuery = { email: searchTerm.toLowerCase() }
 
     try {
       const result = await api.get(
@@ -288,22 +289,12 @@ const UserModerationQueue = ({
     }
   }
 
-  const filterProfiles = (e) => {
-    e.preventDefault()
-
-    const formData = new FormData(e.target)
-    const newFilters = {}
-    formData.forEach((value, name) => {
-      if (name === 'id' && value.includes('@')) {
-        newFilters.email = value.trim()
-      } else {
-        newFilters[name] = value.trim()
-      }
-    })
+  const filterProfiles = () => {
+    const cleanSearchTerm = searchTerm.trim()
 
     setPageNumber(1)
     if (profileStateOption !== 'All') setProfileStateOption('All')
-    setFilters(newFilters)
+    setFilters({ term: cleanSearchTerm })
   }
 
   const acceptUser = async (profileId) => {
@@ -462,6 +453,7 @@ const UserModerationQueue = ({
   }
 
   useEffect(() => {
+    console.log('filters changed', filters)
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
 
@@ -470,7 +462,7 @@ const UserModerationQueue = ({
   }, [profileToPreview])
 
   return (
-    <div className="profiles-list">
+    <div className="profiles-list123">
       <h4>
         {title} ({totalCount})
       </h4>
@@ -481,34 +473,28 @@ const UserModerationQueue = ({
       )}
 
       {!onlyModeration && (
-        <form className="filter-form123 well mt-3" onSubmit={filterProfiles}>
-          <Flex justify="space-around" align="center" gap="middle">
-            <Input type="text" />
-            {/* <input type="text" name="term" className="form-control input-sm" /> */}
-            {/* <Dropdown
-            className="dropdown-select dropdown-profile-state dropdown-sm"
+        <Flex justify="space-start" align="center" gap="middle" wrap>
+          <Input
+            type="text"
+            style={{ flex: '5 1 200px' }}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onPressEnter={filterProfiles}
+          />
+          <Select
+            style={{ flex: '2 1 150px' }}
             options={profileStateOptions}
+            value={profileStateOption}
             placeholder="Select profile state"
-            value={profileStateOptions.find((option) => option.value === profileStateOption)}
             onChange={(e) => {
               setPageNumber(1)
-              setProfileStateOption(e.value)
+              setProfileStateOption(e)
             }}
-          /> */}
-            <Select
-              options={profileStateOptions}
-              value={profileStateOption}
-              placeholder="Select profile state"
-              onChange={(e) => {
-                setPageNumber(1)
-                setProfileStateOption(e)
-              }}
-            />
-            <Button type="primary" className="btn btn-xs">
-              Search
-            </Button>
-          </Flex>
-        </form>
+          />
+          <Button type="primary" className="btn btn-xs" onClick={filterProfiles}>
+            Search
+          </Button>
+        </Flex>
       )}
 
       {profiles ? (
@@ -818,7 +804,7 @@ export default function UserModerationTab({ accessToken }) {
         </Flex>
       )}
 
-      <div className="moderation-container">
+      <div className="moderation-container123">
         <UserModerationQueue
           accessToken={accessToken}
           title="Recently Created Profiles"
