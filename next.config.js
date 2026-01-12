@@ -14,6 +14,8 @@ module.exports = {
     USE_DBLP_VENUES: process.env.USE_DBLP_VENUES,
     GA_PROPERTY_ID: process.env.GA_PROPERTY_ID,
     TURNSTILE_SITEKEY: process.env.TURNSTILE_SITEKEY,
+    STRIPE_PUBLISHABLE_KEY_CARD: process.env.STRIPE_PUBLISHABLE_KEY_CARD,
+    STRIPE_PUBLISHABLE_KEY_WECHAT_ALI: process.env.STRIPE_PUBLISHABLE_KEY_WECHAT_ALI,
   },
   generateBuildId: () => nextBuildId({ dir: __dirname, describe: true }),
   poweredByHeader: false,
