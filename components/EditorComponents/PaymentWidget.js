@@ -59,7 +59,6 @@ const PaymentForm = ({ email, sessionId }) => {
         onClick={handleSubmit}
         disabled={isSubmitting}
         loading={isSubmitting}
-        target="_blank"
       >
         Pay ${checkoutState.checkout.total.total.amount}
       </SpinnerButton>
