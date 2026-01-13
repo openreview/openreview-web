@@ -53,19 +53,6 @@
           width: 180px;
           margin-right: 10px;
         }
-        .new-username {
-          display: inline-block;
-          vertical-align: middle;
-          width: calc(100% - 520px);
-
-          a {
-            color: constants.$subtleGray;
-          }
-          a:hover {
-            text-decoration: underline;
-          }
-        }
-        .email-row,
         .password-row,
         .claim-button-row {
           padding-top: 0.5rem;
@@ -82,9 +69,6 @@
           }
         }
 
-        .submissions-list {
-          margin-top: -0.5rem;
-        }
         .password-tooltip {
           color: constants.$mediumBlue;
         }
@@ -98,13 +82,6 @@
             margin-right: 0;
           }
         }
-      }
-      .existing-profiles-title {
-        margin-top: 2rem;
-        margin-bottom: -1.5rem;
-        color: constants.$orRed;
-        font-size: 0.875rem;
-        font-weight: 700;
       }
 
       .new-profile-title {

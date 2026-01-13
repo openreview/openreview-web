@@ -85,7 +85,7 @@ export default function FilterForm({
         urlParams
       )}`
     )
-    promptMessage('Forum URL copied to clipboard', { scrollToTop: false })
+    promptMessage('Forum URL copied to clipboard')
   }
 
   return (
