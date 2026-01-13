@@ -13,7 +13,7 @@ export const donorList2025 = [
   'Fei Sha',
   'Maryam Fazel-Zarandi',
   'Razvan Pascanu',
-  'Linhong zhu',
+  'Linhong Zhu',
   'Nasser Manesh',
   'Winston Chou',
   'JinYeong Bak',
