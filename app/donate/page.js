@@ -7,6 +7,7 @@ import { useSearchParams } from 'next/navigation'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import Icon from '../../components/Icon'
+import { donorList2025 } from './donors'
 
 import styles from '../../styles/components/Donate.module.scss'
 
@@ -561,6 +562,21 @@ export default function Page() {
             </span>
           </li>
         </ul>
+      </div>
+      <div className={`${styles.section} ${styles.qna} ${styles.donorList}`}>
+        <h2>Thank You to Our 2025 Donors</h2>
+        <p>
+          We are incredibly grateful to the following individuals-and to those who prefer to
+          remain anonymous-for their generous support in 2025
+        </p>
+        <p>
+          {donorList2025.map((name, index) => (
+            <span key={index}>
+              <span className={styles.donorName}>{name}</span>
+              {'\u00A0\u00A0'}{' '}
+            </span>
+          ))}
+        </p>
       </div>
     </div>
   )
