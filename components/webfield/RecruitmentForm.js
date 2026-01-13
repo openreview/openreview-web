@@ -1,14 +1,10 @@
-/* globals promptError: false */
+/* globals promptError,view2: false */
 import { useState, useReducer, useContext, useEffect } from 'react'
 import api from '../../lib/api-client'
-import {
-  constructRecruitmentResponseNote,
-  orderNoteInvitationFields,
-  inflect,
-} from '../../lib/utils'
+import { orderNoteInvitationFields, inflect } from '../../lib/utils'
 import SpinnerButton from '../SpinnerButton'
 import Markdown from '../EditorComponents/Markdown'
-import { ReadOnlyField, ReadOnlyFieldV2 } from '../EditorComponents/ReadOnlyField'
+import ReadOnlyField from '../EditorComponents/ReadOnlyField'
 import VenueHeader from './VenueHeader'
 import EditorWidget from './EditorWidget'
 import EditorComponentContext from '../EditorComponentContext'
@@ -17,8 +13,8 @@ import { translateInvitationMessage } from '../../lib/webfield-utils'
 
 import styles from '../../styles/components/RecruitmentForm.module.scss'
 import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
-import RecruitmentFormWidget from '../EditorComponents/RecruitmentFormWidget'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
+import useUser from '../../hooks/useUser'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 
@@ -117,13 +113,9 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     allowAcceptWithReducedLoad = false,
   } = useContext(WebFieldContext)
   const [isSaving, setIsSaving] = useState(false)
-  const isV2Invitation = invitation.apiVersion === 2
-  const hasReducedLoadField = isV2Invitation
-    ? invitation.edit?.note?.content?.reduced_load
-    : invitation.reply?.content?.reduced_load
-  const hasCommentField = isV2Invitation
-    ? invitation.edit?.note?.content?.comment
-    : invitation.reply?.content?.comment
+  const { user } = useUser()
+  const hasReducedLoadField = invitation.edit?.note?.content?.reduced_load
+  const hasCommentField = invitation.edit?.note?.content?.comment
   const fieldsToRender = orderNoteInvitationFields(
     invitation,
     fieldsToHide.concat(['reduced_load', 'comment'])
@@ -156,16 +148,17 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
         user: args.user,
         key: args.key,
         response: isAcceptResponse ? 'Yes' : 'No',
+        ...(invitation.edit?.signatures?.param?.items && {
+          editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
+        }),
         ...formData,
       }
-      const noteToPost = constructRecruitmentResponseNote(
-        invitation,
-        noteContent,
-        responseNote
-      )
-      await api.post(isV2Invitation ? '/notes/edits' : '/notes', noteToPost, {
-        version: isV2Invitation ? 2 : 1,
+      const noteToPost = view2.constructEdit({
+        formData: noteContent,
+        noteObj: responseNote,
+        invitationObj: invitation,
       })
+      await api.post('/notes/edits', noteToPost)
       setIsSaving(false)
 
       if (isAcceptResponse) {
@@ -187,9 +180,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
           key={fieldToRender}
           value={{
             field: {
-              [fieldToRender]: isV2Invitation
-                ? invitation.edit?.note?.content?.[fieldToRender]
-                : invitation.reply?.content?.[fieldToRender],
+              [fieldToRender]: invitation.edit?.note?.content?.[fieldToRender],
             },
             onChange: ({ fieldName, value }) => setFormData({ fieldName, value }),
             value: formData[fieldToRender],
@@ -198,21 +189,15 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
           }}
         >
           <EditorComponentHeader>
-            {isV2Invitation ? <EditorWidget /> : <RecruitmentFormWidget />}
+            <EditorWidget />
           </EditorComponentHeader>
         </EditorComponentContext.Provider>
       )
     }
-    return isV2Invitation ? (
-      <ReadOnlyFieldV2
-        key={fieldToRender}
-        field={{ [fieldToRender]: invitation.edit?.note?.content?.[fieldToRender] }}
-        value={formData[fieldToRender]}
-      />
-    ) : (
+    return (
       <ReadOnlyField
         key={fieldToRender}
-        field={{ [fieldToRender]: invitation.reply?.content?.[fieldToRender] }}
+        field={{ [fieldToRender]: invitation.edit?.note?.content?.[fieldToRender] }}
         value={formData[fieldToRender]}
       />
     )
@@ -278,13 +263,9 @@ const RecruitmentForm = () => {
     invitationMessage,
     allowAcceptWithReducedLoad = false,
   } = useContext(WebFieldContext)
-  const isV2Invitation = invitation.apiVersion === 2
-  const responseDescription = isV2Invitation
-    ? invitation.edit?.note?.content?.response?.description
-    : invitation.reply?.content?.response?.description
-  const invitationContentFields = isV2Invitation
-    ? Object.keys(invitation.edit?.note?.content)
-    : Object.keys(invitation.reply?.content)
+  const responseDescription = invitation.edit?.note?.content?.response?.description
+  const invitationContentFields = Object.keys(invitation.edit?.note?.content)
+  const { user } = useUser()
 
   const defaultButtonState = [
     { response: 'Yes', loading: false, disabled: false },
@@ -317,11 +298,15 @@ const RecruitmentForm = () => {
             ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key)
           )
         ),
+        ...(invitation.edit?.signatures?.param?.items && {
+          editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
+        }),
       }
-      const noteToPost = constructRecruitmentResponseNote(invitation, noteContent)
-      const result = await api.post(isV2Invitation ? '/notes/edits' : '/notes', noteToPost, {
-        version: isV2Invitation ? 2 : 1,
+      const noteToPost = view2.constructEdit({
+        formData: noteContent,
+        invitationObj: invitation,
       })
+      const result = await api.post('/notes/edits', noteToPost)
       setResponseNote(result)
       setButtonStatus(defaultButtonState)
       setDecision(response === 'Yes' ? 'accept' : 'reject')

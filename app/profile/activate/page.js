@@ -41,9 +41,7 @@ export default function Page() {
         content: newProfileData,
       })
       if (token) {
-        promptMessage('Your OpenReview profile has been successfully created', {
-          scrollToTop: false,
-        })
+        promptMessage('Your OpenReview profile has been successfully created')
         router.replace('/')
         router.refresh()
       } else {

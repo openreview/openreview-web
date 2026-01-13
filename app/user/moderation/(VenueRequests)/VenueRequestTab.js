@@ -7,6 +7,7 @@ import { orderBy, sortBy } from 'lodash'
 import PaginatedList from '../../../../components/PaginatedList'
 import { inflect, prettyId } from '../../../../lib/utils'
 import api from '../../../../lib/api-client'
+import LoadingSpinner from '../../../../components/LoadingSpinner'
 
 dayjs.extend(relativeTime)
 
@@ -25,6 +26,7 @@ const VenueRequestRow = ({ item }) => {
     <div className="venue-request-row">
       <a className="request-name" href={`/forum?id=${forum}`} target="_blank" rel="noreferrer">
         {abbreviatedName}
+        {apiVersion === 2 && <span className="label label-default" >workflow</span>}
       </a>
       <div className="request-status">
         <div className="deploy-label">
@@ -164,6 +166,7 @@ export default function VenueRequestTab({ accessToken }) {
     loadRequestNotes()
   }, [])
 
+  if(!venueRequestNotes) return <LoadingSpinner />
   return (
     <PaginatedList
       className="venue-request-list"
