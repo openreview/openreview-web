@@ -1,15 +1,8 @@
-const ProfileViewSection = ({ name, title, instructions, actionLink, children }) => (
-  <section className={name}>
+const ProfileViewSection = ({ title, instructions, children }) => (
+  <section>
     <h4>{title}</h4>
     <p className="instructions">{instructions}</p>
     <div className="section-content">{children}</div>
-    {actionLink && (
-      <ul className="actions list-inline">
-        <li>
-          <a className="suggest">{actionLink}</a>
-        </li>
-      </ul>
-    )}
   </section>
 )
 
