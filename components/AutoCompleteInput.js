@@ -9,6 +9,8 @@ import { stringify } from 'query-string'
 import Icon from './Icon'
 import api from '../lib/api-client'
 import { getTitleObjects, getTokenObjects } from '../lib/utils'
+import { Input } from 'antd'
+import { SearchOutlined } from '@ant-design/icons'
 
 const AutoCompleteInput = () => {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
@@ -140,24 +142,18 @@ const AutoCompleteInput = () => {
 
   return (
     <>
-      <div className="form-group has-feedback">
-        <input
-          aria-label="term"
-          type="text"
-          name="term"
-          className="form-control"
-          value={immediateSearchTerm}
-          placeholder="Search OpenReview..."
-          autoComplete="off"
-          autoCorrect="off"
-          onChange={(e) => {
-            setImmediateSearchTerm(e.target.value)
-            delaySearch(e.target.value)
-          }}
-          onKeyDown={(e) => keyDownHandler(e)}
-        />
-        <Icon name="search" extraClasses="form-control-feedback" />
-      </div>
+      <Input
+        name="term"
+        value={immediateSearchTerm}
+        placeholder="Search OpenReview..."
+        onChange={(e) => {
+          setImmediateSearchTerm(e.target.value)
+          delaySearch(e.target.value)
+        }}
+        onKeyDown={(e) => keyDownHandler(e)}
+        suffix={<SearchOutlined />}
+        style={{ borderColor: 'transparent' }}
+      />
 
       {autoCompleteItems.length !== 0 && (
         <ul className="ui-menu ui-widget ui-widget-content ui-autocomplete">

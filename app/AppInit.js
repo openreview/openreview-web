@@ -19,7 +19,7 @@ export default function AppInit() {
     // Load required vendor libraries
     window.jQuery = require('jquery')
     window.$ = window.jQuery
-    require('bootstrap')
+    // require('bootstrap')
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
     window.marked = marked
@@ -93,7 +93,7 @@ export default function AppInit() {
       <TurnstileScript />
       {notificationHolder}
       <StripeScript />
-      {libarysLoaded && <BibtexModal />}
+      {/* {libarysLoaded && <BibtexModal />} */}
     </>
   )
 }

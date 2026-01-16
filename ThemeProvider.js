@@ -3,6 +3,9 @@ import { AntdRegistry } from '@ant-design/nextjs-registry'
 
 const primaryColor = '#3e6775'
 const backgroundWhite = '#fffdfa'
+const orRed = '#8c1b13'
+const subtleGray = '#616161'
+const backgroundGray = '#dddddd'
 
 const theme = {
   token: {
@@ -23,7 +26,7 @@ const theme = {
       colorPrimaryActive: '#2e4f5a',
     },
     Select: {
-      colorBorder: 'primaryColor',
+      colorBorder: primaryColor,
       hoverBorderColor: '#4f7a8a',
       activeBorderColor: '#2e4f5a',
       lineWidth: 2,
@@ -38,7 +41,7 @@ const theme = {
     },
     Layout: {
       footerPadding: 0,
-      bodyBg: 'red',
+      bodyBg: backgroundWhite,
     },
     Pagination: {
       itemBg: '#efece3',
@@ -49,6 +52,16 @@ const theme = {
     },
     Modal: {
       contentBg: backgroundWhite,
+    },
+    Menu: {
+      itemBg: orRed,
+      colorText: 'white',
+      horizontalItemSelectedColor: 'transparent',
+      popupBg: orRed,
+    },
+    Alert: {
+      colorInfoBg: backgroundGray,
+      colorText: subtleGray,
     },
   },
 }

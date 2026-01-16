@@ -2,8 +2,9 @@ import Link from 'next/link'
 import useBreakpoint from '../hooks/useBreakPoint'
 
 import styles from '../styles/components/Banner.module.scss'
+import { Alert, Col, Row } from 'antd'
 
-const DonateBanner = () => {
+const DonateBanner1 = () => {
   const isMobile = !useBreakpoint('lg')
   const defaultContent = isMobile ? (
     <div className={styles.donateBanner}>
@@ -30,6 +31,29 @@ const DonateBanner = () => {
         </div>
       </div>
     </div>
+  )
+}
+
+const DonateBanner = () => {
+  const isMobile = !useBreakpoint('lg')
+  const donateBannerText = isMobile
+    ? 'Open Peer Review. Open Publishing. Open Access.'
+    : 'Open Peer Review. Open Publishing. Open Access. Open Discussion. Open Recommendations. Open Directory. Open API. Open Source.'
+  return (
+    <Alert
+      style={{ textAlign: 'center' }}
+      title={
+        <span>
+          {donateBannerText}{' '}
+          <Link href="/donate">
+            <strong>Donate</strong>
+          </Link>
+        </span>
+      }
+      type="info"
+      banner
+      showIcon={false}
+    />
   )
 }
 

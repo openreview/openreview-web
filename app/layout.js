@@ -1,7 +1,7 @@
 import '../lib/logger'
-import 'bootstrap/dist/css/bootstrap.min.css'
+// import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
-import '../styles/components.scss'
+// import '../styles/components.scss'
 import { Noto_Sans } from 'next/font/google'
 import AppInit from './AppInit'
 import StoreProvider from '../storeProvider'
@@ -44,6 +44,7 @@ export default function RootLayout({ children }) {
               minHeight: '100vh',
               display: 'flex',
               flexDirection: 'column',
+              margin: 0,
             }}
           >
             <Nav />

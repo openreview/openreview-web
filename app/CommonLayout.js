@@ -14,7 +14,7 @@ export default function CommonLayout({
     <>
       <CustomBanner banner={banner} />
       {editBanner}
-      <Row justify="center" style={{ flexGrow: 1, margin: ' 0 20px' }}>
+      <Row justify="center" style={{ flexGrow: 1, margin: '0 .25rem 2rem' }}>
         <Col
           md={24}
           lg={fullWidth ? 24 : 18}

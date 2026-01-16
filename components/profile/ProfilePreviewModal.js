@@ -11,7 +11,7 @@ import Dropdown, { CreatableDropdown } from '../Dropdown'
 import { getRejectionReasons } from '../../lib/utils'
 import ProfileTag from '../ProfileTag'
 import ErrorAlert from '../ErrorAlert'
-import { Button, Col, Flex, Modal, Row, Select, Space } from 'antd'
+import { Button, Col, Flex, Input, Modal, Row, Select, Space } from 'antd'
 
 const ProfilePreviewModal = ({
   profileToPreview,
@@ -232,7 +232,7 @@ const ProfilePreviewModal = ({
             </Flex>
           )}
           {needsModeration && (
-            <Flex justify="space-between">
+            <Flex justify="space-between" wrap>
               <Button type="primary" onClick={() => showNextProfile(profileToPreview.id)}>
                 Skip
               </Button>
@@ -269,20 +269,20 @@ const ProfilePreviewModal = ({
             </Flex>
           )}
           {isRejecting && (
-            <div className="form-group form-rejection mt-2">
-              <Dropdown
-                name="rejection-reason"
-                instanceId="rejection-reason"
+            <Flex vertical gap="small" align="flex-start">
+              <Select
+                allowClear
+                style={{ width: '100%' }}
                 placeholder="Choose a common reject reason..."
                 options={rejectionReasons}
-                onChange={(p) => {
-                  setRejectionMessage(p?.rejectionText || '')
+                onChange={(value) => {
+                  const rejectOption = rejectionReasons.find((r) => r.value === value)
+                  setRejectionMessage(rejectOption?.rejectionText || '')
                 }}
-                isClearable
               />
-              <div>
-                <button
-                  className="btn btn-xs mr-2"
+              <Space wrap>
+                <Button
+                  type="primary"
                   onClick={() =>
                     updateMessageForPastRejectProfile(
                       "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
@@ -290,9 +290,9 @@ const ProfilePreviewModal = ({
                   }
                 >
                   Add Invalid Info Warning
-                </button>
-                <button
-                  className="btn btn-xs"
+                </Button>
+                <Button
+                  type="primary"
                   onClick={() =>
                     updateMessageForPastRejectProfile(
                       'If invalid info is submitted again, your email will be blocked.'
@@ -300,28 +300,25 @@ const ProfilePreviewModal = ({
                   }
                 >
                   Add Last Notice Warning
-                </button>
-              </div>
-              <textarea
-                name="message"
-                className="form-control mt-2"
-                rows="10"
+                </Button>
+              </Space>
+              <Input.TextArea
+                autoSize={{ minRows: 5 }}
                 value={rejectionMessage}
                 onChange={(e) => {
                   setRejectionMessage(e.target.value)
                 }}
               />
-              <button
-                type="button"
-                className="btn"
+              <Button
+                type="primary"
                 onClick={async () => {
                   await rejectUser(rejectionMessage, profileToPreview.id)
                   showNextProfile(profileToPreview.id)
                 }}
               >
                 Reject
-              </button>
-            </div>
+              </Button>
+            </Flex>
           )}
         </Flex>
       </Flex>

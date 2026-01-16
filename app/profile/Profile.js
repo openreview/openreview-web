@@ -8,6 +8,8 @@ import serverAuth from '../auth'
 import api from '../../lib/api-client'
 import CoAuthorsList from './CoAuthorsList'
 import { getCoAuthorsFromPublications } from '../../lib/profiles'
+import { Col, Flex, Row, Space, Typography } from 'antd'
+import { CalendarOutlined } from '@ant-design/icons'
 
 export default async function Profile({
   profile,
@@ -28,7 +30,7 @@ export default async function Profile({
           const institutionName = history.institution.name?.trim()
 
           return (
-            <h3 key={index}>
+            <h3 key={index} style={{ color: '#616161' }}>
               {[posititon, department, institutionName].filter(Boolean).join(', ')}
             </h3>
           )
@@ -71,6 +73,45 @@ export default async function Profile({
     }
   }
   const { publications, count, coAuthors } = await loadPublications()
+
+  return (
+    <Flex vertical gap="small">
+      <h1 style={{ fontWeight: 'bold' }}>{profile.preferredName}</h1>
+      {profile.pronouns && profile.pronouns !== '' && profile.pronouns !== 'Not Specified' && (
+        <h4>Pronouns: {profile.pronouns}</h4>
+      )}
+      {getCurrentInstitutionInfo()}
+      <Space>
+        <CalendarOutlined /> Joined{profile.joined}
+      </Space>
+      <Row>
+        <Col xs={24} lg={16}>
+          <BasicProfileView
+            profile={profile}
+            publicProfile={publicProfile}
+            serviceRoles={serviceRoles}
+          />
+        </Col>
+        <Col xs={24} lg={8}>
+          <Flex vertical>
+            <ProfileViewSection title="Publications">
+              <ProfilePublications
+                profileId={profile.preferredId}
+                publications={publications}
+                count={count}
+                loading={!publications}
+                preferredName={profile.preferredName}
+              />
+            </ProfileViewSection>
+
+            <ProfileViewSection title="Co-Authors">
+              <CoAuthorsList coAuthors={coAuthors} />
+            </ProfileViewSection>
+          </Flex>
+        </Col>
+      </Row>
+    </Flex>
+  )
 
   return (
     <div className={styles.profile}>
