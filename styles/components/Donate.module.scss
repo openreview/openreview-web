@@ -1,0 +1,198 @@
+@use '../utils/constants';
+
+.donateContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.section {
+  display: flex;
+  width: 100%;
+}
+
+.headerText {
+  padding-left: 2rem;
+}
+
+.messageDonate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+
+  .message {
+    padding: 2rem;
+    padding-bottom: 0;
+    flex: 1 1 400px;
+    order: 0;
+    font-family: 'Times New Roman', Times, serif;
+    border: 1px solid #ddd;
+  }
+
+  .donateContainer {
+    margin-top: 4%;
+    margin-bottom: 2rem;
+    flex: 1 1 400px;
+    order: 1;
+
+    .frequencyButtons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 1rem;
+
+      button {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        cursor: pointer;
+        border-radius: 4px;
+
+        &.active {
+          background-color: #ff7a1a;
+          color: #fff;
+          border-color: #ff7a1a;
+        }
+      }
+    }
+
+    .amountButtons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+
+      .amountButton {
+        padding: 0.5rem 1rem;
+        border: 1px solid #ccc;
+        background-color: #fff;
+        cursor: pointer;
+        border-radius: 4px;
+        text-align: center;
+        min-width: 4rem;
+
+        input {
+          border: none;
+          outline: none;
+          width: 100%;
+          text-align: center;
+        }
+      }
+
+      .activeAmountButton {
+        background-color: #ff7a1a;
+        color: #fff;
+        border-color: #ff7a1a;
+      }
+
+      .activeAmountInput {
+        box-shadow: 0 0 5px rgba(255, 122, 26, 0.5);
+      }
+    }
+
+    .maxAmountMessage {
+      margin-bottom: 0.5rem;
+      font-size: 0.75rem;
+      color: constants.$subtleGray;
+    }
+
+    .irsReceiptContainer {
+      display: flex;
+      align-items: center;
+
+      input {
+        align-self: flex-start;
+      }
+
+      .irsReceiptLabel {
+        margin-left: 0.25rem;
+        margin-bottom: 0;
+      }
+    }
+
+    button {
+      background-color: #ff7a1a;
+      border: 2px solid #ff7a1a;
+    }
+
+    .poweredByStripe {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background-color: rgb(241, 247, 255);
+      padding: 1rem 4rem;
+      margin-top: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.75rem;
+      color: rgb(76, 75, 74);
+      border: 1px solid rgb(217, 236, 255);
+      border-radius: 8px;
+
+      .secureTitle {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1rem;
+        font-weight: bold;
+        color: rgb(31, 117, 232);
+        margin-bottom: 1rem;
+      }
+
+      .securityFeature {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+
+        &::before {
+          content: '✔';
+          color: #4caf50;
+          font-weight: bold;
+          flex-shrink: 0;
+        }
+      }
+
+      hr {
+        width: 120%;
+        border-top: 1px solid #d0d4d8;
+        margin: 0.5rem -1rem;
+      }
+
+      .poweredBy {
+        align-self: center;
+        color: #666;
+        font-size: 0.85rem;
+
+        .stripeText {
+          color: #635bff;
+          text-decoration: none;
+          font-weight: 600;
+        }
+      }
+    }
+
+    .contactUsMessage {
+      margin-top: 1rem;
+      color: #757575;
+      font-size: 0.9rem;
+      word-break: break-word;
+    }
+
+    .csrText {
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: constants.$subtleGray;
+    }
+
+    .redirectText {
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: constants.$lightGray;
+    }
+  }
+}
+
+.qna {
+  flex-direction: column;
+  padding: 2rem;
+  gap: 0.75rem;
+}

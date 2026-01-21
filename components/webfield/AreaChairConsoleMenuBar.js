@@ -1,5 +1,5 @@
 import { camelCase, upperFirst } from 'lodash'
-import { pluralizeString, prettyField } from '../../lib/utils'
+import { pluralizeString, prettyField, prettyId } from '../../lib/utils'
 import BaseMenuBar from './BaseMenuBar'
 import MessageReviewersModal from './MessageReviewersModal'
 import QuerySearchInfoModal from './QuerySearchInfoModal'
@@ -25,6 +25,7 @@ const AreaChairConsoleMenuBar = ({
   areaChairName,
   ithenticateInvitationId,
   sortOptions: sortOptionsConfig,
+  customStageInvitations = [],
 }) => {
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '='] // sequence matters
   const formattedReviewerName = camelCase(reviewerName)
@@ -271,6 +272,27 @@ const AreaChairConsoleMenuBar = ({
             getValue: (p) => p.note?.ithenticateWeight,
           },
         ]
+      : []),
+    ...(customStageInvitations?.length > 0
+      ? customStageInvitations
+          .map((invitation) =>
+            invitation.extraDisplayFields
+              .map((extraDisplayField) => ({
+                label: `${prettyId(invitation.name)} - ${prettyField(extraDisplayField)}`,
+                value: `${invitation.name} ${extraDisplayField}`,
+                getValue: (p) =>
+                  p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
+                    ?.content?.[extraDisplayField]?.value ?? 'N/A',
+              }))
+              .concat({
+                label: prettyField(invitation.displayField),
+                value: invitation.name,
+                getValue: (p) =>
+                  p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
+                    ?.searchValue,
+              })
+          )
+          .flat()
       : []),
     ...(sortOptionsConfig ?? []),
   ]

@@ -595,7 +595,6 @@ header {
 }
 
 // Flash message
-#flash-message-container,
 #edit-banner {
   padding: 12px 0;
   margin: 0;
@@ -621,22 +620,10 @@ header {
     padding-right: 5px;
   }
 
-  &.alert-success {
-    a {
-      color: constants.$mediumBlue;
-      text-decoration: underline;
-    }
-  }
   &.alert-warning {
     color: #846539;
     background-color: constants.$sandyBrown;
     border-color: constants.$backgroundGray;
-  }
-  &.fixed-overlay {
-    position: fixed;
-    top: 51px; // height of navbar
-    width: 100%;
-    z-index: 1030;
   }
 }
 #edit-banner {
@@ -959,6 +946,100 @@ header {
       margin-bottom: 0;
       .readers {
         display: none;
+      }
+    }
+  }
+}
+
+// Notification
+.rc-notification {
+  position: fixed;
+  z-index: 10000;
+  width: 100%;
+  top: 80px !important;
+  left: 0 !important;
+  box-sizing: border-box;
+  pointer-events: none;
+
+  .rc-notification-notice {
+    display: block;
+    margin: 1rem;
+    text-align: center;
+    right: 0 !important;
+    animation-duration: 0.3s;
+    animation-name: slidedown;
+
+    @keyframes slidedown {
+      0% {
+        transform: translateY(-100%);
+      }
+      100% {
+        transform: translateY(0);
+      }
+    }
+
+    .rc-notification-notice-content {
+      display: inline-flex;
+      align-items: baseline;
+      padding-top: 8px;
+      padding-bottom: 8px;
+      padding-left: 5%;
+      padding-right: 10%;
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: rgba(0, 0, 0, 0.08) 0px 6px 16px 0px;
+      pointer-events: all;
+      text-align: left;
+      margin-right: -1.75rem;
+      line-height: 21px;
+      width: 80%;
+
+      @media #{constants.$phone-only} {
+        margin: 0;
+        padding-right: 5%;
+      }
+      font-size: 0.875rem;
+
+      p {
+        margin-bottom: 0;
+      }
+
+      &:has(.message) {
+        color: #3c763d;
+        background-color: #dff0d8;
+        border-color: #d6e9c6;
+      }
+
+      .message {
+        display: flex;
+        button {
+          margin-left: 0.25rem;
+        }
+      }
+
+      &:has(.error) {
+        background-color: #f2dede;
+        border-color: #ebccd1;
+        color: #a94442;
+      }
+
+      &:has(.login) {
+        color: #3c763d;
+        background-color: #dff0d8;
+        border-color: #d6e9c6;
+      }
+    }
+
+    .rc-notification-notice-close {
+      pointer-events: all;
+      margin-right: 0;
+      color: darkgray;
+      cursor: pointer;
+      &:focus {
+        outline: none;
+      }
+      &:hover {
+        color: black;
       }
     }
   }

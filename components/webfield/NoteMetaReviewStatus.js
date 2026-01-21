@@ -1,7 +1,7 @@
 /* globals promptError,promptMessage: false */
 
 // modified from noteMetaReviewStatus.hbs handlebar template
-import { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import WebFieldContext from '../WebFieldContext'
 import useUser from '../../hooks/useUser'
@@ -168,7 +168,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
         <>
           <>
             {metaReviewData.metaReviewByOtherACs.map((p) => (
-              <>
+              <React.Fragment key={p.anonId}>
                 <h4 className="title">
                   {prettyField(metaReviewRecommendationName)} by {p.anonId}:
                 </h4>
@@ -192,7 +192,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
                     Read
                   </a>
                 </p>
-              </>
+              </React.Fragment>
             ))}
           </>
           <h4>
@@ -209,6 +209,46 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
             )}
           </h4>
         </>
+      )}
+      {metaReviewData.customStageReviews && (
+        <div>
+          {Object.values(metaReviewData.customStageReviews).map((customStageReview, index) => {
+            if (!customStageReview.value) return null
+
+            return (
+              <div key={`${customStageReview.id}-${index}`}>
+                <strong className="custom-stage-name">{customStageReview.name}:</strong>
+                <div className="meta-review-info">
+                  <span>
+                    {customStageReview.displayField}: {customStageReview.value}
+                  </span>
+
+                  {customStageReview.extraDisplayFields?.length > 0 &&
+                    customStageReview.extraDisplayFields.map(({ field, value }, i) => {
+                      if (!value) return null
+                      return (
+                        <div key={`${field}-${i}`} className="meta-review-info">
+                          <span>
+                            {field}: {value}
+                          </span>
+                        </div>
+                      )
+                    })}
+
+                  <div>
+                    <a
+                      href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {`Read ${customStageReview.name}`}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       )}
     </div>
   )
@@ -245,7 +285,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
 
   const getACSACEmail = async (preferredName, profileId) => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.', { scrollToTop: false })
+      promptError('Email is not available.')
       return
     }
     try {
@@ -256,9 +296,9 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
 
