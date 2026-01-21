@@ -76,7 +76,9 @@ export default async function Profile({
 
   return (
     <Flex vertical gap="small">
-      <h1 style={{ fontWeight: 'bold' }}>{profile.preferredName}</h1>
+      <h1 style={{ fontWeight: 'bold', fontSize: '2.5rem', marginBottom: 0 }}>
+        {profile.preferredName}
+      </h1>
       {profile.pronouns && profile.pronouns !== '' && profile.pronouns !== 'Not Specified' && (
         <h4>Pronouns: {profile.pronouns}</h4>
       )}

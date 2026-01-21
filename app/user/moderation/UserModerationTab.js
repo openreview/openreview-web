@@ -21,8 +21,8 @@ import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal
 import styles from '../../../styles//components/UserModerationTab.module.scss'
 // import Button from '@components/Button'
 // import Select from 'components/Select'
-import { Col, Divider, Pagination, Row, Select, Space, Tag } from 'antd'
-import { Flex, Button, Input } from 'antd'
+import { Col, Divider, Modal, Pagination, Row, Select, Space, Tag, Input } from 'antd'
+import { Flex, Button } from 'antd'
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
@@ -32,9 +32,13 @@ import {
   UndoOutlined,
 } from '@ant-design/icons'
 
-export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
+export const RejectionModal = ({
+  profileToReject,
+  setProfileToReject,
+  rejectUser,
+  signedNotes,
+}) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
-  const selectRef = useRef(null)
 
   const currentInstitutionName = profileToReject?.content?.history?.find(
     (p) => !p.end || p.end >= new Date().getFullYear()
@@ -47,73 +51,65 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
   }
 
   return (
-    <BasicModal
-      id={id}
-      primaryButtonDisabled={!rejectionMessage}
-      onPrimaryButtonClick={() => {
+    <Modal
+      title={`Reason for rejecting ${prettyId(profileToReject?.id)}`}
+      open={profileToReject}
+      okText="Submit"
+      closable={true}
+      destroyOnHidden={true}
+      onCancel={() => {
+        setRejectionMessage('')
+        setProfileToReject(null)
+      }}
+      onOk={() => {
+        setRejectionMessage('')
         rejectUser(rejectionMessage, profileToReject.id)
       }}
-      onClose={() => {
-        selectRef.current.clearValue()
+      width={{
+        xs: '90%',
+        sm: '50%',
       }}
     >
-      <>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
+      <Flex vertical gap="small" align="flex-start">
+        <Select
+          allowClear
+          style={{ width: '100%' }}
+          placeholder="Choose a common reject reason..."
+          options={rejectionReasons}
+          onChange={(value) => {
+            const rejectOption = rejectionReasons.find((r) => r.value === value)
+            setRejectionMessage(rejectOption?.rejectionText || '')
           }}
-        >
-          <div className="form-group form-rejection">
-            <label htmlFor="message" className="mb-1">
-              Reason for rejecting {prettyId(profileToReject?.id)}:
-            </label>
-
-            <Dropdown
-              name="rejection-reason"
-              instanceId="rejection-reason"
-              placeholder="Choose a common reject reason..."
-              options={rejectionReasons}
-              onChange={(p) => {
-                setRejectionMessage(p?.rejectionText || '')
-              }}
-              selectRef={selectRef}
-              isClearable
-            />
-
-            <div>
-              <button
-                className="btn btn-xs mr-2"
-                onClick={() =>
-                  updateMessageForPastRejectProfile(
-                    "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
-                  )
-                }
-              >
-                Add Invalid Info Warning
-              </button>
-              <button
-                className="btn btn-xs"
-                onClick={() =>
-                  updateMessageForPastRejectProfile(
-                    'If invalid info is submitted again, your email will be blocked.'
-                  )
-                }
-              >
-                Add Last Notice Warning
-              </button>
-            </div>
-
-            <textarea
-              name="message"
-              className="form-control mt-2"
-              rows="10"
-              value={rejectionMessage}
-              onChange={(e) => {
-                setRejectionMessage(e.target.value)
-              }}
-            />
-          </div>
-        </form>
+        />
+        <Space wrap>
+          <Button
+            type="primary"
+            onClick={() =>
+              updateMessageForPastRejectProfile(
+                "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
+              )
+            }
+          >
+            Add Invalid Info Warning
+          </Button>
+          <Button
+            type="primary"
+            onClick={() =>
+              updateMessageForPastRejectProfile(
+                'If invalid info is submitted again, your email will be blocked.'
+              )
+            }
+          >
+            Add Last Notice Warning
+          </Button>
+        </Space>
+        <Input.TextArea
+          autoSize={{ minRows: 5 }}
+          value={rejectionMessage}
+          onChange={(e) => {
+            setRejectionMessage(e.target.value)
+          }}
+        />
         {signedNotes.length > 0 && (
           <>
             <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
@@ -137,12 +133,18 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
             ))}
           </>
         )}
-      </>
-    </BasicModal>
+      </Flex>
+    </Modal>
   )
 }
 
-const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToken }) => {
+const BlockModal = ({
+  profileToBlockUnblock,
+  setProfileToBlockUnblock,
+  signedNotes,
+  reload,
+  accessToken,
+}) => {
   const [blockTag, setBlockTag] = useState('')
   const actionIsBlock = profileToBlockUnblock?.state !== 'Blocked'
 
@@ -164,7 +166,6 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToke
         { accessToken }
       )
       setBlockTag('')
-      $(`#${id}`).modal('hide')
     } catch (error) {
       promptError(error.message)
     }
@@ -174,28 +175,32 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToke
   useEffect(() => {}, [profileToBlockUnblock])
 
   return (
-    <BasicModal
-      id={id}
-      primaryButtonText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
-      onPrimaryButtonClick={() => {
+    <Modal
+      title={`You are about to ${actionIsBlock ? 'block' : 'unblock'} ${
+        profileToBlockUnblock?.content?.names?.[0]?.fullname
+      }.`}
+      open={profileToBlockUnblock}
+      okText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
+      onCancel={() => {
+        setBlockTag('')
+        setProfileToBlockUnblock(null)
+      }}
+      onOk={() => {
+        setBlockTag('')
+        setProfileToBlockUnblock(null)
         blockUnblockUser(profileToBlockUnblock)
       }}
-      primaryButtonDisabled={!blockTag.trim()}
+      width={{
+        xs: '90%',
+        sm: '50%',
+      }}
     >
-      <>
-        <h4>{`You are about to ${actionIsBlock ? 'block' : 'unblock'} ${
-          profileToBlockUnblock?.content?.names?.[0]?.fullname
-        }.`}</h4>
-        <div>
-          <input
-            id="tag-input"
-            type="text"
-            className="form-control mb-2"
-            value={blockTag}
-            placeholder="a tag to be added to this profile such as block/unblock reason"
-            onChange={(e) => setBlockTag(e.target.value)}
-          />
-        </div>
+      <Flex vertical gap="small" align="flex-start">
+        <Input
+          placeholder="a tag to be added to this profile such as block/unblock reason"
+          value={blockTag}
+          onChange={(e) => setBlockTag(e.target.value)}
+        />
         {actionIsBlock && signedNotes.length > 0 && (
           <>
             <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
@@ -219,8 +224,8 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToke
             ))}
           </>
         )}
-      </>
-    </BasicModal>
+      </Flex>
+    </Modal>
   )
 }
 
@@ -245,7 +250,6 @@ const UserModerationQueue = ({
   const [profileToPreview, setProfileToPreview] = useState(null)
   const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
-  const rejectModalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
   const blockModalId = `${onlyModeration ? 'new' : ''}-user-block-modal`
   const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
     label: `${p} items`,
@@ -355,15 +359,12 @@ const UserModerationQueue = ({
       setSignedNotes(signedAuthoredNotes)
     }
     setProfileToReject(profile)
-
-    $(`#${rejectModalId}`).modal('show')
   }
 
   const showBlockUnblockModal = async (profile) => {
     const signedAuthoredNotes = await getSignedAuthoredNotesCount(profile.id)
     setSignedNotes(signedAuthoredNotes)
     setProfileToBlockUnblock(profile)
-    $(`#${blockModalId}`).modal('show')
   }
 
   const rejectUser = async (rejectionMessage, id) => {
@@ -377,7 +378,6 @@ const UserModerationQueue = ({
         },
         { accessToken }
       )
-      $(`#${rejectModalId}`).modal('hide')
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -464,10 +464,6 @@ const UserModerationQueue = ({
     console.log('filters changed', filters)
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
-
-  useEffect(() => {
-    if (profileToPreview) $('#profile-preview').modal('show')
-  }, [profileToPreview])
 
   return (
     <div className="profiles-list123">
@@ -708,14 +704,14 @@ const UserModerationQueue = ({
       />
 
       <RejectionModal
-        id={rejectModalId}
         profileToReject={profileToReject}
+        setProfileToReject={setProfileToReject}
         rejectUser={rejectUser}
         signedNotes={signedNotes}
       />
       <BlockModal
-        id={blockModalId}
         profileToBlockUnblock={profileToBlockUnblock}
+        setProfileToBlockUnblock={setProfileToBlockUnblock}
         signedNotes={signedNotes}
         reload={reload}
         accessToken={accessToken}
@@ -723,7 +719,6 @@ const UserModerationQueue = ({
       <ProfilePreviewModal
         profileToPreview={profileToPreview}
         setProfileToPreview={setProfileToPreview}
-        setLastPreviewedProfileId={setLastPreviewedProfileId}
         contentToShow={[
           'names',
           'emails',
@@ -737,7 +732,6 @@ const UserModerationQueue = ({
         ]}
         showNextProfile={showNextProfile}
         acceptUser={acceptUser}
-        setProfileToReject={setProfileToReject}
         rejectUser={rejectUser}
       />
     </div>

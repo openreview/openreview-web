@@ -1,6 +1,6 @@
 import '../lib/logger'
 // import 'bootstrap/dist/css/bootstrap.min.css'
-import '../styles/global.scss'
+// import '../styles/global.scss'
 // import '../styles/components.scss'
 import { Noto_Sans } from 'next/font/google'
 import AppInit from './AppInit'

@@ -6,7 +6,7 @@ import { Col, Row } from 'antd'
 function Nav() {
   return (
     <Row
-      style={{ backgroundColor: '#8c1b13', padding: '0.5rem 1rem' }}
+      style={{ backgroundColor: '#8c1b13', padding: '0.5rem 1rem', margin: 0 }}
       justify="space-between"
       align="middle"
       gutter={{ xs: 8, sm: 16, md: 24 }}

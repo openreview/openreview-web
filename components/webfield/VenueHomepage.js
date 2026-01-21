@@ -6,7 +6,8 @@ import uniq from 'lodash/uniq'
 import kebabCase from 'lodash/kebabCase'
 import { get } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
-import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
+// import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
+import Tabs from 'components/Tabs'
 import VenueHeader from './VenueHeader'
 import SubmissionButton from './SubmissionButton'
 import SubmissionsList from './SubmissionsList'
@@ -302,7 +303,17 @@ export default function VenueHomepage({ appContext }) {
       ))}
 
       <div id="notes">
-        <Tabs>
+        <Tabs
+          items={formattedTabs?.flatMap((tabConfig, i) => {
+            if (tabConfig.hidden) return []
+            return {
+              key: tabConfig.id,
+              label: tabConfig.name,
+              children: renderTab(tabConfig, i),
+            }
+          })}
+        />
+        {/* <Tabs>
           <TabList>
             {formattedTabs?.map((tabConfig, i) => (
               <Tab
@@ -334,7 +345,7 @@ export default function VenueHomepage({ appContext }) {
               </TabPanel>
             ))}
           </TabPanels>
-        </Tabs>
+        </Tabs> */}
       </div>
     </>
   )

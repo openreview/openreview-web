@@ -203,7 +203,7 @@ const BasicProfileView = ({
   ]
 
   return (
-    <Flex vertical gap="large">
+    <Flex vertical gap="small">
       {contentToShow.includes('names') && (
         <ProfileViewSection title="Names">
           <Space separator="," wrap={true}>

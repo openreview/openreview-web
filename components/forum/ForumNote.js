@@ -319,7 +319,7 @@ function ForumMeta({ note }) {
       )}
 
       <BibtexModal
-        bibtexContent={note.content._bibtex.value}
+        bibtexContent={note?.content?._bibtex?.value}
         showBibtex={showBibtex}
         setShowBibtex={setShowBibtex}
       />

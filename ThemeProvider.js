@@ -1,4 +1,4 @@
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, Divider } from 'antd'
 import { AntdRegistry } from '@ant-design/nextjs-registry'
 
 const primaryColor = '#3e6775'
