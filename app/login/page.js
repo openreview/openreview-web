@@ -7,6 +7,7 @@ import { truncate } from 'lodash'
 import LoginPage from './Login'
 import useUser from '../../hooks/useUser'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import { sanitizeRedirectUrl } from '../../lib/utils'
 
 function Page() {
   const [isLoading, setLoading] = useState(true)
@@ -23,9 +24,8 @@ function Page() {
       return
     }
     if (user) {
-      window.location.replace(redirect ?? '/')
+      window.location.replace(sanitizeRedirectUrl(redirect))
     } else if (redirect) {
-      promptMessage(`Please login to access ${truncate(redirect, { length: 100 })}`)
       setLoading(false)
     } else {
       // no redirect show login
