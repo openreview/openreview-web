@@ -220,9 +220,7 @@ export default function Edit({
         />
       )}
 
-      {showContents && (!edit.ddate || edit.ddate > Date.now()) && (
-        <EditContent edit={edit} type={type} />
-      )}
+      {showContents && <EditContent edit={edit} type={type} />}
 
       {type === 'note' && edit.note && (
         <EditFields
