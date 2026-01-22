@@ -640,6 +640,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     )
     api.post = apiPost
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         field: {
@@ -687,6 +688,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           },
         ],
         onChange,
+        clearError,
       },
     }
 
@@ -754,6 +756,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           ],
         })
       )
+      expect(clearError).toHaveBeenCalled() // clear error when change institution
     })
 
     // check all
@@ -993,6 +996,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     )
     api.post = apiPost
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         field: {
@@ -1010,6 +1014,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           },
         },
         onChange,
+        clearError,
         value: [
           // value from existing note
           {
@@ -1054,6 +1059,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           ],
         })
       )
+      expect(clearError).toHaveBeenCalled() // clear error when reorder
     })
   })
 
@@ -1120,6 +1126,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     )
     api.post = apiPost
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         field: {
@@ -1152,6 +1159,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           },
         },
         onChange,
+        clearError,
         value: [
           // value from existing note
           {
@@ -1233,6 +1241,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           ],
         })
       )
+      expect(clearError).toHaveBeenCalled()
     })
   })
 
@@ -1299,6 +1308,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     )
     api.post = apiPost
     const onChange = jest.fn()
+    const clearError = jest.fn()
     const providerProps = {
       value: {
         field: {
@@ -1351,6 +1361,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           },
         },
         onChange,
+        clearError,
         value: [
           // value from existing note
           {
@@ -1432,6 +1443,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
           ],
         })
       )
+      expect(clearError).toHaveBeenCalled()
     })
 
     // uncheck an institution from ~test_id2

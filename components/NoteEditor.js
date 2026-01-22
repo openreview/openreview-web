@@ -617,12 +617,16 @@ const NoteEditor = ({
       if (error.errors) {
         setErrors(
           error.errors.map((p) => {
-            const fieldName = getErrorFieldName(p.details.path)
+            const { fieldName, index } = getErrorFieldName(p.details.path)
             const fieldNameInError =
               fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
             if (isNonDeletableError(p.details.invalidValue))
-              return { fieldName, message: `${fieldNameInError} is not deletable` }
-            return { fieldName, message: p.message.replace(fieldName, fieldNameInError) }
+              return { fieldName, message: `${fieldNameInError} is not deletable`, index }
+            return {
+              fieldName,
+              message: p.message.replace(fieldName, fieldNameInError),
+              index,
+            }
           })
         )
         const hasOnlyMissingFieldsError = error.errors.every(
@@ -634,7 +638,7 @@ const NoteEditor = ({
             : 'Some info submitted are invalid.'
         )
       } else if (error.details?.path) {
-        const fieldName = getErrorFieldName(error.details.path)
+        const { fieldName, index } = getErrorFieldName(error.details.path)
         const fieldNameInError =
           fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
         const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
@@ -644,6 +648,7 @@ const NoteEditor = ({
           {
             fieldName,
             message: prettyErrorMessage,
+            index,
           },
         ])
         displayError(prettyErrorMessage)

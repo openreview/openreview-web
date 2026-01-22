@@ -83,6 +83,8 @@ const Author = ({
   allowInstitutionChange,
   hasInstitutionProperty,
   onChange,
+  clearError,
+  hasError,
 }) => {
   const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: username,
@@ -104,6 +106,7 @@ const Author = ({
       fieldName,
       value: mapDisplayAuthorsToEditorValue(updatedValue, hasInstitutionProperty),
     })
+    clearError?.()
   }
 
   const handleInstitutionChange = (newValues) => {
@@ -122,12 +125,17 @@ const Author = ({
       fieldName,
       value: mapDisplayAuthorsToEditorValue(updatedAuthors, true),
     })
+    clearError?.()
   }
 
   if (!profile) return null
 
   return (
-    <div className={styles.selectedAuthor} ref={setNodeRef} style={style}>
+    <div
+      className={`${styles.selectedAuthor} ${hasError ? styles.invalidValue : ''}`}
+      ref={setNodeRef}
+      style={style}
+    >
       <div className={styles.authorHeader}>
         {showDragSort && (
           <div className={styles.dragHandle} {...listeners}>
@@ -162,6 +170,7 @@ const Author = ({
                     hasInstitutionProperty
                   ),
                 })
+                clearError?.()
               }}
               extraClasses="remove-button"
             />
@@ -289,6 +298,7 @@ const ProfileSearchFormAndResults = ({
   field,
   onChange,
   clearError,
+  hasInstitutionProperty,
 }) => {
   const [searchTerm, setSearchTerm] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -355,7 +365,7 @@ const ProfileSearchFormAndResults = ({
               field={field}
               onChange={onChange}
               clearError={clearError}
-              isEditor={true}
+              hasInstitutionProperty={hasInstitutionProperty}
             />
           ))}
           <PaginationLinks
@@ -417,7 +427,14 @@ const ProfileSearchFormAndResults = ({
 
 const ProfileSearchWithInstitutionWidget = () => {
   const { user, accessToken, isRefreshing } = useUser()
-  const { field, onChange, value, error, clearError } = useContext(EditorComponentContext)
+  const {
+    field,
+    onChange,
+    value,
+    error,
+    error: { index: errorIndex } = {},
+    clearError,
+  } = useContext(EditorComponentContext)
 
   const reorderOnly = Array.isArray(field?.authors?.value)
   const allowAddRemove = !reorderOnly && !field.authors?.value.param.elements // reorder with institution change
@@ -452,6 +469,7 @@ const ProfileSearchWithInstitutionWidget = () => {
       fieldName: 'authors',
       value: mapDisplayAuthorsToEditorValue(displayAuthors, hasInstitutionProperty),
     })
+    clearError?.()
   }
 
   const getProfiles = async (authorIds) => {
@@ -558,6 +576,7 @@ const ProfileSearchWithInstitutionWidget = () => {
             {displayAuthors?.map((profile, index) => {
               const showArrowButton =
                 displayAuthors.length !== 1 && index !== displayAuthors.length - 1
+              const hasError = errorIndex === index
               return (
                 <Author
                   key={index}
@@ -572,6 +591,8 @@ const ProfileSearchWithInstitutionWidget = () => {
                   allowInstitutionChange={allowInstitutionChange}
                   hasInstitutionProperty={hasInstitutionProperty}
                   onChange={onChange}
+                  clearError={clearError}
+                  hasError={hasError}
                 />
               )
             })}
@@ -583,7 +604,7 @@ const ProfileSearchWithInstitutionWidget = () => {
         <ProfileSearchFormAndResults
           displayAuthors={displayAuthors}
           setDisplayAuthors={setDisplayAuthors}
-          error={error}
+          error={errorIndex == null ? error : null}
           field={field}
           onChange={onChange}
           clearError={clearError}
