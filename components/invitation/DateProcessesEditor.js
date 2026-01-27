@@ -182,7 +182,6 @@ const DateProcessRow = ({ process, setProcesses }) => {
 const DateProcessesEditor = ({
   invitation,
   profileId,
-  accessToken,
   loadInvitation,
   isMetaInvitation,
   field = 'dateprocesses',
@@ -417,7 +416,7 @@ const DateProcessesEditor = ({
         signatures: [profileId],
         ...(!isMetaInvitation && { invitations: metaInvitationId }),
       }
-      await api.post(requestPath, requestBody, { accessToken })
+      await api.post(requestPath, requestBody)
       promptMessage(`${upperFirst(field)} of ${prettyId(invitation.id)} updated`)
       loadInvitation(invitation.id)
     } catch (error) {

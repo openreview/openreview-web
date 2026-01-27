@@ -124,7 +124,7 @@ const GroupContent = ({ groupContent, presentation, groupReaders }) => {
   )
 }
 
-const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
+const GroupWithInvitation = ({ group, reloadGroup }) => {
   const [editGroupInvitations, setEditGroupInvitations] = useState([])
   const [messageAllMembersInvitation, setMessageAllMembersInvitation] = useState(null)
   const [messageSingleMemberInvitation, setMessageSingleMemberInvitation] = useState(null)
@@ -134,9 +134,7 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
     let editInvitations = []
     switch (sectionName) {
       case 'workflowInvitations':
-        return (
-          <WorkFlowInvitations key={sectionName} group={group} accessToken={accessToken} />
-        )
+        return <WorkFlowInvitations key={sectionName} group={group} />
       case 'groupContent':
         editInvitations = editGroupInvitations.filter((p) => p.edit?.group?.content)
         return (
@@ -181,15 +179,11 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
           </GroupSectionWithEditInvitation>
         )
       case 'groupSignedNotes':
-        return <GroupSignedNotes key={sectionName} group={group} accessToken={accessToken} />
+        return <GroupSignedNotes key={sectionName} group={group} />
       case 'groupChildGroups':
-        return (
-          <GroupChildGroups key={sectionName} groupId={group.id} accessToken={accessToken} />
-        )
+        return <GroupChildGroups key={sectionName} groupId={group.id} />
       case 'groupRelatedInvitations':
-        return (
-          <GroupRelatedInvitations key={sectionName} group={group} accessToken={accessToken} />
-        )
+        return <GroupRelatedInvitations key={sectionName} group={group} />
       default:
         return null
     }
@@ -202,11 +196,11 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
       const addRemoveMembersInvitationId = `${group.id}/-/Members`
 
       const result = await Promise.all([
-        api.getInvitationById(messageAllMembersInvitationId, accessToken, { invitee: true }),
-        api.getInvitationById(messageSingleMemberInvitationId, accessToken, {
+        api.getInvitationById(messageAllMembersInvitationId, null, { invitee: true }),
+        api.getInvitationById(messageSingleMemberInvitationId, undefined, {
           invitee: true,
         }),
-        api.getInvitationById(addRemoveMembersInvitationId, accessToken, { invitee: true }),
+        api.getInvitationById(addRemoveMembersInvitationId, undefined, { invitee: true }),
       ])
       if (result?.length) {
         setMessageAllMembersInvitation(result[0])
@@ -220,11 +214,10 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
 
   const getInvitationsByReplyGroup = async () => {
     try {
-      const result = await api.get(
-        '/invitations',
-        { 'edit.group.id': group.id, details: 'writable' },
-        { accessToken }
-      )
+      const result = await api.get('/invitations', {
+        'edit.group.id': group.id,
+        details: 'writable',
+      })
       const writableInvitations = (result.invitations ?? []).filter(
         (invitation) =>
           invitation.details?.writable &&

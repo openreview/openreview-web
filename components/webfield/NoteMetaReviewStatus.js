@@ -113,23 +113,18 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
   additionalMetaReviewFields,
 }) => {
   const [metaReviewInvitation, setMetaReviewInvitation] = useState(null)
-  const { accessToken } = useUser()
 
   const editUrl = `/forum?id=${note.forum}&noteId=${metaReviewData.metaReview?.id}&referrer=${referrerUrl}`
 
   const loadMetaReviewInvitation = async () => {
     try {
-      const result = await api.get(
-        '/invitations',
-        {
-          id: metaReviewData.metaReviewInvitationId,
-          invitee: true,
-          duedate: true,
-          replyto: true,
-          type: 'note',
-        },
-        { accessToken }
-      )
+      const result = await api.get('/invitations', {
+        id: metaReviewData.metaReviewInvitationId,
+        invitee: true,
+        duedate: true,
+        replyto: true,
+        type: 'note',
+      })
       if (result.invitations.length) {
         setMetaReviewInvitation(metaReviewData.metaReviewInvitationId)
       }

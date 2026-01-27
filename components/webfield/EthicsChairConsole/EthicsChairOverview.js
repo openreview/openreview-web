@@ -1,7 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
-import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import WebFieldContext from '../../WebFieldContext'
 import { getSingularRoleName, prettyField, prettyId } from '../../../lib/utils'
@@ -11,7 +10,6 @@ import LoadingSpinner from '../../LoadingSpinner'
 const EthicsChairOverview = () => {
   const { venueId, ethicsChairsName, ethicsReviewersName } = useContext(WebFieldContext)
   const [recruitmentGroups, setRecruitmentGroups] = useState(null)
-  const { accessToken } = useUser()
   const ethicsReviewersGroup = recruitmentGroups?.find(
     (group) => group.id === `${venueId}/${ethicsReviewersName}`
   )
@@ -21,15 +19,11 @@ const EthicsChairOverview = () => {
 
   const loadRecruitmentGroups = async () => {
     try {
-      const result = await api.get(
-        '/groups',
-        {
-          prefix: `${venueId}/${ethicsReviewersName}`,
-          stream: true,
-          domain: venueId,
-        },
-        { accessToken }
-      )
+      const result = await api.get('/groups', {
+        prefix: `${venueId}/${ethicsReviewersName}`,
+        stream: true,
+        domain: venueId,
+      })
       setRecruitmentGroups(result.groups ?? [])
     } catch (error) {
       promptError(error.message)

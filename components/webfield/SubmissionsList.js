@@ -24,7 +24,6 @@ export default function SubmissionsList({
   enableSearch,
   useCredentials,
   paperDisplayOptions,
-  accessToken,
 }) {
   const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
   const details = 'replyCount,presentation,writable'
@@ -34,7 +33,7 @@ export default function SubmissionsList({
       const { notes, count } = await api.get(
         '/notes',
         { details, ...query, limit, offset, domain: apiVersion === 1 ? undefined : venueId },
-        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
+        { version: apiVersion, useCredentials: useCredentials ?? true }
       )
       if (typeof updateCount === 'function') {
         updateCount(count ?? 0)
@@ -44,7 +43,7 @@ export default function SubmissionsList({
         count: count ?? 0,
       }
     },
-    [accessToken, query, apiVersion, useCredentials]
+    [query, apiVersion, useCredentials]
   )
 
   const searchNotes = useCallback(
@@ -62,14 +61,14 @@ export default function SubmissionsList({
           limit,
           offset,
         },
-        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
+        { version: apiVersion, useCredentials: useCredentials ?? true }
       )
       return {
         items: notes,
         count: count ?? 0,
       }
     },
-    [accessToken, query, apiVersion, useCredentials]
+    [query, apiVersion, useCredentials]
   )
 
   function NoteListItem({ item }) {

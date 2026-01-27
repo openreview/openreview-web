@@ -18,19 +18,19 @@ import GroupAdmin from '../admin/GroupAdmin'
 export default function GroupEditor({ id, query }) {
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
 
   const loadGroup = async () => {
     try {
-      const { groups } = await api.get('/groups', { id, details: 'writable' }, { accessToken })
+      const { groups } = await api.get('/groups', { id, details: 'writable' })
       if (!groups?.length) throw new Error('Group not found')
       // eslint-disable-next-line no-shadow
       const group = groups[0]
       if (group.details?.writable) {
         // Get venue group to pass to webfield component
         if (group.domain && group.domain !== group.id) {
-          const domainResult = await api.get('/groups', { id: group.domain }, { accessToken })
+          const domainResult = await api.get('/groups', { id: group.domain })
           const domainGroup = domainResult.groups?.length > 0 ? domainResult.groups[0] : null
           setGroup({
             ...group,
@@ -51,7 +51,7 @@ export default function GroupEditor({ id, query }) {
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        if (!accessToken) {
+        if (!user) {
           router.replace(`/login?redirect=${encodeURIComponent(stringify(query))}`)
         } else {
           setError("You don't have permission to read this group")
@@ -86,11 +86,7 @@ export default function GroupEditor({ id, query }) {
           <h1>{prettyId(group.id)}</h1>
         </div>
         <div className="groupEditorTabsContainer">
-          <GroupWithInvitation
-            group={group}
-            reloadGroup={() => loadGroup(group.id)}
-            accessToken={accessToken}
-          />
+          <GroupWithInvitation group={group} reloadGroup={() => loadGroup(group.id)} />
         </div>
       </div>
     </CommonLayout>

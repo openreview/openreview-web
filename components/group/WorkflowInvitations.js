@@ -209,7 +209,7 @@ const WorkflowInvitationRow = ({
   isStageInvitation,
 }) => {
   const [showEditor, setShowEditor] = useState(false)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
   const profileId = user?.profile?.id
 
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
@@ -235,30 +235,26 @@ const WorkflowInvitationRow = ({
   const expireRestoreInvitation = async () => {
     try {
       const expireRestoreInvitationPs = [invitation, ...subInvitations].map((p) =>
-        api.post(
-          '/invitations/edits',
-          {
-            invitation: {
-              cdate: p.cdate,
-              ddate: isExpired ? { delete: true } : dayjs().valueOf(),
-              id: p.id,
-              signatures: p.signatures,
-              bulk: p.bulk,
-              duedate: p.duedate,
-              expdate: p.expdate,
-              invitees: p.invitees,
-              noninvitees: p.noninvitees,
-              nonreaders: p.nonreaders,
-              readers: p.readers,
-              writers: p.writers,
-            },
-            readers: [profileId],
-            writers: [profileId],
-            signatures: [profileId],
-            invitations: getMetaInvitationId(p),
+        api.post('/invitations/edits', {
+          invitation: {
+            cdate: p.cdate,
+            ddate: isExpired ? { delete: true } : dayjs().valueOf(),
+            id: p.id,
+            signatures: p.signatures,
+            bulk: p.bulk,
+            duedate: p.duedate,
+            expdate: p.expdate,
+            invitees: p.invitees,
+            noninvitees: p.noninvitees,
+            nonreaders: p.nonreaders,
+            readers: p.readers,
+            writers: p.writers,
           },
-          { accessToken }
-        )
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          invitations: getMetaInvitationId(p),
+        })
       )
       await Promise.all(expireRestoreInvitationPs)
       promptMessage(
@@ -623,7 +619,7 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   )
 }
 
-const WorkFlowInvitations = ({ group, accessToken }) => {
+const WorkFlowInvitations = ({ group }) => {
   const groupId = group.id
   const submissionName = group.content?.submission_name?.value
   const [allInvitations, setAllInvitations] = useState([])
@@ -855,7 +851,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           invitation: `${groupId}.*`,
           select: 'id,sdate,edate,invitation,status,log',
         },
-        { accessToken, resultsKey: 'logs' }
+        { resultsKey: 'logs' }
       )
       const logs = orderBy(response, ['edate'], ['desc'])
       setProcessLogs(logs)
@@ -885,7 +881,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       }
       return tempFilterResult
     }
-    console.log(workflowAndSubInvitations.length, exclusionWorkflowInvitations.length)
     const tempFilterResult = workflowAndSubInvitations.flatMap((stepObj) => {
       const isWorkflowInvitation = skipWorkflowInvitationCheck
         ? true
@@ -917,35 +912,27 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
   const loadAllInvitations = async () => {
     setMissingValueInvitationIds([])
     const getAllGroupsP = api
-      .getAll(
-        '/groups',
-        {
-          parent: groupId,
-        },
-        { accessToken }
-      )
+      .getAll('/groups', {
+        parent: groupId,
+      })
       .then((groups) => groups.filter((p) => !p.id.includes(submissionName)))
 
-    const getAllInvitationsP = await api.getAll(
-      '/invitations',
-      { prefix: groupId, expired: true, trash: true, type: 'all' },
-      { accessToken }
-    )
+    const getAllInvitationsP = await api.getAll('/invitations', {
+      prefix: groupId,
+      expired: true,
+      trash: true,
+      type: 'all',
+    })
 
     let getStageInvitationTemplatesP =
       group.id === group.domain
         ? api
-            .getAll(
-              '/invitations',
-              {
-                prefix: `${process.env.SUPER_USER}/Support/-/.*`,
-              },
-              { accessToken }
-            )
+            .getAll('/invitations', {
+              prefix: `${process.env.SUPER_USER}/Support/-/.*`,
+            })
             .then((invitations) => invitations.filter((p) => p.id.endsWith('_Template')))
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])
-    console.log(0)
     try {
       // eslint-disable-next-line no-shadow
       const [groups, invitations, stageInvitations, logs] = await Promise.all([
@@ -954,14 +941,11 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         getStageInvitationTemplatesP,
         loadProcessLogs(),
       ])
-      console.log(1)
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
-      console.log(1.1)
       const filteredInvitations = filterWorkflowInvitations(
         exclusionWorkflowInvitations,
         invitations
       )
-      console.log(1.2)
       const invitationsToShowInWorkflow = filteredInvitations.map((stepObj) => {
         return formatWorkflowInvitation(
           stepObj,
@@ -970,7 +954,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           logs
         )
       })
-      console.log(2)
       setWorkflowTasks(
         sortBy(
           invitationsToShowInWorkflow.reduce(

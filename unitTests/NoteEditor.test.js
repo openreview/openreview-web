@@ -74,13 +74,9 @@ describe('NoteEditor', () => {
       'token'
     )
 
-    expect(api.get).toHaveBeenCalledWith(
-      '/groups',
-      {
-        id: 'NeurIPS.cc/2025/Conference/Submission1/Reviewers',
-      },
-      expect.anything()
-    )
+    expect(api.get).toHaveBeenCalledWith('/groups', {
+      id: 'NeurIPS.cc/2025/Conference/Submission1/Reviewers',
+    })
     // signature should be added and reviewers group should not be added
     const expectedReaderValue = [
       'NeurIPS.cc/2025/Conference/Program_Chairs',
@@ -141,13 +137,9 @@ describe('NoteEditor', () => {
       'token'
     )
 
-    expect(api.get).toHaveBeenCalledWith(
-      '/groups',
-      {
-        id: 'NeurIPS.cc/2025/Conference/Submission1/Reviewers',
-      },
-      expect.anything()
-    )
+    expect(api.get).toHaveBeenCalledWith('/groups', {
+      id: 'NeurIPS.cc/2025/Conference/Submission1/Reviewers',
+    })
     // no match for anonymous reviewer group (signature) so all reviewers group is added
     const expectedReaderValue = [
       'NeurIPS.cc/2025/Conference/Program_Chairs',

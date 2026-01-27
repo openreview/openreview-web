@@ -15,6 +15,7 @@ jest.mock('next/navigation', () => ({
 
 beforeEach(() => {
   api.post = jest.fn()
+  api.get = jest.fn()
   global.promptMessage = jest.fn()
   global.promptError = jest.fn()
   delete window.location
@@ -94,8 +95,7 @@ describe('Donation Page', () => {
         mode: 'payment',
         email: undefined,
         irsReceipt: false,
-      },
-      expect.anything()
+      }
     )
     expect(screen.getByText('Make a Donation of $100 through Stripe')).toBeDisabled() // button disabled after submit
 
@@ -105,38 +105,41 @@ describe('Donation Page', () => {
       replace: true,
     })
     await userEvent.click(screen.getByText('Make a Donation of $10,000 through Stripe'))
-    expect(api.post).toHaveBeenLastCalledWith(
-      expect.anything(),
-      {
-        amount: 10000,
-        mode: 'payment',
-        email: undefined,
-        irsReceipt: true, // auto checked
-      },
-      expect.anything()
-    )
+    expect(api.post).toHaveBeenLastCalledWith(expect.anything(), {
+      amount: 10000,
+      mode: 'payment',
+      email: undefined,
+      irsReceipt: true, // auto checked
+    })
   })
 
   test('post correct amount (with user)', async () => {
     mockedUser = {
-      user: { profile: { preferredEmail: 'test@email.com' } },
+      user: { profile: { id: '~Test_User1' } },
     }
+    api.get = jest.fn(() => ({
+      profiles: [
+        {
+          id: '~Test_User1',
+          content: {
+            preferredEmail: 'test@email.com',
+          },
+        },
+      ],
+    }))
 
     render(<Donate />)
 
     // fixed amount
     await userEvent.click(screen.getByText('$100'))
     await userEvent.click(screen.getByText('Make a Donation of $100 through Stripe'))
-    expect(api.post).toHaveBeenCalledWith(
-      expect.anything(),
-      {
-        amount: 100,
-        mode: 'payment',
-        email: 'test@email.com',
-        irsReceipt: false,
-      },
-      expect.anything()
-    )
+    expect(api.get).toHaveBeenCalledWith('/profiles')
+    expect(api.post).toHaveBeenCalledWith(expect.anything(), {
+      amount: 100,
+      mode: 'payment',
+      email: 'test@email.com',
+      irsReceipt: false,
+    })
 
     // check IRS receipt
     await userEvent.click(screen.getByText('$10'))
@@ -146,31 +149,23 @@ describe('Donation Page', () => {
       })
     )
     await userEvent.click(screen.getByText('Make a Donation of $10 through Stripe'))
-    expect(api.post).toHaveBeenLastCalledWith(
-      expect.anything(),
-      {
-        amount: 10,
-        mode: 'payment',
-        email: 'test@email.com',
-        irsReceipt: true,
-      },
-      expect.anything()
-    )
+    expect(api.post).toHaveBeenLastCalledWith(expect.anything(), {
+      amount: 10,
+      mode: 'payment',
+      email: 'test@email.com',
+      irsReceipt: true,
+    })
 
     // custom amount
     await userEvent.type(screen.getByPlaceholderText('$ Other Amount'), '123', {
       replace: true,
     })
     await userEvent.click(screen.getByText('Make a Donation of $123 through Stripe'))
-    expect(api.post).toHaveBeenLastCalledWith(
-      expect.anything(),
-      {
-        amount: 123,
-        mode: 'payment',
-        email: 'test@email.com',
-        irsReceipt: true,
-      },
-      expect.anything()
-    )
+    expect(api.post).toHaveBeenLastCalledWith(expect.anything(), {
+      amount: 123,
+      email: 'test@email.com',
+      irsReceipt: true,
+      mode: 'payment',
+    })
   })
 })

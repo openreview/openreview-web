@@ -11,7 +11,6 @@ const MessageMemberModal = ({
   domainId,
   groupDomainContent,
   membersToMessage,
-  accessToken,
   setJobId,
   messageMemberInvitation,
 }) => {
@@ -46,11 +45,7 @@ const MessageMemberModal = ({
     // Reload group to make sure members haven't been removed since the modal was opened
     if (!skipCheckNewMembers) {
       try {
-        const apiRes = await api.get(
-          '/groups',
-          { id: groupId, select: 'members' },
-          { accessToken }
-        )
+        const apiRes = await api.get('/groups', { id: groupId, select: 'members' })
         const newMembers = get(apiRes, 'groups.0.members', [])
         if (!membersToMessage.every((p) => newMembers.includes(p))) {
           throw new Error(
@@ -87,8 +82,7 @@ const MessageMemberModal = ({
               useJob: true,
               fromName: groupDomainContent?.message_sender?.value?.fromName,
               fromEmail: groupDomainContent?.message_sender?.value?.fromEmail,
-            },
-        { accessToken }
+            }
       )
       if (result.jobId) {
         setJobId(result.jobId)

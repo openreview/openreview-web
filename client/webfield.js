@@ -14,9 +14,6 @@
 /* globals typesetMathJax: false */
 
 module.exports = (function () {
-  // Save authentication token as a private var
-  var token
-
   // AJAX Functions
   var get = function (url, queryObj, options) {
     var defaults = {
@@ -24,7 +21,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
     var xhrFields = {
@@ -43,7 +39,7 @@ module.exports = (function () {
       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
       url: baseUrl + url,
       data: queryObj,
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: xhrFields,
     }).then(jqSuccessCallback, errorCallback)
   }
@@ -54,7 +50,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -65,7 +60,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders``,
       xhrFields: {
         withCredentials: true,
       },
@@ -78,7 +73,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -89,7 +83,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -102,7 +96,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -113,7 +106,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -211,14 +204,9 @@ module.exports = (function () {
     return jqXhr.responseJSON?.message || 'Something went wrong'
   }
 
-  var setToken = function (newAccessToken) {
-    token = newAccessToken
-  }
-
   var sendFile = function (url, data, contentType, fieldName) {
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     return $.ajax({
       url: baseUrl + url,
       type: 'put',
@@ -227,7 +215,7 @@ module.exports = (function () {
       processData: false,
       contentType: contentType || false,
       data: data,
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -248,14 +236,13 @@ module.exports = (function () {
   var sendFileChunk = function (data, $progressBar) {
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     return $.ajax({
       url: baseUrl + '/attachment/chunk',
       type: 'put',
       contentType: false,
       processData: false,
       data: data,
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -2130,7 +2117,6 @@ module.exports = (function () {
     put: put,
     delete: xhrDelete,
     getAll: getAll,
-    setToken: setToken,
     sendFile: sendFile,
     sendFileChunk: sendFileChunk,
     getErrorFromJqXhr: getErrorFromJqXhr,

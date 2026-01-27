@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import BasicModal from '../BasicModal'
 import BasicProfileView from './BasicProfileView'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
@@ -25,7 +24,6 @@ const ProfilePreviewModal = ({
 }) => {
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
-  const { accessToken } = useUser()
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
@@ -58,8 +56,7 @@ const ProfilePreviewModal = ({
           sort: 'cdate:desc',
           limit: 1000,
         },
-        null,
-        { accessToken }
+        null
       )
     } catch (apiError) {
       promptError(apiError)
@@ -169,11 +166,7 @@ const ProfilePreviewModal = ({
             </a>
           }
         >
-          <MessagesSection
-            email={profileToPreview.preferredEmail}
-            accessToken={accessToken}
-            rejectMessagesOnly
-          />
+          <MessagesSection email={profileToPreview.preferredEmail} rejectMessagesOnly />
         </ProfileViewSection>
       )}
       <div className="moderation-actions">

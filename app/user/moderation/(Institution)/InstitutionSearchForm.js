@@ -5,7 +5,6 @@ import api from '../../../../lib/api-client'
 
 export default function InstituitonSearchForm({
   countryOptions,
-  accessToken,
   setInstitutions,
   setPage,
   reloadInstitutionsDomains,
@@ -44,21 +43,17 @@ export default function InstituitonSearchForm({
       .flatMap((p) => (p.trim().toLowerCase()?.length ? p.trim().toLowerCase() : []))
 
     try {
-      await api.post(
-        '/settings/institutions',
-        {
-          id: institutionId,
-          shortname: searchAddForm.shortname?.trim(),
-          fullname: searchAddForm.fullname?.trim(),
-          parent: searchAddForm.parent?.trim(),
-          domains: institutionDomains,
-          country: searchAddForm.country?.label,
-          alphaTwoCode: searchAddForm.country?.value,
-          stateProvince: searchAddForm.stateProvince?.trim(),
-          webPages,
-        },
-        { accessToken }
-      )
+      await api.post('/settings/institutions', {
+        id: institutionId,
+        shortname: searchAddForm.shortname?.trim(),
+        fullname: searchAddForm.fullname?.trim(),
+        parent: searchAddForm.parent?.trim(),
+        domains: institutionDomains,
+        country: searchAddForm.country?.label,
+        alphaTwoCode: searchAddForm.country?.value,
+        stateProvince: searchAddForm.stateProvince?.trim(),
+        webPages,
+      })
       promptMessage(`${searchAddForm.id} added.`)
       setSearchAddForm({ type: 'reset' })
       reloadInstitutionsDomains(true)

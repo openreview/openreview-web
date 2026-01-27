@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getTokenPayload } from './lib/clientAuth'
+import { getTokenPayload } from './app/auth'
 
 // eslint-disable-next-line import/prefer-default-export
 export async function middleware(request) {

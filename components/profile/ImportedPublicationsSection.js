@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import NoteList from '../NoteList'
 import PaginationLinks from '../PaginationLinks'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { getImportSourceIcon } from '../../lib/profiles'
 import { buildNoteTitle, buildNoteUrl } from '../../lib/utils'
@@ -15,7 +14,6 @@ const ImportedPublicationsSection = ({
   updatePublicationIdsToUnlink,
   reRender,
 }) => {
-  const { accessToken } = useUser()
   const [publications, setPublications] = useState(null)
   const [publicationsToDisplay, setPublicationsToDisplay] = useState([])
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
@@ -96,7 +94,7 @@ const ImportedPublicationsSection = ({
               `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`,
             ],
           },
-          { accessToken, sort: 'tmdate:desc' }
+          { sort: 'tmdate:desc' }
         )
         .then((notes) => notes.map((note) => ({ ...note, apiVersion: 2 })))
       const v1Notes = await api
@@ -106,7 +104,7 @@ const ImportedPublicationsSection = ({
             'content.authorids': profileId,
             invitations: ['dblp.org/-/record'],
           },
-          { accessToken, sort: 'tmdate:desc', version: 1 }
+          { sort: 'tmdate:desc', version: 1 }
         )
         .then((notes) => notes.map((note) => ({ ...note, apiVersion: 1 })))
 
