@@ -115,7 +115,6 @@ export default function VenueHomepage({ appContext }) {
     typeof submissionId === 'string' ? [{ value: submissionId, version: 2 }] : submissionId
   const defaultConfirmationMessage =
     'Your submission is complete. Check your inbox for a confirmation email. The author console page for managing your submissions will be available soon.'
-  return 123
 
   const renderTab = (tabConfig, tabIndex) => {
     if (!tabConfig) return null
