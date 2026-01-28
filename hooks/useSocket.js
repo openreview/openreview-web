@@ -26,7 +26,7 @@ export default function useSocket(namespace, eventNames, options) {
       connectSocket(namespace)
       return
     }
-    socket.current.auth = { accessToken }
+    socket.current.disconnect()
     socket.current.connect()
   }, [namespace, user])
 

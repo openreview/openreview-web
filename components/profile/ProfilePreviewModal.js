@@ -175,7 +175,6 @@ const ProfilePreviewModal = ({
           <PastStatesSection
             email={profileToPreview.preferredEmail}
             pastStates={profileToPreview.pastStates}
-            accessToken={accessToken}
           />
         </ProfileViewSection>
       )}

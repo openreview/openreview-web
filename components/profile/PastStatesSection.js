@@ -4,20 +4,16 @@ import api from '../../lib/api-client'
 import { formatDateTime, getProfileStateLabelClass } from '../../lib/utils'
 import styles from '../../styles/components/PastStatesSection.module.scss'
 
-const PastStatesSection = ({ email, pastStates, accessToken }) => {
+const PastStatesSection = ({ email, pastStates }) => {
   const [messages, setMessages] = useState([])
 
   const loadMessages = async () => {
     try {
-      const apiRes = await api.get(
-        '/messages',
-        {
-          to: email,
-          subject: 'OpenReview profile activation status',
-          limit: 5,
-        },
-        { accessToken }
-      )
+      const apiRes = await api.get('/messages', {
+        to: email,
+        subject: 'OpenReview profile activation status',
+        limit: 5,
+      })
 
       setMessages(apiRes.messages || [])
     } catch (apiError) {
