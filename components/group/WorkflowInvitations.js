@@ -962,20 +962,18 @@ const WorkFlowInvitations = ({ group }) => {
     })
 
     const getAllGroupsP = api
-      .get(
-        '/groups',
-        {
-          ids: workflowGroupIds,
-        },
-        { accessToken }
-      )
+      .get('/groups', {
+        ids: workflowGroupIds,
+      })
       .then((result) => result.groups)
 
-    const getAllInvitationsP = await api.getAll(
-      '/invitations',
-      { prefix: groupId, expired: true, trash: true, type: 'all', filterStaticForum: true },
-      { accessToken }
-    )
+    const getAllInvitationsP = await api.getAll('/invitations', {
+      prefix: groupId,
+      expired: true,
+      trash: true,
+      type: 'all',
+      filterStaticForum: true,
+    })
 
     let getStageInvitationTemplatesP =
       group.id === group.domain
