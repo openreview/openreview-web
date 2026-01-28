@@ -206,6 +206,7 @@ test('create a new profile with an institutional email', async (t) => {
 
 test('sign up with invalid name', async (t) => {
   await t
+    .wait(100)
     .typeText(fullNameInputSelector, '1')
     .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
@@ -225,7 +226,7 @@ test('sign up with invalid name', async (t) => {
 
 test('sign up with another invalid name', async (t) => {
   await t
-    .typeText(fullNameInputSelector, 'abc `')
+    .typeText(fullNameInputSelector, 'abc `', { speed: 0.8 })
     .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
     .click(signupButtonSelector)
@@ -526,6 +527,7 @@ test('add alternate email', async (t) => {
     .contains('http://localhost:3030', { timeout: 10000 })
     .expect(Selector('#user-menu').exists)
     .ok()
+    .wait(100)
     .click(Selector('#user-menu'))
     .expect(Selector('ul').withAttribute('class', 'dropdown-menu').exists)
     .ok()
