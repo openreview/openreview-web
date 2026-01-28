@@ -567,8 +567,7 @@ export default function Page() {
         <h2>Thank You to Our Donors</h2>
         <p>
           We are incredibly grateful to the following individuals for their online
-          donations—and to those who prefer to remain anonymous—for their generous support. We
-          also extend our heartfelt thanks to those who have donated offline.
+          donations—and to those who prefer to remain anonymous—for their generous support.
         </p>
         <p>
           {donorList.map((name, index) => (
