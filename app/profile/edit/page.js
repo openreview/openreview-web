@@ -97,7 +97,7 @@ export default function Page() {
     try {
       const { profiles } = await api.get('/profiles')
       if (profiles?.length > 0) {
-        const formattedProfile = formatProfileData(profiles[0], true)
+        const formattedProfile = formatProfileData(profiles[0], { useLinkObjectFormat: true })
         setProfile(formattedProfile)
         return formattedProfile
       }
