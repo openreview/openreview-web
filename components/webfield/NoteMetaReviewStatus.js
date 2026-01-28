@@ -13,7 +13,7 @@ import { getProfileLink } from '../../lib/webfield-utils'
 const IEEECopyrightForm = ({ note, isV2Note }) => {
   const { showIEEECopyright, IEEEPublicationTitle, IEEEArtSourceCode } =
     useContext(WebFieldContext)
-  const { user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
   const noteContent = isV2Note ? getNoteContentValues(note.content) : note.content
 
   if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode && !isRefreshing) {

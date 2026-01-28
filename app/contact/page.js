@@ -23,7 +23,7 @@ export default function Page() {
     return { ...state, [action.type]: action.payload }
   }, {})
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('feedback')
-  const { user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
 
   const profileSubject = 'I have a question about my existing OpenReview profile'
   const submissionSubject = 'A conference I submitted to'

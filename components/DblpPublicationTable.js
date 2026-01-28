@@ -220,7 +220,7 @@ const DblpPublicationRow = ({
   profileIdsRequested,
   setProfileIdsRequested,
 }) => {
-  const { user } = useUser()
+  const { user } = useUser(true)
   const [error, setError] = useState(null)
   const [profileMergeStatus, setProfileMergeStatus] = useState(null)
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`

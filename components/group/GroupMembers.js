@@ -154,7 +154,7 @@ const GroupMembers = ({
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
 
   const { user } = useUser()
-  const userIds = [...(user?.profile?.emails ?? []), ...(user?.profile?.usernames ?? [])]
+  const userIds = user?.profile?.usernames ?? []
   const profileId = user?.profile?.id
 
   function groupMemberReducer(state, action) {

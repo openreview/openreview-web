@@ -15,7 +15,7 @@ import Table from '../../components/Table'
 import { decrementNotificationCount } from '../../notificationSlice'
 
 function Page() {
-  const { user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
   const [toEmail, setToEmail] = useState(null)
   const [confirmedEmails, setConfirmedEmails] = useState(null)
   const [unviewedCounts, setUnviewedCounts] = useState(null)
@@ -92,7 +92,7 @@ function Page() {
       return
     }
     getMessages()
-    setToEmail(emailQueryParam || user.profile.preferredEmail || user.profile.emails[0])
+    setToEmail(emailQueryParam || user.profile.preferredEmail)
   }, [isRefreshing, emailQueryParam])
 
   return (
