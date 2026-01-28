@@ -1,0 +1,18 @@
+@use '../../styles/utils/constants';
+
+.footerNavigation {
+  width: 100%;
+  background-color: #efece3;
+  padding: 1rem 0;
+
+  .footerNavigationLink {
+    color: black;
+  }
+}
+
+.column {
+  flex-direction: column;
+  @media #{constants.$phone-only} {
+    flex-direction: row;
+  }
+}

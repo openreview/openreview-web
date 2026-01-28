@@ -10,6 +10,30 @@ import { isInstitutionEmail, isValidEmail, isValidPassword } from '../../lib/uti
 import Icon from '../../components/Icon'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
 
+const InstitutionErrorMessage = ({ email: invalidEmail }) => {
+  const router = useRouter()
+
+  const storeFeedbackInfo = (e) => {
+    e.preventDefault()
+    sessionStorage.setItem('feedbackInstitution', email)
+    router.push('/contact')
+  }
+  return (
+    <span>
+      <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
+      publishing institutions. It can take up to <strong>2 weeks</strong> for profiles using
+      public email services to be activated. To activate immediately, please sign up with an
+      email address that uses an educational or employing institution domain. If your
+      institution is not yet in our list,{' '}
+      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+      <Link href="#" onClick={storeFeedbackInfo}>
+        contact us
+      </Link>{' '}
+      to request that it be added.
+    </span>
+  )
+}
+
 const SignupForm = ({ setSignupConfirmation }) => {
   const [fullName, setFullName] = useState('')
   const [confirmFullName, setConfirmFullName] = useState(false)
@@ -114,28 +138,6 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [institutionDomains, setInstitutionDomains] = useState([])
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
-  const router = useRouter()
-
-  const storeFeedbackInfo = (e) => {
-    e.preventDefault()
-    sessionStorage.setItem('feedbackInstitution', email)
-    router.push('/contact')
-  }
-
-  const InstitutionErrorMessage = ({ email: invalidEmail }) => (
-    <span>
-      <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
-      publishing institutions. It can take up to <strong>2 weeks</strong> for profiles using
-      public email services to be activated. To activate immediately, please sign up with an
-      email address that uses an educational or employing institution domain. If your
-      institution is not yet in our list,{' '}
-      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <Link href="#" onClick={storeFeedbackInfo}>
-        contact us
-      </Link>{' '}
-      to request that it be added.
-    </span>
-  )
 
   const handleSubmit = (e) => {
     e.preventDefault()

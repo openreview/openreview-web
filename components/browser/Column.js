@@ -1,5 +1,4 @@
 /* globals promptError: false */
-/* eslint-disable react/destructuring-assignment */
 
 import { useState, useEffect, useContext, useRef } from 'react'
 import _ from 'lodash'
@@ -186,7 +185,7 @@ export default function Column(props) {
       const entityInvitationName = entityInvitation
         ? prettyId(entityInvitation)
         : pluralizeString(defautEntityName)
-      // eslint-disable-next-line react/jsx-one-expression-per-line
+
       return (
         <p>
           <strong>All {entityInvitationName}</strong>
@@ -209,7 +208,7 @@ export default function Column(props) {
         separator: ' ',
       })
       const num = parent.number ? ` (#${parent.number})` : ''
-      // eslint-disable-next-line react/jsx-one-expression-per-line
+
       return (
         <p>
           {invitationNamePlural} for <strong>{paperTitle}</strong>
@@ -221,7 +220,7 @@ export default function Column(props) {
     // Profiles
     if (_.has(parent, 'content.name')) {
       const { name } = parent.content
-      // eslint-disable-next-line react/jsx-one-expression-per-line
+
       return (
         <p>
           {invitationNamePlural} for <strong>{name.fullname}</strong>
@@ -236,7 +235,7 @@ export default function Column(props) {
       startInvitation.query.head ||
       startInvitation.query.storageKey
     if (parentIdToShow === user?.profile?.id) parentIdToShow = user?.profile?.preferredId
-    // eslint-disable-next-line react/jsx-one-expression-per-line
+
     if (parentIdToShow) {
       return (
         <p>
@@ -330,7 +329,6 @@ export default function Column(props) {
         // This mainly occurs when an affinity edge references a withdrawn paper
         // and isn't usually a problem. Missing profile IDs sometimes occur if
         // profiles get merged and the edges are not updated.
-        // eslint-disable-next-line no-console
         console.warn(
           `${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`
         )
@@ -457,7 +455,6 @@ export default function Column(props) {
     if (sortLabels) {
       // has no weight; construct label map then sort
       const sortLabelMap = _.fromPairs(_.zip(sortLabels, _.range(sortLabels.length, 0, -1)))
-      // eslint-disable-next-line no-param-reassign
       return _.orderBy(
         [...colItems].map((p) => ({
           ...p,
@@ -531,7 +528,6 @@ export default function Column(props) {
     if (existingIndex >= 0) {
       edgesPromiseMap[existingIndex].invitations.push(invitationType)
     } else {
-      // eslint-disable-next-line no-nested-ternary
       const detailsParam = getWritable
         ? invitation.query.details
           ? `${invitation.query.details},writable`
@@ -606,9 +602,9 @@ export default function Column(props) {
                 )
 
                 if (edge) {
-                  prev[invitaitonId] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = getEdgeValue(edge)
                 } else {
-                  prev[invitaitonId] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = curr.defaultWeight ?? curr.defaultLabel
                 }
                 return prev
               },
@@ -620,7 +616,6 @@ export default function Column(props) {
         ['!=', '>=', '<=', '>', '<', '==', '='],
         editAndBrowserInvitationsUnique.reduce(
           (prev, curr) => {
-            // eslint-disable-next-line no-param-reassign
             prev[curr.id.replaceAll('.', '_')] = [
               `filterProperties.${curr.id.replaceAll('.', '_')}`,
             ]
@@ -701,12 +696,10 @@ export default function Column(props) {
 
           const colItems = []
           const existingItems = new Set()
-          // eslint-disable-next-line no-param-reassign
           startEdges = _.orderBy(startEdges, (p) => p.weight ?? 0, ['desc'])
           startEdges.forEach((sEdge) => {
             const headOrTailId = sEdge[type]
             if (!globalEntityMap[headOrTailId]) {
-              // eslint-disable-next-line no-console
               console.warn(`${headOrTailId} not found in global entity map`)
               return
             }
@@ -791,7 +784,6 @@ export default function Column(props) {
         const traverseLabelMap = _.fromPairs(
           _.zip(traverseLabels, _.range(traverseLabels.length, 0, -1))
         )
-        // eslint-disable-next-line no-param-reassign
         traverseEdges = _.orderBy(
           traverseEdges,
           [(edge) => traverseLabelMap[edge.label] || 0],
@@ -822,10 +814,8 @@ export default function Column(props) {
               searchText: headOrTailId,
               traverseEdgesCount: traverseEdges.filter((p) => p[type] === headOrTailId).length,
             }
-            // eslint-disable-next-line no-console
             console.warn(`${headOrTailId} not found in global entity map`)
           } else {
-            // eslint-disable-next-line no-console
             console.warn(`${headOrTailId} not found in global entity map`)
             return
           }
@@ -872,7 +862,6 @@ export default function Column(props) {
         const bidLabels = browseInvitations[i]?.label?.['value-radio']
         if (bidLabels) {
           const bidLabelMap = _.fromPairs(_.zip(bidLabels, _.range(bidLabels.length, 0, -1)))
-          // eslint-disable-next-line no-param-reassign
           browseEdges = browseEdges.map((e) => ({ ...e, weight: bidLabelMap[e.label] || 0 }))
         }
         browseEdges.forEach(updateColumnItems('browseEdges', colItems))
@@ -886,11 +875,9 @@ export default function Column(props) {
           const hasAggregateScoreEdge =
             item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
           const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
-          // eslint-disable-next-line no-param-reassign
           item.editEdgeTemplates = editInvitations.map((editInvitation) =>
             buildNewEditEdge(editInvitation, item.id, edgeWeight)
           )
-          // eslint-disable-next-line no-param-reassign
           item.traverseEdgeTemplate = buildNewEditEdge(traverseInvitation, item.id, 0)
         })
       }
@@ -918,7 +905,6 @@ export default function Column(props) {
         if (allItems.find((p) => p.id === item.id)) return
         allItems.push({
           ...item,
-          // eslint-disable-next-line max-len
           editEdgeTemplates: editInvitations.map((editInvitation) =>
             buildNewEditEdge(editInvitation, item.id)
           ),
@@ -960,7 +946,6 @@ export default function Column(props) {
         if (item.searchText.match(searchRegex)) {
           matchingItems.push({
             ...item,
-            // eslint-disable-next-line max-len
             editEdgeTemplates: editInvitations.map((editInvitation) =>
               buildNewEditEdge(editInvitation, item.id)
             ),
@@ -1062,13 +1047,11 @@ export default function Column(props) {
     }
 
     if (type === 'head') {
-      // eslint-disable-next-line max-len
       props.updateMetadataMap(id, parentId, {
         isUserAssigned: shouldUserBeAssigned,
         isUserUnassigned: !shouldUserBeAssigned,
       })
     } else {
-      // eslint-disable-next-line max-len
       props.updateMetadataMap(parentId, id, {
         isUserAssigned: shouldUserBeAssigned,
         isUserUnassigned: !shouldUserBeAssigned,

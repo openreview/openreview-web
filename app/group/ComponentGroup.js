@@ -57,15 +57,15 @@ export default function ComponentGroup({ componentObj, editBanner }) {
       fullWidth={isFullWidth}
       minimalFooter={isFullWidth}
     >
-      <div className={styles.group}>
-        <WebFieldContext.Provider value={webComponentProps}>
-          <div id="group-container">
-            <WebComponent
-              appContext={{ setBannerContent: (e) => dispatch(setBannerContent(e)) }}
-            />
-          </div>
-        </WebFieldContext.Provider>
-      </div>
+      {/* <div className={styles.group}> */}
+      <WebFieldContext.Provider value={webComponentProps}>
+        {/* <div id="group-container"> */}
+        <WebComponent
+          appContext={{ setBannerContent: (e) => dispatch(setBannerContent(e)) }}
+        />
+        {/* </div> */}
+      </WebFieldContext.Provider>
+      {/* </div> */}
     </CommonLayout>
   )
 }

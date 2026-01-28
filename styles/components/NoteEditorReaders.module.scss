@@ -1,0 +1,6 @@
+@use '../utils/constants';
+
+.mandatoryValue {
+  color: constants.$orRed;
+  font-weight: bold;
+}

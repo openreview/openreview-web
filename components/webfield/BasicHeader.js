@@ -24,7 +24,6 @@ const BasicHeader = ({ title, instructions, customLoad, submissionName, options 
       {instructions && (
         <div className="description">
           <Markdown text={instructions} />
-          {/* eslint-disable-next-line eqeqeq */}
           {customLoad && customLoad != 0 ? (
             <p className="dark">
               You have agreed to review up to{' '}

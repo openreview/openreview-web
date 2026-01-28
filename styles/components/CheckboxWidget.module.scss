@@ -6,15 +6,32 @@
     max-width: 80%;
   }
 
-  :global {
-    .mandatory-value {
-      color: constants.$orRed;
-      font-weight: bold;
+  .checkboxItem {
+    position: relative;
+    display: block;
+    margin-top: 0.5rem;
+    margin-bottom: 0.5rem;
+
+    label {
+      min-height: 20px;
+      padding-left: 20px;
+      margin-bottom: 0;
+      font-weight: normal;
+      cursor: pointer;
+      display: inline-block;
+      max-width: 100%;
     }
-    .checkbox:first-child {
+
+    input[type='checkbox'] {
+      position: absolute;
+      margin: 4px 0 0;
+      margin-left: -20px;
+    }
+
+    &:first-child {
       margin-top: 0;
     }
-    .checkbox:last-child {
+    &:last-child {
       margin-bottom: 0;
     }
   }

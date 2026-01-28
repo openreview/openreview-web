@@ -57,7 +57,6 @@ export default function Browse({
           if (!fullInvitation) {
             // Filter out invalid edit or browse invitations, but don't fail completely
             if (invObj.category === 'edit' || invObj.category === 'browse') {
-              // eslint-disable-next-line no-param-reassign
               invObj.invalid = true
             } else {
               throw new Error(

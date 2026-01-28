@@ -63,7 +63,6 @@ function Page() {
             </Link>
           </div>
         </header>
-        {/* eslint-disable-next-line eqeqeq */}
         {query.version == 2 ? (
           <Compare query={query} accessToken={accessToken} />
         ) : (

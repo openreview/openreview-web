@@ -1,4 +1,3 @@
-/* eslint-disable newline-per-chained-call */
 // note: existing es index may cause this test to fail. better to empty notes index
 import { Selector, Role, RequestMock } from 'testcafe'
 import {
@@ -1597,7 +1596,6 @@ test('profile should be auto merged', async (t) => {
     .ok()
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Profile page different user`
 
 test('open profile of other user by email', async (t) => {
@@ -1695,7 +1693,6 @@ test('show orcid publications', async (t) => {
     .ok()
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Issue related tests`
 
 test('#83 email status is missing', async (t) => {

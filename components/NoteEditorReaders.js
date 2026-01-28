@@ -1,6 +1,6 @@
 /* globals promptError: false */
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import difference from 'lodash/difference'
 import isEqual from 'lodash/isEqual'
 import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
@@ -10,6 +10,8 @@ import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
 import CheckboxWidget from './EditorComponents/CheckboxWidget'
+
+import styles from '../styles/components/NoteEditorReaders.module.scss'
 
 export const NewNoteReaders = ({
   fieldDescription,
@@ -101,7 +103,7 @@ export const NewNoteReaders = ({
             label:
               useCheckboxWidget && p.optional === false ? (
                 <span>
-                  {p.description} <span className="mandatory-value">[Mandatory]</span>
+                  {p.description} <span className={styles.mandatoryValue}>[Mandatory]</span>
                 </span>
               ) : (
                 p.description
@@ -159,7 +161,6 @@ export const NewNoteReaders = ({
             field={{ reader: { value: fieldDescription } }}
             value={value}
             options={readerOptions}
-            // eslint-disable-next-line no-shadow
             onChange={({ fieldName, value: updatedValue }) => {
               if (isEqual(value, ['everyone'])) {
                 onChange(updatedValue?.filter((p) => p !== 'everyone'))
@@ -402,7 +403,7 @@ export const NewReplyEditNoteReaders = ({
             label:
               useCheckboxWidget && p.optional === false ? (
                 <span>
-                  {p.description} <span className="mandatory-value">[Mandatory]</span>
+                  {p.description} <span className={styles.mandatoryValue}>[Mandatory]</span>
                 </span>
               ) : (
                 p.description
@@ -451,7 +452,6 @@ export const NewReplyEditNoteReaders = ({
       return
     }
     const parentReaders = replyToNote.readers
-    // eslint-disable-next-line no-template-curly-in-string
     if (replyReaders[0] === '${{note.replyto}.readers}') {
       setReaderOptions(parentReaders)
       return
@@ -508,7 +508,6 @@ export const NewReplyEditNoteReaders = ({
             field={{ reader: { value: fieldDescription } }}
             value={value}
             options={readerOptions}
-            // eslint-disable-next-line no-shadow
             onChange={({ fieldName, value: updatedValue }) => {
               if (isEqual(value, ['everyone'])) {
                 onChange(updatedValue?.filter((p) => p !== 'everyone'))

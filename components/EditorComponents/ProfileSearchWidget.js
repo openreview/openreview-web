@@ -270,7 +270,7 @@ const ProfileSearchFormAndResults = ({
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
   const { accessToken } = useUser()
-  // eslint-disable-next-line no-use-before-define
+
   const placeHolderName = getPlaceHolderName()
 
   function getPlaceHolderName() {
@@ -278,7 +278,6 @@ const ProfileSearchFormAndResults = ({
     return Object.keys(field)[0] === 'authorids' ? 'author' : Object.keys(field)[0]
   }
 
-  // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
     const cleanSearchTerm = searchTerm.trim()
     let paramKey = 'fullname'
@@ -707,7 +706,6 @@ const ProfileSearchWidget = ({
         setDisplayAuthors([])
         return
       }
-      // eslint-disable-next-line no-unused-expressions
       value ? getProfiles(multiple ? value : [value]) : setDisplayAuthors([])
       return
     }

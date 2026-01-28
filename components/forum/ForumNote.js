@@ -11,6 +11,7 @@ import Icon from '../Icon'
 import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
 import getLicenseInfo from '../../lib/forum-utils'
 import OtherVersions from './OtherVersions'
+import BibtexModal from 'components/BibtexModal'
 
 dayjs.extend(relativeTime)
 
@@ -18,7 +19,6 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
   const { id, content, details, signatures, editInvitations, deleteInvitation } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
-  // eslint-disable-next-line no-underscore-dangle
   const texDisabled = !!content?._disableTexRendering?.value
 
   const [activeInvitation, setActiveInvitation] = useState(null)
@@ -226,8 +226,14 @@ function ForumTitle({ id, title, pdf, html }) {
 }
 
 function ForumMeta({ note }) {
+  const [showBibtex, setShowBibtex] = useState(false)
   const licenseInfo = getLicenseInfo(note.license)
-  const isDBLPPublication = note.invitations?.some((p) => ['DBLP.org/-/Record',`${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`].includes(p))
+  const isDBLPPublication = note.invitations?.some((p) =>
+    [
+      'DBLP.org/-/Record',
+      `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
+    ].includes(p)
+  )
 
   return (
     <div className="forum-meta">
@@ -272,17 +278,20 @@ function ForumMeta({ note }) {
         </span>
       )}
 
-      {/* eslint-disable-next-line no-underscore-dangle */}
       {note.content?._bibtex?.value && (
         <span className="item">
           <Icon name="bookmark" />
           {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
           <a
             href="#"
-            data-target="#bibtex-modal"
-            data-toggle="modal"
-            // eslint-disable-next-line no-underscore-dangle
-            data-bibtex={encodeURIComponent(note.content._bibtex.value)}
+            // data-target="#bibtex-modal"
+            // data-toggle="modal"
+            // data-bibtex={encodeURIComponent(note.content._bibtex.value)}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setShowBibtex(true)
+            }}
           >
             BibTeX
           </a>
@@ -308,6 +317,12 @@ function ForumMeta({ note }) {
           )}
         </span>
       )}
+
+      <BibtexModal
+        bibtexContent={note?.content?._bibtex?.value}
+        showBibtex={showBibtex}
+        setShowBibtex={setShowBibtex}
+      />
     </div>
   )
 }

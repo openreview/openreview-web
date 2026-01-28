@@ -1,4 +1,3 @@
-/* eslint-disable no-continue */
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -305,9 +304,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 result.groupedEdges.reduce((profileMap, edge) => {
                   const acId = edge.values[0].signatures[0]
                   if (!profileMap[acId]) {
-                    profileMap[acId] = 0 // eslint-disable-line no-param-reassign
+                    profileMap[acId] = 0
                   }
-                  profileMap[acId] += 1 // eslint-disable-line no-param-reassign
+                  profileMap[acId] += 1
                   return profileMap
                 }, {})
               )
@@ -704,9 +703,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         if (latestDisplayReplies.length) {
           displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
         }
-        // eslint-disable-next-line no-param-reassign
         note.replyCount = replies.length
-        // eslint-disable-next-line no-param-reassign
         if (useCache) delete note.details?.replies
       })
 
@@ -839,7 +836,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     }
   }
 
-  // eslint-disable-next-line consistent-return
   const calculateNotesReviewMetaReviewData = () => {
     if (!pcConsoleData) return new Map()
     const noteNumberReviewMetaReviewMap = new Map()
@@ -1137,7 +1133,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
         }
       })
-      // eslint-disable-next-line no-param-reassign
       profile.registrationNotes = userRegNotes
     })
 
@@ -1221,7 +1216,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         }
       })
 
-      // eslint-disable-next-line no-param-reassign
       profile.registrationNotes = userRegNotes
 
       usernames.concat(profile.email ?? []).forEach((key) => {

@@ -108,11 +108,10 @@ const DropdownWidget = () => {
           allowMultiSelect
             ? value?.map((p) =>
                 dropdownOptions.find((q) =>
-                  // eslint-disable-next-line eqeqeq
                   typeof p === 'object' ? isEqual(q.value, p) : q.value == p
                 )
               )
-            : dropdownOptions.filter((p) => p.value == value) // eslint-disable-line eqeqeq
+            : dropdownOptions.filter((p) => p.value == value)
         }
         isClearable={true}
         isMulti={allowMultiSelect}

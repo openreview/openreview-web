@@ -1,4 +1,3 @@
-/* eslint-disable arrow-body-style */
 /* globals promptError,promptMessage,$: false */
 import React, { useEffect, useRef, useState } from 'react'
 import { orderBy, sortBy, get, set } from 'lodash'
@@ -947,7 +946,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     getStageInvitationTemplatesP = Promise.resolve([])
     console.log(0)
     try {
-      // eslint-disable-next-line no-shadow
       const [groups, invitations, stageInvitations, logs] = await Promise.all([
         getAllGroupsP,
         getAllInvitationsP,
@@ -1017,7 +1015,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       loadProcessLogs()
     }, 5000)
 
-    // eslint-disable-next-line consistent-return
     return () => {
       clearTimeout(eventsHandler)
     }
@@ -1104,7 +1101,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
                     key={id}
                     transition={{ duration: 0.5 }}
                     ref={(el) => {
-                      // eslint-disable-next-line no-param-reassign
                       workflowInvitationsRef.current[id] = el
                     }}
                     className="motion-div"

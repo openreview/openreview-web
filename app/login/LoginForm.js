@@ -11,7 +11,6 @@ import { setNotificationCount } from '../../notificationSlice'
 import { resetRefreshTokenStatus } from '../../lib/clientAuth'
 
 export default function LoginForm() {
-  // eslint-disable-next-line no-use-before-define
   const [formState, setFormState] = useReducer(loginFormReducer, {
     email: '',
     password: '',

@@ -30,7 +30,6 @@ export default function ConfirmDeleteModal({
   const actionTextLower = actionText.toLowerCase()
 
   const postUpdatedNote = () => {
-    // eslint-disable-next-line no-nested-ternary
     const ddate = isDeleted ? (isEdit ? undefined : { delete: true }) : Date.now()
     const editSignatureValues = editSignatures?.value
     const editReaderValues = editReaders?.value

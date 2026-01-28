@@ -311,7 +311,6 @@ test('request a reset password with no active profile', async (t) => {
     .contains('http://localhost:3030/reset', { timeout: 10000 })
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`
 
@@ -387,7 +386,6 @@ test('update profile', async (t) => {
 })
 
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=kevin@umass.edu`
 
@@ -452,7 +450,6 @@ test('register a profile with an institutional email', async (t) => {
     .eql('Your OpenReview profile has been successfully created')
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Activate with errors`
 
 test('try to activate a profile with no token and get an error', async (t) => {
@@ -569,7 +566,6 @@ test('add alternate email', async (t) => {
     )
 })
 
-// eslint-disable-next-line no-unused-expressions
 fixture`Issue related tests`
 
 test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {

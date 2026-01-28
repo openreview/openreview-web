@@ -1,15 +1,11 @@
-const ProfileViewSection = ({ name, title, instructions, actionLink, children }) => (
-  <section className={name}>
-    <h4>{title}</h4>
+import { Divider } from 'antd'
+
+const ProfileViewSection = ({ title, instructions, children }) => (
+  <section>
+    <h3 style={{ marginBottom: '0.25em', color: '#8c1b13' }}>{title}</h3>
+    <Divider styles={{ root: { margin: 0 } }} />
     <p className="instructions">{instructions}</p>
     <div className="section-content">{children}</div>
-    {actionLink && (
-      <ul className="actions list-inline">
-        <li>
-          <a className="suggest">{actionLink}</a>
-        </li>
-      </ul>
-    )}
   </section>
 )
 

@@ -1,13 +1,11 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
 import dynamic from 'next/dynamic'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import VenueRequestCount from './(VenueRequests)/VenueRequestCount'
-import LoadingSpinner from '../../../components/LoadingSpinner'
 import UserModerationTab from './UserModerationTab'
+import Tabs from 'components/Tabs'
 
 const EmailDeletionTab = dynamic(() => import('./(EmailDeletion)/EmailDeletionTab'))
 const NameDeletionTab = dynamic(() => import('./(NameDeletion)/NameDeletionTab'))
@@ -16,74 +14,50 @@ const InstitutionTab = dynamic(() => import('./(Institution)/InstitutionTab'))
 const VenueRequestTab = dynamic(() => import('./(VenueRequests)/VenueRequestTab'))
 
 export default function Moderation({ accessToken }) {
-  const [activeTabId, setActiveTabId] = useState('#profiles')
-  const [isPending, startTransition] = useTransition()
-  const [isClientRendering, setIsClientRendering] = useState(false)
-
-  useEffect(() => {
-    setIsClientRendering(true)
-  }, [])
-
-  if (!isClientRendering)
-    return (
-      <Tabs>
-        <TabList>
-          <Tab>User Moderation</Tab>
-          <Tab>Email Delete Requests</Tab>
-          <Tab>Name Delete Requests</Tab>
-          <Tab>Profile Merge Requests</Tab>
-          <Tab>Institution List</Tab>
-          <Tab>Venue Requests</Tab>
-        </TabList>
-        <LoadingSpinner />
-      </Tabs>
-    )
-
-  return (
-    <Tabs>
-      <TabList>
-        <Tab id="profiles" active>
-          User Moderation
-        </Tab>
-        <Tab id="email" onClick={() => startTransition(() => setActiveTabId('#email'))}>
-          Email Delete Requests
-        </Tab>
-        <Tab id="name" onClick={() => startTransition(() => setActiveTabId('#name'))}>
-          Name Delete Requests <NameDeletionCount accessToken={accessToken} />
-        </Tab>
-        <Tab id="merge" onClick={() => startTransition(() => setActiveTabId('#merge'))}>
+  const items = [
+    {
+      key: 'profiles',
+      label: 'User Moderation',
+      children: <UserModerationTab accessToken={accessToken} />,
+    },
+    {
+      key: 'email',
+      label: (
+        <>
+          Email Delete Requests <NameDeletionCount accessToken={accessToken} />{' '}
+        </>
+      ),
+      children: <EmailDeletionTab accessToken={accessToken} />,
+    },
+    {
+      key: 'name',
+      label: 'Name Delete Requests',
+      children: <NameDeletionTab accessToken={accessToken} />,
+    },
+    {
+      key: 'merge',
+      label: (
+        <>
           Profile Merge Requests <ProfileMergeCount accessToken={accessToken} />
-        </Tab>
-        <Tab
-          id="institution"
-          onClick={() => startTransition(() => setActiveTabId('#institution'))}
-        >
-          Institution List
-        </Tab>
-        <Tab id="requests" onClick={() => startTransition(() => setActiveTabId('#requests'))}>
+        </>
+      ),
+      children: <ProfileMergeTab accessToken={accessToken} />,
+    },
+    {
+      key: 'institution',
+      label: 'Institution List',
+      children: <InstitutionTab accessToken={accessToken} />,
+    },
+    {
+      key: 'requests',
+      label: (
+        <>
           Venue Requests <VenueRequestCount accessToken={accessToken} />
-        </Tab>
-      </TabList>
-      <TabPanels>
-        <TabPanel id="profiles">
-          <UserModerationTab accessToken={accessToken} />
-        </TabPanel>
-        <TabPanel id="email">
-          {activeTabId === '#email' && <EmailDeletionTab accessToken={accessToken} />}
-        </TabPanel>
-        <TabPanel id="name">
-          {activeTabId === '#name' && <NameDeletionTab accessToken={accessToken} />}
-        </TabPanel>
-        <TabPanel id="merge">
-          {activeTabId === '#merge' && <ProfileMergeTab accessToken={accessToken} />}
-        </TabPanel>
-        <TabPanel id="institution">
-          {activeTabId === '#institution' && <InstitutionTab accessToken={accessToken} />}
-        </TabPanel>
-        <TabPanel id="requests">
-          {activeTabId === '#requests' && <VenueRequestTab accessToken={accessToken} />}
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
-  )
+        </>
+      ),
+      children: <VenueRequestTab accessToken={accessToken} />,
+    },
+  ]
+
+  return <Tabs items={items} />
 }

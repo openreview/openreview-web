@@ -92,7 +92,6 @@ export default function Page() {
       : api.post('/notes', updateAuthorIdsObject, { accessToken, version: 1 })
   }
 
-  // eslint-disable-next-line consistent-return
   const loadProfile = async () => {
     try {
       const { profiles } = await api.get('/profiles', {}, { accessToken })

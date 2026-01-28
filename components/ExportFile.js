@@ -26,7 +26,7 @@ const ExportFile = ({
                 let getValueFn = column.getValue
                 if (typeof column.getValue === 'string') {
                   // user defined in config
-                  getValueFn = Function('row', column.getValue) // eslint-disable-line no-new-func
+                  getValueFn = Function('row', column.getValue)
                 }
                 const value = getValueFn(p)?.toString()
                 return `"${value?.replaceAll('"', '""')}"`

@@ -5,6 +5,8 @@ import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
 import ServiceRoles from '../../app/profile/ServiceRoles'
+import { Col, Flex, Row, Space, Tooltip } from 'antd'
+import { EnvironmentOutlined, EyeInvisibleOutlined } from '@ant-design/icons'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -74,7 +76,12 @@ const ProfileLink = ({ link, showLinkText }) => {
 
   return (
     <ProfileItem itemMeta={link.meta}>
-      <a href={linkUrlWithProtocol} target="_blank" rel="noopener noreferrer">
+      <a
+        href={linkUrlWithProtocol}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ fontWeight: showLinkText ? 'normal' : 'bold' }}
+      >
         {link.name}
       </a>
       {showLinkText && <span className="link-text">{`(${linkUrlWithProtocol})`}</span>}
@@ -83,51 +90,55 @@ const ProfileLink = ({ link, showLinkText }) => {
 }
 
 const ProfileHistory = ({ history }) => (
-  <ProfileItem className="table-row" itemMeta={history.meta} editBadgeDiv>
-    <div className="position">
+  <Row align="top" gutter={[15, 15]}>
+    <Col xs={24} sm={6}>
       <strong>{history.position}</strong>
-    </div>
-    <div className="institution">
-      {history.institution.department && (
+    </Col>
+    <Col xs={24} sm={12}>
+      <Space align="end" wrap={true}>
+        {history.institution.department && (
+          <span>
+            {history.institution.department}
+            {','}
+          </span>
+        )}
         <span>
-          {history.institution.department}
-          {', '}
+          {history.institution.name}
+          {history.institution.domain && <small>{` (${history.institution.domain})`}</small>}
         </span>
-      )}
-      {history.institution.name}{' '}
-      {history.institution.domain && <small>{`(${history.institution.domain})`}</small>}
-      {(history.institution.city ||
-        history.institution.stateProvince ||
-        history.institution.country) && (
-        <Icon
-          name="map-marker"
-          tooltip={[
-            history.institution.city,
-            history.institution.stateProvince,
-            history.institution.country,
-          ]
-            .filter(Boolean)
-            .join(', ')}
-          extraClasses="geolocation"
-        />
-      )}
-    </div>
-    <div className="timeframe">
+        {(history.institution.city ||
+          history.institution.stateProvince ||
+          history.institution.country) && (
+          <Tooltip
+            title={[
+              history.institution.city,
+              history.institution.stateProvince,
+              history.institution.country,
+            ]
+              .filter(Boolean)
+              .join(', ')}
+          >
+            <EnvironmentOutlined />
+          </Tooltip>
+        )}
+      </Space>
+    </Col>
+    <Col xs={24} sm={6}>
       <em>
         {history.start}
         {history.start && <span> &ndash; </span>}
         {history.end ? history.end : 'Present'}
       </em>
-    </div>
-  </ProfileItem>
+    </Col>
+  </Row>
 )
 
 const ProfileRelation = ({ relation }) => (
-  <ProfileItem className="table-row" itemMeta={relation.meta} editBadgeDiv>
-    <div>
+  <Row align="top" gutter={[15, 15]}>
+    <Col xs={12} sm={6}>
       <strong>{relation.relation}</strong>
-    </div>
-    <div>
+    </Col>
+    <Col xs={12} sm={12}>
       {relation.username ? (
         <Link
           href={`/profile?id=${relation.username}`}
@@ -137,44 +148,44 @@ const ProfileRelation = ({ relation }) => (
           {relation.name}
         </Link>
       ) : (
-        <span>{relation.name}</span>
+        <Space>
+          {relation.name}
+          <small>{relation.email}</small>
+        </Space>
       )}
-    </div>
-    <div>
-      <small>{relation.email}</small>
-    </div>
-    <div>
-      <em>
-        {relation.start}
-        {relation.start && <span> &ndash; </span>}
-        {relation.end ? relation.end : 'Present'}
-      </em>
-    </div>
-    <div className="relation-visible">
-      {relation.readers && !relation.readers.includes('everyone') && (
-        <Icon
-          name="eye-close"
-          extraClasses="relation-visible-icon"
-          tooltip="Privately revealed to you"
-        />
-      )}
-    </div>
-  </ProfileItem>
+    </Col>
+    <Col xs={12} sm={6}>
+      <Space>
+        <em>
+          {relation.start}
+          {relation.start && <span> &ndash; </span>}
+          {relation.end ? relation.end : 'Present'}
+        </em>
+        {relation.readers && !relation.readers.includes('everyone') && (
+          <Tooltip title="Privately revealed to you">
+            <EyeInvisibleOutlined />
+          </Tooltip>
+        )}
+      </Space>
+    </Col>
+  </Row>
 )
 
 const ProfileExpertise = ({ expertise }) => (
-  <ProfileItem className="table-row" itemMeta={expertise.meta} editBadgeDiv>
-    <div>
-      <span>{expertise.keywords.join(', ')}</span>
-    </div>
-    <div className="start-end-year">
+  <Row align="top" gutter={[15, 15]}>
+    <Col xs={12} sm={18}>
+      <Space wrap separator=",">
+        {expertise.keywords.map((p) => p)}
+      </Space>
+    </Col>
+    <Col xs={12} sm={6}>
       <em>
         {expertise.start}
         {expertise.start && <span> &ndash; </span>}
         {expertise.end ? expertise.end : 'Present'}
       </em>
-    </div>
-  </ProfileItem>
+    </Col>
+  </Row>
 )
 
 const BasicProfileView = ({
@@ -192,101 +203,99 @@ const BasicProfileView = ({
   ]
 
   return (
-    <>
+    <Flex vertical gap="small">
       {contentToShow.includes('names') && (
-        <ProfileViewSection name="names" title="Names" actionLink="Suggest Name">
-          <div className="list-compact">
-            {sortedNames.flatMap((name, i) => [
-              i > 0 ? <span key={i}>, </span> : null,
-              <ProfileName key={name.username || name.fullname} name={name} />,
-            ])}
-          </div>
+        <ProfileViewSection title="Names">
+          <Space separator="," wrap={true}>
+            {sortedNames.map((name, i) => (
+              <ProfileName key={name.username || name.fullname} name={name} />
+            ))}
+          </Space>
         </ProfileViewSection>
       )}
 
       {contentToShow.includes('emails') && (
-        <ProfileViewSection name="emails" title="Emails" actionLink="Suggest Email">
-          <div className="list-compact">
+        <ProfileViewSection title="Emails">
+          <Space separator="," wrap={true}>
             {profile.emails
               .filter((email) => !email.hidden)
-              .flatMap((email, i) => [
-                i > 0 ? <span key={i}>, </span> : null,
+              .map((email, i) => (
                 <ProfileEmail
                   key={`${email.email}-${i}`}
                   email={email}
                   publicProfile={publicProfile}
                   allowCopyEmail={moderation}
-                />,
-              ])}
-          </div>
+                />
+              ))}
+          </Space>
         </ProfileViewSection>
       )}
 
       {contentToShow.includes('links') && (
-        <ProfileViewSection name="links" title="Personal Links" actionLink="Suggest URL">
-          {profile.links.map((link) => (
-            <ProfileLink key={link.name} link={link} showLinkText={showLinkText} />
-          ))}
+        <ProfileViewSection title="Personal Links">
+          <Space wrap={true} orientation={showLinkText ? 'vertical' : 'horizontal'}>
+            {profile.links.map((link) => (
+              <ProfileLink key={link.name} link={link} showLinkText={showLinkText} />
+            ))}
+          </Space>
         </ProfileViewSection>
       )}
 
       {contentToShow.includes('history') && (
-        <ProfileViewSection
-          name="history"
-          title="Career &amp; Education History"
-          actionLink="Suggest Position"
-        >
-          {profile.history?.length > 0 ? (
-            profile.history.map((history) => (
-              <ProfileHistory key={nanoid()} history={history} />
-            ))
-          ) : (
-            <p className="empty-message">No history added</p>
-          )}
+        <ProfileViewSection title="Career &amp; Education History">
+          <Flex vertical gap="small">
+            {profile.history?.length > 0 ? (
+              profile.history.map((history) => (
+                <ProfileHistory key={nanoid()} history={history} />
+              ))
+            ) : (
+              <p className="empty-message">No history added</p>
+            )}
+          </Flex>
         </ProfileViewSection>
       )}
 
       {contentToShow.includes('relations') && (
-        <ProfileViewSection
-          name="relations"
-          title="Advisors, Relations &amp; Conflicts"
-          actionLink="Suggest Relation"
-        >
-          {profile.relations?.length > 0 ? (
-            profile.relations.map((relation) => (
-              <ProfileRelation
-                key={
-                  relation.relation +
-                  (relation.username ?? relation.name) +
-                  relation.start +
-                  (relation.end ?? '')
-                }
-                relation={relation}
-              />
-            ))
-          ) : (
-            <p className="empty-message">No relations added</p>
-          )}
+        <ProfileViewSection title="Advisors, Relations &amp; Conflicts">
+          <Flex vertical gap="small">
+            {profile.relations?.length > 0 ? (
+              profile.relations.map((relation) => (
+                <ProfileRelation
+                  key={
+                    relation.relation +
+                    (relation.username ?? relation.name) +
+                    relation.start +
+                    (relation.end ?? '')
+                  }
+                  relation={relation}
+                />
+              ))
+            ) : (
+              <p className="empty-message">No relations added</p>
+            )}
+          </Flex>
         </ProfileViewSection>
       )}
 
       {contentToShow.includes('expertise') && (
-        <ProfileViewSection name="expertise" title="Expertise" actionLink="Suggest Expertise">
-          {profile.expertise?.length > 0 ? (
-            profile.expertise.map((expertise) => (
-              <ProfileExpertise key={expertise.keywords.toString()} expertise={expertise} />
-            ))
-          ) : (
-            <p className="empty-message">No areas of expertise listed</p>
-          )}
+        <ProfileViewSection title="Expertise">
+          <Flex vertical gap="small">
+            {profile.expertise?.length > 0 ? (
+              profile.expertise.map((expertise) => (
+                <ProfileExpertise key={expertise.keywords.toString()} expertise={expertise} />
+              ))
+            ) : (
+              <p className="empty-message">No areas of expertise listed</p>
+            )}
+          </Flex>
         </ProfileViewSection>
       )}
-      {serviceRoles?.length > 0 && (
+      {/* {serviceRoles?.length > 0 && (
         <ProfileViewSection name="serviceRoles" title="Service Roles">
           <ServiceRoles serviceRoles={serviceRoles} />
         </ProfileViewSection>
-      )}
-    </>
+      )} */}
+    </Flex>
   )
 }
 

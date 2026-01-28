@@ -3,6 +3,8 @@ import { useEffect } from 'react'
 import { getTagDispayText } from '../lib/utils'
 import styles from '../styles/components/ProfileTag.module.scss'
 import Icon from './Icon'
+import { Space, Tag, Tooltip } from 'antd'
+import { DeleteFilled, DeleteOutlined, EyeOutlined } from '@ant-design/icons'
 
 const ProfileTag = ({ tag, onDelete, showProfileId }) => {
   const { label, invitation, parentInvitations, readers, signature } = tag
@@ -22,15 +24,39 @@ const ProfileTag = ({ tag, onDelete, showProfileId }) => {
     return ''
   }
 
-  const handleTagClick = () => {
-    if (tagLink) {
-      window.open(tagLink, '_blank', 'noopener,noreferrer')
-    }
-  }
-
-  useEffect(() => {
-    $('[data-toggle="tooltip"]').tooltip({ html: true })
-  }, [tag])
+  return (
+    <Tag
+      color="red"
+      variant="outlined"
+      closable={
+        onDelete && deletable
+          ? {
+              closeIcon: <DeleteOutlined />,
+              'aria-label': 'Delete tag',
+            }
+          : false
+      }
+      onClose={onDelete}
+    >
+      <Space>
+        <Tooltip title="Visible to everyone">
+          <EyeOutlined />
+        </Tooltip>
+        {tagLink ? (
+          <a
+            href={tagLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'unset' }}
+          >
+            {getTagDispayText(tag, showProfileId)}
+          </a>
+        ) : (
+          getTagDispayText(tag, showProfileId)
+        )}
+      </Space>
+    </Tag>
+  )
 
   return (
     <div

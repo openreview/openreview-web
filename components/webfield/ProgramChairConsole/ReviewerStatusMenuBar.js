@@ -53,7 +53,7 @@ const MessageReviewersModal = ({
 
   const getRecipientRows = () => {
     if (Object.keys(messageOption).includes('filterFunc')) {
-      const customFunc = Function('row', messageOption.filterFunc) // eslint-disable-line no-new-func
+      const customFunc = Function('row', messageOption.filterFunc)
       return tableRows.filter((row) => customFunc(row))
     }
 

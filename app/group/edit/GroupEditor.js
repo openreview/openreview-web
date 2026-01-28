@@ -25,7 +25,6 @@ export default function GroupEditor({ id, query }) {
     try {
       const { groups } = await api.get('/groups', { id, details: 'writable' }, { accessToken })
       if (!groups?.length) throw new Error('Group not found')
-      // eslint-disable-next-line no-shadow
       const group = groups[0]
       if (group.details?.writable) {
         // Get venue group to pass to webfield component

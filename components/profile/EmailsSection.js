@@ -125,7 +125,6 @@ const EmailsSection = ({
     if (action.reset) return action.data
     return state
   }
-  // eslint-disable-next-line max-len
   const [emails, setEmails] = useReducer(
     emailsReducer,
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
@@ -248,7 +247,6 @@ const EmailsSection = ({
         {emails.map((emailObj) => (
           <div className="row d-flex" key={emailObj.key}>
             <div className="col-md-4 emails__value">
-              {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
               <input
                 aria-label="email"
                 type="email"
