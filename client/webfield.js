@@ -60,7 +60,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: defaultHeaders``,
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },

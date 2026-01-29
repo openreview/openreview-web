@@ -17,7 +17,7 @@ export default function useUser(getFullProfile = false) {
 
   const fetchData = async () => {
     const { user: userFromCookie } = await clientAuth()
-    if (userFromCookie.id && getFullProfile) {
+    if (userFromCookie?.id && getFullProfile) {
       const fullProfile = await getProfile()
       if (fullProfile) {
         const preferedNameObj =
