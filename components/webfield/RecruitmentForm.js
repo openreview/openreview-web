@@ -145,9 +145,9 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     try {
       const options = {}
       const noteContent = {
-        title: 'Recruit response',
-        user: args.user,
-        key: args.key,
+        ...(invitation.edit?.note?.content?.title && { title: 'Recruit response' }),
+        ...(invitation.edit?.note?.content?.user && { user: args.user }),
+        ...(invitation.edit?.note?.content?.key && { key: args.key }),
         response: isAcceptResponse ? 'Yes' : 'No',
         ...(invitation.edit?.signatures?.param?.items && {
           editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
@@ -298,8 +298,8 @@ const RecruitmentForm = () => {
     try {
       const options = {}
       const noteContent = {
-        title: 'Recruit response',
-        key: args.key,
+        ...(invitation.edit?.note?.content?.title && { title: 'Recruit response' }),
+        ...(invitation.edit?.note?.content?.key && { key: args.key }),
         response,
         ...Object.fromEntries(
           Object.entries(args ?? {}).filter(
