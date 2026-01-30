@@ -20,16 +20,17 @@ $gray3: rgba(0, 0, 0, 0.05);
         line-height: 1.75rem;
         button {
           margin-left: 0.375rem;
-          &.expired {
-            background-color: $gray3;
-            color: gray;
-            border-color: gray;
-            text-decoration: line-through;
-          }
         }
       }
       .top-level-invitations {
         margin-top: 1rem;
+
+        .btn.expired {
+          background-color: $gray3;
+          color: gray;
+          border-color: gray;
+          text-decoration: line-through;
+        }
       }
     }
 
@@ -315,13 +316,6 @@ $gray3: rgba(0, 0, 0, 0.05);
         .note_content_title {
           font-size: 1rem;
           line-height: 1.5rem;
-        }
-      }
-      li.expired {
-        background-color: rgba(0, 0, 0, 0.05);
-        text-decoration: line-through;
-        > a {
-          color: gray;
         }
       }
     }
