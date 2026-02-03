@@ -524,36 +524,20 @@ const AuthorConsole = ({ appContext }) => {
     })
 
     const getProfiles = (apiRes) => apiRes.profiles ?? []
-    const idProfilesP =
+    const profiles =
       authorIds.size > 0
-        ? api
+        ? await api
             .get('/profiles', { ids: Array.from(authorIds).join(',') }, { accessToken })
             .then(getProfiles)
-        : Promise.resolve([])
-
-    const emailProfilesP = Promise.all(
-      notes.flatMap((note) => {
-        const emailIds = (
-          version === 2 ? note.content.authorids.value : note.content.authorids
-        )?.filter((id) => id.includes('@'))
-        if (!emailIds?.length) return []
-        return api
-          .get('/profiles', { confirmedEmails: emailIds.join(',') }, { accessToken })
-          .then(getProfiles)
-      })
-    )
-    const [idProfiles, emailProfiles] = await Promise.all([idProfilesP, emailProfilesP])
+        : []
 
     const profilesByUsernames = {}
-    idProfiles.concat(...emailProfiles).forEach((profile) => {
+    profiles.forEach((profile) => {
       profile.content.names.forEach((name) => {
         if (name.username) {
           profilesByUsernames[name.username] = profile
         }
       })
-      if (profile.email) {
-        profilesByUsernames[profile.email] = profile
-      }
     })
     return profilesByUsernames
   }
