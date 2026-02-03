@@ -8,7 +8,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { inflect, pluralizeString, prettyField } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
-import { getProfileLink } from '../../lib/webfield-utils'
+import ProfileLink from './ProfileLink'
 
 const IEEECopyrightForm = ({ note, isV2Note }) => {
   const { showIEEECopyright, IEEEPublicationTitle, IEEEArtSourceCode } =
@@ -321,13 +321,11 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">
                   <span>
-                    <a
-                      href={getProfileLink(areaChair.areaChairProfileId)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {areaChair.preferredName}
-                    </a>
+                    <ProfileLink
+                      id={areaChair.areaChairProfileId}
+                      name={areaChair.preferredName}
+                      preferredEmailInvitationId={preferredEmailInvitationId}
+                    />
                     <div>{areaChair.title}</div>
                     {preferredEmailInvitationId && (
                       // eslint-disable-next-line jsx-a11y/anchor-is-valid
@@ -404,13 +402,11 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
               <div key={areaChair.anonymousId} className="meta-review-info">
                 <div className="areachair-contact">
                   <span>
-                    <a
-                      href={getProfileLink(areaChair.areaChairProfileId)}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {areaChair.preferredName}
-                    </a>
+                    <ProfileLink
+                      id={areaChair.areaChairProfileId}
+                      name={areaChair.preferredName}
+                      preferredEmailInvitationId={preferredEmailInvitationId}
+                    />
                     <div>{areaChair.title}</div>
                     {preferredEmailInvitationId && (
                       // eslint-disable-next-line jsx-a11y/anchor-is-valid
@@ -440,13 +436,11 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
             <div key={index} className="meta-review-info">
               <div className="seniorareachair-contact">
                 <span>
-                  <a
-                    href={getProfileLink(seniorAreaChair.preferredId)}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {seniorAreaChair.preferredName}
-                  </a>
+                  <ProfileLink
+                    id={seniorAreaChair.preferredId}
+                    name={seniorAreaChair.preferredName}
+                    preferredEmailInvitationId={preferredEmailInvitationId}
+                  />
                   <div>{seniorAreaChair.title}</div>
                   {preferredEmailInvitationId && (
                     // eslint-disable-next-line jsx-a11y/anchor-is-valid

@@ -3,7 +3,6 @@ import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
 import Link from 'next/link'
-import { getProfileLink } from '../../../lib/webfield-utils'
 import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
@@ -12,6 +11,7 @@ import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
 import api from '../../../lib/api-client'
 import WebFieldContext from '../../WebFieldContext'
 import { getNoteContentValues } from '../../../lib/forum-utils'
+import ProfileLink from '../ProfileLink'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
   const { id, preferredName, title } = profile ?? {}
@@ -35,14 +35,17 @@ const BasicProfileSummary = ({ profile, profileId }) => {
       promptError(error.message)
     }
   }
+
   return (
     <div className="ac-sac-summary">
       {preferredName ? (
         <div className="ac-sac-info">
           <h4>
-            <a href={getProfileLink(id ?? profileId)} target="_blank" rel="noreferrer">
-              {preferredName}
-            </a>
+            <ProfileLink
+              id={id ?? profileId}
+              name={preferredName}
+              preferredEmailInvitationId={preferredEmailInvitationId}
+            />
           </h4>
           <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
@@ -60,7 +63,13 @@ const BasicProfileSummary = ({ profile, profileId }) => {
           )}
         </div>
       ) : (
-        <h4>{profileId}</h4>
+        <h4>
+          <ProfileLink
+            id={profileId}
+            name={profileId}
+            preferredEmailInvitationId={preferredEmailInvitationId}
+          />
+        </h4>
       )}
     </div>
   )
@@ -130,13 +139,11 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
           {preferredName ? (
             <div className="ac-sac-info">
               <h4>
-                <a
-                  href={getProfileLink(id ?? rowData.sacProfileId)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {preferredName}
-                </a>
+                <ProfileLink
+                  id={id ?? rowData.sacProfileId}
+                  name={preferredName}
+                  preferredEmailInvitationId={preferredEmailInvitationId}
+                />
               </h4>
               <div className="profile-title">{title}</div>
               {preferredEmailInvitationId && (
@@ -154,7 +161,13 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
               )}
             </div>
           ) : (
-            <h4>{rowData.sacProfileId}</h4>
+            <h4>
+              <ProfileLink
+                id={rowData.sacProfileId}
+                name={rowData.sacProfileId}
+                preferredEmailInvitationId={preferredEmailInvitationId}
+              />
+            </h4>
           )}
         </div>
       </td>
@@ -281,7 +294,9 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     } else {
       // Optimization: build an object of notes by id
       const notesById = {}
-      pcConsoleData.notes.forEach((n) => { notesById[n.id] = n })
+      pcConsoleData.notes.forEach((n) => {
+        notesById[n.id] = n
+      })
 
       const tableRows = pcConsoleData.seniorAreaChairs.map((sacProfileId, index) => {
         let notes = []
@@ -289,7 +304,8 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
 
         if (sacDirectPaperAssignment) {
           notes =
-            pcConsoleData.sacAcInfo.acBySacMap.get(sacProfileId)
+            pcConsoleData.sacAcInfo.acBySacMap
+              .get(sacProfileId)
               ?.filter((noteId) => notesById[noteId])
               .map((noteId) => {
                 const note = notesById[noteId]
