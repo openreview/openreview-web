@@ -71,7 +71,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@testing-library/user-event": "^14.6.1",
-    "eslint": "^8.55.0",
+    "eslint": "^9.26.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-next": "^15.0.3",
     "eslint-config-prettier": "^9.1.0",
