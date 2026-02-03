@@ -12,7 +12,7 @@ import {
   prettyField,
   getRoleHashFragment,
 } from '../../../lib/utils'
-import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
+import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -21,6 +21,7 @@ import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { formatProfileContent } from '../../../lib/edge-utils'
 import { isSuperUser } from '../../../lib/clientAuth'
+import ProfileLink from '../ProfileLink'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -56,9 +57,11 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       {preferredName ? (
         <div className="reviewer-info">
           <h4>
-            <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
-              {preferredName}
-            </a>
+            <ProfileLink
+              id={id ?? reviewerProfileId}
+              name={preferredName}
+              preferredEmailInvitationId={preferredEmailInvitationId}
+            />
           </h4>
           <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
@@ -77,9 +80,11 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
         </div>
       ) : (
         <h4>
-          <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
-            {reviewerProfileId}
-          </a>
+          <ProfileLink
+            id={reviewerProfileId}
+            name={reviewerProfileId}
+            preferredEmailInvitationId={preferredEmailInvitationId}
+          />
         </h4>
       )}
       <div>

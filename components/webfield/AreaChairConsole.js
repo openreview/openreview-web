@@ -865,7 +865,7 @@ const AreaChairConsole = ({ appContext }) => {
     }
     const sacProfileLinks = acConsoleData.sacProfiles.map(
       (sacProfile, index) =>
-        `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a>${
+        `<a href="/profile?id=${sacProfile.id}" target="_blank" rel="noopener noreferrer" >${prettyId(sacProfile.id)}</a>${
           sacEmails[index] ? `(${sacEmails[index]})` : ''
         }`
     )

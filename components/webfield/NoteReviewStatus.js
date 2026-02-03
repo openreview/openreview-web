@@ -2,7 +2,7 @@
 
 // modified from noteReviewStatus.hbs handlebar template
 import Link from 'next/link'
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import upperFirst from 'lodash/upperFirst'
 import copy from 'copy-to-clipboard'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -16,7 +16,7 @@ import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
 import { pluralizeString, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
-import { getProfileLink } from '../../lib/webfield-utils'
+import ProfileLink from './ProfileLink'
 
 dayjs.extend(relativeTime)
 
@@ -279,13 +279,11 @@ export const AcPcConsoleReviewerStatusRow = ({
       <strong className="assigned-reviewer-id">{reviewer.anonymousId}</strong>
       <div className="assigned-reviewer-action">
         <span>
-          <a
-            href={getProfileLink(reviewer.reviewerProfileId)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {reviewer.preferredName}
-          </a>
+          <ProfileLink
+            id={reviewer.reviewerProfileId}
+            name={reviewer.preferredName}
+            preferredEmailInvitationId={preferredEmailInvitationId}
+          />
           <div>{reviewer.profile?.title}</div>
           {preferredEmailInvitationId && (
             // eslint-disable-next-line jsx-a11y/anchor-is-valid
