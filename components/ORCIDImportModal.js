@@ -1,8 +1,7 @@
-/* globals $: false */
+/* globals $,promptError: false */
 import { useEffect, useRef, useState } from 'react'
 import {
   getAllOrcidPapers,
-  getAllPapersByGroupId,
   getOrcidPublicationsFromJsonUrl,
   postOrUpdateOrcidPaper,
 } from '../lib/profiles'
@@ -37,7 +36,6 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
     setIsFetchingPublications(true)
     setHasError(false)
     try {
-      // setPublicationsInOpenReview(await getAllPapersByGroupId(profileId))
       const fetchedPublications = await getOrcidPublicationsFromJsonUrl(
         orcid,
         profileNames.map((p) => getNameString(p))
@@ -111,7 +109,8 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
         }, 2000)
       }
     } catch (error) {
-      setMessage(error.message)
+      promptError(error.message)
+      $(modalEl.current).modal('hide')
     }
     setIsSavingPublications(false)
     setSelectedPublications([])

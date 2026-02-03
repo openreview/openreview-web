@@ -136,7 +136,7 @@ export default class EdgeBrowser extends React.Component {
       initialKeysP = api
         .get('/groups', { id: requestParams.group }, { version: this.version })
         .then((response) => {
-          this.setState({ traverseGroup: response.groups[0] })
+          if (headOrTail === 'tail') this.setState({ traverseGroup: response.groups[0] })
           return _.get(response, 'groups[0].members', [])
         })
     } else {

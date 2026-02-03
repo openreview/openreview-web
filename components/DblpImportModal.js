@@ -1,4 +1,4 @@
-/* globals $,clearMessage: false */
+/* globals $,clearMessage,promptError: false */
 
 import { useState, useRef, useEffect } from 'react'
 import { nanoid } from 'nanoid'
@@ -222,7 +222,9 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         error.name === 'TooManyError'
           ? 'DBLP import quota has reached'
           : 'An error occurred while importing your publications. Please try again later.'
-      setMessage(errorMessage)
+
+      promptError(errorMessage)
+      $(modalEl.current).modal('hide')
     }
 
     $(modalEl.current).find('.modal-body')[0].scrollTop = 0
