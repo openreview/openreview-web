@@ -55,6 +55,12 @@ To check for ESLint errors, run:
 npm run lint
 ```
 
+To build and run in release mode, run:
+
+```bash
+npm run prod
+```
+
 ## Unit Testing
 
 OpenReview Web uses [Jest](https://jestjs.io/) and [Testing Library](https://testing-library.com/) to run unit tests, use the following command to execute all unit tests defined in unitTests folder:
@@ -93,15 +99,11 @@ Finally, run the tests:
 npm run test
 ```
 
-To run specific tests, pass the `-f` option to TestCafe to only run a specific
-fixture. For example:
+To run specific tests, pass the path of the test file to testcafe. For example:
 
 ```bash
-npm run test -- -f "Invitation page"
+testcafe chrome tests/e2e_1/profilePage.ts
 ```
-
-Any option supported by the TestCafe CLI can be passed in after the "`--`", a full
-list of flags can be found in the [TestCafe docs](https://devexpress.github.io/testcafe/documentation/reference/command-line-interface.html#-f-name---fixture-name).
 
 Note that you may need to run the special setup test before running specific tests
 if the test data has not already been generated:
@@ -129,4 +131,4 @@ npm run start
 
 Openreview-web is open source under the GNU Affero General Public License Version 3 (AGPLv3) or any later version. The full license [can be found here](https://github.com/openreview/openreview-web/blob/master/LICENSE.md). The code is provided "as is" without warranty of any kind.
 
-Copyright © 2019-2024 OpenReview
+Copyright © 2019-2026 OpenReview

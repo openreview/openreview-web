@@ -1124,16 +1124,14 @@ module.exports = (function () {
 
     var renderTaskItem = function (inv) {
       return (
-        '<li class="note ' +
-        (inv.complete ? 'completed' : '') +
-        '">' +
-        '<h4><a href="/forum?id=' +
-        inv.forumId +
-        (inv.complete ? '' : '&invitationId=' + inv.id) +
-        (options.referrer ? '&referrer=' + options.referrer : '') +
-        '" target="_blank">' +
+        '<li class="note"' +
+        (inv.complete
+          ? ' style="opacity: 0.93; background-color: #eee; padding: 0.25rem 0.5rem;"'
+          : '') +
+        '>' +
+        '<h4 style="color: #333;">' +
         view.prettyInvitationId(inv.id) +
-        '</a></h4>' +
+        '</h4>' +
         (options.showEditLink ? '<a href="/invitation/edit?id=' + inv.id + '">Edit</a>' : '') +
         (inv.startDateStr
           ? '<p class="mb-1"><span class="duedate">Start: ' + inv.startDateStr + '</span></p>'
