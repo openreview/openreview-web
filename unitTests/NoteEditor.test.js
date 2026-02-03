@@ -157,13 +157,9 @@ describe('NoteEditor', () => {
       'token'
     )
 
-    expect(api.get).toHaveBeenCalledWith(
-      '/groups',
-      {
-        id: 'NeurIPS.cc/2025/Conference/Submission1/Area_Chairs',
-      },
-      expect.anything()
-    )
+    expect(api.get).toHaveBeenCalledWith('/groups', {
+      id: 'NeurIPS.cc/2025/Conference/Submission1/Area_Chairs',
+    })
     // signature should be added and reviewers group should not be added
     const expectedReaderValue = [
       'NeurIPS.cc/2025/Conference/Program_Chairs',
