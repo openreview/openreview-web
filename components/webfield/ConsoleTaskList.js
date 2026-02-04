@@ -66,10 +66,9 @@ const ConsoleTaskList = ({
       // If registrationFormInvitations is specified, filter out matching invitations
       // from domain query and use the ones from props instead
       if (registrationFormInvitations.length > 0) {
-        // Get suffixes from prop invitation IDs (e.g., 'Registration' from '.../-/Registration')
         const propSuffixes = registrationFormInvitations.map((id) => id.split('/-/').pop())
 
-        // Filter out invitations that match the prop suffixes or end with _Form, _Request, _Agreement
+        // Filter out invitations that match the prop suffixes for replacement
         allInvitations = allInvitations.filter((inv) => {
           const invSuffix = inv.id.split('/-/').pop() || ''
           return (
@@ -77,7 +76,7 @@ const ConsoleTaskList = ({
           )
         })
 
-        // Fetch the registration invitations (users CAN read these)
+        // Fetch the registration invitation
         const regInvitations = await Promise.all(
           registrationFormInvitations.map((invitationId) =>
             api
@@ -98,8 +97,7 @@ const ConsoleTaskList = ({
           )
         )
 
-        // Fetch form notes (append _Form to invitation ID) to check completion
-        // Users CAN read notes even though they CANNOT read _Form invitations
+        // Fetch _Form notes
         const formNotesResults = await Promise.all(
           registrationFormInvitations.map((invitationId) =>
             api
@@ -124,7 +122,7 @@ const ConsoleTaskList = ({
             return {
               ...inv,
               noteInvitation: true,
-              // Set replytoNote so the task list knows where to link
+              // Set replytoNote
               details: {
                 ...inv.details,
                 replytoNote: formNote ? { id: formNote.id, forum: formNote.id } : inv.details?.replytoNote,
