@@ -93,7 +93,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     displayReplyInvitations,
     metaReviewAgreementConfig,
     useCache = false,
-    registrationFormOverrides = {},
+    registrationFormInvitations = [],
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
   const { user, accessToken, isRefreshing } = useUser()
@@ -210,25 +210,42 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #endregion
 
       // #region getRegistrationForms
-      const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId].filter(Boolean)
-      const getRegistrationFormResultsP = Promise.all(
-        prefixes.map((prefix) =>
-          api
-            .getAll(
-              '/notes',
-              {
-                invitation: `${prefix}/-/.*`,
-                signature: venueId,
-                select: 'id,invitation,invitations,content.title',
-                domain: venueId,
-              },
-              { accessToken }
+      const getRegistrationFormResultsP =
+        registrationFormInvitations.length > 0
+          ? Promise.all(
+              registrationFormInvitations.map((invitation) =>
+                api.getAll(
+                  '/notes',
+                  {
+                    invitation,
+                    select: 'id,invitation,invitations,content.title',
+                  },
+                  { accessToken }
+                )
+              )
             )
-            .then((notes) =>
-              notes.filter((note) => note.invitations.some((p) => p.endsWith('_Form')))
+          : Promise.all(
+              [reviewersId, areaChairsId, seniorAreaChairsId]
+                .filter(Boolean)
+                .map((prefix) =>
+                  api
+                    .getAll(
+                      '/notes',
+                      {
+                        invitation: `${prefix}/-/.*`,
+                        signature: venueId,
+                        select: 'id,invitation,invitations,content.title',
+                        domain: venueId,
+                      },
+                      { accessToken }
+                    )
+                    .then((notes) =>
+                      notes.filter((note) =>
+                        note.invitations.some((p) => p.endsWith('_Form'))
+                      )
+                    )
+                )
             )
-        )
-      )
       // #endregion
 
       setDataLoadingStatusMessage('Loading timeline data')
@@ -240,56 +257,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       const invitationResults = TimelineDataResult[0].flat()
       const requestForm = TimelineDataResult[1]
-      let registrationForms = TimelineDataResult[2].flat()
-
-      // #region registrationFormOverrides - replace forms from mapped domains
-      const overrideKeys = Object.keys(registrationFormOverrides)
-      if (overrideKeys.length > 0) {
-        const formsToReplace = new Set()
-        const overrideQueries = []
-
-        // Find forms that match override keys and prepare replacement queries
-        registrationForms.forEach((form) => {
-          const formInvitation = form.invitations?.[0] || ''
-          const matchedKey = overrideKeys.find((key) =>
-            formInvitation.endsWith(`${key}_Form`)
-          )
-          if (matchedKey) {
-            formsToReplace.add(form.id)
-            const override = registrationFormOverrides[matchedKey]
-            // Only add query if not already added for this key
-            if (!overrideQueries.some((q) => q.key === matchedKey)) {
-              overrideQueries.push({
-                key: matchedKey,
-                domain: override.domain,
-                invitation: `${override.invitation}_Form`,
-              })
-            }
-          }
-        })
-
-        // Query replacement forms from override domains
-        if (overrideQueries.length > 0) {
-          const replacementResults = await Promise.all(
-            overrideQueries.map((q) =>
-              api.getAll(
-                '/notes',
-                {
-                  invitation: q.invitation,
-                  signature: q.domain,
-                  select: 'id,invitation,invitations,content.title',
-                  domain: q.domain,
-                },
-                { accessToken }
-              )
-            )
-          )
-          // Remove original forms and add replacements
-          registrationForms = registrationForms.filter((form) => !formsToReplace.has(form.id))
-          registrationForms.push(...replacementResults.flat())
-        }
-      }
-      // #endregion
+      const registrationForms = TimelineDataResult[2].flatMap((p) => p ?? [])
 
       setTimelineData({
         invitations: invitationResults,
@@ -1298,29 +1266,18 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     }
     if (pcConsoleData.registrationNoteMap) return
     try {
-      const overrideKeys = Object.keys(registrationFormOverrides)
       const registrationNoteResults = await Promise.all(
-        pcConsoleData.registrationForms.map((regForm) => {
-          // Determine the domain for this registration form using registrationFormOverrides
-          const formInvitation = regForm.invitations?.[0] || ''
-          const matchedKey = overrideKeys.find((key) =>
-            formInvitation.endsWith(`${key}_Form`)
-          )
-          const domain = matchedKey
-            ? registrationFormOverrides[matchedKey].domain
-            : venueId
-
-          return api.get(
+        pcConsoleData.registrationForms.map((regForm) =>
+          api.get(
             '/notes',
             {
               forum: regForm.id,
               select: 'id,signatures,invitations,content',
-              domain,
               stream: true,
             },
             { accessToken }
           )
-        })
+        )
       )
       const registrationNoteMap = groupBy(
         registrationNoteResults.flatMap((result) => result.notes ?? []),

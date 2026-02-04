@@ -5,7 +5,7 @@ import ConsoleTaskList from '../ConsoleTaskList'
 import { prettyField, getRoleHashFragment } from '../../../lib/utils'
 
 const SeniorAreaChairTasks = () => {
-  const { venueId, seniorAreaChairName } = useContext(WebFieldContext)
+  const { venueId, seniorAreaChairName, registrationFormInvitations = [] } = useContext(WebFieldContext)
   const seniorAreaChairUrlFormat = getRoleHashFragment(seniorAreaChairName)
   const referrer = encodeURIComponent(
     `[${prettyField(
@@ -14,7 +14,12 @@ const SeniorAreaChairTasks = () => {
   )
 
   return (
-    <ConsoleTaskList venueId={venueId} roleName={seniorAreaChairName} referrer={referrer} />
+    <ConsoleTaskList
+      venueId={venueId}
+      roleName={seniorAreaChairName}
+      referrer={referrer}
+      registrationFormInvitations={registrationFormInvitations}
+    />
   )
 }
 
