@@ -241,6 +241,7 @@ const AssignedPaperRow = ({
 }
 
 const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbers }) => {
+  const { registrationFormInvitations = [] } = useContext(WebFieldContext)
   const reviewerUrlFormat = getRoleHashFragment(reviewerName)
   const referrer = `${encodeURIComponent(
     `[${prettyField(
@@ -256,6 +257,7 @@ const ReviewerConsoleTasks = ({ venueId, reviewerName, submissionName, noteNumbe
       filterAssignedInvitation={true}
       submissionName={submissionName}
       submissionNumbers={noteNumbers}
+      registrationFormInvitations={registrationFormInvitations}
     />
   )
 }

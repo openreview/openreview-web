@@ -14,6 +14,7 @@ const ConsoleTaskList = ({
   filterAssignedInvitation = false,
   submissionName,
   submissionNumbers,
+  registrationFormInvitations = [],
 }) => {
   const { accessToken } = useUser()
   const [invitations, setInvitations] = useState(null)
@@ -62,6 +63,76 @@ const ConsoleTaskList = ({
           .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
       )
 
+      // If registrationFormInvitations is specified, filter out matching invitations
+      // from domain query and use the ones from props instead
+      if (registrationFormInvitations.length > 0) {
+        const propSuffixes = registrationFormInvitations.map((id) => id.split('/-/').pop())
+
+        // Filter out invitations that match the prop suffixes for replacement
+        allInvitations = allInvitations.filter((inv) => {
+          const invSuffix = inv.id.split('/-/').pop() || ''
+          return (
+            !propSuffixes.includes(invSuffix)
+          )
+        })
+
+        // Fetch the registration invitation
+        const regInvitations = await Promise.all(
+          registrationFormInvitations.map((invitationId) =>
+            api
+              .get(
+                '/invitations',
+                {
+                  id: invitationId,
+                  invitee: true,
+                  duedate: true,
+                  replyto: true,
+                  type: 'note',
+                  details: 'replytoNote,repliedNotes,repliedEdits',
+                },
+                { accessToken }
+              )
+              .then((result) => result.invitations?.[0])
+              .catch(() => null)
+          )
+        )
+
+        // Fetch _Form notes
+        const formNotesResults = await Promise.all(
+          registrationFormInvitations.map((invitationId) =>
+            api
+              .getAll(
+                '/notes',
+                {
+                  invitation: `${invitationId}_Form`,
+                  select: 'id',
+                },
+                { accessToken }
+              )
+              .catch(() => [])
+          )
+        )
+
+        // Add registration invitations with replytoNote from form notes
+        const regFormInvitations = regInvitations
+          .filter(Boolean)
+          .map((inv, index) => {
+            const formNotes = formNotesResults[index] || []
+            const formNote = formNotes[0]
+            return {
+              ...inv,
+              noteInvitation: true,
+              // Set replytoNote
+              details: {
+                ...inv.details,
+                replytoNote: formNote ? { id: formNote.id, forum: formNote.id } : inv.details?.replytoNote,
+              },
+            }
+          })
+
+        allInvitations = allInvitations.concat(regFormInvitations)
+      }
+
       allInvitations = allInvitations.filter((p) =>
         filterAssignedInvitation
           ? filterAssignedInvitations(p, roleName, submissionName, submissionNumbers)
@@ -78,7 +149,7 @@ const ConsoleTaskList = ({
   useEffect(() => {
     setInvitations(null)
     loadInvitations()
-  }, [venueId, accessToken])
+  }, [venueId, accessToken, registrationFormInvitations])
 
   if (!invitations) return <LoadingSpinner />
 

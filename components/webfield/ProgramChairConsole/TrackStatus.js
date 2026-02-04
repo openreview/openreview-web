@@ -20,6 +20,7 @@ const TrackStatus = () => {
     deskRejectedVenueId,
     customMaxPapersName,
     submissionName,
+    registrationFormInvitations = [],
   } = useContext(WebFieldContext)
   const { user, accessToken, isRefreshing } = useUser()
   const [trackStatusData, setTrackStatusData] = useState({})
@@ -79,25 +80,42 @@ const TrackStatus = () => {
       // #endregion
 
       // #region getRegistrationForms
-      const prefixes = [reviewersId, areaChairsId, seniorAreaChairsId].filter(Boolean)
-      const getRegistrationFormResultsP = Promise.all(
-        prefixes.map((prefix) =>
-          api
-            .getAll(
-              '/notes',
-              {
-                invitation: `${prefix}/-/.*`,
-                signature: venueId,
-                select: 'id,invitation,invitations,content.title',
-                domain: venueId,
-              },
-              { accessToken }
+      const getRegistrationFormResultsP =
+        registrationFormInvitations.length > 0
+          ? Promise.all(
+              registrationFormInvitations.map((invitation) =>
+                api.getAll(
+                  '/notes',
+                  {
+                    invitation,
+                    select: 'id,invitation,invitations,content.title',
+                  },
+                  { accessToken }
+                )
+              )
             )
-            .then((notes) =>
-              notes.filter((note) => note.invitations.some((p) => p.endsWith('_Form')))
+          : Promise.all(
+              [reviewersId, areaChairsId, seniorAreaChairsId]
+                .filter(Boolean)
+                .map((prefix) =>
+                  api
+                    .getAll(
+                      '/notes',
+                      {
+                        invitation: `${prefix}/-/.*`,
+                        signature: venueId,
+                        select: 'id,invitation,invitations,content.title',
+                        domain: venueId,
+                      },
+                      { accessToken }
+                    )
+                    .then((notes) =>
+                      notes.filter((note) =>
+                        note.invitations.some((p) => p.endsWith('_Form'))
+                      )
+                    )
+                )
             )
-        )
-      )
       // #endregion
 
       const results = await Promise.all([
@@ -130,7 +148,6 @@ const TrackStatus = () => {
             {
               forum: regForm.id,
               select: 'id,signatures,invitations,content',
-              domain: venueId,
             },
             { accessToken }
           )
