@@ -1,7 +1,6 @@
 /* globals promptError: false */
 import { useEffect, useState } from 'react'
 import TaskList from '../TaskList'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatTasksData } from '../../lib/utils'
 import { filterAssignedInvitations } from '../../lib/webfield-utils'
@@ -15,46 +14,33 @@ const ConsoleTaskList = ({
   submissionName,
   submissionNumbers,
 }) => {
-  const { accessToken } = useUser()
   const [invitations, setInvitations] = useState(null)
 
   const loadInvitations = async () => {
     try {
       let allInvitations = await Promise.all([
-        api.getAll(
-          '/invitations',
-          {
-            domain: venueId,
-            invitee: true,
-            duedate: true,
-            replyto: true,
-            type: 'note',
-            details: 'replytoNote,repliedNotes,repliedEdits',
-          },
-          { accessToken }
-        ),
-        api.getAll(
-          '/invitations',
-          {
-            domain: venueId,
-            invitee: true,
-            duedate: true,
-            type: 'edge',
-            details: 'repliedEdges',
-          },
-          { accessToken }
-        ),
-        api.getAll(
-          '/invitations',
-          {
-            domain: venueId,
-            invitee: true,
-            duedate: true,
-            type: 'tag',
-            details: 'repliedTags',
-          },
-          { accessToken }
-        ),
+        api.getAll('/invitations', {
+          domain: venueId,
+          invitee: true,
+          duedate: true,
+          replyto: true,
+          type: 'note',
+          details: 'replytoNote,repliedNotes,repliedEdits',
+        }),
+        api.getAll('/invitations', {
+          domain: venueId,
+          invitee: true,
+          duedate: true,
+          type: 'edge',
+          details: 'repliedEdges',
+        }),
+        api.getAll('/invitations', {
+          domain: venueId,
+          invitee: true,
+          duedate: true,
+          type: 'tag',
+          details: 'repliedTags',
+        }),
       ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
         noteInvitations
           .map((inv) => ({ ...inv, noteInvitation: true }))
@@ -78,7 +64,7 @@ const ConsoleTaskList = ({
   useEffect(() => {
     setInvitations(null)
     loadInvitations()
-  }, [venueId, accessToken])
+  }, [venueId])
 
   if (!invitations) return <LoadingSpinner />
 

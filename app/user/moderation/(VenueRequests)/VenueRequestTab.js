@@ -26,7 +26,7 @@ const VenueRequestRow = ({ item }) => {
     <div className="venue-request-row">
       <a className="request-name" href={`/forum?id=${forum}`} target="_blank" rel="noreferrer">
         {abbreviatedName}
-        {apiVersion === 2 && <span className="label label-default" >workflow</span>}
+        {apiVersion === 2 && <span className="label label-default">workflow</span>}
       </a>
       <div className="request-status">
         <div className="deploy-label">
@@ -69,7 +69,7 @@ ${unrepliedPcComments[0].content?.comment}`}
   )
 }
 
-export default function VenueRequestTab({ accessToken }) {
+export default function VenueRequestTab() {
   const [venueRequestNotes, setVenueRequestNotes] = useState(null)
 
   const hasBeenReplied = (comment, allReplies) => {
@@ -102,7 +102,7 @@ export default function VenueRequestTab({ accessToken }) {
           details: 'replies',
           select: `id,forum,parentInvitations,signatures,tcdate,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
         },
-        { accessToken, includeVersion: true }
+        { includeVersion: true }
       )
 
       const notes = notesResult?.notes?.filter((p) => !p.parentInvitations)
@@ -166,7 +166,7 @@ export default function VenueRequestTab({ accessToken }) {
     loadRequestNotes()
   }, [])
 
-  if(!venueRequestNotes) return <LoadingSpinner />
+  if (!venueRequestNotes) return <LoadingSpinner />
   return (
     <PaginatedList
       className="venue-request-list"

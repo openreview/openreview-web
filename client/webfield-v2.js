@@ -16,9 +16,6 @@ const copy = require('copy-to-clipboard')
 
 // eslint-disable-next-line wrap-iife
 module.exports = (function () {
-  // Save authentication token as a private var
-  var token
-
   // AJAX Functions
   var get = function (url, queryObj, options) {
     var defaults = {
@@ -27,7 +24,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_V2_URL || ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -37,7 +33,7 @@ module.exports = (function () {
       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
       url: baseUrl + url,
       data: queryObj,
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -51,7 +47,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_V2_URL || ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -62,7 +57,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -76,7 +71,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_V2_URL || ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -87,7 +81,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -101,7 +95,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_V2_URL || ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -112,7 +105,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -256,10 +249,6 @@ module.exports = (function () {
     }
 
     return errorText
-  }
-
-  var setToken = function (newAccessToken) {
-    token = newAccessToken
   }
 
   var getInvitation = function (invitationId) {
@@ -1186,59 +1175,6 @@ module.exports = (function () {
     $('.tabs-container a[href="#' + container + '"]')
       .parent()
       .show()
-  }
-
-  var sendFile = function (url, data, contentType, fieldName) {
-    var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : ''
-    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
-    return $.ajax({
-      url: baseUrl + url,
-      type: 'put',
-      cache: false,
-      dataType: 'json',
-      processData: false,
-      contentType: contentType || false,
-      data: data,
-      headers: Object.assign(defaultHeaders, authHeaders),
-      xhrFields: {
-        withCredentials: true,
-      },
-    }).fail(function (jqXhr, textStatus, errorThrown) {
-      // eslint-disable-next-line no-console
-      console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus)
-      // eslint-disable-next-line no-console
-      console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2))
-      if (fieldName) {
-        $('input.form-control.note_content_value_input.note_' + fieldName).val('')
-      }
-    })
-  }
-
-  var sendFileChunk = function (data, $progressBar) {
-    var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : ''
-    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
-    return $.ajax({
-      url: baseUrl + '/attachment/chunk',
-      type: 'put',
-      contentType: false,
-      processData: false,
-      data: data,
-      headers: Object.assign(defaultHeaders, authHeaders),
-      xhrFields: {
-        withCredentials: true,
-      },
-      success: function (result) {
-        if (!result.url) {
-          var progress = `${(
-            (Object.values(result).filter((p) => p === 'completed').length * 100) /
-            Object.values(result).length
-          ).toFixed(0)}%`
-          $progressBar.find('.progress-bar').css('width', progress).text(progress)
-        }
-      },
-    })
   }
 
   var searchSubmissions = function (term, options) {
@@ -2342,9 +2278,6 @@ module.exports = (function () {
     put: put,
     delete: xhrDelete,
     getAll: getAll,
-    sendFile: sendFile,
-    sendFileChunk: sendFileChunk,
-    setToken: setToken,
     getErrorFromJqXhr: Webfield.getErrorFromJqXhr,
 
     api: {
@@ -2359,7 +2292,6 @@ module.exports = (function () {
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
       getGroup: getGroup,
-      sendFile: sendFile,
     },
 
     ui: {

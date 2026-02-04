@@ -252,7 +252,7 @@ const WorkflowInvitationRow = ({
   isStageInvitation,
 }) => {
   const [showEditor, setShowEditor] = useState(false)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
   const profileId = user?.profile?.id
 
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
@@ -278,30 +278,26 @@ const WorkflowInvitationRow = ({
   const expireRestoreInvitation = async () => {
     try {
       const expireRestoreInvitationPs = [invitation, ...subInvitations].map((p) =>
-        api.post(
-          '/invitations/edits',
-          {
-            invitation: {
-              cdate: p.cdate,
-              ddate: isExpired ? { delete: true } : dayjs().valueOf(),
-              id: p.id,
-              signatures: p.signatures,
-              bulk: p.bulk,
-              duedate: p.duedate,
-              expdate: p.expdate,
-              invitees: p.invitees,
-              noninvitees: p.noninvitees,
-              nonreaders: p.nonreaders,
-              readers: p.readers,
-              writers: p.writers,
-            },
-            readers: [profileId],
-            writers: [profileId],
-            signatures: [profileId],
-            invitations: getMetaInvitationId(p),
+        api.post('/invitations/edits', {
+          invitation: {
+            cdate: p.cdate,
+            ddate: isExpired ? { delete: true } : dayjs().valueOf(),
+            id: p.id,
+            signatures: p.signatures,
+            bulk: p.bulk,
+            duedate: p.duedate,
+            expdate: p.expdate,
+            invitees: p.invitees,
+            noninvitees: p.noninvitees,
+            nonreaders: p.nonreaders,
+            readers: p.readers,
+            writers: p.writers,
           },
-          { accessToken }
-        )
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          invitations: getMetaInvitationId(p),
+        })
       )
       await Promise.all(expireRestoreInvitationPs)
       promptMessage(
@@ -666,7 +662,7 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   )
 }
 
-const WorkFlowInvitations = ({ group, accessToken }) => {
+const WorkFlowInvitations = ({ group }) => {
   const groupId = group.id
   const submissionName = group.content?.submission_name?.value
   const [allInvitations, setAllInvitations] = useState([])
@@ -898,7 +894,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           invitation: `${groupId}.*`,
           select: 'id,sdate,edate,invitation,status,log',
         },
-        { accessToken, resultsKey: 'logs' }
+        { resultsKey: 'logs' }
       )
       const logs = orderBy(response, ['edate'], ['desc'])
       setProcessLogs(logs)
@@ -966,31 +962,25 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
     })
 
     const getAllGroupsP = api
-      .get(
-        '/groups',
-        {
-          ids: workflowGroupIds,
-        },
-        { accessToken }
-      )
+      .get('/groups', {
+        ids: workflowGroupIds,
+      })
       .then((result) => result.groups)
 
-    const getAllInvitationsP = await api.getAll(
-      '/invitations',
-      { prefix: groupId, expired: true, trash: true, type: 'all', filterStaticForum: true },
-      { accessToken }
-    )
+    const getAllInvitationsP = await api.getAll('/invitations', {
+      prefix: groupId,
+      expired: true,
+      trash: true,
+      type: 'all',
+      filterStaticForum: true,
+    })
 
     let getStageInvitationTemplatesP =
       group.id === group.domain
         ? api
-            .getAll(
-              '/invitations',
-              {
-                prefix: `${process.env.SUPER_USER}/Support/-/.*`,
-              },
-              { accessToken }
-            )
+            .getAll('/invitations', {
+              prefix: `${process.env.SUPER_USER}/Support/-/.*`,
+            })
             .then((invitations) => invitations.filter((p) => p.id.endsWith('_Template')))
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])

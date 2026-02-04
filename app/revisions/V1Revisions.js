@@ -6,14 +6,14 @@ import ErrorAlert from '../../components/ErrorAlert'
 import { V1RevisionsList } from './RevisionsList'
 import api from '../../lib/api-client'
 
-export default function V1Revisions({ parentNoteId, user, accessToken }) {
+export default function V1Revisions({ parentNoteId, user }) {
   const [revisions, setRevisions] = useState(null)
   const [selectedIndexes, setSelectedIndexes] = useState(null)
   const [error, setError] = useState(null)
   const router = useRouter()
 
   const enterSelectMode = () => {
-    if (!accessToken) {
+    if (!user) {
       promptLogin()
       return
     }
@@ -59,7 +59,7 @@ export default function V1Revisions({ parentNoteId, user, accessToken }) {
           original: true,
           trash: true,
         },
-        { accessToken, version: 1 }
+        { version: 1 }
       )
     } catch (apiError) {
       setError(apiError)
@@ -82,7 +82,7 @@ export default function V1Revisions({ parentNoteId, user, accessToken }) {
           ids: invitationIds,
           expired: true,
         },
-        { accessToken, version: 1 }
+        { version: 1 }
       )
 
       if (invitations?.length > 0) {

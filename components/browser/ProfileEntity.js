@@ -34,7 +34,7 @@ export default function ProfileEntity(props) {
     version,
     traverseGroup,
   } = useContext(EdgeBrowserContext)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
   const query = useSearchParams()
   const preferredEmailInvitationId = query.get('preferredEmailInvitationId')
 
@@ -121,8 +121,7 @@ export default function ProfileEntity(props) {
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user,
-      accessToken
+      user
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
@@ -143,7 +142,7 @@ export default function ProfileEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version })
+      const result = await api.post('/edges', body, { version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else if (isCustomLoadInvitation) {
@@ -204,8 +203,7 @@ export default function ProfileEntity(props) {
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user,
-      accessToken
+      user
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
@@ -235,7 +233,7 @@ export default function ProfileEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version })
+      const result = await api.post('/edges', body, { version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else if (isCustomLoadInvitation) {

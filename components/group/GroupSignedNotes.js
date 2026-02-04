@@ -6,7 +6,7 @@ import PaginatedList from '../PaginatedList'
 import api from '../../lib/api-client'
 import { prettyInvitationId } from '../../lib/utils'
 
-const GroupSignedNotes = ({ group, accessToken }) => {
+const GroupSignedNotes = ({ group }) => {
   const groupId = group.id
   const isV1Group = !group.domain
   const [totalCount, setTotalCount] = useState(null)
@@ -32,7 +32,7 @@ const GroupSignedNotes = ({ group, accessToken }) => {
         limit,
         offset,
       },
-      { accessToken, ...(isV1Group && { version: 1 }) }
+      { ...(isV1Group && { version: 1 }) }
     )
 
     let translatedNotes = []
@@ -49,7 +49,7 @@ const GroupSignedNotes = ({ group, accessToken }) => {
     }
   }
 
-  const loadItems = useCallback(loadNotes, [groupId, accessToken])
+  const loadItems = useCallback(loadNotes, [groupId])
 
   return (
     <EditorSection

@@ -24,7 +24,7 @@ export const NewNoteReaders = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
 
   const getRegexReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
@@ -34,7 +34,7 @@ export const NewNoteReaders = ({
       const regexGroupResult = await api.get(
         '/groups',
         { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression },
-        { accessToken, version: regexContainsPipe ? 1 : 2 }
+        { version: regexContainsPipe ? 1 : 2 }
       )
 
       if (!regexGroupResult.groups?.length)
@@ -68,7 +68,7 @@ export const NewNoteReaders = ({
         : fieldDescription.param.items
       const optionsP = enumItemsConfigOptions.map((p) =>
         p.prefix
-          ? api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
+          ? api.get('/groups', { prefix: p.prefix }).then((result) =>
               result.groups.map((q) => ({
                 value: q.id,
                 description: prettyId(q.id, false),
@@ -235,7 +235,7 @@ export const NewReplyEditNoteReaders = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
 
   const addEnumParentReaders = (groupResults, parentReaders, invitationReaders) => {
     if (!parentReaders?.length || parentReaders.includes('everyone') || isDirectReplyToForum)
@@ -292,7 +292,7 @@ export const NewReplyEditNoteReaders = ({
       const regexGroupResult = await api.get(
         '/groups',
         { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression },
-        { accessToken, version: regexContainsPipe ? 1 : 2 }
+        { version: regexContainsPipe ? 1 : 2 }
       )
 
       if (!regexGroupResult.groups?.length)
@@ -326,7 +326,7 @@ export const NewReplyEditNoteReaders = ({
         : fieldDescription.param.items
       const optionsP = enumItemsConfigOptions.map((p) => {
         if (p.prefix)
-          return api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
+          return api.get('/groups', { prefix: p.prefix }).then((result) =>
             result.groups.map((q) => ({
               value: q.id,
               description: prettyId(q.id, false),
@@ -335,7 +335,7 @@ export const NewReplyEditNoteReaders = ({
           )
         if (p.inGroup) {
           return api
-            .get('/groups', { id: p.inGroup }, { accessToken })
+            .get('/groups', { id: p.inGroup })
             .then((result) => {
               const groupMembers = result.groups[0]?.members
               if (!groupMembers?.length) return []

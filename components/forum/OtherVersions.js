@@ -8,19 +8,15 @@ import { inflect } from '../../lib/utils'
 import Icon from '../Icon'
 
 const OtherVersions = ({ note }) => {
-  const { accessToken, isRefreshing } = useUser()
+  const { isRefreshing } = useUser()
   const [otherVersions, setOtherVersions] = useState(null)
   const containerRef = useRef(null)
 
   const loadOtherVersions = async () => {
     try {
-      const result = await api.get(
-        '/notes',
-        {
-          paperhash: note.content.paperhash.value,
-        },
-        { accessToken }
-      )
+      const result = await api.get('/notes', {
+        paperhash: note.content.paperhash.value,
+      })
 
       const otherNoteVersions = orderBy(
         result.notes.flatMap((p) => {

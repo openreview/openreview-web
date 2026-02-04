@@ -179,12 +179,7 @@ const addMissingReaders = (
   return readersSelected
 }
 
-export const getNoteReaderValues = async (
-  roleNames,
-  invitation,
-  noteEditorData,
-  accessToken
-) => {
+export const getNoteReaderValues = async (roleNames, invitation, noteEditorData) => {
   if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
     return undefined
   }
@@ -203,7 +198,7 @@ export const getNoteReaderValues = async (
         if (p.value) return p.value
         if (p.inGroup) {
           try {
-            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            const result = await api.get('/groups', { id: p.inGroup })
             return result.groups[0]?.members
           } catch (error) {
             return []
@@ -221,12 +216,7 @@ export const getNoteReaderValues = async (
   )
 }
 
-export const getEditReaderValues = async (
-  roleNames,
-  invitation,
-  noteEditorData,
-  accessToken
-) => {
+export const getEditReaderValues = async (roleNames, invitation, noteEditorData) => {
   if (Array.isArray(invitation.edit.readers)) return undefined
 
   const invitationEditReaderValues =
@@ -236,7 +226,7 @@ export const getEditReaderValues = async (
         if (p.value) return p.value
         if (p.inGroup) {
           try {
-            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            const result = await api.get('/groups', { id: p.inGroup })
             return result.groups[0]?.members
           } catch (error) {
             return []
@@ -267,7 +257,7 @@ const NoteEditor = ({
   customValidator,
   className,
 }) => {
-  const { user, isRefreshing, accessToken } = useUser()
+  const { user, isRefreshing } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
     noteReaders: false,
@@ -494,11 +484,10 @@ const NoteEditor = ({
       details: { invitation, writable: true },
     }
     try {
-      const result = await api.get(
-        '/notes',
-        { id: noteCreated.id, details: 'invitation,presentation,writable' },
-        { accessToken }
-      )
+      const result = await api.get('/notes', {
+        id: noteCreated.id,
+        details: 'invitation,presentation,writable',
+      })
       return result.notes?.[0] ? result.notes[0] : constructedNote
     } catch (error) {
       if (error.name === 'ForbiddenError') return constructedNote
@@ -526,9 +515,9 @@ const NoteEditor = ({
           noteOrEdit = note
           label = 'note'
         }
-        const latestNoteOrEdit = (
-          await api.get(apiPath, { id: noteOrEdit.id }, { accessToken })
-        )?.[`${label}s`]?.[0]
+        const latestNoteOrEdit = (await api.get(apiPath, { id: noteOrEdit.id }))?.[
+          `${label}s`
+        ]?.[0]
 
         if (latestNoteOrEdit?.tmdate && latestNoteOrEdit.tmdate !== noteOrEdit.tmdate) {
           throw new Error(
@@ -540,7 +529,7 @@ const NoteEditor = ({
       const domainGroup =
         !invitation.domain || invitation.domain === process.env.SUPER_USER
           ? {}
-          : await api.get('/groups', { id: invitation.domain }, { accessToken })
+          : await api.get('/groups', { id: invitation.domain })
       const {
         reviewers_name: { value: reviewerName } = {},
         reviewers_anon_name: { value: anonReviewerName } = {},
@@ -563,18 +552,8 @@ const NoteEditor = ({
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
-        noteReaderValues: await getNoteReaderValues(
-          roleNames,
-          invitation,
-          noteEditorData,
-          accessToken
-        ),
-        editReaderValues: await getEditReaderValues(
-          roleNames,
-          invitation,
-          noteEditorData,
-          accessToken
-        ),
+        noteReaderValues: await getNoteReaderValues(roleNames, invitation, noteEditorData),
+        editReaderValues: await getEditReaderValues(roleNames, invitation, noteEditorData),
         editWriterValues: getEditWriterValues(),
         ...(replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,
@@ -603,7 +582,7 @@ const NoteEditor = ({
             invitationObj: invitation,
             noteObj: note,
           })
-      const result = await api.post('/notes/edits', editToPost, { accessToken })
+      const result = await api.post('/notes/edits', editToPost)
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })

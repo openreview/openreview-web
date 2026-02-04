@@ -21,12 +21,12 @@ import LoadingSpinner from '../../../components/LoadingSpinner'
 export default function GroupInfo({ id, query }) {
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
-  const { accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
 
   const loadGroup = async () => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get('/groups', { id })
       if (groups?.length > 0) {
         setGroup(groups[0])
       } else {
@@ -34,7 +34,7 @@ export default function GroupInfo({ id, query }) {
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        if (!accessToken) {
+        if (!user) {
           router.replace(`/login?redirect=/group/info?${encodeURIComponent(stringify(query))}`)
         } else {
           setError("You don't have permission to read this group")
@@ -73,11 +73,11 @@ export default function GroupInfo({ id, query }) {
 
           <GroupMembersInfo group={group} />
 
-          <GroupSignedNotes group={group} accessToken={accessToken} />
+          <GroupSignedNotes group={group} />
 
-          <GroupChildGroups groupId={group.id} accessToken={accessToken} />
+          <GroupChildGroups groupId={group.id} />
 
-          <GroupRelatedInvitations group={group} accessToken={accessToken} />
+          <GroupRelatedInvitations group={group} />
         </div>
       </div>
     </CommonLayout>

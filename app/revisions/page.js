@@ -18,7 +18,7 @@ function Page() {
   const searchParams = useSearchParams()
   const [note, setNote] = useState(null)
   const [error, setError] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
 
   const loadNote = async (noteId) => {
     try {
@@ -51,9 +51,9 @@ function Page() {
     <CommonLayout banner={<Banner>{forumLink(note)}</Banner>}>
       <div className={`${styles.revisions} revisions`}>
         {note.version === 2 ? (
-          <Revisions parentNote={note} accessToken={accessToken} />
+          <Revisions parentNote={note} user={user} />
         ) : (
-          <V1Revisions parentNoteId={note.id} user={user} accessToken={accessToken} />
+          <V1Revisions parentNoteId={note.id} user={user} />
         )}
       </div>
     </CommonLayout>
