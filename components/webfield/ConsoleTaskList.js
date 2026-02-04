@@ -1,12 +1,11 @@
 /* globals promptError: false */
-import { useContext, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import TaskList from '../TaskList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { formatTasksData } from '../../lib/utils'
 import { filterAssignedInvitations } from '../../lib/webfield-utils'
 import LoadingSpinner from '../LoadingSpinner'
-import WebFieldContext from '../WebFieldContext'
 
 const ConsoleTaskList = ({
   venueId,
@@ -15,14 +14,14 @@ const ConsoleTaskList = ({
   filterAssignedInvitation = false,
   submissionName,
   submissionNumbers,
+  registrationFormInvitations = [],
 }) => {
   const { accessToken } = useUser()
-  const { registrationFormDomainMap = {} } = useContext(WebFieldContext)
   const [invitations, setInvitations] = useState(null)
 
   const loadInvitations = async () => {
     try {
-      const [noteInvitations, edgeInvitations, tagInvitations] = await Promise.all([
+      let allInvitations = await Promise.all([
         api.getAll(
           '/invitations',
           {
@@ -57,65 +56,84 @@ const ConsoleTaskList = ({
           },
           { accessToken }
         ),
-      ])
+      ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
+        noteInvitations
+          .map((inv) => ({ ...inv, noteInvitation: true }))
+          .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+          .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+      )
 
-      let allInvitations = noteInvitations
-        .map((inv) => ({ ...inv, noteInvitation: true }))
-        .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
-        .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+      // If registrationFormInvitations is specified, filter out matching invitations
+      // from domain query and use the ones from props instead
+      if (registrationFormInvitations.length > 0) {
+        // Get suffixes from prop invitation IDs (e.g., 'Registration' from '.../-/Registration')
+        const propSuffixes = registrationFormInvitations.map((id) => id.split('/-/').pop())
 
-      const domainInvitationMap = {} // { domain: [invitation IDs] }
-      const invitationsToReplace = new Set()
+        // Filter out invitations that match the prop suffixes or end with _Form, _Request, _Agreement
+        allInvitations = allInvitations.filter((inv) => {
+          const invSuffix = inv.id.split('/-/').pop() || ''
+          return (
+            !propSuffixes.includes(invSuffix)
+          )
+        })
 
-      // Match invitations to their mapped domains if they exist
-      noteInvitations.forEach((inv) => {
-        const matchedSuffix = Object.keys(registrationFormDomainMap).find((suffix) =>
-          inv.id.endsWith(suffix.replace('_Form', ''))
+        // Fetch the registration invitations (users CAN read these)
+        const regInvitations = await Promise.all(
+          registrationFormInvitations.map((invitationId) =>
+            api
+              .get(
+                '/invitations',
+                {
+                  id: invitationId,
+                  invitee: true,
+                  duedate: true,
+                  replyto: true,
+                  type: 'note',
+                  details: 'replytoNote,repliedNotes,repliedEdits',
+                },
+                { accessToken }
+              )
+              .then((result) => result.invitations?.[0])
+              .catch(() => null)
+          )
         )
-        if (matchedSuffix) {
-          const targetDomain = registrationFormDomainMap[matchedSuffix]
-          if (targetDomain !== venueId) {
-            if (!domainInvitationMap[targetDomain]) {
-              domainInvitationMap[targetDomain] = []
-            }
-            domainInvitationMap[targetDomain].push(inv.id.replace(venueId, targetDomain))
-            invitationsToReplace.add(inv.id)
-          }
-        }
-      })
 
-      const replacementInvitations = []
-      for (const [domain, invitationIds] of Object.entries(domainInvitationMap)) {
-        const [domainNoteInvitations] =
-          await Promise.all([
-            api.getAll(
-              '/invitations',
-              {
-                ids: invitationIds.join(','),
-                domain,
-                invitee: true,
-                duedate: true,
-                replyto: true,
-                type: 'note',
-                details: 'replytoNote,repliedNotes,repliedEdits',
+        // Fetch form notes (append _Form to invitation ID) to check completion
+        // Users CAN read notes even though they CANNOT read _Form invitations
+        const formNotesResults = await Promise.all(
+          registrationFormInvitations.map((invitationId) =>
+            api
+              .getAll(
+                '/notes',
+                {
+                  invitation: `${invitationId}_Form`,
+                  select: 'id',
+                },
+                { accessToken }
+              )
+              .catch(() => [])
+          )
+        )
+
+        // Add registration invitations with replytoNote from form notes
+        const regFormInvitations = regInvitations
+          .filter(Boolean)
+          .map((inv, index) => {
+            const formNotes = formNotesResults[index] || []
+            const formNote = formNotes[0]
+            return {
+              ...inv,
+              noteInvitation: true,
+              // Set replytoNote so the task list knows where to link
+              details: {
+                ...inv.details,
+                replytoNote: formNote ? { id: formNote.id, forum: formNote.id } : inv.details?.replytoNote,
               },
-              { accessToken }
-            ),
-          ])
-        replacementInvitations.push(
-          ...domainNoteInvitations.map((inv) => ({ ...inv, noteInvitation: true })),
-        )
-      }
+            }
+          })
 
-      // Remove invitations that need to come from a mapped domain and add replacements
-      allInvitations = allInvitations.filter((inv) => {
-        if (invitationsToReplace.has(inv.id)) {
-          return false
-        }
-        return true
-      })
-      // Add replacement invitations
-      allInvitations.push(...replacementInvitations)
+        allInvitations = allInvitations.concat(regFormInvitations)
+      }
 
       allInvitations = allInvitations.filter((p) =>
         filterAssignedInvitation
@@ -133,7 +151,7 @@ const ConsoleTaskList = ({
   useEffect(() => {
     setInvitations(null)
     loadInvitations()
-  }, [venueId, accessToken])
+  }, [venueId, accessToken, registrationFormInvitations])
 
   if (!invitations) return <LoadingSpinner />
 

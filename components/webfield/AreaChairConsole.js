@@ -116,6 +116,7 @@ const AreaChairConsoleTasks = ({
   areaChairName,
   defaultAreaChairName = areaChairName,
 }) => {
+  const { registrationFormInvitations = [] } = useContext(WebFieldContext)
   const areaChairUrlFormat = areaChairName ? getRoleHashFragment(areaChairName) : null
   const referrer = encodeURIComponent(
     `[${prettyField(
@@ -129,6 +130,7 @@ const AreaChairConsoleTasks = ({
       roleName={areaChairName}
       filterAssignedInvitation={true}
       referrer={referrer}
+      registrationFormInvitations={registrationFormInvitations}
     />
   )
 }
