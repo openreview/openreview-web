@@ -326,7 +326,7 @@ describe('AreaChairConsole', () => {
       expect(global.marked).toHaveBeenCalledWith(
         // senior@AC.two won't be shown because can't get the profile
         expect.stringContaining(
-          'Your assigned Area Chair is <a href="/profile?id=~Senior_AC1" >Senior AC</a>'
+          'Your assigned Area Chair is <a href="/profile?id=~Senior_AC1" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>'
         )
       )
     })
@@ -432,7 +432,7 @@ describe('AreaChairConsole', () => {
     await waitFor(() => {
       expect(global.marked).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a>(senior@ac.1) and <a href="/profile?id=~Senior_AC2" >Senior AC</a>(senior@ac.2)'
+          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>(senior@ac.1) and <a href="/profile?id=~Senior_AC2" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>(senior@ac.2)'
         )
       )
     })
@@ -1373,7 +1373,7 @@ describe('AreaChairConsole', () => {
     await waitFor(() => {
       expect(global.marked).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" >Senior AC</a> and <a href="/profile?id=~Senior_AC2" >Senior AC</a>'
+          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a> and <a href="/profile?id=~Senior_AC2" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>'
         )
       )
       expect(screen.getByRole('button', { name: 'Export' })).toBeVisible()
