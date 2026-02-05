@@ -22,7 +22,7 @@ function Page() {
 
   const loadNote = async (noteId) => {
     try {
-      const noteResult = await api.getNoteById(noteId, accessToken, {
+      const noteResult = await api.getNoteById(noteId, null, {
         details: 'writable,forumContent',
         trash: true,
       })
