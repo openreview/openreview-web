@@ -304,18 +304,8 @@ describe('NewNoteReaders', () => {
 
     await waitFor(() => {
       expect(getGroups).toHaveBeenCalledTimes(2)
-      expect(getGroups).toHaveBeenNthCalledWith(
-        1,
-        expect.anything(),
-        { prefix: 'regex1.*' },
-        expect.anything()
-      )
-      expect(getGroups).toHaveBeenNthCalledWith(
-        2,
-        expect.anything(),
-        { prefix: 'regex2.*' },
-        expect.anything()
-      )
+      expect(getGroups).toHaveBeenNthCalledWith(1, expect.anything(), { prefix: 'regex1.*' })
+      expect(getGroups).toHaveBeenNthCalledWith(2, expect.anything(), { prefix: 'regex2.*' })
     })
   })
 
@@ -406,18 +396,8 @@ describe('NewNoteReaders', () => {
 
     await waitFor(() => {
       expect(getGroups).toHaveBeenCalledTimes(2)
-      expect(getGroups).toHaveBeenNthCalledWith(
-        1,
-        expect.anything(),
-        { prefix: 'regex1.*' },
-        expect.anything()
-      )
-      expect(getGroups).toHaveBeenNthCalledWith(
-        2,
-        expect.anything(),
-        { prefix: 'regex2' },
-        expect.anything()
-      )
+      expect(getGroups).toHaveBeenNthCalledWith(1, expect.anything(), { prefix: 'regex1.*' })
+      expect(getGroups).toHaveBeenNthCalledWith(2, expect.anything(), { prefix: 'regex2' })
     })
   })
 
@@ -2271,14 +2251,12 @@ describe('NewReplyEditNoteReaders', () => {
       expect(getGroups).toHaveBeenNthCalledWith(
         1,
         expect.anything(),
-        expect.objectContaining({ prefix: 'regex2.*' }),
-        expect.anything()
+        expect.objectContaining({ prefix: 'regex2.*' })
       )
       expect(getGroups).toHaveBeenNthCalledWith(
         2,
         expect.anything(),
-        expect.objectContaining({ prefix: 'regex3' }),
-        expect.anything()
+        expect.objectContaining({ prefix: 'regex3' })
       )
       expect(promptError).toHaveBeenCalledWith('You do not have permission to create a note')
       expect(closeNoteEditor).toHaveBeenCalled()

@@ -23,7 +23,7 @@ const InvitationEditor = ({
   isGroupInvitation = false,
   group,
 }) => {
-  const { user, isRefreshing, accessToken } = useUser()
+  const { user, isRefreshing } = useUser()
   const [errors, setErrors] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -129,9 +129,7 @@ const InvitationEditor = ({
         editToPost.invitation = undefined
       }
 
-      await api.post(isGroupInvitation ? '/groups/edits' : '/invitations/edits', editToPost, {
-        accessToken,
-      })
+      await api.post(isGroupInvitation ? '/groups/edits' : '/invitations/edits', editToPost)
       onInvitationEditPosted?.()
       closeInvitationEditor()
     } catch (error) {

@@ -49,7 +49,7 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
   })
 }
 
-export default function Compare({ query, accessToken }) {
+export default function Compare({ query }) {
   const [references, setReferences] = useState(null)
   const [viewerUrl, setViewerUrl] = useState(null)
   const { id, left, right } = query
@@ -66,7 +66,7 @@ export default function Compare({ query, accessToken }) {
             leftId: left,
             rightId: right,
           },
-          { accessToken, version: 2 }
+          { version: 2 }
         )
         .then((result) => {
           const { leftNote, rightNote } = result
@@ -74,11 +74,7 @@ export default function Compare({ query, accessToken }) {
           setViewerUrl(result.viewerUrl)
         })
         .catch(async (_) => {
-          const editsResponse = await api.get(
-            '/notes/edits',
-            { 'note.id': id, trash: true },
-            { accessToken }
-          )
+          const editsResponse = await api.get('/notes/edits', { 'note.id': id, trash: true })
 
           if (editsResponse.edits?.length <= 1) throw new Error('Reference not found')
           const leftEdit = editsResponse.edits.find((edit) => edit.id === query.left)

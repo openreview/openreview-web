@@ -42,7 +42,7 @@ export default function Column(props) {
   const colBodyEl = useRef(null)
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
-  const { accessToken, user } = useUser()
+  const { user } = useUser()
   const query = useSearchParams()
 
   const sortOptions = [
@@ -553,7 +553,6 @@ export default function Column(props) {
             '/edges',
             { ...apiQuery, ...(version === 2 && { domain: invitation.domain }) },
             {
-              accessToken,
               version,
               ...(isCountQuery && { resultsKey: 'groupedEdges' }),
             }
@@ -689,7 +688,6 @@ export default function Column(props) {
           '/edges',
           { ...apiQuery, ...(version === 2 && { domain: startInvitation.domain }) },
           {
-            accessToken,
             version,
           }
         )

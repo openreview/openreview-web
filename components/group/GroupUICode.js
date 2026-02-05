@@ -16,7 +16,7 @@ const CodeEditor = dynamic(() => import('../CodeEditor'), {
   loading: () => <LoadingSpinner inline />,
 })
 
-const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
+const GroupUICode = ({ group, profileId, reloadGroup }) => {
   const [showCodeEditor, setShowCodeEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [modifiedWebCode, setModifiedWebCode] = useState(group.web)
@@ -39,13 +39,13 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
           signatures: [profileId],
           invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
         }
-        await api.post('/groups/edits', requestBody, { accessToken })
+        await api.post('/groups/edits', requestBody)
       } else {
         const groupToPost = {
           ...group,
           web: modifiedWebCode.trim() ? modifiedWebCode.trim() : null,
         }
-        await api.post('/groups', groupToPost, { accessToken, version: 1 })
+        await api.post('/groups', groupToPost, { version: 1 })
       }
       promptMessage(`UI code for ${group.id} has been updated`)
       setShowCodeEditor(false)
@@ -63,8 +63,7 @@ const GroupUICode = ({ group, profileId, accessToken, reloadGroup }) => {
         { ...group, web: modifiedWebCode },
         group.details.domain,
         user,
-        {},
-        accessToken
+        {}
       )
     } catch (error) {
       // eslint-disable-next-line react/display-name

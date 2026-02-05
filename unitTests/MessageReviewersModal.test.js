@@ -270,8 +270,7 @@ describe('MessageReviewersModal', () => {
             'TestVenue/Submission1/Reviewer_QWER',
             'TestVenue/Submission1/Reviewer_XXYY',
           ],
-        }),
-        expect.anything()
+        })
       )
       expect(api.post).toHaveBeenNthCalledWith(
         // message for submission 2
@@ -282,8 +281,7 @@ describe('MessageReviewersModal', () => {
             'TestVenue/Submission2/Reviewer_DCBA',
             'TestVenue/Submission2/Reviewer_RRSS',
           ],
-        }),
-        expect.anything()
+        })
       )
     })
   })
@@ -410,8 +408,7 @@ describe('MessageReviewersModal', () => {
           groups: ['authorId1', 'authorId2', 'author@three.email'],
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper1/Authors',
-        }),
-        expect.anything()
+        })
       )
       expect(api.post).toHaveBeenNthCalledWith(
         2,
@@ -420,8 +417,7 @@ describe('MessageReviewersModal', () => {
           groups: ['authorId4', 'author@five.email'],
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper2/Authors',
-        }),
-        expect.anything()
+        })
       )
     })
   })
@@ -512,8 +508,7 @@ describe('MessageReviewersModal', () => {
           groups: ['~Test_SAC1', '~Test_SAC2'],
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper1/Senior_Area_Chairs',
-        }),
-        expect.anything()
+        })
       )
       expect(api.post).toHaveBeenNthCalledWith(
         2,
@@ -522,8 +517,7 @@ describe('MessageReviewersModal', () => {
           groups: ['~Test_SAC1', '~Test_SAC3'],
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper2/Senior_Area_Chairs',
-        }),
-        expect.anything()
+        })
       )
     })
   })
@@ -617,8 +611,7 @@ describe('MessageReviewersModal', () => {
           groups: ['~Test_AC1', '~Test_AC2'],
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper1/Senior_Program_Committee',
-        }),
-        expect.anything()
+        })
       )
       expect(api.post).toHaveBeenNthCalledWith(
         2,
@@ -627,8 +620,7 @@ describe('MessageReviewersModal', () => {
           groups: ['~Test_AC1', '~Test_AC3'],
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper2/Senior_Program_Committee',
-        }),
-        expect.anything()
+        })
       )
     })
   })
@@ -726,8 +718,7 @@ describe('MessageReviewersModal', () => {
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper1/Senior_Program_Committee',
           invitation: 'TestVenue/Paper1/Secondary_Area_Chairs/-/Message',
-        }),
-        expect.anything()
+        })
       )
       expect(api.post).toHaveBeenNthCalledWith(
         2,
@@ -737,8 +728,7 @@ describe('MessageReviewersModal', () => {
           replyTo: 'email@program.chairs',
           parentGroup: 'testVenue/Paper2/Senior_Program_Committee',
           invitation: 'TestVenue/Paper2/Secondary_Area_Chairs/-/Message',
-        }),
-        expect.anything()
+        })
       )
     })
   })

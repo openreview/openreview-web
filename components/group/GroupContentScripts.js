@@ -9,7 +9,7 @@ import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import { prettyField } from '../../lib/utils'
 
-export default function GroupContentScripts({ group, profileId, accessToken, reloadGroup }) {
+export default function GroupContentScripts({ group, profileId, reloadGroup }) {
   const contentScripts = Object.keys(group.content ?? {}).filter(
     (key) => key.endsWith('_script') && typeof group.content[key].value === 'string'
   )
@@ -35,7 +35,6 @@ export default function GroupContentScripts({ group, profileId, accessToken, rel
                 group={group}
                 fieldName={fieldName}
                 profileId={profileId}
-                accessToken={accessToken}
                 reloadGroup={reloadGroup}
               />
             </TabPanel>
@@ -46,7 +45,7 @@ export default function GroupContentScripts({ group, profileId, accessToken, rel
   )
 }
 
-function GroupCodeEditor({ group, fieldName, profileId, accessToken, reloadGroup }) {
+function GroupCodeEditor({ group, fieldName, profileId, reloadGroup }) {
   const [code, setCode] = useState(group.content[fieldName].value || '')
   const [isSaving, setIsSaving] = useState(false)
 
@@ -66,7 +65,7 @@ function GroupCodeEditor({ group, fieldName, profileId, accessToken, reloadGroup
         signatures: [profileId],
         invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
       }
-      await api.post('/groups/edits', requestBody, { accessToken })
+      await api.post('/groups/edits', requestBody)
       promptMessage(`Content object for ${group.id} has been updated`)
       reloadGroup()
     } catch (error) {
