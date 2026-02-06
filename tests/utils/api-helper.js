@@ -52,19 +52,23 @@ export const mergeUser = {
 // #endregion
 
 export async function setupRegister(superUserToken) {
+  console.log('Setting up users...')
   // create inactive user
   await createUser(inactiveUser)
+  console.log('Inactive user created')
   await createProfile(
     inActiveUserNoPassword.fullname,
     inActiveUserNoPassword.email,
     inActiveUserNoPassword.tildeId,
     superUserToken
   )
+  console.log('Inactive user with no password created')
   await createEmptyProfile(
     inActiveUserNoPasswordNoEmail.fullname,
     inActiveUserNoPasswordNoEmail.tildeId,
     superUserToken
   )
+  console.log('Inactive user with no password and no email created')
 }
 
 // #region API helper functions
@@ -92,12 +96,12 @@ export function sendFile(data, userToken) {
   return api.put('/attachment', data, {
     accessToken: userToken,
     contentType: 'unset',
-    version: 1,
+    version: 2,
   })
 }
 
 export function getToken(id, password) {
-  return api.post('/login', { id, password }).then((apiRes) => apiRes.token)
+  return api.post('/login', { id, password }, { version: 2 }).then((apiRes) => apiRes.token)
 }
 
 export function addMembersToGroup(groupId, membersList, userToken, version) {

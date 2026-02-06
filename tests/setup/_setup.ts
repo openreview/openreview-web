@@ -17,6 +17,7 @@ import {
   superUserName,
   strongPassword,
 } from '../utils/api-helper'
+import api from '../../lib/api-client'
 
 const waitForJobs = (noteId, superUserToken, count = 1) =>
   new Promise((resolve, reject) => {
@@ -43,6 +44,7 @@ const waitForJobs = (noteId, superUserToken, count = 1) =>
 fixture`Set up test data`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
   await setupRegister(ctx.superUserToken)
+  console.log('Users set up completed')
   await createUser({
     fullname: 'SomeFirstName User',
     email: 'test@mail.com',
@@ -71,6 +73,7 @@ fixture`Set up test data`.before(async (ctx) => {
 })
 
 test('Set up TestVenue', async (t) => {
+  console.log('Setting up TestVenue...')
   const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
   const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
     }/${submissionDate.getDate()}`
@@ -152,6 +155,7 @@ test('Set up TestVenue', async (t) => {
         authors: { value: ['FirstA LastA'] },
         authorids: { value: [hasTaskUserTildeId] },
         abstract: { value: 'test abstract' },
+        keywords: { value: ['keyword1', 'keyword2'] },
         pdf: { value: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
       },
     },
@@ -244,6 +248,7 @@ test('Set up AnotherTestVenue', async (t) => {
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
       'publication_chairs': 'No, our venue does not have Publication Chairs',
+      api_version: '2',
       submission_license: ['CC BY 4.0'],
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
@@ -275,25 +280,37 @@ test('Set up AnotherTestVenue', async (t) => {
 
   const hasTaskUserToken = await getToken(hasTaskUser.email, hasTaskUser.password)
 
-  const noteJson = {
-    content: {
-      title: 'this is á "paper" title',
-      authors: ['FirstA LastA', 'Melisa Bok'],
-      authorids: ['~FirstA_LastA1', 'bok@mail.com'],
-      abstract: 'The abstract of test paper 1',
-      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
-    },
-    readers: [`Another${conferenceGroupId}`, '~FirstA_LastA1'],
-    nonreaders: [],
-    signatures: ['~FirstA_LastA1'],
-    writers: [`Another${conferenceGroupId}`, '~FirstA_LastA1'],
+  const editJson = {
     invitation: `Another${conferenceSubmissionInvitationId}`,
-    ddate: undefined,
+    signatures: ['~FirstA_LastA1'],
+    note: {
+      content: {
+        title: { value: 'this is á "paper" title' },
+        authors: { value: ['FirstA LastA', 'Melisa Bok'] },
+        authorids: { value: ['~FirstA_LastA1', 'bok@mail.com'] },
+        abstract: { value: 'The abstract of test paper 1' },
+        keywords: { value: ['keyword1', 'keyword2'] },
+        pdf: { value: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
+      },
+    },
   }
-  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+  const { id: noteId } = await createNoteEdit(editJson, hasTaskUserToken)
 
-  noteJson.ddate = Date.now()
-  const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
+  const deleteEditJson = {
+    invitation: `Another${conferenceSubmissionInvitationId}`,
+    signatures: ['~FirstA_LastA1'],
+    note: {
+      ddate: Date.now(),
+      content: {
+        title: { value: 'this is á "paper" title' },
+        authors: { value: ['FirstA LastA', 'Melisa Bok'] },
+        authorids: { value: ['~FirstA_LastA1', 'bok@mail.com'] },
+        abstract: { value: 'The abstract of test paper 1' },
+        pdf: { value: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
+      },
+    },
+  }
+  const { id: deletedNoteId } = await createNoteEdit(deleteEditJson, hasTaskUserToken)
 
   const postSubmissionJson = {
     content: {
