@@ -107,6 +107,7 @@ test('Set up TestVenue', async (t) => {
       'Expected Submissions': '6000',
       'publication_chairs': 'No, our venue does not have Publication Chairs',
       submission_license: ['CC BY 4.0'],
+      api_version: '2',
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
         'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
@@ -142,21 +143,20 @@ test('Set up TestVenue', async (t) => {
   await createUser(mergeUser)
 
   // add a note
-  const noteJson = {
-    content: {
-      title: 'test title',
-      authors: ['FirstA LastA'],
-      authorids: [hasTaskUserTildeId],
-      abstract: 'test abstract',
-      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
-    },
-    readers: ['TestVenue/2020/Conference', hasTaskUserTildeId],
-    nonreaders: [],
-    signatures: [hasTaskUserTildeId],
-    writers: [conferenceGroupId, hasTaskUserTildeId],
+  const editJson = {
     invitation: conferenceSubmissionInvitationId,
+    signatures: [hasTaskUserTildeId],
+    note: {
+      content: {
+        title: { value: 'test title' },
+        authors: { value: ['FirstA LastA'] },
+        authorids: { value: [hasTaskUserTildeId] },
+        abstract: { value: 'test abstract' },
+        pdf: { value: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
+      },
+    },
   }
-  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+  const { id: noteId } = await createNoteEdit(editJson, hasTaskUserToken)
 
   const postSubmissionJson = {
     content: { force: 'Yes', submission_readers: 'Everyone (submissions are public)' },
@@ -389,20 +389,20 @@ test('Set up ICLR', async (t) => {
 
   const result = await sendFile(data, userToken)
 
-  const noteJson = {
+  const editJson = {
     invitation: 'ICLR.cc/2021/Conference/-/Submission',
-    content: {
-      title: 'ICLR submission title',
-      authors: ['FirstA LastA', 'Another Author'],
-      authorids: ['~FirstA_LastA1', 'another_author@mail.com'],
-      abstract: 'test iclr abstract abstract',
-      pdf: result.url,
-    },
-    readers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
     signatures: ['~FirstA_LastA1'],
-    writers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
+    note: {
+      content: {
+        title: { value: 'ICLR submission title' },
+        authors: { value: ['FirstA LastA', 'Another Author'] },
+        authorids: { value: ['~FirstA_LastA1', 'another_author@mail.com'] },
+        abstract: { value: 'test iclr abstract abstract' },
+        pdf: { value: result.url },
+      },
+    },
   }
-  const { id: noteId } = await createNote(noteJson, userToken)
+  const { id: noteId } = await createNoteEdit(editJson, userToken)
 
   await waitForJobs(noteId, superUserToken)
 
