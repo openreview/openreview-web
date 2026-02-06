@@ -72,6 +72,10 @@ export function createGroup(jsonToPost, userToken) {
   return api.post('/groups', jsonToPost, { accessToken: userToken, version: 1 })
 }
 
+export function createGroupEdit(jsonToPost, userToken) {
+  return api.post('/groups/edits', jsonToPost, { accessToken: userToken, version: 2 })
+}
+
 export function createInvitation(jsonToPost, userToken) {
   return api.post('/invitations', jsonToPost, { accessToken: userToken, version: 1 })
 }
@@ -131,7 +135,7 @@ export async function createUser({
     email,
     password,
     fullname,
-  })
+  }, { version: 2 })
 
   // activate
   const defaultHistory = {
@@ -169,7 +173,7 @@ export async function createUser({
     },
   }
   if (activate) {
-    return api.put(`/activate/${email}`, activateJson)
+    return api.put(`/activate/${email}`, activateJson, { version: 2 })
   }
   return null
 }
@@ -178,33 +182,31 @@ export async function createProfile(fullname, email, tildeId, superUserToken) {
   // post tilde group
   const tildeGroupJson = {
     id: tildeId,
-    cdate: null,
-    ddate: null,
     signatures: ['openreview.net'],
     writers: ['openreview.net'],
     members: [email],
     readers: [tildeId],
-    nonreaders: null,
     signatories: [tildeId],
-    web: null,
-    details: null,
   }
-  await createGroup(tildeGroupJson, superUserToken)
+  await createGroupEdit({
+        invitation: 'openreview.net/-/Edit',
+        signatures: ['~Super_User1'],
+        group: tildeGroupJson,
+      }, superUserToken)
   // post email group
   const emailGroupJson = {
     id: email,
-    cdate: null,
-    ddate: null,
     signatures: ['openreview.net'],
     writers: ['openreview.net'],
     members: [tildeId],
     readers: [email],
-    nonreaders: null,
     signatories: [email],
-    web: null,
-    details: null,
   }
-  await createGroup(emailGroupJson, superUserToken)
+  await createGroupEdit({
+        invitation: 'openreview.net/-/Edit',
+        signatures: ['~Super_User1'],
+        group: emailGroupJson,
+      }, superUserToken)
   // post profile
   const profileJson = {
     id: tildeId,
@@ -235,25 +237,24 @@ export async function createProfile(fullname, email, tildeId, superUserToken) {
       ],
     },
   }
-  await api.post('/profiles', profileJson, { accessToken: superUserToken })
+  await api.post('/profiles', profileJson, { accessToken: superUserToken, version: 2 })
 }
 
 export async function createEmptyProfile(fullname, tildeId, superUserToken) {
   // post tilde group
   const tildeGroupJson = {
     id: tildeId,
-    cdate: null,
-    ddate: null,
     signatures: ['openreview.net'],
     writers: ['openreview.net'],
     members: [],
     readers: [tildeId],
-    nonreaders: null,
     signatories: [tildeId],
-    web: null,
-    details: null,
   }
-  await createGroup(tildeGroupJson, superUserToken)
+  await createGroupEdit({
+        invitation: 'openreview.net/-/Edit',
+        signatures: ['~Super_User1'],
+        group: tildeGroupJson,
+      }, superUserToken)
   // post profile
   const profileJson = {
     id: tildeId,
@@ -282,7 +283,7 @@ export async function createEmptyProfile(fullname, tildeId, superUserToken) {
       ],
     },
   }
-  await api.post('/profiles', profileJson, { accessToken: superUserToken })
+  await api.post('/profiles', profileJson, { accessToken: superUserToken, version: 2 })
 }
 // #endregion
 

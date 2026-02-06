@@ -201,7 +201,8 @@ test('Set up TestVenue', async (t) => {
   await addMembersToGroup(
     'TestVenue/2020/Conference/Paper1/Reviewers',
     [hasTaskUserTildeId],
-    superUserToken
+    superUserToken,
+    2
   )
 })
 
@@ -439,7 +440,8 @@ test('Set up ICLR', async (t) => {
   await addMembersToGroup(
     'ICLR.cc/2021/Conference/Reviewers',
     ['reviewer_iclr@mail.com'],
-    superUserToken
+    superUserToken,
+    2
   )
 })
 
