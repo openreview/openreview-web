@@ -8,10 +8,10 @@ import useTurnstileToken from '../../hooks/useTurnstileToken'
 import { isValidEmail } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
 
-const ResetForm = ({ setEmailSent }) => {
+export const ResetForm = ({ setEmailSent, user }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
-  const { user } = useUser(true)
+
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('reset')
 
   useEffect(() => {
@@ -26,7 +26,7 @@ const ResetForm = ({ setEmailSent }) => {
 
     try {
       const apiRes = await api.post('/resettable', { id: email, token: turnstileToken })
-      setEmailSent(apiRes.id)
+      setEmailSent?.(apiRes.id)
     } catch (apiError) {
       setError(apiError)
       promptError(apiError.message)
@@ -61,6 +61,7 @@ const ResetForm = ({ setEmailSent }) => {
 
 export default function Reset() {
   const [emailSent, setEmailSent] = useState('')
+  const { user } = useUser(true)
 
   return emailSent ? (
     <Alert color="success">
@@ -71,10 +72,12 @@ export default function Reset() {
     </Alert>
   ) : (
     <>
-      <p className="text-muted">
-        Enter your email address below and we&apos;ll send you a link to reset your password.
-      </p>
-      <ResetForm setEmailSent={setEmailSent} />
+      {!user && (
+        <p className="text-muted">
+          Enter your email address below and we&apos;ll send you a link to reset your password.
+        </p>
+      )}
+      <ResetForm setEmailSent={setEmailSent} user={user} />
     </>
   )
 }

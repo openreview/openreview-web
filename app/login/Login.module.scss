@@ -47,5 +47,46 @@
         width: 120px;
       }
     }
+
+    #login-mfa-modal {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+
+      &:not(.in) {
+        pointer-events: none;
+      }
+
+      .modal-dialog {
+        margin: 0;
+        width: auto;
+      }
+
+      .modal-content {
+        border-radius: 4px;
+        padding: 0.5rem;
+      }
+    }
+  }
+}
+
+.totpContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  width: fit-content;
+
+  .rememberDeviceContainer {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+
+    label {
+      margin-left: 0.5rem;
+      margin-bottom: 0;
+      color: constants.$darkBlue;
+    }
   }
 }
