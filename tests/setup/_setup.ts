@@ -44,7 +44,6 @@ const waitForJobs = (noteId, superUserToken, count = 1) =>
 fixture`Set up test data`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
   await setupRegister(ctx.superUserToken)
-  console.log('Users set up completed')
   await createUser({
     fullname: 'SomeFirstName User',
     email: 'test@mail.com',
@@ -73,7 +72,6 @@ fixture`Set up test data`.before(async (ctx) => {
 })
 
 test('Set up TestVenue', async (t) => {
-  console.log('Setting up TestVenue...')
   const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
   const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
     }/${submissionDate.getDate()}`
