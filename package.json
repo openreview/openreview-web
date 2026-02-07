@@ -33,6 +33,8 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@google-cloud/logging-winston": "^6.0.1",
     "@reduxjs/toolkit": "^2.5.0",
+    "@stripe/react-stripe-js": "^5.4.1",
+    "@stripe/stripe-js": "^8.6.1",
     "bootstrap": "^3.4.1",
     "codemirror": "^6.0.1",
     "copy-to-clipboard": "^3.3.3",

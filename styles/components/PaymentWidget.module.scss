@@ -1,0 +1,16 @@
+@use '../utils/constants';
+
+.paymentContainer {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 50%;
+  }
+}
+
+.paymentMethodDropdown {
+  margin-bottom: 0.25rem;
+}
+
+.paymentButton {
+  margin-top: 0.5rem;
+}
