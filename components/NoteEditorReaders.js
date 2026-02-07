@@ -538,6 +538,33 @@ export const NewReplyEditNoteReaders = ({
     }
   }
 
+  const getReadersWarning = () => {
+    if (isDirectReplyToForum) return null
+    if (!value) return null
+
+    const replyNoteSignature = replyToNote.signatures[0]
+    const signatureInValue = value.find((p) => {
+      if (p === replyNoteSignature || p === 'everyone') return true
+      const committeeName = p.split('/').pop()
+      const singularCommitteeName = committeeName.endsWith('s')
+        ? committeeName.slice(0, -1)
+        : committeeName
+
+      return (
+        replyNoteSignature.split('/').pop().startsWith(`${singularCommitteeName}_`) ||
+        (replyNoteSignature.endsWith(`/${committeeName}`) &&
+          replyNoteSignature.length > p.length)
+      )
+    })
+
+    if (!signatureInValue)
+      return { message: "This reply won't be visible to the parent note author" }
+    if (!isEqualOrSubset(replyToNote.readers, value)) {
+      return { message: "This reply won't be visible to all the readers of the parent note" }
+    }
+    return null
+  }
+
   useEffect(() => {
     if (isRefreshing || !user || !fieldDescription) return // not essentially an error
     if (Array.isArray(fieldDescription) || fieldDescription.param.const) {
@@ -561,7 +588,7 @@ export const NewReplyEditNoteReaders = ({
     <EditorComponentHeader
       fieldNameOverwrite="Readers"
       inline={true}
-      error={error}
+      error={error ?? getReadersWarning()}
       className={className}
     >
       {renderReaders()}
