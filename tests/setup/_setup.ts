@@ -162,6 +162,44 @@ test('Set up TestVenue', async (t) => {
   }
   const { id: noteId } = await createNoteEdit(editJson, hasTaskUserToken)
 
+  // close deadline
+  const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
+  const year = submissionCloseDate.getFullYear()
+  const month = `0${submissionCloseDate.getMonth() + 1}`.slice(-2)
+  const day = `0${submissionCloseDate.getDate()}`.slice(-2)
+  const hours = `0${submissionCloseDate.getHours()}`.slice(-2)
+  const minutes = `0${submissionCloseDate.getMinutes()}`.slice(-2)
+  const submissionCloseDateString = `${year}/${month}/${day} ${hours}:${minutes}`
+  const editVenueJson = {
+    content: {
+      title: 'Test Venue Conference',
+      'Official Venue Name': 'Test Venue Conference',
+      'Abbreviated Venue Name': 'Test Venue',
+      'Official Website URL': 'https://testvenue.cc',
+      program_chair_emails: ['john@mail.com', 'tom@mail.com'],
+      contact_email: 'testvenue@mail.com',
+      'Venue Start Date': '2021/11/01',
+      'Submission Start Date': '2021/11/01',
+      'Submission Deadline': submissionCloseDateString,
+      Location: 'Virtual',
+      submission_reviewer_assignment: 'Automatic',
+      'Expected Submissions': '6000',
+      'publication_chairs': 'No, our venue does not have Publication Chairs',
+    },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Revision`,
+    readers: ['TestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['~Super_User1'],
+    writers: [],
+  }
+  const { id: referenceId } = await createNote(editVenueJson, superUserToken)
+
+  await waitForJobs(referenceId, superUserToken)
+  await waitForJobs('TestVenue/2020/Conference/-/Post_Submission-0-0', superUserToken)
+  await waitForJobs('TestVenue/2020/Conference/Reviewers/-/Submission_Group-0-0', superUserToken)
+
   const postSubmissionJson = {
     content: { force: 'Yes', submission_readers: 'Everyone (submissions are public)' },
     forum: requestForumId,
