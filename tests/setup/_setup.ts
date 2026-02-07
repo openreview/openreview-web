@@ -371,6 +371,7 @@ test('Set up ICLR', async (t) => {
       reviewer_identity: ['Program Chairs', 'Assigned Area Chair'],
       'publication_chairs': 'No, our venue does not have Publication Chairs',
       submission_license: ['CC BY 4.0'],
+      api_version: '2',
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
         'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',

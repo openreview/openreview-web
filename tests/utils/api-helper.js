@@ -320,9 +320,9 @@ export function getNoteEdits(params, token) {
 }
 
 export function getProcessLogs(id, token) {
-  return api.get('/logs/process', { id }, { accessToken: token }).then((result) => result.logs)
+  return api.get('/logs/process', { id }, { accessToken: token, version: 2 }).then((result) => result.logs)
 }
 
 export function getJobsStatus(token) {
-  return api.get('/jobs/status', {}, { accessToken: token, version: 1 })
+  return api.get('/jobs/status', {}, { accessToken: token, version: 2 })
 }
