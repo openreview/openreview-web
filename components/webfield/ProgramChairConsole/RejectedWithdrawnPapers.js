@@ -53,13 +53,29 @@ const RejectedWithdrawnPapers = ({ consoleData, isSacConsole = false }) => {
     deskRejectedNotes
       .map((p) => ({
         number: p.number,
-        note: p,
+        note: {
+          ...p,
+          ...(typeof p.content?.authors?.value === 'object' && {
+            authorSearchValue: p.content.authors.value.map((q) => ({
+              ...q,
+              type: 'authorObj',
+            })),
+          }),
+        },
         reason: 'Desk Rejected',
       }))
       .concat(
         withdrawnNotes.map((p) => ({
           number: p.number,
-          note: p,
+          note: {
+            ...p,
+            ...(typeof p.content?.authors?.value === 'object' && {
+              authorSearchValue: p.content.authors.value.map((q) => ({
+                ...q,
+                type: 'authorObj',
+              })),
+            }),
+          },
           reason: 'Withdrawn',
         }))
       )

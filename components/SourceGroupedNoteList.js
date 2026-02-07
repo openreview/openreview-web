@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import Note, { NoteV2 } from './Note'
 import { NoteAuthorsV2 } from './NoteAuthors'
-import { buildNoteTitle, buildNoteUrl, prettyId } from '../lib/utils'
+import {
+  buildNoteTitle,
+  buildNoteUrl,
+  getNoteAuthorIds,
+  getNoteAuthors,
+  prettyId,
+} from '../lib/utils'
 import ClientForumDate from './ClientForumDate'
 import Icon from './Icon'
 import NoteReaders from './NoteReaders'
@@ -11,6 +17,8 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
   const [noteToShow, setNoteToShow] = useState(notes[0])
   const { id, forum, content, invitations, readers, signatures } = noteToShow
   const privatelyRevealed = !noteToShow?.readers?.includes('everyone')
+  const authorIds = getNoteAuthorIds(noteToShow, true)
+  const authors = getNoteAuthors(noteToShow, true)
 
   const sources = [
     'DBLP.org/-/Record',
@@ -32,8 +40,8 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
       </h4>
       <div className="note-authors">
         <NoteAuthorsV2
-          authors={content?.authors}
-          authorIds={content?.authorids}
+          authors={authors}
+          authorIds={authorIds}
           signatures={signatures}
           noteReaders={readers}
         />
