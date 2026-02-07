@@ -1,0 +1,119 @@
+@use '../utils/constants';
+
+.multiFactorAuthenticationContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  .methodsContainer {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .method {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 1.5rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
+    max-width: 200px;
+    transition: box-shadow 0.2s ease;
+
+    &:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+
+    .methodHeader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      min-height: 3rem;
+      justify-content: flex-start;
+    }
+
+    .preferredMethodLabel {
+      font-size: 0.75rem;
+      background-color: #f0ad4e;
+      color: #fff;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+    }
+
+    .methodDescription {
+      word-wrap: break-word;
+      text-align: center;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+    }
+
+    .cardActions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+    }
+
+    :global(.glyphicon) {
+      font-size: 1.5rem;
+    }
+
+    &.enabled {
+      background-color: #dff0d8;
+      border-color: #d6e9c6;
+      color: #3c763d;
+
+      &:hover {
+        background-color: #d0e9c6;
+      }
+    }
+
+    &.disabled {
+      background-color: #f2dede;
+      border-color: #ebccd1;
+      color: #a94442;
+
+      &:hover {
+        background-color: #ebcccc;
+      }
+    }
+  }
+}
+
+.totpEditContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: constants.$sandyBrown;
+
+  align-items: flex-start;
+}
+
+.passkeyFormContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: flex-start;
+  width: 100%;
+}
+
+.addPasskeySection {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-top: 1px solid #ddd;
+  width: 100%;
+  background-color: constants.$sandyBrown;
+
+  input {
+    max-width: 50%;
+  }
+}

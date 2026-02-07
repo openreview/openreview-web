@@ -2,13 +2,14 @@
 
 /* globals promptError,promptMessage,$: false */
 import Link from 'next/link'
-import { useReducer } from 'react'
+import { useReducer, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
 import { isValidEmail, sanitizeRedirectUrl } from '../../lib/utils'
 import { setNotificationCount } from '../../notificationSlice'
 import { resetRefreshTokenStatus } from '../../lib/clientAuth'
+import LoginMFAModal from './LoginMFAModal'
 
 export default function LoginForm() {
   // eslint-disable-next-line no-use-before-define
@@ -18,6 +19,7 @@ export default function LoginForm() {
     loading: false,
     error: null,
   })
+  const [mfaStatus, setMfaStatus] = useState(null)
   const dispatch = useDispatch()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect')
@@ -58,17 +60,26 @@ export default function LoginForm() {
     }
   }
 
+  const completeLogin = () => {
+    resetRefreshTokenStatus()
+    dispatch(setNotificationCount(null))
+    window.location.replace(sanitizeRedirectUrl(redirect))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormState({ type: 'START_LOADING' })
     try {
-      await api.post('/login', {
+      const result = await api.post('/login', {
         id: formState.email,
         password: formState.password,
       })
-      resetRefreshTokenStatus()
-      dispatch(setNotificationCount(null))
-      window.location.replace(sanitizeRedirectUrl(redirect))
+      if (!result.mfaPending) {
+        completeLogin()
+      } else {
+        setMfaStatus(result)
+        $('#login-mfa-modal').modal('show')
+      }
     } catch (error) {
       setFormState({ type: 'HAS_ERROR' })
       promptError(error.message)
@@ -135,6 +146,11 @@ export default function LoginForm() {
           Didn&apos;t receive email confirmation?
         </a>
       </p>
+      <LoginMFAModal
+        mfaStatus={mfaStatus}
+        completeLogin={completeLogin}
+        setFormState={setFormState}
+      />
     </form>
   )
 }

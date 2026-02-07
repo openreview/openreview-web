@@ -11,6 +11,8 @@ import useUser from '../../../hooks/useUser'
 import LimitedStateAlert from './LimitedStateAlert'
 import styles from './Edit.module.scss'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../../components/Tabs'
+import ProfilePasswordSecurity from './ProfilePasswordSecurity'
 
 export default function Page() {
   const [profile, setProfile] = useState(null)
@@ -150,17 +152,32 @@ export default function Page() {
   return (
     <div className={styles.edit}>
       <LimitedStateAlert profile={profile} />
-      <header>
-        <h1>Edit Profile</h1>
-      </header>
-      <ProfileEditor
-        loadedProfile={profile}
-        submitHandler={saveProfile}
-        cancelHandler={() => router.push('/profile')}
-        loading={loading}
-        saveProfileErrors={saveProfileErrors}
-        loadProfile={loadProfile}
-      />
+      <Tabs>
+        <TabList>
+          <Tab id="profile-info">Profile Info</Tab>
+          <Tab id="password-security" active>
+            Password and Security
+          </Tab>
+        </TabList>
+        <TabPanels>
+          <TabPanel id="profile-info">
+            <header>
+              <h1>Edit Profile</h1>
+            </header>
+            <ProfileEditor
+              loadedProfile={profile}
+              submitHandler={saveProfile}
+              cancelHandler={() => router.push('/profile')}
+              loading={loading}
+              saveProfileErrors={saveProfileErrors}
+              loadProfile={loadProfile}
+            />
+          </TabPanel>
+          <TabPanel id="password-security">
+            <ProfilePasswordSecurity profile={profile} />
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
     </div>
   )
 }
