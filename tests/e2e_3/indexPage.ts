@@ -26,7 +26,7 @@ test('show active venues', async (t) => {
 
     // Open for submissions
     .expect(openVenues.find('li').count)
-    .eql(0)
+    .eql(1)
 
 
     // All venues

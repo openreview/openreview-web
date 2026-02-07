@@ -50,7 +50,8 @@ test('show a valid forum', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
     { invitation: 'TestVenue/2020/Conference/-/Submission' },
-    superUserToken
+    superUserToken,
+    2
   )
   const forum = notes[0].id
   await t
@@ -71,7 +72,8 @@ test('get a forbidden page for a nonreader', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
     { invitation: 'AnotherTestVenue/2020/Conference/-/Submission' },
-    superUserToken
+    superUserToken,
+    2
   )
   const forum = notes[0].id
   await t
@@ -101,7 +103,8 @@ test('get a forbidden error for a guest user', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
     { invitation: 'AnotherTestVenue/2020/Conference/-/Submission' },
-    superUserToken
+    superUserToken,
+    2
   )
   const forum = notes[0].id
   const getPageUrl = ClientFunction(() => window.location.href.toString())
@@ -127,7 +130,8 @@ test('get a deleted forum and return an ok only for writers of the note', async 
       trash: true,
       sort: 'number:desc',
     },
-    superUserToken
+    superUserToken,
+    2
   )
   const forum = notes[0].id
   await t
@@ -167,8 +171,9 @@ test('get a non existent forum and return a not found', async (t) => {
 test('get original note and redirect to the blinded note', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
-    { invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission' },
-    superUserToken
+    { invitation: 'ICLR.cc/2021/Conference/-/Submission' },
+    superUserToken,
+    2
   )
   const originalNote = notes[0].original
   const blindedNote = notes[0].id
@@ -197,8 +202,9 @@ test('get original note and redirect to the blinded note', async (t) => {
 test('get original note as a guest user and redirect to the blinded note', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
-    { invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission' },
-    superUserToken
+    { invitation: 'ICLR.cc/2021/Conference/-/Submission' },
+    superUserToken,
+    2
   )
   const originalNote = notes[0].original
   const blindedNote = notes[0].id
@@ -227,8 +233,9 @@ test('get original note as a guest user and redirect to the blinded note', async
 test('get a forum page and see meta tags with conference title', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
-    { invitation: 'ICLR.cc/2021/Conference/-/Blind_Submission' },
-    superUserToken
+    { invitation: 'ICLR.cc/2021/Conference/-/Submission' },
+    superUserToken,
+    2
   )
   const forum = notes[0].id
   await t
@@ -287,7 +294,8 @@ test('get forum page and see all available meta tags', async (t) => {
   const { superUserToken } = t.fixtureCtx
   const notes = await getNotes(
     { invitation: 'AnotherTestVenue/2020/Conference/-/Submission' },
-    superUserToken
+    superUserToken,
+    2
   )
   const forum = notes[0].id
   await t
