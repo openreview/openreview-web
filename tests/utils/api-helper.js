@@ -52,23 +52,19 @@ export const mergeUser = {
 // #endregion
 
 export async function setupRegister(superUserToken) {
-  console.log('Setting up users...')
   // create inactive user
   await createUser(inactiveUser)
-  console.log('Inactive user created')
   await createProfile(
     inActiveUserNoPassword.fullname,
     inActiveUserNoPassword.email,
     inActiveUserNoPassword.tildeId,
     superUserToken
   )
-  console.log('Inactive user with no password created')
   await createEmptyProfile(
     inActiveUserNoPasswordNoEmail.fullname,
     inActiveUserNoPasswordNoEmail.tildeId,
     superUserToken
   )
-  console.log('Inactive user with no password and no email created')
 }
 
 // #region API helper functions
