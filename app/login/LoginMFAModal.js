@@ -1,8 +1,12 @@
+/* globals promptError: false */
+
 import { useEffect, useState } from 'react'
 import BasicModal from '../../components/BasicModal'
 import SpinnerButton from '../../components/SpinnerButton'
 import api from '../../lib/api-client'
+
 import styles from './Login.module.scss'
+import { arrayBufferToBase64, base64ToArrayBuffer } from '../../lib/utils'
 
 const TOTPVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
   const [verificationCode, setVerificationCode] = useState('')
@@ -13,10 +17,10 @@ const TOTPVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
     setIsLoading(true)
     try {
       await api.post('/mfa/verify', {
-        mfaPendingToken: mfaPendingToken,
+        mfaPendingToken,
         method: 'totp',
         code: verificationCode,
-        rememberDevice: rememberDevice,
+        rememberDevice,
       })
       completeLogin()
     } catch (error) {
@@ -58,11 +62,177 @@ const TOTPVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
   )
 }
 
+const EmailVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
+  const [verificationCode, setVerificationCode] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [rememberDevice, setRememberDevice] = useState(false)
+
+  const handleSubmit = async () => {
+    setIsLoading(true)
+    try {
+      await api.post('/mfa/verify', {
+        mfaPendingToken,
+        method: 'emailOtp',
+        code: verificationCode,
+        rememberDevice,
+      })
+      completeLogin()
+    } catch (error) {
+      setIsLoading(false)
+      setError(error.message)
+    }
+  }
+
+  const requestChallenge = async () => {
+    try {
+      await api.post('/mfa/challenge', {
+        mfaPendingToken,
+        method: 'emailOtp',
+      })
+    } catch (error) {
+      setError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    requestChallenge()
+  }, [])
+
+  return (
+    <div className={styles.totpContainer}>
+      <input
+        type="text"
+        className="form-control"
+        value={verificationCode}
+        onChange={(e) => setVerificationCode(e.target.value)}
+        placeholder="Enter the 6-digit code from your authenticator app"
+        maxLength={6}
+        autoFocus
+      />
+      <div className={styles.rememberDeviceContainer}>
+        <input
+          type="checkbox"
+          id="totp-remember-device"
+          checked={rememberDevice}
+          onChange={(e) => setRememberDevice(e.target.checked)}
+        />
+        <label htmlFor="totp-remember-device">
+          Do not ask for a code on this device for the next 30 days
+        </label>
+      </div>
+      <SpinnerButton
+        className="btn btn-xs"
+        disabled={!verificationCode || isLoading}
+        loading={isLoading}
+        onClick={handleSubmit}
+      >
+        Submit
+      </SpinnerButton>
+    </div>
+  )
+}
+
+const PasskeyVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [verified, setVerified] = useState(false)
+  const [rememberDevice, setRememberDevice] = useState(false)
+
+  const handleSubmit = async () => {
+    setIsLoading(true)
+    try {
+      const result = await api.post('/mfa/challenge', {
+        mfaPendingToken,
+        method: 'passkey',
+      })
+      const { allowCredentials, challenge, rpId, timeout, userVerification } = result
+
+      const publicKeyCredentialRequestOptions = {
+        challenge: base64ToArrayBuffer(challenge),
+        timeout,
+        rpId,
+        allowCredentials: allowCredentials.map((cred) => ({
+          id: base64ToArrayBuffer(cred.id),
+          type: cred.type,
+          transports: cred.transports,
+        })),
+        userVerification,
+      }
+
+      const credential = await navigator.credentials.get({
+        publicKey: publicKeyCredentialRequestOptions,
+      })
+      const { authenticatorAttachment, id, rawId, response, type } = credential
+      const { authenticatorData, clientDataJSON, signature, userHandle } = response
+      await api.post('/mfa/verify', {
+        mfaPendingToken,
+        method: 'passkey',
+        code: {
+          id: credential.id,
+          rawId: arrayBufferToBase64(credential.rawId),
+          response: {
+            clientDataJSON: arrayBufferToBase64(clientDataJSON),
+            authenticatorData: arrayBufferToBase64(authenticatorData),
+            signature: arrayBufferToBase64(signature),
+          },
+          type: credential.type,
+        },
+        rememberDevice,
+      })
+      setVerified(true)
+      completeLogin()
+    } catch (error) {
+      setError(error.message)
+    }
+    setIsLoading(false)
+  }
+
+  if (verified) {
+    return <div>Passkey verification completed.</div>
+  }
+  return (
+    <div className={styles.totpContainer}>
+      <div className={styles.rememberDeviceContainer}>
+        <input
+          type="checkbox"
+          id="totp-remember-device"
+          checked={rememberDevice}
+          onChange={(e) => setRememberDevice(e.target.checked)}
+        />
+        <label htmlFor="totp-remember-device">
+          Do not ask for a code on this device for the next 30 days
+        </label>
+      </div>
+      <SpinnerButton
+        className="btn btn-xs"
+        disabled={isLoading}
+        loading={isLoading}
+        onClick={handleSubmit}
+      >
+        Submit
+      </SpinnerButton>
+    </div>
+  )
+}
+
 const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
   const { mfaMethods, mfaPending, mfaPendingToken, preferredMethod } = mfaStatus ?? {}
   const [selectedMFAMethod, setSelectedMFAMethod] = useState(preferredMethod)
+  const [verificationPassed, setVerificationPassed] = useState(false)
 
   const [error, setError] = useState(null)
+
+  const formatMfaMethodName = (method) => {
+    switch (method) {
+      case 'totp':
+        return 'Authenticator App'
+      case 'emailOtp':
+        return 'Email OTP'
+      case 'passkey':
+        return 'Passkey'
+      default:
+        return method
+    }
+  }
 
   const renderMethodForm = () => {
     switch (selectedMFAMethod) {
@@ -70,7 +240,32 @@ const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
         return (
           <TOTPVerificationForm
             mfaPendingToken={mfaPendingToken}
-            completeLogin={completeLogin}
+            completeLogin={() => {
+              setVerificationPassed(true)
+              completeLogin()
+            }}
+            setError={setError}
+          />
+        )
+      case 'emailOtp':
+        return (
+          <EmailVerificationForm
+            mfaPendingToken={mfaPendingToken}
+            completeLogin={() => {
+              setVerificationPassed(true)
+              completeLogin()
+            }}
+            setError={setError}
+          />
+        )
+      case 'passkey':
+        return (
+          <PasskeyVerificationForm
+            mfaPendingToken={mfaPendingToken}
+            completeLogin={() => {
+              setVerificationPassed(true)
+              completeLogin()
+            }}
             setError={setError}
           />
         )
@@ -78,6 +273,7 @@ const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
         return null
     }
   }
+
   useEffect(() => {
     if (preferredMethod) {
       setSelectedMFAMethod(preferredMethod)
@@ -95,34 +291,26 @@ const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
       }}
     >
       <div className="modal-header">
-        <h3>Two-Factor Authentication</h3>
+        <h3>{formatMfaMethodName(selectedMFAMethod)} Verification</h3>
       </div>
       <div className="modal-body">
         {error && <div className="alert alert-danger">{error}</div>}
 
         {renderMethodForm()}
 
-        {mfaMethods && mfaMethods.length > 1 && (
-          <div className="mt-4 pt-4 border-top">
-            <p className="text-muted">Or use a different method:</p>
-            <div className="btn-group" role="group">
-              {mfaMethods.map((method) => (
+        {verificationPassed ? null : (
+          <div className={styles.alternativeMethodsContainer}>
+            {mfaMethods
+              ?.filter((p) => p !== selectedMFAMethod)
+              ?.map((alternativeMethod) => (
                 <button
-                  key={method}
-                  type="button"
-                  className={`btn ${selectedMethod === method ? 'btn-primary' : 'btn-outline-primary'}`}
-                  onClick={() => {
-                    setSelectedMethod(method)
-                    setVerificationCode('')
-                    setError(null)
-                  }}
+                  key={alternativeMethod}
+                  className="btn btn-link"
+                  onClick={() => setSelectedMFAMethod(alternativeMethod)}
                 >
-                  {method === 'totp' && 'Authenticator App'}
-                  {method === 'sms' && 'SMS'}
-                  {method === 'email' && 'Email'}
+                  Log in using {formatMfaMethodName(alternativeMethod)}
                 </button>
               ))}
-            </div>
           </div>
         )}
       </div>

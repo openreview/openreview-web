@@ -8,6 +8,7 @@ import Icon from '../../../components/Icon'
 import SpinnerButton from '../../../components/SpinnerButton'
 
 import styles from '../../../styles/components/MultiFactorAuthentication.module.scss'
+import { arrayBufferToBase64, base64ToArrayBuffer } from '../../../lib/utils'
 
 const TOTPCard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
   const enabled = mfaStatus?.methods?.includes('totp')
@@ -295,30 +296,6 @@ const Passkey2FACard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
 const PasskeyForm = ({ loadMFAStatus }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [passkeyName, setPasskeyName] = useState('')
-
-  const base64ToArrayBuffer = (base64) => {
-    const standardBase64 = base64.replace(/-/g, '+').replace(/_/g, '/')
-    const paddedBase64 = standardBase64.padEnd(
-      standardBase64.length + ((4 - (standardBase64.length % 4)) % 4),
-      '='
-    )
-
-    const binaryString = window.atob(paddedBase64)
-    const bytes = new Uint8Array(binaryString.length)
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i)
-    }
-    return bytes.buffer
-  }
-
-  const arrayBufferToBase64 = (buffer) => {
-    const bytes = new Uint8Array(buffer)
-    let binary = ''
-    for (let i = 0; i < bytes.byteLength; i++) {
-      binary += String.fromCharCode(bytes[i])
-    }
-    return window.btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '')
-  }
 
   const handleSubmit = async () => {
     setIsLoading(true)
