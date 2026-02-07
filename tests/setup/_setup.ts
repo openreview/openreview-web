@@ -241,7 +241,7 @@ test('Set up TestVenue', async (t) => {
   await waitForJobs(reviewStageId, superUserToken)
 
   await addMembersToGroup(
-    'TestVenue/2020/Conference/Paper1/Reviewers',
+    'TestVenue/2020/Conference/Submission1/Reviewers',
     [hasTaskUserTildeId],
     superUserToken,
     2
@@ -464,6 +464,44 @@ test('Set up ICLR', async (t) => {
   const { id: noteId } = await createNoteEdit(editJson, userToken)
 
   await waitForJobs(noteId, superUserToken)
+
+
+  // close deadline
+  const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
+  const year = submissionCloseDate.getFullYear()
+  const month = `0${submissionCloseDate.getMonth() + 1}`.slice(-2)
+  const day = `0${submissionCloseDate.getDate()}`.slice(-2)
+  const hours = `0${submissionCloseDate.getHours()}`.slice(-2)
+  const minutes = `0${submissionCloseDate.getMinutes()}`.slice(-2)
+  const submissionCloseDateString = `${year}/${month}/${day} ${hours}:${minutes}`
+  const editVenueJson = {
+    content: {
+      title: 'ICLR 2021 Conference',
+      'Official Venue Name': 'ICLR 2021 Conference',
+      'Abbreviated Venue Name': 'ICLR 2021',
+      'Official Website URL': 'https://iclr.cc',
+      program_chair_emails: ['john@mail.com', 'tom@mail.com'],
+      contact_email: 'iclr@mail.com',
+      'Venue Start Date': '2021/11/01',
+      'Submission Start Date': '2021/11/01',
+      'Submission Deadline': submissionCloseDateString,
+      Location: 'Virtual',
+      submission_reviewer_assignment: 'Automatic',
+      'Expected Submissions': '6000',
+      'publication_chairs': 'No, our venue does not have Publication Chairs',
+    },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Revision`,
+    readers: ['ICLR.cc/2021/Conference/Program_Chairs', 'openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['~Super_User1'],
+    writers: [],
+  }
+  const { id: referenceId } = await createNote(editVenueJson, superUserToken)
+
+  await waitForJobs(referenceId, superUserToken)
+  await waitForJobs('ICLR.cc/2021/Conference/-/Post_Submission-0-0', superUserToken)
 
   const postSubmissionJson = {
     content: { force: 'Yes', submission_readers: 'Everyone (submissions are public)', 'hide_fields': ['pdf'] },
