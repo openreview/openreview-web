@@ -42,7 +42,7 @@ test('guest user should be redirected to login page and access to the group', as
     .ok()
     .expect(Selector('#group-container h1').innerText)
     .eql('Program Chairs Console')
-    .expect(Selector('#notes').exists)
+    .expect(Selector('.tabs-container').exists)
     .ok()
 })
 
@@ -71,7 +71,7 @@ test('logged user should access to the group', async (t) => {
     .ok()
     .expect(Selector('#group-container h1').innerText)
     .eql('Program Chairs Console')
-    .expect(Selector('#notes').exists)
+    .expect(Selector('.tabs-container').exists)
     .ok()
 })
 
