@@ -3780,6 +3780,16 @@ describe('NewReplyEditNoteReaders', () => {
                   inGroup: 'ICML.cc/2023/Conference/Submission1/Area_Chairs',
                   optional: true,
                 },
+                {
+                  // not related to inGroup logic tested, added to so that test is logical
+                  value: 'ICML.cc/2023/Conference/Submission1/Reviewers',
+                  optional: true,
+                },
+                {
+                  // not related to inGroup logic tested, added to so that test is logical
+                  inGroup: 'ICML.cc/2023/Conference/Submission1/Reviewers',
+                  optional: true,
+                },
               ],
             },
           },
@@ -3793,6 +3803,7 @@ describe('NewReplyEditNoteReaders', () => {
           readers: [
             'ICML.cc/2023/Conference/Program_Chairs',
             'ICML.cc/2023/Conference/Submission1/Area_Chair_abcd',
+            'ICML.cc/2023/Conference/Submission1/Reviewers', // not related to inGroup logic tested, added to so that test is logical
           ],
         }}
         fieldDescription={invitation.edit.note.readers}
@@ -3805,7 +3816,7 @@ describe('NewReplyEditNoteReaders', () => {
     )
 
     await waitFor(() => {
-      expect(screen.getAllByRole('checkbox').length).toEqual(2)
+      expect(screen.getAllByRole('checkbox').length).toEqual(3)
       expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument() // use getByText because of mandatory
       expect(
         screen.getByRole('checkbox', {
