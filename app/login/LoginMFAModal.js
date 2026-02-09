@@ -214,6 +214,60 @@ const PasskeyVerificationForm = ({ mfaPendingToken, completeLogin, setError }) =
   )
 }
 
+const RecovertyCodeVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
+  const [recoveryCode, setRecoveryCode] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [rememberDevice, setRememberDevice] = useState(false)
+
+  const handleSubmit = async () => {
+    setIsLoading(true)
+    try {
+      await api.post('/mfa/verify', {
+        mfaPendingToken,
+        method: 'recovery',
+        code: recoveryCode,
+        rememberDevice,
+      })
+      completeLogin()
+    } catch (error) {
+      setIsLoading(false)
+      setError(error.message)
+    }
+  }
+
+  return (
+    <div className={styles.totpContainer}>
+      <input
+        type="text"
+        className="form-control"
+        value={recoveryCode}
+        onChange={(e) => setRecoveryCode(e.target.value)}
+        placeholder="Enter your recovery code"
+        autoFocus
+      />
+      <div className={styles.rememberDeviceContainer}>
+        <input
+          type="checkbox"
+          id="totp-remember-device"
+          checked={rememberDevice}
+          onChange={(e) => setRememberDevice(e.target.checked)}
+        />
+        <label htmlFor="totp-remember-device">
+          Do not ask for a code on this device for the next 30 days
+        </label>
+      </div>
+      <SpinnerButton
+        className="btn btn-xs"
+        disabled={!recoveryCode || isLoading}
+        loading={isLoading}
+        onClick={handleSubmit}
+      >
+        Submit
+      </SpinnerButton>
+    </div>
+  )
+}
+
 const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
   const { mfaMethods, mfaPending, mfaPendingToken, preferredMethod } = mfaStatus ?? {}
   const [selectedMFAMethod, setSelectedMFAMethod] = useState(preferredMethod)
@@ -229,6 +283,8 @@ const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
         return 'Email OTP'
       case 'passkey':
         return 'Passkey'
+      case 'recoveryCode':
+        return 'Recovery Code'
       default:
         return method
     }
@@ -261,6 +317,17 @@ const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
       case 'passkey':
         return (
           <PasskeyVerificationForm
+            mfaPendingToken={mfaPendingToken}
+            completeLogin={() => {
+              setVerificationPassed(true)
+              completeLogin()
+            }}
+            setError={setError}
+          />
+        )
+      case 'recoveryCode':
+        return (
+          <RecovertyCodeVerificationForm
             mfaPendingToken={mfaPendingToken}
             completeLogin={() => {
               setVerificationPassed(true)
@@ -306,11 +373,19 @@ const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
                 <button
                   key={alternativeMethod}
                   className="btn btn-link"
+                  type="button"
                   onClick={() => setSelectedMFAMethod(alternativeMethod)}
                 >
                   Log in using {formatMfaMethodName(alternativeMethod)}
                 </button>
               ))}
+            <button
+              className="btn btn-link"
+              type="button"
+              onClick={() => setSelectedMFAMethod('recoveryCode')}
+            >
+              Log in using {formatMfaMethodName('recoveryCode')}
+            </button>
           </div>
         )}
       </div>

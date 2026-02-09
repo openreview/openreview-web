@@ -117,3 +117,20 @@
     max-width: 50%;
   }
 }
+
+.recoveryCodesContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+  background-color: constants.$sandyBrown;
+
+  .downloadCodeButtons {
+    display: flex;
+    gap: 1rem;
+
+    a {
+      color: white;
+    }
+  }
+}

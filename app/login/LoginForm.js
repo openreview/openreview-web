@@ -87,70 +87,72 @@ export default function LoginForm() {
   }
 
   return (
-    <form>
-      <div className="form-group">
-        <label htmlFor="email-input">Email</label>
-        <input
-          id="email-input"
-          type="text"
-          className={`form-control ${formState.error ? 'form-invalid' : ''}`}
-          placeholder="Email"
-          value={formState.email}
-          maxLength={254}
-          onChange={(e) =>
-            setFormState({ type: 'UPDATE_EMAIL', payload: e.target.value.trim() })
-          }
-        />
-      </div>
+    <>
+      <form>
+        <div className="form-group">
+          <label htmlFor="email-input">Email</label>
+          <input
+            id="email-input"
+            type="text"
+            className={`form-control ${formState.error ? 'form-invalid' : ''}`}
+            placeholder="Email"
+            value={formState.email}
+            maxLength={254}
+            onChange={(e) =>
+              setFormState({ type: 'UPDATE_EMAIL', payload: e.target.value.trim() })
+            }
+          />
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="password-input">Password</label>
-        <input
-          id="password-input"
-          type="password"
-          className={`form-control ${formState.error ? 'form-invalid' : ''}`}
-          placeholder="Password"
-          value={formState.password}
-          onChange={(e) =>
-            setFormState({ type: 'UPDATE_PASSWORD', payload: e.target.value.trim() })
+        <div className="form-group">
+          <label htmlFor="password-input">Password</label>
+          <input
+            id="password-input"
+            type="password"
+            className={`form-control ${formState.error ? 'form-invalid' : ''}`}
+            placeholder="Password"
+            value={formState.password}
+            onChange={(e) =>
+              setFormState({ type: 'UPDATE_PASSWORD', payload: e.target.value.trim() })
+            }
+          />
+        </div>
+        <p className="help-block">
+          By logging in, you agree to the{' '}
+          <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
+            <strong>Terms of Use</strong>
+          </a>
+          , last updated September 24, 2024.
+        </p>
+        <button
+          type="submit"
+          className="btn btn-login"
+          disabled={!isValidEmail(formState.email) || !formState.password || formState.loading}
+          data-original-title={
+            formState.email && !isValidEmail(formState.email)
+              ? 'Please enter a valid email address'
+              : ''
           }
-        />
-      </div>
-      <p className="help-block">
-        By logging in, you agree to the{' '}
-        <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
-          <strong>Terms of Use</strong>
-        </a>
-        , last updated September 24, 2024.
-      </p>
-      <button
-        type="submit"
-        className="btn btn-login"
-        disabled={!isValidEmail(formState.email) || !formState.password || formState.loading}
-        data-original-title={
-          formState.email && !isValidEmail(formState.email)
-            ? 'Please enter a valid email address'
-            : ''
-        }
-        data-toggle="tooltip"
-        onClick={handleSubmit}
-      >
-        Login to OpenReview
-      </button>
+          data-toggle="tooltip"
+          onClick={handleSubmit}
+        >
+          Login to OpenReview
+        </button>
 
-      <p className="help-block">
-        <Link href="/reset">Forgot your password?</Link>
-        <br />
-        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" onClick={handleResendConfirmation}>
-          Didn&apos;t receive email confirmation?
-        </a>
-      </p>
+        <p className="help-block">
+          <Link href="/reset">Forgot your password?</Link>
+          <br />
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          <a href="#" onClick={handleResendConfirmation}>
+            Didn&apos;t receive email confirmation?
+          </a>
+        </p>
+      </form>
       <LoginMFAModal
         mfaStatus={mfaStatus}
         completeLogin={completeLogin}
         setFormState={setFormState}
       />
-    </form>
+    </>
   )
 }

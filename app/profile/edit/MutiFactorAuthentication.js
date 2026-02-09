@@ -1,14 +1,16 @@
 /* globals promptMessage,promptError: false */
 
 import { useEffect, useReducer, useState } from 'react'
+import copy from 'copy-to-clipboard'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
 import Alert from '../../../components/Alert'
 import Icon from '../../../components/Icon'
 import SpinnerButton from '../../../components/SpinnerButton'
+import { arrayBufferToBase64, base64ToArrayBuffer } from '../../../lib/utils'
+import ExportFile from '../../../components/ExportFile'
 
 import styles from '../../../styles/components/MultiFactorAuthentication.module.scss'
-import { arrayBufferToBase64, base64ToArrayBuffer } from '../../../lib/utils'
 
 const TOTPCard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
   const enabled = mfaStatus?.methods?.includes('totp')
@@ -67,6 +69,7 @@ const TOTPSetup = ({ loadMFAStatus }) => {
         return {
           ...state,
           isLoading: false,
+          qrCodeDataUrl: null,
           recoveryCodes: action.payload,
         }
       default:
@@ -81,7 +84,6 @@ const TOTPSetup = ({ loadMFAStatus }) => {
         code: totpForm.verificationCode,
       })
       promptMessage('TOTP setup successful')
-      loadMFAStatus()
       setTotpForm({ type: 'SET_RECOVERY_CODES', payload: result.recoveryCodes })
     } catch (error) {
       setTotpForm({ type: 'SET_LOADING', payload: false })
@@ -110,7 +112,9 @@ const TOTPSetup = ({ loadMFAStatus }) => {
           <div>
             <img src={totpForm.qrCodeDataUrl} alt="TOTP QR Code" />
           </div>
-          <span>You can also enter the secret manually in authenticator app</span>
+          <span>
+            You can also enter the secret manually in authenticator app: {totpForm.secret}
+          </span>
 
           <input
             type="text"
@@ -133,20 +137,7 @@ const TOTPSetup = ({ loadMFAStatus }) => {
         </>
       )}
       {totpForm.recoveryCodes && (
-        <div className={styles.recoveryCodesContainer}>
-          <span>
-            Please save the following recovery codes in a safe place. You can use them to log
-            in if you lose access to your authenticator app. The recovery codes will not be
-            shown again.
-          </span>
-          <ul>
-            {totpForm.recoveryCodes.map((code) => (
-              <li key={code}>
-                <strong>{code}</strong>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <RecoveryCodeForm totpRecoveryCodes={totpForm.recoveryCodes} />
       )}
     </div>
   )
@@ -349,10 +340,9 @@ const PasskeyForm = ({ loadMFAStatus }) => {
       setPasskeyName('')
       loadMFAStatus()
     } catch (error) {
-      promptError(error.message || 'Failed to set up passkey')
-    } finally {
-      setIsLoading(false)
+      promptError(error.message)
     }
+    setIsLoading(false)
   }
 
   return (
@@ -376,14 +366,12 @@ const PasskeyForm = ({ loadMFAStatus }) => {
   )
 }
 
-const PasskeySetup = ({ loadMFAStatus }) => {
-  return (
-    <div className={styles.passkeyFormContainer}>
-      <h4>Set up Passkey</h4>
-      <PasskeyForm loadMFAStatus={loadMFAStatus} />
-    </div>
-  )
-}
+const PasskeySetup = ({ loadMFAStatus }) => (
+  <div className={styles.passkeyFormContainer}>
+    <h4>Set up Passkey</h4>
+    <PasskeyForm loadMFAStatus={loadMFAStatus} />
+  </div>
+)
 
 const PasskeyDelete = ({ loadMFAStatus }) => {
   const [passKeys, setPassKeys] = useState([])
@@ -457,6 +445,77 @@ const PasskeyDelete = ({ loadMFAStatus }) => {
   )
 }
 
+const RecoveryCodeCard = ({ mfaStatus, setMethodToEdit }) => (
+  <div className={styles.method}>
+    <div className={styles.methodHeader}>
+      <strong>Recovery Codes</strong>
+    </div>
+    <span className={styles.methodDescription}>
+      {mfaStatus.recoveryCodesRemaining} codes unused
+    </span>
+    <div className={styles.cardActions}>
+      <button className="btn btn-xs" onClick={() => setMethodToEdit('recoveryCode')}>
+        Generate New Code
+      </button>
+    </div>
+  </div>
+)
+
+const RecoveryCodeForm = ({ totpRecoveryCodes }) => {
+  const [recoveryCodes, setRecoveryCodes] = useState(totpRecoveryCodes)
+  const generateRecoveryCodes = async () => {
+    try {
+      const result = await api.post('/mfa/recovery-codes/regenerate')
+      setRecoveryCodes(result.recoveryCodes)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    if (!totpRecoveryCodes) generateRecoveryCodes()
+  }, [])
+
+  if (!recoveryCodes) return <LoadingSpinner inline />
+  return (
+    <div className={styles.recoveryCodesContainer}>
+      <p>
+        Recovery codes is the last resort of accessing your account when you lose access to all
+        other verification methods.Please save the following recovery codes in a safe place.
+      </p>
+      <p>
+        You will <strong>NOT</strong> be able to login if you lost them. The recovery codes
+        will <strong>NOT</strong> be shown again.
+      </p>
+      <ul>
+        {recoveryCodes.map((code) => (
+          <li key={code}>
+            <strong>{code}</strong>
+          </li>
+        ))}
+      </ul>
+      <div className={styles.downloadCodeButtons}>
+        <ExportFile
+          buttonText="Download"
+          exportType="text"
+          records={recoveryCodes}
+          customTransformFn={(codes) => codes.map((code) => `${code}\n`)}
+          fileName="openreview-recovery-codes.txt"
+        />
+        <button
+          className="btn btn-primary"
+          onClick={() => {
+            copy(recoveryCodes.join('\n'))
+            promptMessage('Recovery codes copied to clipboard')
+          }}
+        >
+          Copy to Clipboard
+        </button>
+      </div>
+    </div>
+  )
+}
+
 const MutltiFactorAuthentication = () => {
   const [mfaStatus, setMfaStatus] = useState(null)
   const [methodToEdit, setMethodToEdit] = useState(null)
@@ -496,6 +555,8 @@ const MutltiFactorAuthentication = () => {
         ) : (
           <PasskeySetup loadMFAStatus={loadMFAStatus} />
         )
+      case 'recoveryCode':
+        return <RecoveryCodeForm />
       default:
         return null
     }
@@ -523,16 +584,19 @@ const MutltiFactorAuthentication = () => {
           setMethodToEdit={setMethodToEdit}
           handleSetPreferred={handleSetPreferred}
         />
-        <EmailOtpCard
-          mfaStatus={mfaStatus}
-          setMethodToEdit={setMethodToEdit}
-          handleSetPreferred={handleSetPreferred}
-        />
         <Passkey2FACard
           mfaStatus={mfaStatus}
           setMethodToEdit={setMethodToEdit}
           handleSetPreferred={handleSetPreferred}
         />
+        <EmailOtpCard
+          mfaStatus={mfaStatus}
+          setMethodToEdit={setMethodToEdit}
+          handleSetPreferred={handleSetPreferred}
+        />
+        {mfaStatus.enabled && (
+          <RecoveryCodeCard mfaStatus={mfaStatus} setMethodToEdit={setMethodToEdit} />
+        )}
       </div>
       {renderSetupEdit()}
     </div>
