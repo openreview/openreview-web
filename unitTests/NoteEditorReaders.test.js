@@ -3754,4 +3754,64 @@ describe('NewReplyEditNoteReaders', () => {
       ).toBeInTheDocument()
     })
   })
+
+  test('show checkbox of intersection of items groups with inGroup and replyToNote readers (adding anonymized AC group)', async () => {
+    // reviewer replying to a comment (by AC_abcd and only visible to AC_abcd)
+    const getGroups = jest.fn(() =>
+      Promise.reject('reviewer cannot see member of AC group specified using inGroup')
+    )
+    api.get = getGroups
+
+    const invitation = {
+      edit: {
+        note: {
+          readers: {
+            param: {
+              items: [
+                {
+                  value: 'ICML.cc/2023/Conference/Program_Chairs',
+                  optional: false,
+                },
+                {
+                  value: 'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+                  optional: true,
+                },
+                {
+                  inGroup: 'ICML.cc/2023/Conference/Submission1/Area_Chairs',
+                  optional: true,
+                },
+              ],
+            },
+          },
+        },
+      },
+    }
+
+    render(
+      <NewReplyEditNoteReaders
+        replyToNote={{
+          readers: [
+            'ICML.cc/2023/Conference/Program_Chairs',
+            'ICML.cc/2023/Conference/Submission1/Area_Chair_abcd',
+          ],
+        }}
+        fieldDescription={invitation.edit.note.readers}
+        closeNoteEditor={jest.fn()}
+        value={undefined}
+        onChange={jest.fn()}
+        setLoading={jest.fn()}
+        useCheckboxWidget={true}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('checkbox').length).toEqual(2)
+      expect(screen.getByText('ICML 2023 Conference Program Chairs')).toBeInTheDocument() // use getByText because of mandatory
+      expect(
+        screen.getByRole('checkbox', {
+          name: 'ICML 2023 Conference Submission1 Area Chair abcd',
+        })
+      ).toBeInTheDocument()
+    })
+  })
 })
