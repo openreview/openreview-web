@@ -21,6 +21,7 @@ import { NoteContentV2 } from '../../NoteContent'
 import { formatProfileContent } from '../../../lib/edge-utils'
 import { isSuperUser } from '../../../lib/clientAuth'
 import ProfileLink from '../ProfileLink'
+import useUser from '../../../hooks/useUser'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -344,12 +345,9 @@ const ReviewerStatusTab = ({
           : Promise.resolve([])
         const getProfilesByEmailsP =
           emails.length && isSuperUser(user)
-            ? api.post(
-                '/profiles/search',
-                {
-                  emails,
-                }
-              )
+            ? api.post('/profiles/search', {
+                emails,
+              })
             : Promise.resolve([])
         const reviewerProfileResults = await Promise.all([
           getProfilesByIdsP,

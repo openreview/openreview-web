@@ -594,13 +594,9 @@ const ProfileSearchWidget = ({
       const ids = authorIds.filter((p) => p.startsWith('~'))
       const allProfiles = ids.length
         ? await api
-            .post(
-              '/profiles/search',
-              {
-                ids,
-              },
-              { accessToken }
-            )
+            .post('/profiles/search', {
+              ids,
+            })
             .then((result) => result.profiles)
         : []
       setSelectedAuthorProfiles(allProfiles)

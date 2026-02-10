@@ -527,7 +527,7 @@ const AuthorConsole = ({ appContext }) => {
     const profiles =
       authorIds.size > 0
         ? await api
-            .get('/profiles', { ids: Array.from(authorIds).join(',') }, { accessToken })
+            .get('/profiles', { ids: Array.from(authorIds).join(',') })
             .then(getProfiles)
         : []
 
