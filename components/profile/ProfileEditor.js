@@ -43,8 +43,8 @@ export default function ProfileEditor({
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
-  const [currentStep, setCurrentStep] = useState(0)
-  const [invalidSteps, setInvalidSteps] = useState([])
+  const [currentStepKey, setCurrentStepKey] = useState('names')
+  const [invalidStepKeys, setInvalidStepKeys] = useState([])
   const stepRef = useRef(null)
   const renderPublicationsEditor = useCallback(() => {
     setRenderPublicationEditor((current) => !current)
@@ -55,6 +55,67 @@ export default function ProfileEditor({
   const positions = dropdownOptions?.prefixedPositions
   const institutionDomains = dropdownOptions?.institutionDomains
   const countries = dropdownOptions?.countries
+
+  const getStepStatus = (stepKey) => {
+    if (invalidStepKeys.includes(stepKey)) {
+      return 'error'
+    }
+    return currentStepKey === stepKey ? 'process' : 'wait'
+  }
+
+  const stepsItems = [
+    {
+      key: 'names',
+      title: 'Names',
+      status: getStepStatus('names'),
+    },
+    {
+      key: 'personal',
+      title: 'Personal Info',
+      description: isNewProfile
+        ? 'Gender, Pronouns and Birth Year'
+        : 'Gender, Pronouns, Birth Year and Profile Visibility',
+      status: getStepStatus('personal'),
+    },
+    {
+      key: 'emails',
+      title: 'Emails',
+      status: getStepStatus('emails'),
+    },
+    {
+      key: 'links',
+      title: 'Personal Links',
+      ...(!hidePublicationEditor && { description: 'Imported DBLP publications' }),
+      status: getStepStatus('links'),
+    },
+    {
+      key: 'history',
+      title: 'History',
+      description: 'Career & Education History',
+      status: getStepStatus('history'),
+    },
+    ...(isNewProfile
+      ? [
+          {
+            key: 'expertise',
+            title: 'Expertise',
+            status: getStepStatus('expertise'),
+          },
+        ]
+      : [
+          {
+            key: 'relations',
+            title: 'Relations',
+            description: 'Advisors & Other Relations',
+            status: getStepStatus('relations'),
+          },
+          {
+            key: 'expertise',
+            title: 'Expertise',
+            status: getStepStatus('expertise'),
+          },
+        ]),
+  ]
 
   const personalLinkNames = [
     'homepage',
@@ -148,7 +209,7 @@ export default function ProfileEditor({
 
     // #region validate emails
     if ((invalidRecord = profileContent.emails.find((p) => !isValidEmail(p.email)))) {
-      setInvalidSteps((current) => [...current, 2])
+      setInvalidStepKeys((current) => [...current, 'emails'])
       return promptInvalidValue(
         'emails',
         invalidRecord.key,
@@ -160,7 +221,7 @@ export default function ProfileEditor({
     // #region validate personal links
     // must have at least 1 link
     if (!personalLinkNames.some((p) => profileContent[p]?.value?.trim())) {
-      setInvalidSteps((current) => [...current, 3])
+      setInvalidStepKeys((current) => [...current, 'links'])
       return promptInvalidSection('You must enter at least one personal link')
     }
     // must not have any invalid links
@@ -168,7 +229,7 @@ export default function ProfileEditor({
       (p) => profileContent[p]?.value && profileContent[p].valid === false
     )
     if (invalidLinkName) {
-      setInvalidSteps((current) => [...current, 3])
+      setInvalidStepKeys((current) => [...current, 'links'])
       return promptInvalidLink(
         invalidLinkName,
         'One of your personal links is invalid. Please make sure all URLs start with http:// or https://'
@@ -179,12 +240,12 @@ export default function ProfileEditor({
     // #region validate history
     const historyRecords = profileContent.history
     if (!historyRecords?.length) {
-      setInvalidSteps((current) => [...current, 4])
+      setInvalidStepKeys((current) => [...current, 'history'])
       promptError('There are errors in your Career & Education History.')
       return null
     }
     if (!historyRecords.find((p) => !p.end || p.end >= new Date().getFullYear())) {
-      setInvalidSteps((current) => [...current, 4])
+      setInvalidStepKeys((current) => [...current, 'history'])
       const keyErrorFieldMessageMap = new Map()
       keyErrorFieldMessageMap.set(profile.history?.[0]?.key, {
         endYear: 'Your Career & Education History must include at least one current position.',
@@ -249,7 +310,7 @@ export default function ProfileEditor({
     })
 
     if (invalidKeys.length) {
-      setInvalidSteps((current) => [...current, 4])
+      setInvalidStepKeys((current) => [...current, 'history'])
       return promptInvalidHistory(invalidKeys, keyErrorFieldMessageMap)
     }
     // #endregion
@@ -260,7 +321,7 @@ export default function ProfileEditor({
         (p) => !p.relation || !p.name || (!p.email && !p.username)
       ))
     ) {
-      setInvalidSteps((current) => [...current, 5])
+      setInvalidStepKeys((current) => [...current, 'relations'])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -272,7 +333,7 @@ export default function ProfileEditor({
         (p) => !p.username && !isValidEmail(p.email)
       ))
     ) {
-      setInvalidSteps((current) => [...current, 5])
+      setInvalidStepKeys((current) => [...current, 'relations'])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -282,7 +343,7 @@ export default function ProfileEditor({
     if (
       (invalidRecord = profileContent.relations.find((p) => p.start && !isValidYear(p.start)))
     ) {
-      setInvalidSteps((current) => [...current, 5])
+      setInvalidStepKeys((current) => [...current, 'relations'])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -290,7 +351,7 @@ export default function ProfileEditor({
       )
     }
     if ((invalidRecord = profileContent.relations.find((p) => p.end && !isValidYear(p.end)))) {
-      setInvalidSteps((current) => [...current, 5])
+      setInvalidStepKeys((current) => [...current, 'relations'])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -302,7 +363,7 @@ export default function ProfileEditor({
         (p) => p.start && p.end && p.start > p.end
       ))
     ) {
-      setInvalidSteps((current) => [...current, 5])
+      setInvalidStepKeys((current) => [...current, 'relations'])
       return promptInvalidValue(
         'relations',
         invalidRecord.key,
@@ -310,7 +371,7 @@ export default function ProfileEditor({
       )
     }
     if ((invalidRecord = profileContent.relations.find((p) => !p.start && p.end))) {
-      setInvalidSteps((current) => [...current, 5])
+      setInvalidStepKeys((current) => [...current, 'relations'])
       return promptInvalidValue('relations', invalidRecord.key, 'Start date can not be empty')
     }
     // #endregion
@@ -319,7 +380,7 @@ export default function ProfileEditor({
     if (
       (invalidRecord = profileContent.expertise?.find((p) => p.start && !isValidYear(p.start)))
     ) {
-      setInvalidSteps((current) => [...current, 6])
+      setInvalidStepKeys((current) => [...current, 'expertise'])
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
@@ -329,7 +390,7 @@ export default function ProfileEditor({
     if (
       (invalidRecord = profileContent.expertise?.find((p) => p.end && !isValidYear(p.end)))
     ) {
-      setInvalidSteps((current) => [...current, 6])
+      setInvalidStepKeys((current) => [...current, 'expertise'])
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
@@ -341,7 +402,7 @@ export default function ProfileEditor({
         (p) => p.start && p.end && p.start > p.end
       ))
     ) {
-      setInvalidSteps((current) => [...current, 6])
+      setInvalidStepKeys((current) => [...current, 'expertise'])
       return promptInvalidValue(
         'expertise',
         invalidRecord.key,
@@ -349,7 +410,7 @@ export default function ProfileEditor({
       )
     }
     if ((invalidRecord = profileContent.expertise?.find((p) => !p.start && p.end))) {
-      setInvalidSteps((current) => [...current, 6])
+      setInvalidStepKeys((current) => [...current, 'expertise'])
       return promptInvalidValue('expertise', invalidRecord.key, 'Start date can not be empty')
     }
     // #endregion
@@ -384,19 +445,19 @@ export default function ProfileEditor({
   }
 
   const handleSubmit = async () => {
-    setInvalidSteps([])
+    setInvalidStepKeys([])
     const { isValid, profileContent, profileReaders } = validateCleanProfile()
     if (isValid) {
       await submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
     }
-    if (currentStep === 3) {
+    if (currentStepKey === 'history') {
       setRenderPublicationEditor((current) => !current)
     }
   }
 
-  const renderStep = (step) => {
-    switch (step) {
-      case 0:
+  const renderStep = (stepKey) => {
+    switch (stepKey) {
+      case 'names':
         return (
           <ProfileSection
             title="Names"
@@ -409,7 +470,7 @@ export default function ProfileEditor({
             />
           </ProfileSection>
         )
-      case 1:
+      case 'personal':
         return (
           <>
             <ProfileSection
@@ -466,7 +527,7 @@ export default function ProfileEditor({
           </>
         )
 
-      case 2:
+      case 'emails':
         return (
           <ProfileSection
             title="Emails"
@@ -497,7 +558,7 @@ export default function ProfileEditor({
             />
           </ProfileSection>
         )
-      case 3:
+      case 'links':
         return (
           <>
             <ProfileSection
@@ -534,7 +595,7 @@ export default function ProfileEditor({
             )}
           </>
         )
-      case 4:
+      case 'history':
         return (
           <ProfileSection
             title={`Career & Education History${isNewProfile ? ' *' : ''}`}
@@ -551,7 +612,7 @@ export default function ProfileEditor({
             />
           </ProfileSection>
         )
-      case 5:
+      case 'relations':
         return (
           <ProfileSection
             title="Advisors &amp; Other Relations"
@@ -575,7 +636,7 @@ export default function ProfileEditor({
             />
           </ProfileSection>
         )
-      case 6:
+      case 'expertise':
         return (
           <ProfileSection
             title="Expertise"
@@ -605,35 +666,30 @@ export default function ProfileEditor({
     }
   }
 
-  const getStepStatus = (step) => {
-    if (invalidSteps.includes(step)) {
-      return 'error'
-    }
-    return currentStep === step ? 'process' : 'wait'
-  }
-
   useEffect(() => {
-    stepRef.current?.firstChild?.children?.[currentStep]?.scrollIntoView({
+    stepRef.current?.firstChild?.children[
+      stepsItems.findIndex((p) => p.key === currentStepKey)
+    ]?.scrollIntoView({
       behavior: 'smooth',
       inline: 'center',
       block: 'nearest',
     })
-  }, [currentStep])
+  }, [currentStepKey])
 
   useEffect(() => {
     if (!saveProfileErrors?.length) return
     if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/names'))) {
-      setInvalidSteps((current) => [...current, 0])
+      setInvalidStepKeys((current) => [...current, 'names'])
     }
     if (
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/pronouns')) ||
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/gender')) ||
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/yearOfBirth'))
     ) {
-      setInvalidSteps((current) => [...current, 1])
+      setInvalidStepKeys((current) => [...current, 'personal'])
     }
     if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/emails'))) {
-      setInvalidSteps((current) => [...current, 2])
+      setInvalidStepKeys((current) => [...current, 'emails'])
     }
     if (
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/homepage')) ||
@@ -647,17 +703,17 @@ export default function ProfileEditor({
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/aclanthology')) ||
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/wikipedia'))
     ) {
-      setInvalidSteps((current) => [...current, 3])
+      setInvalidStepKeys((current) => [...current, 'links'])
     }
     if (saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/history'))) {
-      setInvalidSteps((current) => [...current, 4])
+      setInvalidStepKeys((current) => [...current, 'history'])
     }
   }, [saveProfileErrors])
 
   useEffect(() => {
     if (loadedProfile) {
       setProfile({ type: 'reset', data: loadedProfile })
-      setInvalidSteps([])
+      setInvalidStepKeys([])
     }
   }, [loadedProfile])
 
@@ -689,57 +745,14 @@ export default function ProfileEditor({
     <div className="profile-edit-container" ref={stepRef}>
       <Steps
         type="navigation"
-        current={currentStep}
+        current={stepsItems.findIndex((p) => p.key === currentStepKey)}
         onChange={(e) => {
-          setCurrentStep(e)
+          setCurrentStepKey(stepsItems[e].key)
         }}
-        items={[
-          {
-            step: 0,
-            title: 'Names',
-            status: getStepStatus(0),
-          },
-          {
-            step: 1,
-            title: 'Personal Info',
-            description: isNewProfile
-              ? 'Gender, Pronouns and Birth Year'
-              : 'Gender, Pronouns, Birth Year and Profile Visibility',
-            status: getStepStatus(1),
-          },
-          {
-            step: 2,
-            title: 'Emails',
-            status: getStepStatus(2),
-          },
-          {
-            step: 3,
-            title: 'Personal Links',
-            ...(!hidePublicationEditor && { description: 'Imported DBLP publications' }),
-            status: getStepStatus(3),
-          },
-          {
-            step: 4,
-            title: 'History',
-            description: 'Career & Education History',
-            status: getStepStatus(4),
-          },
-          {
-            step: 5,
-            title: 'Relations',
-            description: 'Advisors & Other Relations',
-            status: getStepStatus(5),
-          },
-          {
-            step: 6,
-            title: 'Expertise',
-            status: getStepStatus(6),
-          },
-        ]}
+        items={stepsItems}
       />
-      {renderStep(currentStep)}
-
-      {isNewProfile && currentStep === 6 && (
+      {renderStep(currentStepKey)}
+      {isNewProfile && currentStepKey === 'expertise' && (
         <p className="help-block">
           By registering, you agree to the{' '}
           <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
@@ -749,12 +762,16 @@ export default function ProfileEditor({
         </p>
       )}
 
-      {isNewProfile && currentStep !== 6 ? (
+      {isNewProfile && currentStepKey !== 'expertise' ? (
         <div className="buttons-row">
           <button
             type="button"
             className="btn submit-button"
-            onClick={() => setCurrentStep(currentStep + 1)}
+            onClick={() =>
+              setCurrentStepKey(
+                stepsItems[stepsItems.findIndex((p) => p.key === currentStepKey) + 1].key
+              )
+            }
           >
             {'Next Section'}
           </button>
