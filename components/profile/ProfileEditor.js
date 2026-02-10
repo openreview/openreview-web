@@ -65,11 +65,13 @@ export default function ProfileEditor({
 
   const stepsItems = [
     {
+      step: 0,
       key: 'names',
       title: 'Names',
       status: getStepStatus('names'),
     },
     {
+      step: 1,
       key: 'personal',
       title: 'Personal Info',
       description: isNewProfile
@@ -77,18 +79,16 @@ export default function ProfileEditor({
         : 'Gender, Pronouns, Birth Year and Profile Visibility',
       status: getStepStatus('personal'),
     },
+    { step: 2, key: 'emails', title: 'Emails', status: getStepStatus('emails') },
     {
-      key: 'emails',
-      title: 'Emails',
-      status: getStepStatus('emails'),
-    },
-    {
+      step: 3,
       key: 'links',
       title: 'Personal Links',
       ...(!hidePublicationEditor && { description: 'Imported DBLP publications' }),
       status: getStepStatus('links'),
     },
     {
+      step: 4,
       key: 'history',
       title: 'History',
       description: 'Career & Education History',
@@ -97,6 +97,7 @@ export default function ProfileEditor({
     ...(isNewProfile
       ? [
           {
+            step: 5,
             key: 'expertise',
             title: 'Expertise',
             status: getStepStatus('expertise'),
@@ -104,12 +105,14 @@ export default function ProfileEditor({
         ]
       : [
           {
+            step: 5,
             key: 'relations',
             title: 'Relations',
             description: 'Advisors & Other Relations',
             status: getStepStatus('relations'),
           },
           {
+            step: 6,
             key: 'expertise',
             title: 'Expertise',
             status: getStepStatus('expertise'),
