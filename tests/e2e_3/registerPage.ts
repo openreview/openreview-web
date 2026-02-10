@@ -375,7 +375,6 @@ test('update profile', async (t) => {
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
 
-    .click(nextSectiomButtonSelector) // relation
     .click(nextSectiomButtonSelector) // last section expertise
     .expect(Selector('p').withText("last updated September 24, 2024").exists).ok()
     .click(Selector('button').withText('Register for OpenReview'))
@@ -445,7 +444,6 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
 
-    .click(nextSectiomButtonSelector)
     .click(nextSectiomButtonSelector)
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
