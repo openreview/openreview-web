@@ -103,8 +103,7 @@ describe('ProfileBidConsole', () => {
       expect(getAll).toHaveBeenCalledTimes(1)
       expect(getAll).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ invitation: bidInvitation.id }),
-        expect.anything()
+        expect.objectContaining({ invitation: bidInvitation.id })
       )
     })
   })
@@ -534,11 +533,9 @@ describe('ProfileBidConsole', () => {
     )
 
     await waitFor(() => {
-      expect(profileSearch).toHaveBeenCalledWith(
-        expect.anything(),
-        { ids: ['~test_id1', '~test_id2'] },
-        expect.anything()
-      )
+      expect(profileSearch).toHaveBeenCalledWith(expect.anything(), {
+        ids: ['~test_id1', '~test_id2'],
+      })
       expect(profileListProps).toHaveBeenLastCalledWith(
         expect.objectContaining({
           profiles: expect.arrayContaining([
@@ -595,11 +592,9 @@ describe('ProfileBidConsole', () => {
 
     await waitFor(() => userEvent.click(screen.getByText('Very High')))
     await waitFor(() => {
-      expect(getProfileWithBidEdge).toHaveBeenCalledWith(
-        expect.anything(),
-        { ids: ['~test_id1'] },
-        expect.anything()
-      )
+      expect(getProfileWithBidEdge).toHaveBeenCalledWith(expect.anything(), {
+        ids: ['~test_id1'],
+      })
       expect(profileListProps).toHaveBeenLastCalledWith(
         expect.objectContaining({
           profiles: [{ id: '~test_id1', content: {} }],
@@ -609,11 +604,9 @@ describe('ProfileBidConsole', () => {
 
     await waitFor(() => userEvent.click(screen.getByText('Neutral')))
     await waitFor(() => {
-      expect(getProfileWithBidEdge).toHaveBeenCalledWith(
-        expect.anything(),
-        { ids: ['~test_id2'] },
-        expect.anything()
-      )
+      expect(getProfileWithBidEdge).toHaveBeenCalledWith(expect.anything(), {
+        ids: ['~test_id2'],
+      })
       expect(profileListProps).toHaveBeenLastCalledWith(
         expect.objectContaining({
           profiles: [{ id: '~test_id2', content: {} }],

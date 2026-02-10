@@ -11,7 +11,7 @@ import useUser from '../../hooks/useUser'
 const ResetForm = ({ setEmailSent }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
-  const { user } = useUser()
+  const { user } = useUser(true)
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('reset')
 
   useEffect(() => {

@@ -2,7 +2,6 @@
 import { useEffect, useState } from 'react'
 import BasicModal from '../BasicModal'
 import BasicProfileView from './BasicProfileView'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
@@ -10,6 +9,7 @@ import MessagesSection from './MessagesSection'
 import Dropdown, { CreatableDropdown } from '../Dropdown'
 import { getRejectionReasons } from '../../lib/utils'
 import ProfileTag from '../ProfileTag'
+import PastStatesSection from './PastStatesSection'
 import ErrorAlert from '../ErrorAlert'
 
 const ProfilePreviewModal = ({
@@ -25,7 +25,6 @@ const ProfilePreviewModal = ({
 }) => {
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
-  const { accessToken } = useUser()
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
@@ -58,8 +57,7 @@ const ProfilePreviewModal = ({
           sort: 'cdate:desc',
           limit: 1000,
         },
-        null,
-        { accessToken }
+        null
       )
     } catch (apiError) {
       promptError(apiError)
@@ -169,10 +167,14 @@ const ProfilePreviewModal = ({
             </a>
           }
         >
-          <MessagesSection
+          <MessagesSection email={profileToPreview.preferredEmail} rejectMessagesOnly />
+        </ProfileViewSection>
+      )}
+      {contentToShow?.includes('pastStates') && profileToPreview.pastStates && (
+        <ProfileViewSection name="pastStates" title="Past States">
+          <PastStatesSection
             email={profileToPreview.preferredEmail}
-            accessToken={accessToken}
-            rejectMessagesOnly
+            pastStates={profileToPreview.pastStates}
           />
         </ProfileViewSection>
       )}

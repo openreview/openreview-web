@@ -25,20 +25,20 @@ import { isSuperUser } from '../../../lib/clientAuth'
 export default function GroupAdmin({ id, query }) {
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
   const profileId = user?.profile?.id
 
   const loadGroup = async () => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get('/groups', { id })
       if (!groups?.length) throw new Error('Group not found')
       // eslint-disable-next-line no-shadow
       const group = groups[0]
       if (group.details?.writable) {
         // Get venue group to pass to webfield component
         if (group.domain && group.domain !== group.id) {
-          const domainResult = await api.get('/groups', { id: group.domain }, { accessToken })
+          const domainResult = await api.get('/groups', { id: group.domain })
           const domainGroup = domainResult.groups?.length > 0 ? domainResult.groups[0] : null
           setGroup({
             ...group,
@@ -55,14 +55,14 @@ export default function GroupAdmin({ id, query }) {
         }
         setGroup(group)
       } else {
-        const redirectPath = accessToken
+        const redirectPath = user
           ? `/group/info?id=${id}`
           : `/login?redirect=/group/edit?${encodeURIComponent(stringify(query))}`
         router.replace(redirectPath)
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        if (!accessToken) {
+        if (!user) {
           router.replace(`/login?redirect=${encodeURIComponent(stringify(query))}`)
         } else {
           setError("You don't have permission to read this group")
@@ -98,36 +98,24 @@ export default function GroupAdmin({ id, query }) {
             group={group}
             profileId={profileId}
             isSuperUser={isSuperUser(user)}
-            accessToken={accessToken}
             reloadGroup={loadGroup}
           />
-          <GroupMembers group={group} accessToken={accessToken} reloadGroup={loadGroup} />
+          <GroupMembers group={group} reloadGroup={loadGroup} />
           {group.invitations && (
-            <GroupContent
-              group={group}
-              profileId={profileId}
-              accessToken={accessToken}
-              reloadGroup={loadGroup}
-            />
+            <GroupContent group={group} profileId={profileId} reloadGroup={loadGroup} />
           )}
           {group.invitations && (
             <GroupContentScripts
               key={`${group.id}-content-scripts`}
               group={group}
               profileId={profileId}
-              accessToken={accessToken}
               reloadGroup={loadGroup}
             />
           )}
-          <GroupSignedNotes group={group} accessToken={accessToken} />
-          <GroupChildGroups groupId={group.id} accessToken={accessToken} />
-          <GroupRelatedInvitations group={group} accessToken={accessToken} />
-          <GroupUICode
-            group={group}
-            profileId={profileId}
-            accessToken={accessToken}
-            reloadGroup={loadGroup}
-          />
+          <GroupSignedNotes group={group} />
+          <GroupChildGroups groupId={group.id} />
+          <GroupRelatedInvitations group={group} />
+          <GroupUICode group={group} profileId={profileId} reloadGroup={loadGroup} />
         </div>
       </div>
     </CommonLayout>

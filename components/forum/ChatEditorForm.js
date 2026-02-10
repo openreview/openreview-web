@@ -32,7 +32,7 @@ export default function ChatEditorForm({
   const [notificationPermissions, setNotificationPermissions] = useState('loading')
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const [loading, setLoading] = useState(false)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const inputRef = useRef(null)
 
   const tabName = document.querySelector('.filter-tabs > li.active > a')?.text
@@ -55,9 +55,7 @@ export default function ChatEditorForm({
         const params = p.includes('.*')
           ? { prefix: p, signatory: user?.id }
           : { id: p, signatory: user?.id }
-        return api
-          .get('/groups', params, { accessToken })
-          .then((result) => result.groups ?? [])
+        return api.get('/groups', params).then((result) => result.groups ?? [])
       })
       const groupResults = await Promise.all(optionsP)
 
@@ -101,7 +99,7 @@ export default function ChatEditorForm({
     }
 
     api
-      .post('/notes/edits', noteEdit, { accessToken })
+      .post('/notes/edits', noteEdit)
       .then((result) => {
         setMessage('')
         setReplyToNote(null)
@@ -119,11 +117,7 @@ export default function ChatEditorForm({
         // Try to get the complete note, since edit does not contain all fields.
         // If it cannot be retrieved, use the note constructed from the edit response.
         api
-          .get(
-            '/notes',
-            { id: result.note.id, details: 'invitation,presentation,writable' },
-            { accessToken }
-          )
+          .get('/notes', { id: result.note.id, details: 'invitation,presentation,writable' })
           .then((noteRes) => {
             onSubmit(noteRes.notes?.length > 0 ? noteRes.notes[0] : constructedNote, true)
             setLoading(false)

@@ -317,16 +317,12 @@ describe('Contact page', () => {
 
     // send message with no error
     await userEvent.click(screen.getByRole('button', { name: 'Send' }))
-    expect(api.put).toHaveBeenCalledWith(
-      expect.anything(),
-      {
-        from: 'test@mail.com',
-        message: 'Profile ID: ~Test_User1\n\nsome message',
-        subject: 'I have a question about my existing OpenReview profile - ~Test_User1',
-        token: 'some token',
-      },
-      expect.anything()
-    )
+    expect(api.put).toHaveBeenCalledWith(expect.anything(), {
+      from: 'test@mail.com',
+      message: 'Profile ID: ~Test_User1\n\nsome message',
+      subject: 'I have a question about my existing OpenReview profile - ~Test_User1',
+      token: 'some token',
+    })
     expect(global.promptMessage).toHaveBeenCalledWith(
       'Your feedback has been submitted. Thank you.'
     )
@@ -351,16 +347,12 @@ describe('Contact page', () => {
     await userEvent.type(venueInput, 'some venue')
     await userEvent.type(messageInput, 'some message')
     await userEvent.click(screen.getByRole('button', { name: 'Send' }))
-    expect(api.put).toHaveBeenCalledWith(
-      expect.anything(),
-      {
-        from: 'test@mail.com',
-        message: 'Venue ID: some venue\n\nsome message',
-        subject: 'Venue - some venue',
-        token: 'some token',
-      },
-      expect.anything()
-    )
+    expect(api.put).toHaveBeenCalledWith(expect.anything(), {
+      from: 'test@mail.com',
+      message: 'Venue ID: some venue\n\nsome message',
+      subject: 'Venue - some venue',
+      token: 'some token',
+    })
     expect(global.promptMessage).toHaveBeenCalledWith(
       'Your feedback has been submitted. Thank you.'
     )

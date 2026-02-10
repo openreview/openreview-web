@@ -27,7 +27,6 @@ export default function Browse({
   maxColumns,
   showCounter,
   user,
-  accessToken,
   banner,
 }) {
   const [invitations, setInvitations] = useState(null)
@@ -42,7 +41,7 @@ export default function Browse({
           expired: true,
           type: version === 2 ? 'edge' : 'edges',
         },
-        { accessToken, version }
+        { version }
       )
       .then(async (apiRes) => {
         if (!apiRes.invitations?.length) {
@@ -107,7 +106,7 @@ export default function Browse({
           })
         } else {
           await api
-            .get('/groups', { id: domainGroupId, select: 'content' }, { accessToken })
+            .get('/groups', { id: domainGroupId, select: 'content' })
             .then((response) => {
               const domainContent = response?.groups?.[0]?.content
               setInvitations({
@@ -167,7 +166,7 @@ export default function Browse({
           hideInvitations={invitations.hideInvitations}
           maxColumns={maxColumns}
           showCounter={showCounter}
-          userInfo={{ userId: user?.id, accessToken }}
+          userInfo={{ userId: user?.id }}
         />
       </div>
     </CommonLayout>
