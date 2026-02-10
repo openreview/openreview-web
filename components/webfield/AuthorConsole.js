@@ -502,7 +502,7 @@ const AuthorConsole = ({ appContext }) => {
     IEEEArtSourceCode,
   } = useContext(WebFieldContext)
 
-  const { user, isRefreshing, accessToken } = useUser()
+  const { user, isRefreshing } = useUser()
   const query = useSearchParams()
   const { setBannerContent } = appContext
   const [showTasks, setShowTasks] = useState(false)
@@ -553,7 +553,7 @@ const AuthorConsole = ({ appContext }) => {
             sort: 'number:asc',
             [authorSubmissionField]: user.profile.id,
           },
-          { accessToken, version: 1 }
+          { version: 1 }
         )
         .then((result) => {
           const originalNotes = result.notes
@@ -572,7 +572,7 @@ const AuthorConsole = ({ appContext }) => {
                   details: 'directReplies',
                   sort: 'number:asc',
                 },
-                { accessToken, version: 1 }
+                { version: 1 }
               )
               .then((blindNotesResult) =>
                 (blindNotesResult.notes || [])
@@ -606,17 +606,13 @@ const AuthorConsole = ({ appContext }) => {
 
   const loadDataV2 = async () => {
     try {
-      const notesResult = await api.getAll(
-        '/notes',
-        {
-          [authorSubmissionField]: user.profile.id,
-          invitation: submissionId,
-          domain: group.domain,
-          details: 'directReplies',
-          sort: 'number:asc',
-        },
-        { accessToken }
-      )
+      const notesResult = await api.getAll('/notes', {
+        [authorSubmissionField]: user.profile.id,
+        invitation: submissionId,
+        domain: group.domain,
+        details: 'directReplies',
+        sort: 'number:asc',
+      })
 
       setAuthorNotes(notesResult)
 

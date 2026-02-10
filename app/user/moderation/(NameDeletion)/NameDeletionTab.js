@@ -37,7 +37,7 @@ const getProcessLogStatusLabelClass = (note) => {
   }
 }
 
-export default function NameDeletionTab({ accessToken }) {
+export default function NameDeletionTab() {
   const [nameDeletionNotes, setNameDeletionNotes] = useState(null)
   const [nameDeletionNotesToShow, setNameDeletionNotesToShow] = useState(null)
   const [page, setPage] = useState(1)
@@ -47,11 +47,11 @@ export default function NameDeletionTab({ accessToken }) {
   const fullTextModalId = 'deletion-fulltext-modal'
 
   const updateRequestStatus = async (noteId) => {
-    const nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
+    const nameRemovalNotesP = api.get('/notes', { id: noteId })
     const decisionResultsP = api.getAll(
       '/notes/edits',
       { 'note.id': noteId, invitation: nameDeletionDecisionInvitationId },
-      { accessToken, resultsKey: 'edits' }
+      { resultsKey: 'edits' }
     )
     const [nameRemovalNotes, decisionResults] = await Promise.all([
       nameRemovalNotesP,
@@ -73,8 +73,7 @@ export default function NameDeletionTab({ accessToken }) {
     try {
       setIdsLoading((p) => [...p, nameDeletionNote.id])
       const nameDeletionDecisionInvitation = await api.getInvitationById(
-        nameDeletionDecisionInvitationId,
-        accessToken
+        nameDeletionDecisionInvitationId
       )
 
       const editToPost = view2.constructEdit({
@@ -86,7 +85,7 @@ export default function NameDeletionTab({ accessToken }) {
 
         invitationObj: nameDeletionDecisionInvitation,
       })
-      const result = await api.post('/notes/edits', editToPost, { accessToken })
+      const result = await api.post('/notes/edits', editToPost)
       $('#name-delete-reject').modal('hide')
       updateRequestStatus(nameDeletionNote.id)
     } catch (error) {
@@ -102,32 +101,28 @@ export default function NameDeletionTab({ accessToken }) {
       let processLogsP
 
       if (noteId) {
-        nameRemovalNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        nameRemovalNotesP = api.get('/notes', { id: noteId })
         decisionResultsP = api.getAll(
           '/notes/edits',
           { 'note.id': noteId, invitation: nameDeletionDecisionInvitationId },
-          { accessToken, resultsKey: 'edits' }
+          { resultsKey: 'edits' }
         )
         processLogsP = Promise.resolve(null)
       } else {
-        nameRemovalNotesP = api.get(
-          '/notes',
-          {
-            invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
-          },
-          { accessToken }
-        )
+        nameRemovalNotesP = api.get('/notes', {
+          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
+        })
         decisionResultsP = api.getAll(
           '/notes/edits',
           {
             invitation: nameDeletionDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'edits' }
+          { resultsKey: 'edits' }
         )
         processLogsP = api.getAll(
           '/logs/process',
           { invitation: nameDeletionDecisionInvitationId },
-          { accessToken, resultsKey: 'logs' }
+          { resultsKey: 'logs' }
         )
       }
 

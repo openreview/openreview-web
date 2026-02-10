@@ -17,10 +17,10 @@ export default function Page() {
   const [loading, setLoading] = useState(false)
   const [saveProfileErrors, setSaveProfileErrors] = useState(null)
   const router = useRouter()
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
 
   const unlinkPublication = async (profileId, noteId) => {
-    const note = await api.getNoteById(noteId, accessToken)
+    const note = await api.getNoteById(noteId)
     let authorIds
     let invitation
     if (note.invitations) {
@@ -88,14 +88,14 @@ export default function Page() {
           },
         }
     return isV2Note
-      ? api.post('/notes/edits', updateAuthorIdsObject, { accessToken })
-      : api.post('/notes', updateAuthorIdsObject, { accessToken, version: 1 })
+      ? api.post('/notes/edits', updateAuthorIdsObject)
+      : api.post('/notes', updateAuthorIdsObject, { version: 1 })
   }
 
   // eslint-disable-next-line consistent-return
   const loadProfile = async () => {
     try {
-      const { profiles } = await api.get('/profiles', {}, { accessToken })
+      const { profiles } = await api.get('/profiles')
       if (profiles?.length > 0) {
         const formattedProfile = formatProfileData(profiles[0], { useLinkObjectFormat: true })
         setProfile(formattedProfile)
@@ -117,7 +117,7 @@ export default function Page() {
       readers: profileReaders,
     }
     try {
-      const apiRes = await api.post('/profiles', dataToSubmit, { accessToken })
+      const apiRes = await api.post('/profiles', dataToSubmit)
       const prefName = apiRes.content?.names?.find((name) => name.preferred === true)
       if (prefName !== user.profile.fullname) {
         router.refresh()
@@ -141,7 +141,7 @@ export default function Page() {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!accessToken) router.replace('/login?redirect=/profile/edit')
+    if (!user) router.replace('/login?redirect=/profile/edit')
     loadProfile()
   }, [isRefreshing])
 

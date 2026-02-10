@@ -55,7 +55,7 @@ const PreviousImpersonationList = ({
   )
 }
 
-export default function Impersonate({ user, accessToken }) {
+export default function Impersonate({ user }) {
   const [error, setError] = useState(null)
   const [userId, setUserId] = useState('')
   const [impersonateNote, setImpersonateNote] = useState('')
@@ -64,7 +64,7 @@ export default function Impersonate({ user, accessToken }) {
 
   const impersonateUser = async (groupId, note) => {
     try {
-      await api.post('/impersonate', { groupId }, { accessToken })
+      await api.post('/impersonate', { groupId })
       const trimmedList = uniqBy(
         [
           { groupId, note },

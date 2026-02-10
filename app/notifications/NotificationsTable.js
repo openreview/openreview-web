@@ -101,7 +101,6 @@ export default function NotificationsTable({
 }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [allMessages, setAllMessages] = useState(null)
-  const { token } = useUser()
   const pageSize = 25
 
   const count = allMessages?.length
@@ -126,14 +125,10 @@ export default function NotificationsTable({
   )
 
   const getMessages = async (after) => {
-    const result = await api.get(
-      '/messages',
-      {
-        to: toEmail,
-        after,
-      },
-      { accessToken: token }
-    )
+    const result = await api.get('/messages', {
+      to: toEmail,
+      after,
+    })
     setAllMessages((existingMessages) => existingMessages.concat(result.messages || []))
   }
 

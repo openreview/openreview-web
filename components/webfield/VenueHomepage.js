@@ -17,14 +17,7 @@ import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import LoadingSpinner from '../LoadingSpinner'
 
-function ConsolesList({
-  venueId,
-  submissionInvitationId,
-  setHidden,
-  shouldReload,
-  user,
-  accessToken,
-}) {
+function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload, user }) {
   const [userConsoles, setUserConsoles] = useState(null)
 
   useEffect(() => {
@@ -34,11 +27,12 @@ function ConsolesList({
     }
 
     api
-      .getAll(
-        '/groups',
-        { prefix: `${venueId}/`, member: user.id, web: true, domain: venueId },
-        { accessToken }
-      )
+      .getAll('/groups', {
+        prefix: `${venueId}/`,
+        member: user.id,
+        web: true,
+        domain: venueId,
+      })
       .then((userGroups) => {
         const groupIds = []
         if (userGroups?.length > 0) {
@@ -52,7 +46,7 @@ function ConsolesList({
         setUserConsoles([])
         promptError(error.message)
       })
-  }, [user, accessToken, venueId, submissionInvitationId, shouldReload])
+  }, [user, venueId, submissionInvitationId, shouldReload])
 
   useEffect(() => {
     if (!userConsoles || typeof setHidden !== 'function') return
@@ -116,7 +110,7 @@ export default function VenueHomepage({ appContext }) {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const queryParam = useSearchParams()
   const { setBannerContent } = appContext ?? {}
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const submissionIds =
     typeof submissionId === 'string' ? [{ value: submissionId, version: 2 }] : submissionId
   const defaultConfirmationMessage =
@@ -150,7 +144,6 @@ export default function VenueHomepage({ appContext }) {
             markTabLoaded()
           }}
           user={user}
-          accessToken={accessToken}
         />
       )
     }
@@ -163,7 +156,7 @@ export default function VenueHomepage({ appContext }) {
           invitation={tabConfig.options.invitation}
           pageSize={tabConfig.options.pageSize}
           shouldReload={shouldReload}
-          accessToken={accessToken}
+          user={user}
         />
       )
     }
@@ -215,7 +208,6 @@ export default function VenueHomepage({ appContext }) {
             markTabLoaded()
           }}
           filterNotes={filterFn}
-          accessToken={accessToken}
         />
       )
     }
@@ -296,7 +288,6 @@ export default function VenueHomepage({ appContext }) {
               reload()
             }}
             options={{ largeLabel: true, showStartEndDate: true }}
-            accessToken={accessToken}
           />
         </div>
       ))}

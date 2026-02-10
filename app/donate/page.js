@@ -2,7 +2,7 @@
 
 /* globals promptError,promptMessage: false */
 
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -83,13 +83,12 @@ const donationReducer = (state, action) => {
 }
 
 export default function Page() {
-  const { accessToken, user } = useUser()
+  const { user } = useUser()
+  const [preferredEmail, setPreferredEmail] = useState(undefined)
   const searchParams = useSearchParams()
   const success = searchParams.get('success')
 
   const [donateForm, setDonateForm] = useReducer(donationReducer, defaultDonateForum)
-
-  const email = user?.profile?.preferredEmail
 
   const handlePresetAmountClick = (amount) => {
     setDonateForm({ type: 'SET_PRESET_AMOUNT', payload: { amount } })
@@ -98,16 +97,12 @@ export default function Page() {
   const handleDonate = async () => {
     setDonateForm({ type: 'SUBMIT' })
     try {
-      const result = await api.post(
-        '/donate-session',
-        {
-          amount: donateForm.finalAmount,
-          mode: donateForm.mode,
-          email,
-          irsReceipt: donateForm.requireIRSReceipt,
-        },
-        { accessToken }
-      )
+      const result = await api.post('/donate-session', {
+        amount: donateForm.finalAmount,
+        mode: donateForm.mode,
+        email: preferredEmail,
+        irsReceipt: donateForm.requireIRSReceipt,
+      })
       if (!result.url) {
         throw new Error('Failed to create donation session')
       }
@@ -116,6 +111,23 @@ export default function Page() {
       promptError(error.message)
     }
   }
+
+  const getPreferredEmail = async () => {
+    try {
+      const profileResult = await api.get('/profiles')
+      const email = profileResult?.profiles?.[0]?.content?.preferredEmail
+      if (email) {
+        setPreferredEmail(email)
+      }
+    } catch (_) {
+      /* empty */
+    }
+  }
+
+  useEffect(() => {
+    if (!user) return
+    getPreferredEmail()
+  }, [user])
 
   useEffect(() => {
     if (donateForm.maxAmountError) {

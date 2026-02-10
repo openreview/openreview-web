@@ -17,7 +17,6 @@ export default function DblpPublicationTable({
   orPublicationsImportedByOtherProfile,
   maxNumberofPublicationsToImport,
 }) {
-  const { accessToken } = useUser()
   const [profileIdsRequested, setProfileIdsRequested] = useState([])
   const pubsCouldNotImport = [] // either existing or associated with other profile
   const pubsCouldImport = []
@@ -81,11 +80,7 @@ export default function DblpPublicationTable({
     if (!dblpPublications.length) return
     try {
       const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
-      const result = await api.get(
-        '/notes',
-        { invitation: profileMergeInvitationId },
-        { accessToken }
-      )
+      const result = await api.get('/notes', { invitation: profileMergeInvitationId })
 
       setProfileIdsRequested(uniq(result.notes.map((note) => note.content.right?.value)))
     } catch (error) {
@@ -225,7 +220,7 @@ const DblpPublicationRow = ({
   profileIdsRequested,
   setProfileIdsRequested,
 }) => {
-  const { accessToken, user } = useUser()
+  const { user } = useUser(true)
   const [error, setError] = useState(null)
   const [profileMergeStatus, setProfileMergeStatus] = useState(null)
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
@@ -234,10 +229,7 @@ const DblpPublicationRow = ({
     setError(null)
     setProfileMergeStatus('loading')
     try {
-      const profileMergeInvitation = await api.getInvitationById(
-        profileMergeInvitationId,
-        accessToken
-      )
+      const profileMergeInvitation = await api.getInvitationById(profileMergeInvitationId)
       const editToPost = view2.constructEdit({
         formData: {
           email: user.profile.preferredEmail,
@@ -249,7 +241,7 @@ const DblpPublicationRow = ({
         },
         invitationObj: profileMergeInvitation,
       })
-      await api.post('/notes/edits', editToPost, { accessToken })
+      await api.post('/notes/edits', editToPost)
       setProfileIdsRequested([...profileIdsRequested, otherProfileId])
     } catch (apiError) {
       setError(apiError)

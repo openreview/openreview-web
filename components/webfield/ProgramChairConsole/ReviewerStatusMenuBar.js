@@ -1,6 +1,5 @@
 /* globals $,promptMessage: false */
 import { useContext, useEffect, useState } from 'react'
-import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import BasicModal from '../../BasicModal'
 import WebFieldContext from '../../WebFieldContext'
@@ -13,7 +12,6 @@ const MessageReviewersModal = ({
   messageParentGroup,
   messageSignature,
 }) => {
-  const { accessToken } = useUser()
   const { shortPhrase, emailReplyTo, messageReviewersInvitationId, reviewerName } =
     useContext(WebFieldContext)
   const [currentStep, setCurrentStep] = useState(1)
@@ -31,19 +29,15 @@ const MessageReviewersModal = ({
     }
     // send emails
     try {
-      await api.post(
-        '/messages',
-        {
-          invitation: messageReviewersInvitationId,
-          signature: messageReviewersInvitationId && messageSignature,
-          groups: recipientsInfo.map((p) => p.id),
-          subject,
-          message,
-          parentGroup: messageParentGroup,
-          replyTo: emailReplyTo,
-        },
-        { accessToken }
-      )
+      await api.post('/messages', {
+        invitation: messageReviewersInvitationId,
+        signature: messageReviewersInvitationId && messageSignature,
+        groups: recipientsInfo.map((p) => p.id),
+        subject,
+        message,
+        parentGroup: messageParentGroup,
+        replyTo: emailReplyTo,
+      })
       $('#message-reviewers').modal('hide')
       promptMessage(`Successfully sent ${totalMessagesCount} emails`)
     } catch (apiError) {

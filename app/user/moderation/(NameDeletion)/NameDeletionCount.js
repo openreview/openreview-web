@@ -1,18 +1,14 @@
 import { useEffect, useState } from 'react'
 import api from '../../../../lib/api-client'
 
-export default function NameDeletionCount({ accessToken }) {
+export default function NameDeletionCount() {
   const [nameDeletionRequestCount, setNameDeletionRequestCount] = useState(null)
 
   const getNameDeletionCount = async () => {
     try {
-      const response = await api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
-        },
-        { accessToken }
-      )
+      const response = await api.get('/notes', {
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
+      })
       setNameDeletionRequestCount(
         response.notes.filter((p) => p.content.status.value === 'Pending').length
       )

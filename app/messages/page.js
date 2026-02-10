@@ -28,7 +28,7 @@ export default async function page({ searchParams }) {
   return (
     <div className={styles.messages}>
       <FilterForm searchQuery={query} statusOptions={statusOptions} />
-      <Messages query={query} statusOptionValues={statusOptionValues} accessToken={token} />
+      <Messages query={query} statusOptionValues={statusOptionValues} />
     </div>
   )
 }

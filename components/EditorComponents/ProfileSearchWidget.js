@@ -269,7 +269,7 @@ const ProfileSearchFormAndResults = ({
   const [totalCount, setTotalCount] = useState(0)
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
-  const { accessToken } = useUser()
+
   // eslint-disable-next-line no-use-before-define
   const placeHolderName = getPlaceHolderName()
 
@@ -294,16 +294,12 @@ const ProfileSearchFormAndResults = ({
 
     if (showLoadingSpinner) setIsLoading(true)
     try {
-      const results = await api.get(
-        '/profiles/search',
-        {
-          [paramKey]: paramValue,
-          es: true,
-          limit: pageSize,
-          offset: pageSize * (pageNumber - 1),
-        },
-        { accessToken }
-      )
+      const results = await api.get('/profiles/search', {
+        [paramKey]: paramValue,
+        es: true,
+        limit: pageSize,
+        offset: pageSize * (pageNumber - 1),
+      })
       setTotalCount(results.count > 200 ? 200 : results.count)
       setProfileSearchResults(
         isEditor === false
@@ -555,7 +551,7 @@ const ProfileSearchWidget = ({
   className,
   CustomProfileSearchForm,
 }) => {
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const editorComponentContext = useContext(EditorComponentContext) ?? {}
   const { field, onChange, value, error, clearError } = isEditor
     ? editorComponentContext

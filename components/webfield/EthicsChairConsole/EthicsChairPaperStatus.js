@@ -72,7 +72,6 @@ const EthicsChairPaperStatus = () => {
     anonEthicsReviewerName,
     ethicsMetaReviewName,
   } = useContext(WebFieldContext)
-  const { accessToken } = useUser()
   const [paperStatusTabData, setPaperStatusTabData] = useState({})
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(paperStatusTabData.tableRows?.length ?? 0)
@@ -81,32 +80,24 @@ const EthicsChairPaperStatus = () => {
   const loadSubmissions = async () => {
     try {
       const notesP = api
-        .getAll(
-          '/notes',
-          {
-            invitation: submissionId,
-            details: 'replies',
-            select: 'id,number,forum,content,details,invitations,readers',
-            sort: 'number:asc',
-            domain: venueId,
-          },
-          { accessToken }
-        )
+        .getAll('/notes', {
+          invitation: submissionId,
+          details: 'replies',
+          select: 'id,number,forum,content,details,invitations,readers',
+          sort: 'number:asc',
+          domain: venueId,
+        })
         .then((notes) =>
           notes.filter((note) => note.content?.flagged_for_ethics_review?.value)
         )
 
       const perPaperGroupResultsP = api
-        .get(
-          '/groups',
-          {
-            prefix: `${venueId}/${submissionName}.*`,
-            select: 'id,members',
-            stream: true,
-            domain: venueId,
-          },
-          { accessToken }
-        )
+        .get('/groups', {
+          prefix: `${venueId}/${submissionName}.*`,
+          select: 'id,members',
+          stream: true,
+          domain: venueId,
+        })
         .then((result) => result.groups ?? [])
 
       const [notes, perPaperGroupResults] = await Promise.all([notesP, perPaperGroupResultsP])
@@ -164,13 +155,9 @@ const EthicsChairPaperStatus = () => {
       const allIds = [...new Set(allGroupMembers)]
       const ids = allIds.filter((p) => p.startsWith('~'))
       const getProfilesByIdsP = ids.length
-        ? api.post(
-            '/profiles/search',
-            {
-              ids,
-            },
-            { accessToken }
-          )
+        ? api.post('/profiles/search', {
+            ids,
+          })
         : Promise.resolve([])
       const profileResults = await getProfilesByIdsP
       const allProfiles = (profileResults.profiles ?? []).map((profile) => ({

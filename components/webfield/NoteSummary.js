@@ -26,7 +26,6 @@ const NoteSummary = ({
   showDates = false,
   showReaders = false,
   ithenticateEdge,
-  accessToken,
   preferredEmailInvitationId,
 }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
@@ -74,11 +73,9 @@ const NoteSummary = ({
     }
     setIsLoadingReportLink(true)
     try {
-      const { viewerUrl } = await api.get(
-        '/ithenticate/viewer-url',
-        { edgeId: ithenticateEdge.id },
-        { accessToken }
-      )
+      const { viewerUrl } = await api.get('/ithenticate/viewer-url', {
+        edgeId: ithenticateEdge.id,
+      })
       setReportLink(viewerUrl)
       window.open(viewerUrl, '_blank')
     } catch (error) {

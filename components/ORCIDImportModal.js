@@ -19,7 +19,6 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
   const [selectedPublications, setSelectedPublications] = useState([])
   const [isFetchingPublications, setIsFetchingPublications] = useState(false)
   const [hasError, setHasError] = useState(false)
-  const { accessToken } = useUser()
   const maxNumberofPublicationsToImport = 500
 
   const countExistingImportedPapers = (allPublications, existingPublications) => {
@@ -44,7 +43,7 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
       setPublications(fetchedPublications)
       setMessage(`${fetchedPublications.length} publications fetched.`)
       // get existing orcid publications
-      const existingPublications = await getAllOrcidPapers(profileId, accessToken)
+      const existingPublications = await getAllOrcidPapers(profileId)
       setPublicationsInOpenReview(existingPublications)
       const { numExisting, noPubsToImport } = countExistingImportedPapers(
         fetchedPublications,
@@ -75,7 +74,6 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
           postOrUpdateOrcidPaper(
             profileId,
             profileNames,
-            accessToken,
             publications.find((p) => p.key === pubKey)
           )
         )
@@ -88,7 +86,7 @@ const ORCIDImportModal = ({ profileId, profileNames }) => {
         const firstError = failedResults[0]
         throw firstError.reason
       }
-      const existingPublications = await getAllOrcidPapers(profileId, accessToken)
+      const existingPublications = await getAllOrcidPapers(profileId)
       setPublicationsInOpenReview(existingPublications)
       const { noPubsToImport: allExistInOpenReview } = countExistingImportedPapers(
         publications,

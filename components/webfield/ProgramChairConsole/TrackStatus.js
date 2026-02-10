@@ -22,43 +22,35 @@ const TrackStatus = () => {
     customMaxPapersName,
     submissionName,
   } = useContext(WebFieldContext)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const [trackStatusData, setTrackStatusData] = useState({})
 
   const loadTrackStatusData = async () => {
     if (trackStatusData.allProfiles) return // check if data already loaded
     try {
       // #region getInvitationMap
-      const conferenceInvitationsP = api.get(
-        '/invitations',
-        {
-          id: submissionId,
-        },
-        { accessToken }
-      )
+      const conferenceInvitationsP = api.get('/invitations', {
+        id: submissionId,
+      })
       const invitationResultsP = Promise.all([conferenceInvitationsP])
       // #endregion
 
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
-          id ? api.getGroupById(id, accessToken, { select: 'members' }) : Promise.resolve([])
+          id ? api.getGroupById(id, undefined, { select: 'members' }) : Promise.resolve([])
         )
       )
       // #endregion
 
       // #region getSubmissions
-      const notesP = api.getAll(
-        '/notes',
-        {
-          invitation: submissionId,
-          details: 'replies',
-          select: 'id,number,forum,content,details,invitations,readers',
-          sort: 'number:asc',
-          domain: venueId,
-        },
-        { accessToken }
-      )
+      const notesP = api.getAll('/notes', {
+        invitation: submissionId,
+        details: 'replies',
+        select: 'id,number,forum,content,details,invitations,readers',
+        sort: 'number:asc',
+        domain: venueId,
+      })
       // #endregion
 
       // #region get Reviewer, AC, SAC custom max papers
@@ -73,7 +65,7 @@ const TrackStatus = () => {
               select: 'weight',
               domain: venueId,
             },
-            { accessToken, resultsKey: 'groupedEdges' }
+            { resultsKey: 'groupedEdges' }
           )
         })
       )
@@ -84,16 +76,12 @@ const TrackStatus = () => {
       const getRegistrationFormResultsP = Promise.all(
         prefixes.map((prefix) =>
           api
-            .getAll(
-              '/notes',
-              {
-                invitation: `${prefix}/-/.*`,
-                signature: venueId,
-                select: 'id,invitation,invitations,content.title',
-                domain: venueId,
-              },
-              { accessToken }
-            )
+            .getAll('/notes', {
+              invitation: `${prefix}/-/.*`,
+              signature: venueId,
+              select: 'id,invitation,invitations,content.title',
+              domain: venueId,
+            })
             .then((notes) =>
               notes.filter((note) => note.invitations.some((p) => p.endsWith('_Form')))
             )
@@ -126,15 +114,11 @@ const TrackStatus = () => {
       // Get registration notes from all registration forms
       const registrationNotes = await Promise.all(
         registrationForms.map((regForm) =>
-          api.getAll(
-            '/notes',
-            {
-              forum: regForm.id,
-              select: 'id,signatures,invitations,content',
-              domain: venueId,
-            },
-            { accessToken }
-          )
+          api.getAll('/notes', {
+            forum: regForm.id,
+            select: 'id,signatures,invitations,content',
+            domain: venueId,
+          })
         )
       )
       const registrationNoteMap = groupBy(registrationNotes.flat(), 'signatures[0]')
@@ -144,13 +128,9 @@ const TrackStatus = () => {
       const ids = allIds.filter((p) => p.startsWith('~'))
       const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
-        ? api.post(
-            '/profiles/search',
-            {
-              ids,
-            },
-            { accessToken }
-          )
+        ? api.post('/profiles/search', {
+            ids,
+          })
         : Promise.resolve([])
       const getProfilesByEmailsP =
         emails.length && isSuperUser(user)
@@ -158,8 +138,7 @@ const TrackStatus = () => {
               '/profiles/search',
               {
                 emails,
-              },
-              { accessToken }
+              }
             )
           : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])

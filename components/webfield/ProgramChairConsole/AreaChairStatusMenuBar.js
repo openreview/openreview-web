@@ -1,7 +1,6 @@
 /* globals $,promptMessage: false */
 import { useContext, useEffect, useState } from 'react'
 import camelCase from 'lodash/camelCase'
-import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import BasicModal from '../../BasicModal'
 import WebFieldContext from '../../WebFieldContext'
@@ -17,7 +16,6 @@ export const MessageACSACModal = ({
   isMessageSeniorAreaChairs = false,
   selectedIds,
 }) => {
-  const { accessToken } = useUser()
   const {
     shortPhrase,
     emailReplyTo,
@@ -45,19 +43,15 @@ export const MessageACSACModal = ({
     }
     // send emails
     try {
-      await api.post(
-        '/messages',
-        {
-          invitation: messageInvitationId,
-          signature: messageInvitationId && messageSignature,
-          groups: recipientsInfo.map((p) => p.id),
-          subject,
-          message,
-          parentGroup: messageParentGroup,
-          replyTo: emailReplyTo,
-        },
-        { accessToken }
-      )
+      await api.post('/messages', {
+        invitation: messageInvitationId,
+        signature: messageInvitationId && messageSignature,
+        groups: recipientsInfo.map((p) => p.id),
+        subject,
+        message,
+        parentGroup: messageParentGroup,
+        replyTo: emailReplyTo,
+      })
       $(
         `#${isMessageSeniorAreaChairs ? 'message-seniorareachairs' : 'message-areachairs'}`
       ).modal('hide')

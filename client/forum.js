@@ -12,7 +12,6 @@ module.exports = function (forumId, noteId, invitationId, user) {
   var $childrenAnchor = $('#note_children')
   var sm = mkStateManager()
 
-  // Data fetching functions
   var getNoteRecsP = function () {
     var onError = function () {
       $childrenAnchor.find('.spinner-container').fadeOut('fast')

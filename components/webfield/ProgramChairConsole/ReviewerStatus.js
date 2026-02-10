@@ -3,7 +3,6 @@ import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import Link from 'next/link'
-import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import {
   getProfileName,
@@ -313,7 +312,7 @@ const ReviewerStatusTab = ({
     officialReviewName,
     submissionName,
   } = useContext(WebFieldContext)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
   const pageSize = 25
@@ -339,13 +338,9 @@ const ReviewerStatusTab = ({
         const ids = reviewerWithoutAssignmentIds.filter((p) => p.startsWith('~'))
         const emails = reviewerWithoutAssignmentIds.filter((p) => p.match(/.+@.+/))
         const getProfilesByIdsP = ids.length
-          ? api.post(
-              '/profiles/search',
-              {
-                ids,
-              },
-              { accessToken }
-            )
+          ? api.post('/profiles/search', {
+              ids,
+            })
           : Promise.resolve([])
         const getProfilesByEmailsP =
           emails.length && isSuperUser(user)
@@ -353,8 +348,7 @@ const ReviewerStatusTab = ({
                 '/profiles/search',
                 {
                   emails,
-                },
-                { accessToken }
+                }
               )
             : Promise.resolve([])
         const reviewerProfileResults = await Promise.all([
