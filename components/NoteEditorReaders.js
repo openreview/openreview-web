@@ -242,6 +242,10 @@ export const NewReplyEditNoteReaders = ({
       return groupResults
 
     const invitationReadersWithRegex = invitationReaders.filter((p) => p.prefix)
+    const invitationReadersWithInGroup = invitationReaders.flatMap((p) => {
+      if (!p.inGroup) return []
+      return p.inGroup.endsWith('s') ? p.inGroup.slice(0, -1) : p.inGroup
+    })
 
     const filteredGroups = parentReaders
       .map((p) => {
@@ -273,11 +277,23 @@ export const NewReplyEditNoteReaders = ({
     })
 
     // 4. parent reader matches with a prefix of the invitation readers even if the API call doesn't return the group
-    parentReaders.forEach((p) => {
-      const isRegexReader = invitationReadersWithRegex.some((q) => p.match(q.prefix))
+    parentReaders.forEach((parentReader) => {
+      const matchRegexReader = invitationReadersWithRegex.some((invitationRegexReader) =>
+        parentReader.match(invitationRegexReader.prefix)
+      )
+      const isMemberOfInGroupReader = invitationReadersWithInGroup.some(
+        (invitationInGroupReaderSingular) =>
+          parentReader.startsWith(`${invitationInGroupReaderSingular}_`)
+      )
 
-      if (isRegexReader && !readersIntersection.find((q) => q.value === p)) {
-        readersIntersection.push({ value: p, description: prettyId(p, false) })
+      if (
+        (matchRegexReader || isMemberOfInGroupReader) &&
+        !readersIntersection.find((q) => q.value === parentReader)
+      ) {
+        readersIntersection.push({
+          value: parentReader,
+          description: prettyId(parentReader, false),
+        })
       }
     })
 
