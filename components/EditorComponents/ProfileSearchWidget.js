@@ -284,7 +284,7 @@ const ProfileSearchFormAndResults = ({
     let paramKey = 'fullname'
     let paramValue = cleanSearchTerm.toLowerCase()
     if (isValidEmail(cleanSearchTerm)) {
-      promptError('Searching by email is not supported.')
+      promptError('Search profile by name or OpenReview profile id.')
       return
     }
     if (cleanSearchTerm.startsWith('~')) {

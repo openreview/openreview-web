@@ -379,7 +379,9 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
 
     expect(getProfile).not.toHaveBeenCalled()
-    expect(global.promptError).toHaveBeenCalledWith('Searching by email is not supported.')
+    expect(global.promptError).toHaveBeenCalledWith(
+      'Search profile by name or OpenReview profile id.'
+    )
   })
 
   test('search by id keyword if user input is tilde id', async () => {
