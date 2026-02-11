@@ -7,7 +7,6 @@ import WebFieldContext from '../../WebFieldContext'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { getProfileName, prettyId } from '../../../lib/utils'
-import { isSuperUser } from '../../../lib/clientAuth'
 
 const TrackStatus = () => {
   const {
