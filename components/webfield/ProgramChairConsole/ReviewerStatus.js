@@ -19,9 +19,7 @@ import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { formatProfileContent } from '../../../lib/edge-utils'
-import { isSuperUser } from '../../../lib/clientAuth'
 import ProfileLink from '../ProfileLink'
-import useUser from '../../../hooks/useUser'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -313,7 +311,6 @@ const ReviewerStatusTab = ({
     officialReviewName,
     submissionName,
   } = useContext(WebFieldContext)
-  const { user } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
   const pageSize = 25
@@ -337,28 +334,18 @@ const ReviewerStatusTab = ({
           (reviewerProfileId) => !pcConsoleData.allProfilesMap.get(reviewerProfileId)
         )
         const ids = reviewerWithoutAssignmentIds.filter((p) => p.startsWith('~'))
-        const emails = reviewerWithoutAssignmentIds.filter((p) => p.match(/.+@.+/))
         const getProfilesByIdsP = ids.length
           ? api.post('/profiles/search', {
               ids,
             })
           : Promise.resolve([])
-        const getProfilesByEmailsP =
-          emails.length && isSuperUser(user)
-            ? api.post('/profiles/search', {
-                emails,
-              })
-            : Promise.resolve([])
-        const reviewerProfileResults = await Promise.all([
-          getProfilesByIdsP,
-          getProfilesByEmailsP,
-        ])
-        const reviewerProfilesWithoutAssignment = (reviewerProfileResults[0].profiles ?? [])
-          .concat(reviewerProfileResults[1].profiles ?? [])
-          .map((profile) => ({
+        const reviewerProfileResults = await getProfilesByIdsP
+        const reviewerProfilesWithoutAssignment = (reviewerProfileResults.profiles ?? []).map(
+          (profile) => ({
             ...profile,
             preferredName: getProfileName(profile),
-          }))
+          })
+        )
         const reviewerProfileWithoutAssignmentMap = new Map()
         reviewerProfilesWithoutAssignment.forEach((profile) => {
           const usernames = profile.content.names.flatMap((p) => p.username ?? [])
