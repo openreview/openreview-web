@@ -544,7 +544,7 @@ const ProfileSearchWidget = ({
   field: propsField,
   pageSize = 20,
   pageListLength,
-  searchInputPlaceHolder = 'search profiles by name or OpenReview tilde id',
+  searchInputPlaceHolder = 'search profiles by name or OpenReview profile id',
   onChange: propsOnChange,
   value: propsValue,
   error: propsError,

@@ -45,7 +45,7 @@ const CustomProfileSearchForm = ({
       type="text"
       className={`search-input ${error ? styles.invalidValue : ''}`}
       value={searchTerm ?? ''}
-      placeholder="Search relation by name or OpenReview tilde id"
+      placeholder="Search relation by name or OpenReview profile id"
       onChange={(e) => {
         setSearchTerm(e.target.value)
         setProfileSearchResults(null)
@@ -58,7 +58,7 @@ const CustomProfileSearchForm = ({
           setPageNumber(null)
         }
       }}
-      aria-label="Search relation by name or OpenReview tilde id"
+      aria-label="Search relation by name or OpenReview profile id"
     />
 
     <SearchButton
