@@ -1,7 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
-import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import WebFieldContext from '../../WebFieldContext'
 import {
