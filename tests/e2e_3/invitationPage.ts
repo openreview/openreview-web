@@ -1,5 +1,5 @@
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { strongPassword } from './utils/api-helper'
+import { strongPassword } from '../utils/api-helper'
 
 const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')
@@ -41,8 +41,8 @@ test('guest user should be redirected to login page and be able to access the in
     .expect(Selector('#invitation-container').exists)
     .ok()
     .expect(Selector('#invitation-container h1').innerText)
-    .eql('Reviewers Bidding Console')
-    .expect(Selector('#notes').exists)
+    .eql('Reviewer Bidding Console')
+    .expect(Selector('#all-submissions').exists)
     .ok()
 })
 
@@ -70,8 +70,8 @@ test('logged in user should be able to access to the invitation', async (t) => {
     .expect(Selector('#invitation-container').exists)
     .ok()
     .expect(Selector('#invitation-container h1').innerText)
-    .eql('Reviewers Bidding Console')
-    .expect(Selector('#notes').exists)
+    .eql('Reviewer Bidding Console')
+    .expect(Selector('#all-submissions').exists)
     .ok()
 })
 

@@ -1,6 +1,6 @@
-/* globals $: false */
+/* globals $,clearMessage,promptError: false */
 
-import { useState, useRef, useEffect, useContext } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import LoadingSpinner from './LoadingSpinner'
 import DblpPublicationTable from './DblpPublicationTable'
@@ -11,7 +11,6 @@ import {
   getAllPapersImportedByOtherProfiles,
 } from '../lib/profiles'
 import { deburrString, getNameString, inflect } from '../lib/utils'
-import useUser from '../hooks/useUser'
 
 const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   if (!dblpNames?.length) return <p>{message}</p>
@@ -63,7 +62,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
   const publicationsImportedByOtherProfiles = useRef([])
   const modalEl = useRef(null)
   const dblpNames = useRef(null)
-  const { accessToken } = useUser()
+
   const maxNumberofPublicationsToImport = 500
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
@@ -123,7 +122,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
       setMessage(`${allDblpPublications.length} publications fetched.`)
 
       // contains id (for link) and title (for filtering) of existing publications in openreivew
-      publicationsInOpenReview.current = await getAllPapersByGroupId(profileId, accessToken)
+      publicationsInOpenReview.current = await getAllPapersByGroupId(profileId)
       publicationsImportedByOtherProfiles.current = await getAllPapersImportedByOtherProfiles(
         allDblpPublications.map((p) => ({
           authorIndex: p.authorIndex,
@@ -132,8 +131,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           venue: p.venue,
           year: p.year,
         })),
-        profileNames,
-        accessToken
+        profileNames
       )
       const { numExisting, numAssociatedWithOtherProfile, noPubsToImport } =
         getExistingFromDblpPubs(allDblpPublications)
@@ -177,25 +175,35 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
     setIsSavingPublications(true)
 
     try {
-      await Promise.all(
+      const postPaperResults = await Promise.allSettled(
         selectedPublications.map((key) =>
           postOrUpdatePaper(
             publications.find((p) => p.key === key),
             profileId,
-            profileNames,
-            accessToken
+            profileNames
           )
         )
       )
+      const successfulCount = postPaperResults.filter(
+        (result) => result.status === 'fulfilled'
+      ).length
+      const failedResults = postPaperResults.filter((result) => result.status === 'rejected')
+      if (successfulCount === 0) {
+        const firstError = failedResults[0]
+        throw firstError.reason
+      }
 
       publicationsInOpenReview.current = await getAllPapersByGroupId(profileId)
       const { noPubsToImport: allExistInOpenReview } = getExistingFromDblpPubs(publications)
       if (allExistInOpenReview) {
         setMessage(`${selectedPublications.length} publications were successfully imported.
             All ${publications.length} of the publications from DBLP now exist in OpenReview.`)
-      } else {
+      } else if (failedResults.length === 0) {
         setMessage(`${selectedPublications.length} publications were successfully imported.
             Please select any additional publications you would like to add to your profile.`)
+      } else {
+        setMessage(`${successfulCount} publications were successfully imported.
+            However, ${failedResults.length} publications failed to import. Please try again later.`)
       }
 
       // replace other format of dblp homepage with persistent url
@@ -214,7 +222,9 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         error.name === 'TooManyError'
           ? 'DBLP import quota has reached'
           : 'An error occurred while importing your publications. Please try again later.'
-      setMessage(errorMessage)
+
+      promptError(errorMessage)
+      $(modalEl.current).modal('hide')
     }
 
     $(modalEl.current).find('.modal-body')[0].scrollTop = 0
@@ -231,6 +241,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
   useEffect(() => {
     $(modalEl.current).on('show.bs.modal', () => {
+      clearMessage()
       // read current dblp url from input
       let dblpInputVal = $('#dblp_url').val().trim()
       if (dblpInputVal.endsWith('.html')) dblpInputVal = dblpInputVal.slice(0, -5)

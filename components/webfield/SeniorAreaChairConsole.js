@@ -1,7 +1,7 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { camelCase, orderBy } from 'lodash'
+import { camelCase, chunk, orderBy } from 'lodash'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
@@ -64,7 +64,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     metaReviewAgreementConfig,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const [sacConsoleData, setSacConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
   const query = useSearchParams()
@@ -80,16 +80,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       // #region getSubmissions
       const notesP = submissionId
         ? api
-            .getAll(
-              '/groups',
-              {
-                member: user.id,
-                prefix: `${venueId}/${submissionName}.*`,
-                select: 'id',
-                domain: group.domain,
-              },
-              { accessToken }
-            )
+            .getAll('/groups', {
+              member: user.id,
+              prefix: `${venueId}/${submissionName}.*`,
+              select: 'id',
+              domain: group.domain,
+            })
             .then((groups) => {
               const noteNumbers = groups.flatMap((p) =>
                 p.id.endsWith(`/${seniorAreaChairName}`)
@@ -97,67 +93,59 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                   : []
               )
               if (!noteNumbers.length) return []
-              return api
-                .getAll(
-                  '/notes',
-                  {
-                    invitation: submissionId,
-                    details: 'replies',
-                    select: 'id,number,forum,content,details,invitations,readers',
-                    sort: 'number:asc',
-                    domain: group.domain,
-                  },
-                  { accessToken }
+              const noteNumberChunks = chunk(
+                noteNumbers.sort((a, b) => a - b),
+                50
+              )
+              return Promise.all(
+                noteNumberChunks.map((noteNumbersInChunk) =>
+                  api
+                    .get('/notes', {
+                      invitation: submissionId,
+                      number: noteNumbersInChunk.join(','),
+                      details: 'replies',
+                      select: 'id,number,forum,content,details,invitations,readers',
+                      sort: 'number:asc',
+                      domain: group.domain,
+                    })
+                    .then((batchResult) => batchResult.notes)
                 )
-                .then((notes) =>
-                  notes.filter(
-                    (note) =>
-                      // eslint-disable-next-line no-new-func
-                      ((filterFunction && Function('note', filterFunction)(note)) ?? true) &&
-                      noteNumbers.includes(note.number)
-                  )
+              ).then((allBatchResults) =>
+                allBatchResults.flat()?.filter(
+                  (note) =>
+                    // eslint-disable-next-line no-new-func
+                    (filterFunction && Function('note', filterFunction)(note)) ?? true
                 )
+              )
             })
         : Promise.resolve([])
       // #endregion
 
       // #region getInvitations
 
-      const invitationsP = api.getAll(
-        '/invitations',
-        {
-          ids: [reviewerAssignmentId, areaChairAssignmentId],
-        },
-        { accessToken }
-      )
+      const invitationsP = api.getAll('/invitations', {
+        ids: [reviewerAssignmentId, areaChairAssignmentId],
+      })
 
       // #endregion
 
       // #region getGroups (per paper groups)
-      const perPaperGroupResultsP = api.get(
-        '/groups',
-        {
-          prefix: `${venueId}/${submissionName}.*`,
-          stream: true,
-          select: 'id,members',
-          domain: group.domain,
-        },
-        { accessToken }
-      )
+      const perPaperGroupResultsP = api.get('/groups', {
+        prefix: `${venueId}/${submissionName}.*`,
+        stream: true,
+        select: 'id,members',
+        domain: group.domain,
+      })
       // #endregion
 
       // #region getAssignedACEdges
       const assignmentsP = assignmentInvitation
-        ? api.getAll(
-            '/edges',
-            {
-              invitation: assignmentInvitation,
-              label: assignmentLabel,
-              tail: user.profile.id,
-              domain: group.domain,
-            },
-            { accessToken }
-          )
+        ? api.getAll('/edges', {
+            invitation: assignmentInvitation,
+            label: assignmentLabel,
+            tail: user.profile.id,
+            domain: group.domain,
+          })
         : Promise.resolve([])
       // #endregion
 
@@ -170,7 +158,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 invitation: ithenticateInvitationId,
                 groupBy: 'id',
               },
-              { accessToken, resultsKey: 'groupedEdges' }
+              { resultsKey: 'groupedEdges' }
             )
             .then((result) => result.map((p) => p.values[0]))
         : Promise.resolve([])
@@ -333,22 +321,14 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       const ids = allIds.filter((p) => p.startsWith('~'))
       const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
-        ? api.post(
-            '/profiles/search',
-            {
-              ids,
-            },
-            { accessToken }
-          )
+        ? api.post('/profiles/search', {
+            ids,
+          })
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
-        ? api.post(
-            '/profiles/search',
-            {
-              emails,
-            },
-            { accessToken }
-          )
+        ? api.post('/profiles/search', {
+            emails,
+          })
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
       const allProfiles = (profileResults[0].profiles ?? [])

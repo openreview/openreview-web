@@ -1,5 +1,5 @@
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { strongPassword } from './utils/api-helper'
+import { strongPassword } from '../utils/api-helper'
 
 const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')

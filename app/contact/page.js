@@ -23,7 +23,7 @@ export default function Page() {
     return { ...state, [action.type]: action.payload }
   }, {})
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('feedback')
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
 
   const profileSubject = 'I have a question about my existing OpenReview profile'
   const submissionSubject = 'A conference I submitted to'
@@ -173,7 +173,7 @@ export default function Page() {
           feedbackData.subject = cleanSubject
       }
 
-      await api.put('/feedback', feedbackData, { accessToken })
+      await api.put('/feedback', feedbackData)
       setError(null)
       setSubmitting(false)
       setFormData({ type: 'reset' })
@@ -197,6 +197,7 @@ export default function Page() {
             placeholder={field.placeholder}
             value={formData[field.name] ?? ''}
             onChange={(e) => setFormData({ type: field.name, payload: e.target.value })}
+            aria-label={field.placeholder}
           />
         )
       case 'textarea':
@@ -209,6 +210,7 @@ export default function Page() {
             placeholder={field.placeholder}
             value={formData[field.name] ?? ''}
             onChange={(e) => setFormData({ type: field.name, payload: e.target.value })}
+            aria-label={field.placeholder}
           />
         )
       case 'select':

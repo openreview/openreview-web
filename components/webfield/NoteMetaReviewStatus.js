@@ -1,7 +1,7 @@
 /* globals promptError,promptMessage: false */
 
 // modified from noteMetaReviewStatus.hbs handlebar template
-import { useContext, useEffect, useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import WebFieldContext from '../WebFieldContext'
 import useUser from '../../hooks/useUser'
@@ -13,7 +13,7 @@ import { getProfileLink } from '../../lib/webfield-utils'
 const IEEECopyrightForm = ({ note, isV2Note }) => {
   const { showIEEECopyright, IEEEPublicationTitle, IEEEArtSourceCode } =
     useContext(WebFieldContext)
-  const { user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
   const noteContent = isV2Note ? getNoteContentValues(note.content) : note.content
 
   if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode && !isRefreshing) {
@@ -113,23 +113,18 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
   additionalMetaReviewFields,
 }) => {
   const [metaReviewInvitation, setMetaReviewInvitation] = useState(null)
-  const { accessToken } = useUser()
 
   const editUrl = `/forum?id=${note.forum}&noteId=${metaReviewData.metaReview?.id}&referrer=${referrerUrl}`
 
   const loadMetaReviewInvitation = async () => {
     try {
-      const result = await api.get(
-        '/invitations',
-        {
-          id: metaReviewData.metaReviewInvitationId,
-          invitee: true,
-          duedate: true,
-          replyto: true,
-          type: 'note',
-        },
-        { accessToken }
-      )
+      const result = await api.get('/invitations', {
+        id: metaReviewData.metaReviewInvitationId,
+        invitee: true,
+        duedate: true,
+        replyto: true,
+        type: 'note',
+      })
       if (result.invitations.length) {
         setMetaReviewInvitation(metaReviewData.metaReviewInvitationId)
       }
@@ -168,7 +163,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
         <>
           <>
             {metaReviewData.metaReviewByOtherACs.map((p) => (
-              <>
+              <React.Fragment key={p.anonId}>
                 <h4 className="title">
                   {prettyField(metaReviewRecommendationName)} by {p.anonId}:
                 </h4>
@@ -192,7 +187,7 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
                     Read
                   </a>
                 </p>
-              </>
+              </React.Fragment>
             ))}
           </>
           <h4>
@@ -209,6 +204,46 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
             )}
           </h4>
         </>
+      )}
+      {metaReviewData.customStageReviews && (
+        <div>
+          {Object.values(metaReviewData.customStageReviews).map((customStageReview, index) => {
+            if (!customStageReview.value) return null
+
+            return (
+              <div key={`${customStageReview.id}-${index}`}>
+                <strong className="custom-stage-name">{customStageReview.name}:</strong>
+                <div className="meta-review-info">
+                  <span>
+                    {customStageReview.displayField}: {customStageReview.value}
+                  </span>
+
+                  {customStageReview.extraDisplayFields?.length > 0 &&
+                    customStageReview.extraDisplayFields.map(({ field, value }, i) => {
+                      if (!value) return null
+                      return (
+                        <div key={`${field}-${i}`} className="meta-review-info">
+                          <span>
+                            {field}: {value}
+                          </span>
+                        </div>
+                      )
+                    })}
+
+                  <div>
+                    <a
+                      href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      {`Read ${customStageReview.name}`}
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       )}
     </div>
   )
@@ -245,7 +280,7 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
 
   const getACSACEmail = async (preferredName, profileId) => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.', { scrollToTop: false })
+      promptError('Email is not available.')
       return
     }
     try {
@@ -256,9 +291,9 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
 

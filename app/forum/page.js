@@ -209,6 +209,10 @@ export async function generateMetadata({ searchParams }) {
       if (issn) {
         metaData.other.citation_issn = issn
       }
+      const doiExternalId = forumNote.externalIds?.find((id) => id.startsWith('doi:'))
+      if (doiExternalId) {
+        metaData.other.citation_doi = doiExternalId.slice(4)
+      }
     }
     // #endregion
 

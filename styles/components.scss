@@ -399,7 +399,7 @@ table.table-minimal {
 .task-list {
   .note {
     &.completed {
-      opacity: 0.6;
+      opacity: 0.93;
       background-color: #eee;
       padding: 0.25rem 0.5rem;
       margin: 0.25rem -0.5rem;
@@ -569,12 +569,12 @@ table.table-minimal {
     }
     .profile-title {
       margin-bottom: 0.25rem;
-      color: #777777;
+      color: #757575;
     }
     .profile-expertise {
       margin-bottom: 0.5rem;
       width: 80%;
-      color: #777777;
+      color: #757575;
     }
   }
 }
@@ -1259,6 +1259,21 @@ table.table-minimal {
         width: max-content;
       }
     }
+    .tag-editor-container {
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+
+      .dropdown-select {
+        flex-grow: 1;
+        max-width: 30%;
+      }
+
+      .tag-label {
+        flex-grow: 1;
+        max-width: 70%;
+      }
+    }
     .tags-dropdown {
       &__control {
         background-color: #fffaf4;
@@ -1514,6 +1529,11 @@ table.table-minimal {
 
     .request-name {
       width: 30%;
+
+      .label {
+        vertical-align: middle;
+        margin-left: 0.25rem;
+      }
     }
     .request-status {
       display: flex;
@@ -1673,7 +1693,7 @@ table.table-minimal {
           }
           .author-title {
             font-size: 0.75rem;
-            color: #777777;
+            color: #757575;
           }
           .light-gray {
             color: #c6c6c6;

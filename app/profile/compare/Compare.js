@@ -5,15 +5,9 @@ import React, { useEffect, useState } from 'react'
 import { isEmpty } from 'lodash'
 import { nanoid } from 'nanoid'
 import SpinnerButton from '../../../components/SpinnerButton'
-import {
-  getProfileStateLabelClass,
-  prettyField,
-  prettyId,
-  prettyInvitationId,
-} from '../../../lib/utils'
+import { getProfileStateLabelClass, prettyField } from '../../../lib/utils'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
-import ProfileTag from '../../../components/ProfileTag'
 
 // #region components used by Compare (in renderField method)
 const Names = ({ names, highlightValue }) => (
@@ -290,6 +284,21 @@ const renderEdgeLink = (count, headTail, id) => {
   )
 }
 
+const renderTagLink = (count, id) => {
+  if (count === 0) return 'no tag'
+  return (
+    <>
+      <a
+        href={`${process.env.API_V2_URL}/tags?profile=${id}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        {count} tags
+      </a>
+    </>
+  )
+}
+
 const getHighlightValue = (withSignatureProfile) => {
   const compareFields = []
   Object.entries(withSignatureProfile).forEach(([key, value]) => {
@@ -348,7 +357,7 @@ const getHighlightValue = (withSignatureProfile) => {
   return compareFields.filter((p) => p)
 }
 
-export default function Compare({ profiles, accessToken, loadProfiles }) {
+export default function Compare({ profiles, loadProfiles }) {
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState(null)
   const [edgeCounts, setEdgeCounts] = useState(null)
@@ -360,10 +369,10 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
     if (!profiles.left?.id || !profiles.right?.id || profiles.left.id === profiles.right.id)
       return
     try {
-      const leftHeadP = api.get('/edges', { head: profiles.left.id }, { accessToken })
-      const leftTailP = api.get('/edges', { tail: profiles.left.id }, { accessToken })
-      const rightHeadP = api.get('/edges', { head: profiles.right.id }, { accessToken })
-      const rightTailP = api.get('/edges', { tail: profiles.right.id }, { accessToken })
+      const leftHeadP = api.get('/edges', { head: profiles.left.id })
+      const leftTailP = api.get('/edges', { tail: profiles.left.id })
+      const rightHeadP = api.get('/edges', { head: profiles.right.id })
+      const rightTailP = api.get('/edges', { tail: profiles.right.id })
       const results = await Promise.all([leftHeadP, leftTailP, rightHeadP, rightTailP])
       setEdgeCounts({
         leftHead: results[0].count,
@@ -380,24 +389,16 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
     if (!profiles.left?.id || !profiles.right?.id || profiles.left.id === profiles.right.id)
       return
     try {
-      const leftTagsP = api.get(
-        '/tags',
-        {
-          profile: profiles.left.id,
-        },
-        { accessToken }
-      )
-      const rightTagsP = api.get(
-        '/tags',
-        {
-          profile: profiles.right.id,
-        },
-        { accessToken }
-      )
+      const leftTagsP = api.get('/tags', {
+        profile: profiles.left.id,
+      })
+      const rightTagsP = api.get('/tags', {
+        profile: profiles.right.id,
+      })
       const results = await Promise.all([leftTagsP, rightTagsP])
       setTags({
-        left: results[0].tags,
-        right: results[1].tags,
+        left: results[0].count,
+        right: results[1].count,
       })
     } catch (error) {
       promptError(error.message)
@@ -419,11 +420,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
     }
     const postMerge = async () => {
       try {
-        await api.post(
-          '/profiles/merge',
-          { from: fromProfile.id, to: toProfile.id },
-          { accessToken }
-        )
+        await api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id })
         await loadProfiles()
         setEdgeCounts(null)
         setTags(null)
@@ -449,11 +446,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
   const mergeEdge = async (from, to) => {
     setLoadingEdges(true)
     try {
-      await api.post(
-        '/edges/rename',
-        { currentId: profiles[from].id, newId: profiles[to].id },
-        { accessToken }
-      )
+      await api.post('/edges/rename', { currentId: profiles[from].id, newId: profiles[to].id })
       await getEdges()
     } catch (apiError) {
       promptError(apiError.message)
@@ -464,11 +457,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
   const mergeTag = async (from, to) => {
     setLoadingTags(true)
     try {
-      await api.post(
-        '/tags/rename',
-        { currentId: profiles[from].id, newId: profiles[to].id },
-        { accessToken }
-      )
+      await api.post('/tags/rename', { currentId: profiles[from].id, newId: profiles[to].id })
       await getTags()
     } catch (error) {
       promptError(error.message)
@@ -600,9 +589,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
             </td>
             <td>
               <div className="tags-container">
-                {tags.left.length > 0
-                  ? tags.left.map((tag, index) => <ProfileTag key={index} tag={tag} />)
-                  : 'no tag'}
+                {renderTagLink(tags.left, profiles.left.id)}
               </div>
             </td>
             <td colSpan="2" style={{ textAlign: 'center', verticalAlign: 'middle' }}>
@@ -628,9 +615,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
             </td>
             <td>
               <div className="tags-container">
-                {tags.right.length > 0
-                  ? tags.right.map((tag, index) => <ProfileTag key={index} tag={tag} />)
-                  : ' no tag'}
+                {renderTagLink(tags.right, profiles.right.id)}
               </div>
             </td>
           </tr>

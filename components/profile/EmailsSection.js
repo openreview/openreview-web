@@ -130,7 +130,7 @@ const EmailsSection = ({
     emailsReducer,
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
   )
-  const { accessToken } = useUser()
+
   const [hasInstitutionEmail, setHasInstitutionEmail] = useState(true)
 
   const handleAddEmail = () => {
@@ -170,9 +170,9 @@ const EmailsSection = ({
       const linkData = { alternate: newEmail, username: profileId }
       try {
         if (isNewProfile) {
-          await api.post(`/user/confirm/${tokenParam}`, linkData, { accessToken })
+          await api.post(`/user/confirm/${tokenParam}`, linkData)
         } else {
-          await api.post('/user/confirm', linkData, { accessToken })
+          await api.post('/user/confirm', linkData)
         }
         setEmails({ setVerifyVisible: true, data: { key, visibleValue: true } })
         return promptMessage(
@@ -194,9 +194,9 @@ const EmailsSection = ({
     let verifyResult
     try {
       if (isNewProfile) {
-        await api.put(`/activatelink/${tokenParam}`, payload, { accessToken })
+        await api.put(`/activatelink/${tokenParam}`, payload)
       } else {
-        verifyResult = await api.put('/activatelink', payload, { accessToken })
+        verifyResult = await api.put('/activatelink', payload)
       }
       if (verifyResult?.id) {
         const updatedProfile = await loadProfile()
@@ -250,6 +250,7 @@ const EmailsSection = ({
             <div className="col-md-4 emails__value">
               {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
               <input
+                aria-label="email"
                 type="email"
                 autoFocus
                 value={emailObj.email}
@@ -266,6 +267,7 @@ const EmailsSection = ({
               emailObj.isValid && (
                 <div className="col-md-2 emails__value">
                   <input
+                    aria-label="Enter Verification Token"
                     type="text"
                     onChange={(e) =>
                       handleVerificationTokenUpdate(emailObj.key, e.target.value)

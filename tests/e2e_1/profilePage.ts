@@ -11,7 +11,7 @@ import {
   getNoteEdits,
   superUserName,
   strongPassword,
-} from './utils/api-helper'
+} from '../utils/api-helper'
 
 const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
@@ -754,9 +754,9 @@ const orcidMock = RequestMock().onRequestTo('https://pub.orcid.org/v3.0/0000-000
     ]
   }, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/json' })
 // #region long repeated selectors
-const errorMessageSelector = Selector('#flash-message-container', {
+const errorMessageSelector = Selector('.rc-notification-notice-content', {
   visibilityCheck: true,
-})
+}).nth(-1)
 const editFullNameInputSelector = Selector('input:not([readonly]).full-name')
 const nameSectionPlusIconSelector = Selector('section').find('.glyphicon-plus-sign')
 const emailSectionPlusIconSelector = Selector('section').find('.glyphicon-plus-sign')
@@ -791,8 +791,7 @@ const firstHistoryEndInput = Selector('div.history')
   .find('input')
   .withAttribute('placeholder', 'end year')
   .nth(0)
-const messageSelector = Selector('span').withAttribute('class', 'important_message')
-const messagePanelSelector = Selector('#flash-message-container')
+const messageSelector = Selector('.rc-notification-notice-content').nth(-1)
 const step0Names = Selector('div[step="0"]').find('div[role="button"]')
 const step1PeronalInfo = Selector('div[step="1"]').find('div[role="button"]')
 const step2Emails = Selector('div[step="2"]').find('div[role="button"]')
@@ -1546,7 +1545,7 @@ test('profile should be auto merged', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('a').withText('Merge Profiles').exists)
     .notOk()
-    .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
+    .expect(Selector('.rc-notification-notice-content').nth(-1).innerText)
     .contains(`A confirmation email has been sent to ${userF.email}`)
 
     // enter code to merge profile
@@ -1719,7 +1718,7 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .typeText(editEmailInputSelector, 'x@x.com', { replace: true })
     .click(Selector('button').withText('Confirm').filterVisible())
-    .expect(Selector('#flash-message-container').find('div.alert-content').innerText)
+    .expect(Selector('.rc-notification-notice-content').nth(-1).innerText)
     .contains('A confirmation email has been sent to x@x.com')
     // text box to enter code should be displayed
     .expect(Selector('button').withText('Verify').nth(0).visible)
@@ -1872,16 +1871,12 @@ test('check if a user can add multiple emails without entering verification toke
       'aab@alternate.com'
     )
     .click(Selector('div.container.emails').find('button.confirm-button'))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql(
       'A confirmation email has been sent to aab@alternate.com with confirmation instructions'
     )
     .typeText(Selector('input[placeholder="Enter Verification Token"]'), '000000')
     .click(Selector('button').withText('Verify').nth(0))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql('aab@alternate.com has been verified')
 
@@ -1893,17 +1888,13 @@ test('check if a user can add multiple emails without entering verification toke
       'aac@alternate.com'
     )
     .click(Selector('div.container.emails').find('button.confirm-button'))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
     .eql(
       'A confirmation email has been sent to aac@alternate.com with confirmation instructions'
     )
     .click(Selector('button').withText('Verify').nth(0))
-    .expect(messagePanelSelector.exists)
-    .ok()
     .expect(messageSelector.innerText)
-    .eql('token must NOT have fewer than 1 characters')
+    .eql('Error: token must NOT have fewer than 1 characters')
 
     .click(saveProfileButton)
     .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
@@ -1917,9 +1908,6 @@ test('check if a user can add multiple emails without entering verification toke
         .find('small')
         .withText('Confirmed').exists
     )
-    .ok()
-
-    .expect(Selector('span').withText('aac@alternate.com').exists)
     .ok()
     .expect(Selector('span').withText('aac@alternate.com').parent().textContent)
     .notContains('Confirmed')

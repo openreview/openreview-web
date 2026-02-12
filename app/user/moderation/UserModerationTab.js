@@ -6,6 +6,7 @@ import api from '../../../lib/api-client'
 import {
   formatDateTime,
   getProfileStateLabelClass,
+  getRejectionReasons,
   inflect,
   prettyId,
 } from '../../../lib/utils'
@@ -25,54 +26,7 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
     (p) => !p.end || p.end >= new Date().getFullYear()
   )?.institution?.name
 
-  const instructionText =
-    'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and follow the activation link to update your information.'
-  const rejectionReasons = [
-    {
-      value: 'requestEmailVerification',
-      label: 'Institutional Email is missing',
-      rejectionText: `Please add and confirm an institutional email ${
-        currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      }to your profile. Please make sure the verification token is entered and verified.\n\nIf your affiliation ${
-        currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      } is not current, please update your profile with your current affiliation and associated institutional email.\n\n${instructionText}`,
-    },
-    {
-      value: 'requestEmailConfirmation',
-      label: 'Institutional Email is added but not confirmed',
-      rejectionText: `Please confirm the institutional email in your profile by clicking the "Confirm" button next to the email and enter the verification token received.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidDBLP',
-      label: 'DBLP link is a disambiguation page',
-      rejectionText: `The DBLP link you have provided is a disambiguation page and is not intended to be used as a bibliography. Please select the correct bibliography page listed under "Other persons with a similar name". If your page is not listed please contact the DBLP team so they can add your bibliography page. We recommend providing a different bibliography homepage when resubmitting to OpenReview moderation.\n\n${instructionText}`,
-    },
-    {
-      value: 'imPersonalHomepage',
-      label: 'Homepage is invalid',
-      rejectionText: `The homepage url provided in your profile is invalid or does not display your name/email used to register so your identity can't be determined.\n\n${instructionText}`,
-    },
-    {
-      value: 'imPersonalHomepageAndEmail',
-      label: 'Homepage is invalid + no institution email',
-      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required. Please confirm the institutional email by entering the verification token received after clicking confirm button next to the institutional email.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidName',
-      label: 'Profile name is invalid',
-      rejectionText: `The name in your profile does not match the name listed in your homepage or is invalid.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidORCID',
-      label: 'ORCID profile is incomplete',
-      rejectionText: `The ORCID profile you've provided as a homepage is empty or does not match the Career & Education history you've provided.\n\n${instructionText}`,
-    },
-    {
-      value: 'lastNotice',
-      label: 'Last notice before block',
-      rejectionText: `If invalid info is submitted again, your email will be blocked.\n\n${instructionText}`,
-    },
-  ]
+  const rejectionReasons = getRejectionReasons(currentInstitutionName)
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
     setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
@@ -174,7 +128,7 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
   )
 }
 
-const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToken }) => {
+const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload }) => {
   const [blockTag, setBlockTag] = useState('')
   const actionIsBlock = profileToBlockUnblock?.state !== 'Blocked'
 
@@ -190,11 +144,10 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToke
         readers: [`${process.env.SUPER_USER}/Support`],
       })
 
-      await api.post(
-        '/profile/moderate',
-        { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' },
-        { accessToken }
-      )
+      await api.post('/profile/moderate', {
+        id: profile.id,
+        decision: actionIsBlock ? 'block' : 'unblock',
+      })
       setBlockTag('')
       $(`#${id}`).modal('hide')
     } catch (error) {
@@ -257,7 +210,6 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToke
 }
 
 const UserModerationQueue = ({
-  accessToken,
   title,
   onlyModeration = true,
   reload,
@@ -319,12 +271,12 @@ const UserModerationQueue = ({
           ...(shouldSearchProfile && searchQuery),
           ...(profileStateOption !== 'All' && { state: profileStateOption }),
         },
-        { accessToken, cachePolicy: 'no-cache' }
+        { cachePolicy: 'no-cache' }
       )
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
 
@@ -349,18 +301,14 @@ const UserModerationQueue = ({
   const acceptUser = async (profileId) => {
     try {
       setIdsLoading((p) => [...p, profileId])
-      await api.post(
-        '/profile/moderate',
-        { id: profileId, decision: 'accept' },
-        { accessToken }
-      )
+      await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
       reload()
-      promptMessage(`${prettyId(profileId)} is now active`, { scrollToTop: false })
+      promptMessage(`${prettyId(profileId)} is now active`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileId))
     }
   }
@@ -371,7 +319,6 @@ const UserModerationQueue = ({
       { signature: profileId, select: 'id' },
       null,
       {
-        accessToken,
         includeVersion: true,
       }
     )
@@ -379,7 +326,7 @@ const UserModerationQueue = ({
       '/notes',
       { 'content.authorids': profileId, select: 'id' },
       null,
-      { accessToken, includeVersion: true }
+      { includeVersion: true }
     )
 
     const [signedNotesResult, authoredNotesResult] = await Promise.all([
@@ -409,22 +356,18 @@ const UserModerationQueue = ({
 
   const rejectUser = async (rejectionMessage, id) => {
     try {
-      await api.post(
-        '/profile/moderate',
-        {
-          id,
-          decision: 'reject',
-          reason: rejectionMessage,
-        },
-        { accessToken }
-      )
+      await api.post('/profile/moderate', {
+        id,
+        decision: 'reject',
+        reason: rejectionMessage,
+      })
       $(`#${rejectModalId}`).modal('hide')
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
       reload()
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
 
@@ -455,13 +398,12 @@ const UserModerationQueue = ({
     )
     if (confirmResult) {
       try {
-        await api.post(
-          '/profile/moderate',
-          { id: profile.id, decision: actionIsDelete ? 'delete' : 'restore' },
-          { accessToken }
-        )
+        await api.post('/profile/moderate', {
+          id: profile.id,
+          decision: actionIsDelete ? 'delete' : 'restore',
+        })
       } catch (error) {
-        promptError(error.message, { scrollToTop: false })
+        promptError(error.message)
       }
       reload()
     }
@@ -470,23 +412,19 @@ const UserModerationQueue = ({
   const addSDNException = async (profileId) => {
     const sdnExceptionGroupId = `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`
     try {
-      const sdnExceptionGroup = await api.getGroupById(sdnExceptionGroupId, accessToken)
-      await api.post(
-        '/groups/edits',
-        {
-          group: {
-            id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
-            members: {
-              append: [profileId],
-            },
+      const sdnExceptionGroup = await api.getGroupById(sdnExceptionGroupId)
+      await api.post('/groups/edits', {
+        group: {
+          id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
+          members: {
+            append: [profileId],
           },
-          readers: sdnExceptionGroup.signatures,
-          writers: sdnExceptionGroup.signatures,
-          signatures: sdnExceptionGroup.signatures,
-          invitation: sdnExceptionGroup.invitations?.[0],
         },
-        { accessToken }
-      )
+        readers: sdnExceptionGroup.signatures,
+        writers: sdnExceptionGroup.signatures,
+        signatures: sdnExceptionGroup.signatures,
+        invitation: sdnExceptionGroup.invitations?.[0],
+      })
       promptMessage(`${profileId} is added to SDN exception group`)
     } catch (error) {
       promptError(error.message)
@@ -496,7 +434,9 @@ const UserModerationQueue = ({
   const showNextProfile = (currentProfileId) => {
     const nextProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) + 1]
     if (nextProfile) {
-      setProfileToPreview(formatProfileData(cloneDeep(nextProfile)))
+      setProfileToPreview(
+        formatProfileData(cloneDeep(nextProfile), { includePastStates: true })
+      )
       setLastPreviewedProfileId(nextProfile.id)
     }
   }
@@ -607,7 +547,9 @@ const UserModerationQueue = ({
                       profile.id === lastPreviewedProfileId ? ' last-previewed' : ''
                     }`}
                     onClick={() => {
-                      setProfileToPreview(formatProfileData(cloneDeep(profile)))
+                      setProfileToPreview(
+                        formatProfileData(cloneDeep(profile), { includePastStates: true })
+                      )
                     }}
                   >
                     {state}
@@ -751,7 +693,6 @@ const UserModerationQueue = ({
         profileToBlockUnblock={profileToBlockUnblock}
         signedNotes={signedNotes}
         reload={reload}
-        accessToken={accessToken}
       />
       <ProfilePreviewModal
         profileToPreview={profileToPreview}
@@ -765,7 +706,7 @@ const UserModerationQueue = ({
           'relations',
           'expertise',
           'publications',
-          'messages',
+          'pastStates',
           'tags',
         ]}
         showNextProfile={showNextProfile}
@@ -777,7 +718,7 @@ const UserModerationQueue = ({
   )
 }
 
-export default function UserModerationTab({ accessToken }) {
+export default function UserModerationTab() {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
 
@@ -785,15 +726,11 @@ export default function UserModerationTab({ accessToken }) {
 
   const getModerationStatus = async () => {
     try {
-      const result = await api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/-/OpenReview_Config`,
-          details: 'invitation',
-          limit: 1,
-        },
-        { accessToken }
-      )
+      const result = await api.get('/notes', {
+        invitation: `${process.env.SUPER_USER}/-/OpenReview_Config`,
+        details: 'invitation',
+        limit: 1,
+      })
 
       if (result?.notes?.[0]) {
         setConfigNote(result?.notes?.[0])
@@ -821,8 +758,7 @@ export default function UserModerationTab({ accessToken }) {
           formData: { moderate: moderationDisabled ? 'Yes' : 'No' },
           invitationObj: configNote.details.invitation,
           noteObj: configNote,
-        }),
-        { accessToken }
+        })
       )
       getModerationStatus()
     } catch (error) {
@@ -847,8 +783,7 @@ export default function UserModerationTab({ accessToken }) {
           formData: { terms_timestamp: currentTimeStamp },
           invitationObj: configNote.details.invitation,
           noteObj: configNote,
-        }),
-        { accessToken }
+        })
       )
 
       getModerationStatus()
@@ -883,7 +818,6 @@ export default function UserModerationTab({ accessToken }) {
 
       <div className="moderation-container">
         <UserModerationQueue
-          accessToken={accessToken}
           title="Recently Created Profiles"
           onlyModeration={false}
           reload={reload}
@@ -891,7 +825,6 @@ export default function UserModerationTab({ accessToken }) {
         />
 
         <UserModerationQueue
-          accessToken={accessToken}
           title="New Profiles Pending Moderation"
           reload={reload}
           shouldReload={shouldReload}

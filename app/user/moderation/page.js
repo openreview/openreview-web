@@ -4,7 +4,7 @@ import CommonLayout from '../../CommonLayout'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 
 export default async function page() {
-  const { user, token } = await serverAuth()
+  const { user } = await serverAuth()
   if (!isSuperUser(user))
     return <ErrorDisplay message="Forbidden. Access to this page is restricted." />
 
@@ -13,7 +13,7 @@ export default async function page() {
       <header>
         <h1>User Moderation</h1>
       </header>
-      <Moderation accessToken={token} />
+      <Moderation />
     </CommonLayout>
   )
 }

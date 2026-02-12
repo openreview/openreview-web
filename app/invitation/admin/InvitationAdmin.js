@@ -19,7 +19,7 @@ import LoadingSpinner from '../../../components/LoadingSpinner'
 export default function InvitationAdmin({ id, query }) {
   const [invitation, setInvitation] = useState(null)
   const [error, setError] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
   const isMetaInvitation = invitation?.edit === true
 
@@ -45,14 +45,14 @@ export default function InvitationAdmin({ id, query }) {
     try {
       const invitationObj = await api.getInvitationById(
         id,
-        accessToken,
+        undefined,
         { details: 'writable', expired: true, trash: true },
         { details: 'writable', expired: true }
       )
       if (invitationObj) {
         if (invitationObj.details?.writable) {
           setInvitation(invitationObj)
-        } else if (!accessToken) {
+        } else if (!user) {
           router.replace(
             `/login?redirect=/invitation/edit?${encodeURIComponent(stringify(query))}`
           )
@@ -65,7 +65,7 @@ export default function InvitationAdmin({ id, query }) {
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        if (!accessToken) {
+        if (!user) {
           router.replace(
             `/login?redirect=/invitation/edit?${encodeURIComponent(stringify(query))}`
           )
@@ -102,7 +102,6 @@ export default function InvitationAdmin({ id, query }) {
           <InvitationAdminV1
             invitation={invitation}
             user={user}
-            accessToken={accessToken}
             loadInvitation={loadInvitation}
           />
         ) : (
@@ -110,7 +109,6 @@ export default function InvitationAdmin({ id, query }) {
             invitation={invitation}
             isMetaInvitation={isMetaInvitation}
             user={user}
-            accessToken={accessToken}
             loadInvitation={loadInvitation}
           />
         )}{' '}

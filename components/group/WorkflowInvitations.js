@@ -1,7 +1,7 @@
 /* eslint-disable arrow-body-style */
 /* globals promptError,promptMessage,$: false */
-import React, { useEffect, useRef, useState } from 'react'
-import { orderBy, sortBy, get, set } from 'lodash'
+import { useEffect, useRef, useState } from 'react'
+import { orderBy, sortBy, get } from 'lodash'
 import timezone from 'dayjs/plugin/timezone'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import dayjs from 'dayjs'
@@ -33,6 +33,41 @@ dayjs.extend(timezone)
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 
+const workflowGroupKeys = [
+  {
+    field: 'reviewers_id',
+    subGroupSuffixes: ['/Invited', '/Declined'],
+  },
+  {
+    field: 'authors_id',
+    subGroupSuffixes: ['/Accepted'],
+  },
+  {
+    field: 'area_chairs_id',
+    subGroupSuffixes: ['/Invited', '/Declined'],
+  },
+  {
+    field: 'senior_area_chairs_id',
+    subGroupSuffixes: ['/Invited', '/Declined'],
+  },
+  {
+    field: 'ethics_reviewers_id',
+    subGroupSuffixes: ['/Invited', '/Declined'],
+  },
+  {
+    field: 'ethics_chairs_id',
+    subGroupSuffixes: ['/Invited', '/Declined'],
+  },
+  {
+    field: 'publication_chairs_id',
+    subGroupSuffixes: [],
+  },
+  {
+    field: 'program_chairs_id',
+    subGroupSuffixes: [],
+  },
+]
+
 const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
   if (isMissingValue) {
     return (
@@ -55,6 +90,14 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
       <span className="log-status">
         <span className="fixed-text">Status:</span> {formattedDate}
         <span className="fixed-text">. Running…</span>
+        <a
+          className="log-details"
+          href={`${process.env.API_V2_URL}/logs/process?id=${runningProcessLog?.id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          logs
+        </a>
       </span>
     )
   }
@@ -84,7 +127,7 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            details
+            logs
           </a>
         </span>
       )
@@ -100,7 +143,7 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            details
+            logs
           </a>
         </span>
       )
@@ -115,7 +158,7 @@ const EditInvitationProcessLogStatus = ({ processLogs, isMissingValue }) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            details
+            logs
           </a>
         </span>
       )
@@ -209,7 +252,7 @@ const WorkflowInvitationRow = ({
   isStageInvitation,
 }) => {
   const [showEditor, setShowEditor] = useState(false)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
   const profileId = user?.profile?.id
 
   const innerInvitationInvitee = invitation.edit?.invitation?.invitees
@@ -235,30 +278,26 @@ const WorkflowInvitationRow = ({
   const expireRestoreInvitation = async () => {
     try {
       const expireRestoreInvitationPs = [invitation, ...subInvitations].map((p) =>
-        api.post(
-          '/invitations/edits',
-          {
-            invitation: {
-              cdate: p.cdate,
-              ddate: isExpired ? { delete: true } : dayjs().valueOf(),
-              id: p.id,
-              signatures: p.signatures,
-              bulk: p.bulk,
-              duedate: p.duedate,
-              expdate: p.expdate,
-              invitees: p.invitees,
-              noninvitees: p.noninvitees,
-              nonreaders: p.nonreaders,
-              readers: p.readers,
-              writers: p.writers,
-            },
-            readers: [profileId],
-            writers: [profileId],
-            signatures: [profileId],
-            invitations: getMetaInvitationId(p),
+        api.post('/invitations/edits', {
+          invitation: {
+            cdate: p.cdate,
+            ddate: isExpired ? { delete: true } : dayjs().valueOf(),
+            id: p.id,
+            signatures: p.signatures,
+            bulk: p.bulk,
+            duedate: p.duedate,
+            expdate: p.expdate,
+            invitees: p.invitees,
+            noninvitees: p.noninvitees,
+            nonreaders: p.nonreaders,
+            readers: p.readers,
+            writers: p.writers,
           },
-          { accessToken }
-        )
+          readers: [profileId],
+          writers: [profileId],
+          signatures: [profileId],
+          invitations: getMetaInvitationId(p),
+        })
       )
       await Promise.all(expireRestoreInvitationPs)
       promptMessage(
@@ -453,7 +492,7 @@ const SubInvitationRow = ({
                 // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
-                  className="mr-2"
+                  className="edit-close-button"
                   onClick={(e) => {
                     e.preventDefault()
                     setShowInvitationEditor((isOpen) => !isOpen)
@@ -540,7 +579,7 @@ const WorkflowGroupRow = ({ group, groupInvitations }) => {
           ) : (
             <span className="group-id">{prettyId(group.id, true)}</span>
           )}
-          <a className="id-icon" href={`/group/edit?id=${group.id}`}>
+          <a className="id-icon" href={`/group/edit?id=${group.id}`} aria-label="Edit group">
             <Icon name="new-window" />
           </a>
           <span className="member-count">Group of {group.members?.length}</span>
@@ -623,7 +662,7 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   )
 }
 
-const WorkFlowInvitations = ({ group, accessToken }) => {
+const WorkFlowInvitations = ({ group }) => {
   const groupId = group.id
   const submissionName = group.content?.submission_name?.value
   const [allInvitations, setAllInvitations] = useState([])
@@ -855,7 +894,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           invitation: `${groupId}.*`,
           select: 'id,sdate,edate,invitation,status,log',
         },
-        { accessToken, resultsKey: 'logs' }
+        { resultsKey: 'logs' }
       )
       const logs = orderBy(response, ['edate'], ['desc'])
       setProcessLogs(logs)
@@ -915,36 +954,36 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
 
   const loadAllInvitations = async () => {
     setMissingValueInvitationIds([])
-    const getAllGroupsP = api
-      .getAll(
-        '/groups',
-        {
-          parent: groupId,
-        },
-        { accessToken }
-      )
-      .then((groups) => groups.filter((p) => !p.id.includes(submissionName)))
+    const workflowGroupIds = workflowGroupKeys.flatMap((p) => {
+      const workflowGroupId = group.content?.[p.field]?.value
+      if (!workflowGroupId) return []
+      const subGroupIds = p.subGroupSuffixes.map((q) => `${workflowGroupId}${q}`)
+      return [workflowGroupId, ...subGroupIds]
+    })
 
-    const getAllInvitationsP = await api.getAll(
-      '/invitations',
-      { prefix: groupId, expired: true, trash: true, type: 'all' },
-      { accessToken }
-    )
+    const getAllGroupsP = api
+      .get('/groups', {
+        ids: workflowGroupIds,
+      })
+      .then((result) => result.groups)
+
+    const getAllInvitationsP = await api.getAll('/invitations', {
+      prefix: groupId,
+      expired: true,
+      trash: true,
+      type: 'all',
+      filterStaticForum: true,
+    })
 
     let getStageInvitationTemplatesP =
       group.id === group.domain
         ? api
-            .getAll(
-              '/invitations',
-              {
-                prefix: `${process.env.SUPER_USER}/Support/-/.*`,
-              },
-              { accessToken }
-            )
+            .getAll('/invitations', {
+              prefix: `${process.env.SUPER_USER}/Support/-/.*`,
+            })
             .then((invitations) => invitations.filter((p) => p.id.endsWith('_Template')))
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])
-
     try {
       // eslint-disable-next-line no-shadow
       const [groups, invitations, stageInvitations, logs] = await Promise.all([
@@ -954,6 +993,12 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
         loadProcessLogs(),
       ])
 
+      const mainGroups = groups.filter((p) => p.parent === group.id)
+      const workflowGroupMap = new Map()
+      sortBy(mainGroups, 'cdate').forEach((p) => {
+        const subGroups = groups.filter((q) => q.parent === p.id)
+        workflowGroupMap.set(p.id, { ...p, subGroups })
+      })
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
       const filteredInvitations = filterWorkflowInvitations(
         exclusionWorkflowInvitations,
@@ -967,7 +1012,6 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
           logs
         )
       })
-
       setWorkflowTasks(
         sortBy(
           invitationsToShowInWorkflow.reduce(
@@ -987,7 +1031,7 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       )
       setCollapsedWorkflowInvitationIds(invitationsToShowInWorkflow.map((p) => p.id))
       setWorkflowInvitations(sortWorkflowInvitations(invitationsToShowInWorkflow))
-      setWorkflowGroups(sortBy(groups, 'cdate'))
+      setWorkflowGroups(workflowGroupMap)
       setAllInvitations(invitations)
       setStageInvitations(stageInvitations)
       // loadProcessLogs()
@@ -1019,27 +1063,43 @@ const WorkFlowInvitations = ({ group, accessToken }) => {
       clearTimeout(eventsHandler)
     }
   }, [events?.uniqueId])
-
   return (
     <>
-      {workflowGroups.length > 0 && (
-        <EditorSection
-          title={`Workflow Groups (${workflowGroups.length})`}
-          className="workflow"
-        >
+      {workflowGroups.size > 0 && (
+        <EditorSection title={`Workflow Groups (${workflowGroups.size})`} className="workflow">
           <div className=" group-workflow-container">
-            {workflowGroups.map((stepObj) => {
+            {Array.from(workflowGroups.values()).map((stepObj) => {
               const groupInvitationsForGroup = allInvitations.filter(
                 (p) =>
                   p.edit?.group?.id === stepObj.id &&
                   Object.values(p.edit?.content ?? {}).some((q) => q.value?.param)
               )
               return (
-                <WorkflowGroupRow
-                  key={stepObj.id}
-                  group={stepObj}
-                  groupInvitations={groupInvitationsForGroup}
-                />
+                <div key={stepObj.id}>
+                  <WorkflowGroupRow
+                    group={stepObj}
+                    groupInvitations={groupInvitationsForGroup}
+                  />
+                  {stepObj.subGroups.length > 0 && (
+                    <ul className="subgroups-container">
+                      {stepObj.subGroups.map((subGroup, index) => {
+                        const subGroupInvitationsForGroup = allInvitations.filter(
+                          (p) =>
+                            p.edit?.group?.id === subGroup.id &&
+                            Object.values(p.edit?.content ?? {}).some((q) => q.value?.param)
+                        )
+                        return (
+                          <li key={subGroup.id} className="subgroup-item">
+                            <WorkflowGroupRow
+                              group={subGroup}
+                              groupInvitations={subGroupInvitationsForGroup}
+                            />
+                          </li>
+                        )
+                      })}
+                    </ul>
+                  )}
+                </div>
               )
             })}
           </div>

@@ -15,7 +15,7 @@ import HeadingLink from './HeadingLink'
 import TaskList from '../../components/TaskList'
 
 export default function Page() {
-  const { accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
   const [domainTasksMap, setDomainTasksMap] = useState(new Map())
   const [domainTypeMap, setDomainTypeMap] = useState(null)
@@ -35,30 +35,22 @@ export default function Page() {
     const invitationPromises = [
       types.includes('note')
         ? api
-            .get(
-              '/invitations',
-              {
-                ...commonParams,
-                replyto: true,
-                details: 'replytoNote,repliedNotes,repliedEdits',
-                type: 'note',
-              },
-              { accessToken }
-            )
+            .get('/invitations', {
+              ...commonParams,
+              replyto: true,
+              details: 'replytoNote,repliedNotes,repliedEdits',
+              type: 'note',
+            })
             .then(addPropertyToInvitations('noteInvitation'))
         : Promise.resolve([]),
       types.includes('tag')
         ? api
-            .get('/invitations', { ...commonParams, type: 'tag' }, { accessToken })
+            .get('/invitations', { ...commonParams, type: 'tag' })
             .then(addPropertyToInvitations('tagInvitation'))
         : Promise.resolve([]),
       types.includes('edge')
         ? api
-            .get(
-              '/invitations',
-              { ...commonParams, type: 'edge', details: 'repliedEdges' },
-              { accessToken }
-            )
+            .get('/invitations', { ...commonParams, type: 'edge', details: 'repliedEdges' })
             .then(addPropertyToInvitations('tagInvitation'))
         : Promise.resolve([]),
     ]
@@ -105,46 +97,35 @@ export default function Page() {
   const loadDomains = async () => {
     const invitationPromises = [
       api
-        .get(
-          '/invitations',
-          {
-            replyto: true,
-            invitee: true,
-            duedate: true,
-            select: 'domain,invitees',
-            type: 'note',
-          },
-          { accessToken }
-        )
+        .get('/invitations', {
+          replyto: true,
+          invitee: true,
+          duedate: true,
+          select: 'domain,invitees',
+          type: 'note',
+        })
         .then((result) => result.invitations),
       api
-        .get(
-          '/invitations',
-          {
-            invitee: true,
-            duedate: true,
-            select: 'domain,invitees',
-            type: 'tag',
-          },
-          { accessToken }
-        )
+        .get('/invitations', {
+          invitee: true,
+          duedate: true,
+          select: 'domain,invitees',
+          type: 'tag',
+        })
         .then((result) => result.invitations),
       api
-        .get(
-          '/invitations',
-          {
-            invitee: true,
-            duedate: true,
-            select: 'domain,invitees',
-            type: 'edge',
-          },
-          { accessToken }
-        )
+        .get('/invitations', {
+          invitee: true,
+          duedate: true,
+          select: 'domain,invitees',
+          type: 'edge',
+        })
         .then((result) => result.invitations),
     ]
-    const domainResult = await Promise.all(invitationPromises).catch((apiError) =>
+    const domainResult = await Promise.all(invitationPromises).catch((apiError) => {
       setError(apiError)
-    )
+      return []
+    })
 
     const uniqueDomainsTypeMap = new Map()
     const processDomainResults = (invitations, type) => {
@@ -175,7 +156,7 @@ export default function Page() {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!accessToken) {
+    if (!user) {
       router.push('/login?redirect=/tasks')
       return
     }

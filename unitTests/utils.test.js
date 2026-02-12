@@ -1,12 +1,17 @@
 import {
   getDefaultTimezone,
+  getTagDispayText,
   getPath,
   getSubInvitationContentFieldDisplayValue,
   isInstitutionEmail,
   parseNumberField,
   prettyInvitationId,
   stringToObject,
+  buildNoteUrl,
+  sanitizeRedirectUrl,
 } from '../lib/utils'
+import { screen, render } from '@testing-library/react'
+import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
@@ -826,5 +831,135 @@ describe('utils', () => {
     expectedValue = 4
 
     expect(parseNumberField(confidenceString)).toEqual(expectedValue)
+  })
+
+  test('return display text for label', () => {
+    process.env.SUPER_USER = 'OpenReview.net'
+    // not to show invitation group when it's same as signature
+    let tag = {
+      invitation: 'OpenReview.net/Support/-/Profile_Moderation_Label',
+      label: 'spam user',
+      profile: '~Test_User1',
+      readers: ['OpenReview.net/Support'],
+      signature: 'OpenReview.net/Support',
+    }
+
+    let expectedValue = 'OpenReview Support Profile Moderation Label spam user'
+    expect(getTagDispayText(tag, false)).toEqual(expectedValue)
+
+    // show profile id when the param is true (for page other than profile/moderation)
+    tag = {
+      invitation: 'OpenReview.net/Support/-/Profile_Moderation_Label',
+      label: 'spam user',
+      profile: '~Test_User1',
+      readers: ['OpenReview.net/Support'],
+      signature: 'OpenReview.net/Support',
+    }
+
+    expectedValue = 'OpenReview Support Profile Moderation Label Test User spam user'
+    expect(getTagDispayText(tag, true)).toEqual(expectedValue)
+
+    // show label for vouch invitation (show profile id false)- highlight signature
+    tag = {
+      invitation: 'OpenReview.net/Support/-/Vouch',
+      label: 'vouch',
+      profile: '~Test_User1',
+      readers: ['OpenReview.net/Support'],
+      signature: '~Mentor_User1',
+    }
+
+    expectedValue = 'Vouched by Mentor User'
+    const { container } = render(getTagDispayText(tag, false))
+    expect(container.textContent).toEqual(expectedValue)
+    expect(screen.getByText('Mentor User')).toHaveClass('highlight')
+
+    // show label for vouch invitation (show profile id true)-does not have hightlight as it's not used
+    tag = {
+      invitation: 'OpenReview.net/Support/-/Vouch',
+      label: 'vouch',
+      profile: '~Test_User1',
+      readers: ['OpenReview.net/Support'],
+      signature: '~Mentor_User1',
+    }
+
+    expectedValue = '~Mentor_User1 vouch ~Test_User1'
+    expect(getTagDispayText(tag, true)).toEqual(expectedValue)
+
+    // not to duplicate signature and invitation
+    tag = {
+      invitation: 'ICML.cc/2023/Conference/Reviewers/-/Assignment_Count',
+      label: undefined,
+      weight: 25,
+      profile: '~Test_User1',
+      readers: ['ICML.cc/2023/Conference'],
+      signature: 'ICML.cc/2023/Conference',
+    }
+
+    expectedValue = 'ICML 2023 Conference Assignment Count (25)'
+    const { container: conferenceTagContainer } = render(getTagDispayText(tag, false))
+    expect(conferenceTagContainer.textContent).toEqual(expectedValue)
+    expect(screen.getByText('ICML 2023 Conference')).toHaveClass('highlight')
+  })
+
+  test('return note url in buildNoteUrl', () => {
+    let id, forum, content, options, expectedValue
+
+    // news - by paper hash
+    id = null
+    forum = null
+    content = { paperhash: { value: 'some|paperhash' } }
+    options = { usePaperHashUrl: true }
+    expectedValue = '/forum/some|paperhash'
+    expect(buildNoteUrl(id, forum, content, options)).toEqual(expectedValue)
+
+    // forum = id
+    id = 'someNoteId'
+    forum = 'someNoteId'
+    content = {}
+    options = {}
+    expectedValue = '/forum?id=someNoteId'
+    expect(buildNoteUrl(id, forum, content, options)).toEqual(expectedValue)
+
+    // forum != id
+    id = 'someNoteId'
+    forum = 'someForumId'
+    content = {}
+    options = {}
+    expectedValue = '/forum?id=someForumId&noteId=someNoteId'
+    expect(buildNoteUrl(id, forum, content, options)).toEqual(expectedValue)
+  })
+
+  test('return redirect url in sanitizeRedirectUrl', () => {
+    let redirect, expectedValue
+
+    //allowed redirect url
+    redirect = '/tasks'
+    expectedValue = '/tasks'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //allowed redirect url with query param
+    redirect = '/profile?id=~Test_User1'
+    expectedValue = '/profile?id=~Test_User1'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //allowed redirect url with mutiple query param
+    redirect = '/forum?id=someForumId&noteId=someNoteId'
+    expectedValue = '/forum?id=someForumId&noteId=someNoteId'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //allowed redirect url with query param and hash
+    redirect = '/group?id=some/group/id#tab-recent-activity'
+    expectedValue = '/group?id=some/group/id#tab-recent-activity'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //external url
+    redirect = 'https://google.com/test'
+    expectedValue = '/'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //javascript url
+    redirect = 'javascript:alert("some alert")'
+    expectedValue = '/'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
   })
 })

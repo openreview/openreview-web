@@ -120,7 +120,7 @@ return {
   }
 
   try {
-    const componentObj = await parseComponentCode(group, domainGroup, user, query, accessToken)
+    const componentObj = await parseComponentCode(group, domainGroup, user, query)
     return <ComponentGroup componentObj={componentObj} editBanner={editBanner} />
   } catch (error) {
     return <ErrorDisplay message={error.message} />

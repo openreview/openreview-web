@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import truncate from 'lodash/truncate'
+import dayjs from 'dayjs'
 import { NoteContentV2 } from '../NoteContent'
 import NoteEditor from '../NoteEditor'
 import ForumReplyContext from './ForumReplyContext'
@@ -209,21 +210,34 @@ export default function ForumReply({
               <span className="caret" />
             </button>
             <ul className="dropdown-menu">
-              {note.editInvitations?.map((invitation) => (
-                <li key={invitation.id}>
-                  {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                  <a
-                    href="#"
-                    data-id={invitation.id}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      openNoteEditor(invitation, 'edit')
-                    }}
+              {note.editInvitations?.map((invitation) => {
+                const expired = invitation.expdate < Date.now()
+                return (
+                  <li
+                    key={invitation.id}
+                    className={expired ? 'expired' : ''}
+                    data-toggle="tooltip"
+                    data-placement="top"
+                    title={
+                      expired
+                        ? `${prettyInvitationId(invitation.id)} expired ${dayjs(invitation.expdate).fromNow()}`
+                        : ''
+                    }
                   >
-                    {prettyInvitationId(invitation.id)}
-                  </a>
-                </li>
-              ))}
+                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                    <a
+                      href="#"
+                      data-id={invitation.id}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        openNoteEditor(invitation, 'edit')
+                      }}
+                    >
+                      {prettyInvitationId(invitation.id)}
+                    </a>
+                  </li>
+                )
+              })}
             </ul>
           </div>
         )}
@@ -237,6 +251,7 @@ export default function ForumReply({
             }}
           >
             <Icon name={ddate ? 'repeat' : 'trash'} />
+            <span className="sr-only">Delete or restore note</span>
           </button>
         )}
       </div>
@@ -350,17 +365,27 @@ export default function ForumReply({
         <div className="invitations-container mt-2">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {replyInvitations.map((inv) => (
-              <button
-                key={inv.id}
-                type="button"
-                className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
-                data-id={inv.id}
-                onClick={() => openNoteEditor(inv, 'reply')}
-              >
-                {prettyInvitationId(inv.id)}
-              </button>
-            ))}
+            {replyInvitations.map((inv) => {
+              const expired = inv.expdate < Date.now()
+              return (
+                <button
+                  key={inv.id}
+                  type="button"
+                  className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''} ${expired ? 'expired' : ''}`}
+                  data-id={inv.id}
+                  onClick={() => openNoteEditor(inv, 'reply')}
+                  data-toggle="tooltip"
+                  data-placement="top"
+                  title={
+                    expired
+                      ? `${prettyInvitationId(inv.id)} expired ${dayjs(inv.expdate).fromNow()}`
+                      : ''
+                  }
+                >
+                  {prettyInvitationId(inv.id)}
+                </button>
+              )
+            })}
           </div>
 
           <NoteEditor
@@ -459,17 +484,18 @@ function CopyLinkButton({ forumId, noteId }) {
     if (!window.location) return
 
     copy(`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`)
-    promptMessage(`URL of note ${noteId} copied to clipboard`, { scrollToTop: false })
+    promptMessage(`URL of note ${noteId} copied to clipboard`)
   }
 
   return (
-    <button type="button" className="btn btn-xs permalink-btn" onClick={copyNoteUrl}>
-      <a
-        onClick={(e) => e.preventDefault()}
-        href={`${window.location.origin}${window.location.pathname}?id=${forumId}&noteId=${noteId}`}
-      >
-        <Icon name="link" tooltip={`Copy URL of note ${noteId}`} />
-      </a>
+    <button
+      type="button"
+      className="btn btn-xs permalink-btn"
+      onClick={copyNoteUrl}
+      aria-label={`Copy URL of note ${noteId}`}
+    >
+      <Icon name="link" tooltip={`Copy URL of note ${noteId}`} />
+      <span className="sr-only">Copy URL of note {noteId}</span>
     </button>
   )
 }

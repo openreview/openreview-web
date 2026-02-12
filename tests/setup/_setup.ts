@@ -16,7 +16,8 @@ import {
   setupRegister,
   superUserName,
   strongPassword,
-} from './utils/api-helper'
+} from '../utils/api-helper'
+import api from '../../lib/api-client'
 
 const waitForJobs = (noteId, superUserToken, count = 1) =>
   new Promise((resolve, reject) => {
@@ -107,6 +108,7 @@ test('Set up TestVenue', async (t) => {
       'Expected Submissions': '6000',
       'publication_chairs': 'No, our venue does not have Publication Chairs',
       submission_license: ['CC BY 4.0'],
+      api_version: '2',
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
         'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
@@ -142,21 +144,59 @@ test('Set up TestVenue', async (t) => {
   await createUser(mergeUser)
 
   // add a note
-  const noteJson = {
-    content: {
-      title: 'test title',
-      authors: ['FirstA LastA'],
-      authorids: [hasTaskUserTildeId],
-      abstract: 'test abstract',
-      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
-    },
-    readers: ['TestVenue/2020/Conference', hasTaskUserTildeId],
-    nonreaders: [],
-    signatures: [hasTaskUserTildeId],
-    writers: [conferenceGroupId, hasTaskUserTildeId],
+  const editJson = {
     invitation: conferenceSubmissionInvitationId,
+    signatures: [hasTaskUserTildeId],
+    note: {
+      content: {
+        title: { value: 'test title' },
+        authors: { value: ['FirstA LastA'] },
+        authorids: { value: [hasTaskUserTildeId] },
+        abstract: { value: 'test abstract' },
+        keywords: { value: ['keyword1', 'keyword2'] },
+        pdf: { value: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
+      },
+    },
   }
-  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+  const { id: noteId } = await createNoteEdit(editJson, hasTaskUserToken)
+
+  // close deadline
+  const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
+  const year = submissionCloseDate.getFullYear()
+  const month = `0${submissionCloseDate.getMonth() + 1}`.slice(-2)
+  const day = `0${submissionCloseDate.getDate()}`.slice(-2)
+  const hours = `0${submissionCloseDate.getHours()}`.slice(-2)
+  const minutes = `0${submissionCloseDate.getMinutes()}`.slice(-2)
+  const submissionCloseDateString = `${year}/${month}/${day} ${hours}:${minutes}`
+  const editVenueJson = {
+    content: {
+      title: 'Test Venue Conference',
+      'Official Venue Name': 'Test Venue Conference',
+      'Abbreviated Venue Name': 'Test Venue',
+      'Official Website URL': 'https://testvenue.cc',
+      program_chair_emails: ['john@mail.com', 'tom@mail.com'],
+      contact_email: 'testvenue@mail.com',
+      'Venue Start Date': '2021/11/01',
+      'Submission Start Date': '2021/11/01',
+      'Submission Deadline': submissionCloseDateString,
+      Location: 'Virtual',
+      submission_reviewer_assignment: 'Automatic',
+      'Expected Submissions': '6000',
+      'publication_chairs': 'No, our venue does not have Publication Chairs',
+    },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Revision`,
+    readers: ['TestVenue/2020/Conference/Program_Chairs', 'openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['~Super_User1'],
+    writers: [],
+  }
+  const { id: referenceId } = await createNote(editVenueJson, superUserToken)
+
+  await waitForJobs(referenceId, superUserToken)
+  await waitForJobs('TestVenue/2020/Conference/-/Post_Submission-0-0', superUserToken)
+  await waitForJobs('TestVenue/2020/Conference/Reviewers/-/Submission_Group-0-0', superUserToken)
 
   const postSubmissionJson = {
     content: { force: 'Yes', submission_readers: 'Everyone (submissions are public)' },
@@ -199,9 +239,10 @@ test('Set up TestVenue', async (t) => {
   await waitForJobs(reviewStageId, superUserToken)
 
   await addMembersToGroup(
-    'TestVenue/2020/Conference/Paper1/Reviewers',
+    'TestVenue/2020/Conference/Submission1/Reviewers',
     [hasTaskUserTildeId],
-    superUserToken
+    superUserToken,
+    2
   )
 })
 
@@ -243,6 +284,7 @@ test('Set up AnotherTestVenue', async (t) => {
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
       'publication_chairs': 'No, our venue does not have Publication Chairs',
+      api_version: '2',
       submission_license: ['CC BY 4.0'],
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
@@ -274,25 +316,38 @@ test('Set up AnotherTestVenue', async (t) => {
 
   const hasTaskUserToken = await getToken(hasTaskUser.email, hasTaskUser.password)
 
-  const noteJson = {
-    content: {
-      title: 'this is á "paper" title',
-      authors: ['FirstA LastA', 'Melisa Bok'],
-      authorids: ['~FirstA_LastA1', 'bok@mail.com'],
-      abstract: 'The abstract of test paper 1',
-      pdf: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf',
-    },
-    readers: [`Another${conferenceGroupId}`, '~FirstA_LastA1'],
-    nonreaders: [],
-    signatures: ['~FirstA_LastA1'],
-    writers: [`Another${conferenceGroupId}`, '~FirstA_LastA1'],
+  const editJson = {
     invitation: `Another${conferenceSubmissionInvitationId}`,
-    ddate: undefined,
+    signatures: ['~FirstA_LastA1'],
+    note: {
+      content: {
+        title: { value: 'this is á "paper" title' },
+        authors: { value: ['FirstA LastA', 'Melisa Bok'] },
+        authorids: { value: ['~FirstA_LastA1', 'bok@mail.com'] },
+        abstract: { value: 'The abstract of test paper 1' },
+        keywords: { value: ['keyword1', 'keyword2'] },
+        pdf: { value: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
+      },
+    },
   }
-  const { id: noteId } = await createNote(noteJson, hasTaskUserToken)
+  const { id: noteId } = await createNoteEdit(editJson, hasTaskUserToken)
 
-  noteJson.ddate = Date.now()
-  const { id: deletedNoteId } = await createNote(noteJson, hasTaskUserToken)
+  const deleteEditJson = {
+    invitation: `Another${conferenceSubmissionInvitationId}`,
+    signatures: ['~FirstA_LastA1'],
+    note: {
+      ddate: Date.now(),
+      content: {
+        title: { value: 'this is á "paper" title' },
+        authors: { value: ['FirstA LastA', 'Melisa Bok'] },
+        authorids: { value: ['~FirstA_LastA1', 'bok@mail.com'] },
+        abstract: { value: 'The abstract of test paper 1' },
+        keywords: { value: ['keyword1', 'keyword2'] },
+        pdf: { value: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
+      },
+    },
+  }
+  const { id: deletedNoteId } = await createNoteEdit(deleteEditJson, hasTaskUserToken)
 
   const postSubmissionJson = {
     content: {
@@ -352,6 +407,7 @@ test('Set up ICLR', async (t) => {
       reviewer_identity: ['Program Chairs', 'Assigned Area Chair'],
       'publication_chairs': 'No, our venue does not have Publication Chairs',
       submission_license: ['CC BY 4.0'],
+      api_version: '2',
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
         'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
@@ -381,7 +437,7 @@ test('Set up ICLR', async (t) => {
   await waitForJobs(deployId, superUserToken)
 
   const userToken = await getToken(hasTaskUser.email, hasTaskUser.password)
-  const blob = fileFromSync(`${__dirname}/utils/data/paper.pdf`, 'application/pdf')
+  const blob = fileFromSync(`${__dirname}/paper.pdf`, 'application/pdf')
   const data = new FormData()
   data.set('invitationId', 'ICLR.cc/2021/Conference/-/Submission')
   data.set('name', 'pdf')
@@ -389,22 +445,61 @@ test('Set up ICLR', async (t) => {
 
   const result = await sendFile(data, userToken)
 
-  const noteJson = {
+  const editJson = {
     invitation: 'ICLR.cc/2021/Conference/-/Submission',
-    content: {
-      title: 'ICLR submission title',
-      authors: ['FirstA LastA', 'Another Author'],
-      authorids: ['~FirstA_LastA1', 'another_author@mail.com'],
-      abstract: 'test iclr abstract abstract',
-      pdf: result.url,
-    },
-    readers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
     signatures: ['~FirstA_LastA1'],
-    writers: ['ICLR.cc/2021/Conference', '~FirstA_LastA1'],
+    note: {
+      content: {
+        title: { value: 'ICLR submission title' },
+        authors: { value: ['FirstA LastA', 'Another Author'] },
+        authorids: { value: ['~FirstA_LastA1', 'another_author@mail.com'] },
+        abstract: { value: 'test iclr abstract abstract' },
+        keywords: { value: ['keyword1', 'keyword2'] },
+        pdf: { value: result.url },
+      },
+    },
   }
-  const { id: noteId } = await createNote(noteJson, userToken)
+  const { id: noteId } = await createNoteEdit(editJson, userToken)
 
   await waitForJobs(noteId, superUserToken)
+
+
+  // close deadline
+  const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
+  const year = submissionCloseDate.getFullYear()
+  const month = `0${submissionCloseDate.getMonth() + 1}`.slice(-2)
+  const day = `0${submissionCloseDate.getDate()}`.slice(-2)
+  const hours = `0${submissionCloseDate.getHours()}`.slice(-2)
+  const minutes = `0${submissionCloseDate.getMinutes()}`.slice(-2)
+  const submissionCloseDateString = `${year}/${month}/${day} ${hours}:${minutes}`
+  const editVenueJson = {
+    content: {
+      title: 'ICLR 2021 Conference',
+      'Official Venue Name': 'ICLR 2021 Conference',
+      'Abbreviated Venue Name': 'ICLR 2021',
+      'Official Website URL': 'https://iclr.cc',
+      program_chair_emails: ['john@mail.com', 'tom@mail.com'],
+      contact_email: 'iclr@mail.com',
+      'Venue Start Date': '2021/11/01',
+      'Submission Start Date': '2021/11/01',
+      'Submission Deadline': submissionCloseDateString,
+      Location: 'Virtual',
+      submission_reviewer_assignment: 'Automatic',
+      'Expected Submissions': '6000',
+      'publication_chairs': 'No, our venue does not have Publication Chairs',
+    },
+    forum: requestForumId,
+    invitation: `openreview.net/Support/-/Request${number}/Revision`,
+    readers: ['ICLR.cc/2021/Conference/Program_Chairs', 'openreview.net/Support'],
+    referent: requestForumId,
+    replyto: requestForumId,
+    signatures: ['~Super_User1'],
+    writers: [],
+  }
+  const { id: referenceId } = await createNote(editVenueJson, superUserToken)
+
+  await waitForJobs(referenceId, superUserToken)
+  await waitForJobs('ICLR.cc/2021/Conference/-/Post_Submission-0-0', superUserToken)
 
   const postSubmissionJson = {
     content: { force: 'Yes', submission_readers: 'Everyone (submissions are public)', 'hide_fields': ['pdf'] },
@@ -439,7 +534,8 @@ test('Set up ICLR', async (t) => {
   await addMembersToGroup(
     'ICLR.cc/2021/Conference/Reviewers',
     ['reviewer_iclr@mail.com'],
-    superUserToken
+    superUserToken,
+    2
   )
 })
 

@@ -3,7 +3,6 @@ import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import Link from 'next/link'
-import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import {
   getProfileName,
@@ -34,7 +33,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   )
   const getReviewerEmail = async (name, profileId) => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.', { scrollToTop: false })
+      promptError('Email is not available.')
       return
     }
     try {
@@ -45,9 +44,9 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${name} <${email}>`)
-      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
   return (
@@ -307,7 +306,6 @@ const ReviewerStatusTab = ({
     officialReviewName,
     submissionName,
   } = useContext(WebFieldContext)
-  const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
   const pageSize = 25
@@ -333,22 +331,14 @@ const ReviewerStatusTab = ({
         const ids = reviewerWithoutAssignmentIds.filter((p) => p.startsWith('~'))
         const emails = reviewerWithoutAssignmentIds.filter((p) => p.match(/.+@.+/))
         const getProfilesByIdsP = ids.length
-          ? api.post(
-              '/profiles/search',
-              {
-                ids,
-              },
-              { accessToken }
-            )
+          ? api.post('/profiles/search', {
+              ids,
+            })
           : Promise.resolve([])
         const getProfilesByEmailsP = emails.length
-          ? api.post(
-              '/profiles/search',
-              {
-                emails,
-              },
-              { accessToken }
-            )
+          ? api.post('/profiles/search', {
+              emails,
+            })
           : Promise.resolve([])
         const reviewerProfileResults = await Promise.all([
           getProfilesByIdsP,

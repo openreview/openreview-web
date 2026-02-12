@@ -26,7 +26,7 @@ const EditEdgeInviteEmail = ({
   const [loading, setLoading] = useState(false)
   const { editInvitations, availableSignaturesInvitationMap, version } =
     useContext(EdgeBrowserContext)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
 
   const inviteInvitation = editInvitations.find(
     (p) => isNotInGroupInvite(p, type) || isForBothGroupTypesInvite(p, type)
@@ -61,14 +61,13 @@ const EditEdgeInviteEmail = ({
         inviteInvitation,
         availableSignaturesInvitationMap,
         parentNumber,
-        user,
-        accessToken
+        user
       ),
       nonreaders: getValues(inviteInvitation.nonreaders, email),
     }
     // post
     try {
-      const result = await api.post('/edges', newEdgeJson, { accessToken, version })
+      const result = await api.post('/edges', newEdgeJson, { version })
       setEmailToInvite('')
       promptMessage(`Invitation has been sent to ${email} and it's waiting for the response.`)
     } catch (error) {

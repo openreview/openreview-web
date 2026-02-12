@@ -47,7 +47,7 @@ const ChatReply = ({
   const [needsRerender, setNeedsRerender] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const [showReactionPicker, setShowReactionPicker] = useState(false)
-  const { accessToken } = useUser()
+  const { user } = useUser()
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
@@ -81,7 +81,7 @@ const ChatReply = ({
   }
 
   const deleteNote = (deleteSignatures) => {
-    if (loading || !accessToken) return
+    if (loading || !user) return
 
     setLoading(true)
     const now = Date.now()
@@ -96,13 +96,13 @@ const ChatReply = ({
       },
     }
     api
-      .post('/notes/edits', noteEdit, { accessToken })
+      .post('/notes/edits', noteEdit)
       .then((res) => {
         updateNote({ ...note, ddate: now })
         setLoading(false)
       })
       .catch((err) => {
-        promptError(err.message, { scrollToTop: false })
+        promptError(err.message)
         setLoading(false)
       })
 
@@ -110,7 +110,7 @@ const ChatReply = ({
   }
 
   const addOrRemoveTag = (tagValue, existingTags) => {
-    if (loading || !accessToken || !reactionInvitation || !signature) return
+    if (loading || !user || !reactionInvitation || !signature) return
 
     setLoading(true)
     setShowReactionPicker(false)
@@ -128,7 +128,7 @@ const ChatReply = ({
       ...(existingTagId && { id: existingTagId, ddate: Date.now() }),
     }
     api
-      .post('/tags', tagData, { accessToken })
+      .post('/tags', tagData)
       .then((tagRes) => {
         const tooltipEl = document.querySelector(`#__next div.tooltip.in`)
         if (tooltipEl) tooltipEl.remove()
@@ -138,7 +138,7 @@ const ChatReply = ({
         setLoading(false)
       })
       .catch((err) => {
-        promptError(err.message, { scrollToTop: false })
+        promptError(err.message)
         setLoading(false)
       })
   }
@@ -149,7 +149,7 @@ const ChatReply = ({
     copy(
       `${window.location.origin}${window.location.pathname}?id=${note.forum}&noteId=${note.id}${window.location.hash}`
     )
-    promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
+    promptMessage('Reply URL copied to clipboard')
   }
 
   useEffect(() => {

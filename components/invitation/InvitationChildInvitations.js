@@ -7,7 +7,7 @@ import PaginatedList from '../PaginatedList'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
-const InvitationChildInvitations = ({ invitation, accessToken }) => {
+const InvitationChildInvitations = ({ invitation }) => {
   const [totalCount, setTotalCount] = useState(null)
 
   const loadChildInvitations = async (limit, offset) => {
@@ -19,7 +19,7 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
         offset,
         expired: true,
       },
-      { accessToken, version: 1 }
+      { version: 1 }
     )
 
     let translatedInvitations = []
@@ -40,7 +40,7 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
     }
   }
 
-  const loadItems = useCallback(loadChildInvitations, [invitation, accessToken])
+  const loadItems = useCallback(loadChildInvitations, [invitation])
 
   return (
     <EditorSection
@@ -56,20 +56,16 @@ const InvitationChildInvitations = ({ invitation, accessToken }) => {
   )
 }
 
-export const InvitationChildInvitationsV2 = ({ invitation, accessToken }) => {
+export const InvitationChildInvitationsV2 = ({ invitation }) => {
   const [totalCount, setTotalCount] = useState(null)
 
   const loadChildInvitations = async (limit, offset) => {
-    const { invitations, count } = await api.get(
-      '/invitations',
-      {
-        invitation: invitation.id,
-        limit,
-        offset,
-        expired: true,
-      },
-      { accessToken }
-    )
+    const { invitations, count } = await api.get('/invitations', {
+      invitation: invitation.id,
+      limit,
+      offset,
+      expired: true,
+    })
 
     let translatedInvitations = []
     if (invitations?.length > 0) {
@@ -89,7 +85,7 @@ export const InvitationChildInvitationsV2 = ({ invitation, accessToken }) => {
     }
   }
 
-  const loadItems = useCallback(loadChildInvitations, [invitation, accessToken])
+  const loadItems = useCallback(loadChildInvitations, [invitation])
 
   return (
     <EditorSection

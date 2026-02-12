@@ -31,7 +31,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [20.x]
+        node-version: [22.x]
 
     steps:
       - name: Start MongoDB
@@ -164,16 +164,18 @@ jobs:
           cd openreview-web
           mkdir -p logs
           NODE_ENV=production SUPER_USER=openreview.net npm run start > logs/web.log 2>&1 &
+      - name: Pin Firefox Version
+        id: setup-firefox
+        uses: browser-actions/setup-firefox@v1
+        with:
+          firefox-version: '143.0'
+      - name: Overwrite default firefox
+        run: |
+          sudo ln -sf "${{ steps.setup-firefox.outputs.firefox-path }}" /usr/bin/firefox
       - name: Run TestCafe Tests
         run: |
           cd openreview-web
           xvfb-run --server-args="-screen 0 1280x720x24" npm run test
-      - name: Upload Test Videos
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: TestCafe Videos
-          path: openreview-web/videos/
       - name: Check API Logs
         if: failure()
         run: |
@@ -204,13 +206,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Add SSH key
-        run: |
-          mkdir -p /home/runner/.ssh
-          echo "${{ secrets.GCLOUD_SSH_KEY }}" > /home/runner/.ssh/google_compute_engine
-          echo "${{ secrets.GCLOUD_SSH_KEY_PUB }}" > /home/runner/.ssh/google_compute_engine.pub
-          chmod 600 /home/runner/.ssh/google_compute_engine
-          chmod 600 /home/runner/.ssh/google_compute_engine.pub
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
@@ -227,5 +222,27 @@ jobs:
           skip_install: true
       - name: Deploy to dev
         run: |
-          gcloud compute ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-web.sh' --quiet
-          gcloud compute ssh --zone "us-central1-b" openreview@dev-instance-1 --command 'export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && bash bin/deploy-openreview-py.sh' --quiet
+          instance_prefix='openreview-dev-'
+
+          instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
+
+          instances_arr=(${instances// / })
+
+          instance_names=()
+          zones=()
+
+          for i in ${!instances_arr[@]}; do
+            if echo "${instances_arr[$i]}" | grep -q "$instance_prefix"; then
+              instance_names+=(${instances_arr[$i]})
+            else
+              zones+=(${instances_arr[$i]})
+            fi
+          done
+
+          for i in ${!instance_names[@]}; do
+            echo Deploying to ${instance_names[$i]}
+
+            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/build-web.sh' --quiet
+            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/deploy-web.sh' --quiet
+            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/deploy-openreview-py.sh' --quiet
+          done

@@ -16,7 +16,7 @@
         margin: 0;
       }
       h4 {
-        color: #777777;
+        color: #757575;
         font-size: 1.125rem;
         font-weight: normal;
         line-height: normal;
@@ -39,12 +39,12 @@
         }
 
         li {
-          color: #777777;
+          color: #757575;
           margin-bottom: 10px;
         }
       }
       p {
-        color: #777777;
+        color: #757575;
         &.dark {
           color: constants.$darkBlue;
         }
@@ -1280,6 +1280,9 @@
         font-size: 1.25rem;
       }
       .group-workflow-container {
+        .subgroups-container {
+          margin-left: 2rem;
+        }
         .group-workflow {
           display: flex;
           justify-content: left;
@@ -1304,7 +1307,7 @@
             }
             .member-count {
               margin-left: 0.5rem;
-              color: #ff9900;
+              color: #a86500;
             }
 
             .group-description {
@@ -1378,7 +1381,7 @@
 
       .workflow-invitations-header {
         display: flex;
-        color: #999999;
+        color: #6b6b6b;
         align-items: baseline;
         width: 110%;
 
@@ -1434,7 +1437,7 @@
         .invitation-cdate {
           width: 10%;
           margin-right: 0.5rem;
-          color: #999999;
+          color: #6b6b6b;
           font-size: 0.9rem;
           font-style: italic;
           display: flex;
@@ -1502,7 +1505,7 @@
                   overflow-x: hidden;
                   text-overflow: ellipsis;
                   max-width: 50%;
-                  color: #999999;
+                  color: #6b6b6b;
                   font-style: italic;
                   font-size: 0.75rem;
                 }
@@ -1529,7 +1532,7 @@
               }
 
               .missing-value {
-                color: red;
+                color: #db0000;
                 display: block;
               }
 
@@ -1539,14 +1542,14 @@
               }
 
               .log-status {
-                color: #c27ba0;
+                color: #a84d7c;
                 font-style: italic;
                 font-size: 0.7rem;
 
                 .fixed-text {
                   font-size: 0.875rem;
                   &.missing-value {
-                    color: red;
+                    color: #db0000;
                   }
                 }
 
@@ -1597,7 +1600,11 @@
               font-style: italic;
             }
             .missing-value {
-              color: red;
+              color: #db0000;
+            }
+
+            .edit-close-button {
+              margin-right: 0.25rem;
             }
           }
         }
@@ -1607,7 +1614,7 @@
           top: 0;
           right: 0;
           font-style: italic;
-          color: #999999;
+          color: #6b6b6b;
           flex-grow: 1;
         }
       }

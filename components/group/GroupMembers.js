@@ -1,5 +1,5 @@
 /* globals DOMPurify,marked,$,promptError,promptMessage: false */
-import React, { useEffect, useReducer, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import ProgressBar from '../ProgressBar'
@@ -42,7 +42,7 @@ const StatusMessage = ({ statusParam }) => {
   )
 }
 
-const GroupMessages = ({ jobId, accessToken, groupId }) => {
+const GroupMessages = ({ jobId, groupId }) => {
   const sectionRef = useRef(null)
   const [errorText, setErrorText] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
@@ -53,7 +53,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   const getJobStatus = async () => {
     if (retryCount > 5 || statusObj.status?.status === 'ok') return
     try {
-      const result = await api.get('/logs/process', { id: jobId }, { accessToken })
+      const result = await api.get('/logs/process', { id: jobId })
       if (!result.logs?.length) {
         setErrorText(
           'Error: Email progress could not be loaded. See link below for more details.'
@@ -130,7 +130,6 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
 
 const GroupMembers = ({
   group,
-  accessToken,
   reloadGroup,
   messageAllMembersInvitation,
   messageSingleMemberInvitation,
@@ -155,7 +154,7 @@ const GroupMembers = ({
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
 
   const { user } = useUser()
-  const userIds = [...(user?.profile?.emails ?? []), ...(user?.profile?.usernames ?? [])]
+  const userIds = user?.profile?.usernames ?? []
   const profileId = user?.profile?.id
 
   function groupMemberReducer(state, action) {
@@ -285,7 +284,7 @@ const GroupMembers = ({
     if (userIds.includes(memberId) && !window.confirm(confirmMessage)) return
 
     try {
-      await api.post('/groups/edits', buildEdit('remove', [memberId]), { accessToken })
+      await api.post('/groups/edits', buildEdit('remove', [memberId]))
       setGroupMembers({ type: 'DELETE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -295,7 +294,7 @@ const GroupMembers = ({
 
   const restoreMember = async (memberId) => {
     try {
-      await api.post('/groups/edits', buildEdit('add', [memberId]), { accessToken })
+      await api.post('/groups/edits', buildEdit('add', [memberId]))
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -308,7 +307,7 @@ const GroupMembers = ({
       const anonGroupRegex = group.id.endsWith('s')
         ? `${group.id.slice(0, -1)}_`
         : `${group.id}_`
-      const result = await api.get(`/groups?prefix=${anonGroupRegex}`, {}, { accessToken })
+      const result = await api.get(`/groups?prefix=${anonGroupRegex}`)
       setMemberAnonIds(
         result.groups.map((p) =>
           p.id.startsWith(anonGroupRegex)
@@ -359,21 +358,14 @@ const GroupMembers = ({
       : ''
 
     try {
-      await api.post(
-        '/groups/edits',
-        buildEdit('add', [...newMembers, ...existingDeleted]),
-        { accessToken }
-      )
+      await api.post('/groups/edits', buildEdit('add', [...newMembers, ...existingDeleted]))
       setSearchTerm('')
       setGroupMembers({
         type: 'ADD',
         payload: { newMembers, existingDeleted },
       })
       getMemberAnonIds()
-      promptMessage(
-        `${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`,
-        { scrollToTop: false }
-      )
+      promptMessage(`${newMembersMessage} ${existingDeletedMessage} ${existingActiveMessage}`)
       reloadGroup()
     } catch (error) {
       promptError(error.message)
@@ -402,7 +394,7 @@ const GroupMembers = ({
     }
 
     try {
-      await api.post('/groups/edits', buildEdit('remove', membersToRemove), { accessToken })
+      await api.post('/groups/edits', buildEdit('remove', membersToRemove))
       setGroupMembers({ type: 'DELETE', payload: membersToRemove })
       reloadGroup()
     } catch (error) {
@@ -414,11 +406,9 @@ const GroupMembers = ({
     const selectedMemberIds = groupMembers.filter((p) => p.isSelected).map((q) => q.id)
     const success = copy(selectedMemberIds.join(','))
     if (success) {
-      promptMessage(`${selectedMemberIds.length} IDs copied to clipboard`, {
-        scrollToTop: false,
-      })
+      promptMessage(`${selectedMemberIds.length} IDs copied to clipboard`)
     } else {
-      promptError('Could not copy selected member IDs to clipboard', { scrollToTop: false })
+      promptError('Could not copy selected member IDs to clipboard')
     }
   }
 
@@ -624,11 +614,10 @@ const GroupMembers = ({
           domainId={group.domain}
           groupDomainContent={group.details.domain?.content}
           membersToMessage={memberToMessage}
-          accessToken={accessToken}
           setJobId={(id) => setJobId(id)}
         />
 
-        <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
+        <GroupMessages jobId={jobId} groupId={group.id} />
       </>
     )
 
@@ -648,6 +637,7 @@ const GroupMembers = ({
                 placeholder="e.g. ~Jane_Doe1, jane@example.com, abc.com/2018/Conf/Authors"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
+                aria-label='"Add or search group members"'
               />
             </div>
             {showAddRemoveMembers && (
@@ -745,6 +735,7 @@ const GroupMembers = ({
                           payload: member.id,
                         })
                       }}
+                      aria-label="Select or unselect group member"
                     />
                   )}
                   <span
@@ -829,12 +820,11 @@ const GroupMembers = ({
         domainId={group.domain}
         groupDomainContent={group.details.domain?.content}
         membersToMessage={memberToMessage}
-        accessToken={accessToken}
         setJobId={(id) => setJobId(id)}
         messageMemberInvitation={messageInvitation}
       />
 
-      <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
+      <GroupMessages jobId={jobId} groupId={group.id} />
     </>
   )
 }

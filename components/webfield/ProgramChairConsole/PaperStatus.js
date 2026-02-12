@@ -21,7 +21,6 @@ const PaperRow = ({
   venue,
   getManualAssignmentUrl,
   noteContentField,
-  accessToken,
 }) => {
   const {
     reviewerName,
@@ -96,7 +95,6 @@ const PaperRow = ({
           showReaders={true}
           isV2Note={true}
           ithenticateEdge={ithenticateEdge}
-          accessToken={accessToken}
         />
       </td>
       <td>
@@ -252,7 +250,6 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.notes?.length ?? 0)
-  const { accessToken } = useUser()
   const pageSize = 25
 
   const getManualAssignmentUrl = (role) => {
@@ -411,7 +408,6 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
             venue={row.venue}
             getManualAssignmentUrl={getManualAssignmentUrl}
             noteContentField={noteContentField}
-            accessToken={accessToken}
           />
         ))}
       </Table>

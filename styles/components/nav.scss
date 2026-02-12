@@ -8,6 +8,7 @@ nav.navbar {
 
   .navbar-brand {
     font-size: 1.375rem;
+    color: #b8b8b8;
 
     strong {
       color: #fff;
@@ -240,4 +241,10 @@ nav.navbar {
     margin: 0;
     padding: 0;
   }
+}
+
+.donate-link {
+  font-weight: bold;
+  display: inline-block !important;
+  vertical-align: bottom;
 }

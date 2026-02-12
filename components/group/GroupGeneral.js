@@ -227,7 +227,7 @@ const GroupGeneralEdit = ({ group, isSuperUser, setEdit, saveGeneralInfo }) => {
   )
 }
 
-const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup }) => {
+const GroupGeneral = ({ group, profileId, isSuperUser, reloadGroup }) => {
   const [edit, setEdit] = useState(false)
 
   const convertInfoToArray = (value) =>
@@ -266,9 +266,9 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
           signatures: [profileId],
           invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
         }
-        await api.post('/groups/edits', requestBody, { accessToken })
+        await api.post('/groups/edits', requestBody)
       } else {
-        const result = await api.getGroupById(group.id, accessToken)
+        const result = await api.getGroupById(group.id)
         const resultToPost = {
           ...result,
           readers: convertInfoToArray(generalInfo.readers),
@@ -279,9 +279,9 @@ const GroupGeneral = ({ group, profileId, isSuperUser, accessToken, reloadGroup 
           anonids: generalInfo.anonids,
           deanonymizers: convertInfoToArray(generalInfo.deanonymizers),
         }
-        await api.post('/groups', resultToPost, { accessToken, version: 1 })
+        await api.post('/groups', resultToPost, { version: 1 })
       }
-      promptMessage(`Settings for ${prettyId(group.id)} updated`, { scrollToTop: false })
+      promptMessage(`Settings for ${prettyId(group.id)} updated`)
       await reloadGroup()
       setEdit(false)
     } catch (error) {

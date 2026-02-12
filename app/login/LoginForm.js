@@ -3,10 +3,10 @@
 /* globals promptError,promptMessage,$: false */
 import Link from 'next/link'
 import { useReducer } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
-import { isValidEmail } from '../../lib/utils'
+import { isValidEmail, sanitizeRedirectUrl } from '../../lib/utils'
 import { setNotificationCount } from '../../notificationSlice'
 import { resetRefreshTokenStatus } from '../../lib/clientAuth'
 
@@ -18,7 +18,6 @@ export default function LoginForm() {
     loading: false,
     error: null,
   })
-  const router = useRouter()
   const dispatch = useDispatch()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect')
@@ -51,7 +50,7 @@ export default function LoginForm() {
       promptMessage(
         `A confirmation email with the subject "OpenReview signup confirmation" has been sent to ${formState.email}.
         Please click the link in this email to confirm your email address and complete registration.`,
-        { noTimeout: true }
+        8
       )
     } catch (error) {
       setFormState({ type: 'HAS_ERROR' })
@@ -69,7 +68,7 @@ export default function LoginForm() {
       })
       resetRefreshTokenStatus()
       dispatch(setNotificationCount(null))
-      window.location.replace(redirect ?? '/')
+      window.location.replace(sanitizeRedirectUrl(redirect))
     } catch (error) {
       setFormState({ type: 'HAS_ERROR' })
       promptError(error.message)

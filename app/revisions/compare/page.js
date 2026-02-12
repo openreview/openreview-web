@@ -17,7 +17,7 @@ import { forumLink } from '../../../lib/banner-links'
 
 function Page() {
   const searchParams = useSearchParams()
-  const { accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
   const [error, setError] = useState(null)
   const [banner, setBanner] = useState(null)
@@ -31,7 +31,7 @@ function Page() {
 
   const getNote = async () => {
     try {
-      const note = await api.getNoteById(query.id, accessToken)
+      const note = await api.getNoteById(query.id)
       if (note) {
         setBanner(<Banner>{forumLink(note)}</Banner>)
       }
@@ -42,7 +42,7 @@ function Page() {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!accessToken)
+    if (!user)
       router.replace(
         `/login?redirect=/revisions/compare?${encodeURIComponent(stringify(query))}`
       )
@@ -64,11 +64,7 @@ function Page() {
           </div>
         </header>
         {/* eslint-disable-next-line eqeqeq */}
-        {query.version == 2 ? (
-          <Compare query={query} accessToken={accessToken} />
-        ) : (
-          <V1Compare query={query} accessToken={accessToken} />
-        )}
+        {query.version == 2 ? <Compare query={query} /> : <V1Compare query={query} />}
       </div>
     </CommonLayout>
   )

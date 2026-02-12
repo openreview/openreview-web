@@ -15,7 +15,7 @@ import Table from '../../components/Table'
 import { decrementNotificationCount } from '../../notificationSlice'
 
 function Page() {
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
   const [toEmail, setToEmail] = useState(null)
   const [confirmedEmails, setConfirmedEmails] = useState(null)
   const [unviewedCounts, setUnviewedCounts] = useState(null)
@@ -27,19 +27,11 @@ function Page() {
 
   const markAllViewed = async () => {
     try {
-      const apiRes = await api.get(
-        '/messages',
-        { to: toEmail, viewed: false },
-        { accessToken }
-      )
+      const apiRes = await api.get('/messages', { to: toEmail, viewed: false })
       if (!apiRes.messages?.length) return
 
       const unreadMessageIds = apiRes.messages.map((m) => m.id)
-      await api.post(
-        '/messages/viewed',
-        { ids: unreadMessageIds, vdate: Date.now() },
-        { accessToken }
-      )
+      await api.post('/messages/viewed', { ids: unreadMessageIds, vdate: Date.now() })
 
       setUnviewedCounts({
         ...unviewedCounts,
@@ -53,7 +45,7 @@ function Page() {
   const markViewed = async (messageId) => {
     const now = Date.now()
     try {
-      await api.post('/messages/viewed', { ids: [messageId], vdate: now }, { accessToken })
+      await api.post('/messages/viewed', { ids: [messageId], vdate: now })
       setUnviewedCounts({
         ...unviewedCounts,
         [toEmail]: unviewedCounts[toEmail] - 1,
@@ -66,7 +58,7 @@ function Page() {
 
   const getMessages = async () => {
     try {
-      const profileResult = await api.get('/profiles', {}, { accessToken })
+      const profileResult = await api.get('/profiles')
       const { preferredEmail, emailsConfirmed } = profileResult?.profiles?.[0]?.content ?? {}
       // eslint-disable-next-line no-shadow
       const confirmedEmails = preferredEmail
@@ -77,7 +69,7 @@ function Page() {
       const result = await Promise.all(
         confirmedEmails.map((email) =>
           api
-            .get('/messages', { to: email, viewed: false }, { accessToken })
+            .get('/messages', { to: email, viewed: false })
             .then((apiRes) => ({ email, count: apiRes.messages?.length ?? 0 }))
         )
       ).then((results) =>
@@ -95,12 +87,12 @@ function Page() {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!accessToken) {
+    if (!user) {
       router.push('/login?redirect=/notifications')
       return
     }
     getMessages()
-    setToEmail(emailQueryParam || user.profile.preferredEmail || user.profile.emails[0])
+    setToEmail(emailQueryParam || user.profile.preferredEmail)
   }, [isRefreshing, emailQueryParam])
 
   return (
@@ -122,7 +114,6 @@ function Page() {
                     {confirmedEmails.map((email) => (
                       <li
                         key={email}
-                        role="presentation"
                         className={toEmail === email ? 'active' : null}
                         onClick={(e) => {
                           router.push(`/notifications?email=${encodeURIComponent(email)}`)

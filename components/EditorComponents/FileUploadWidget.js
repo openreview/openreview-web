@@ -18,7 +18,6 @@ const FileUploadWidget = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [uploadPercentage, setUploadPercentage] = useState(2)
 
-  const { accessToken } = useUser()
   const fieldName = Object.keys(field)[0]
   const [fileName, setFileName] = useState(prettyField(fieldName))
   const maxSize = field[fieldName].value?.param?.maxSize
@@ -37,7 +36,6 @@ const FileUploadWidget = () => {
       const result = noteEditorPreview
         ? await Promise.resolve({ url: 'preview url' })
         : await api.put('/attachment/chunk', data, {
-            accessToken,
             contentType: 'unset',
           })
       if (result.url) {
@@ -54,7 +52,7 @@ const FileUploadWidget = () => {
         )
       }
     } catch (apiError) {
-      promptError(apiError.message, { scrollToTop: false })
+      promptError(apiError.message)
       fileInputRef.current.value = ''
     }
   }
@@ -88,7 +86,7 @@ const FileUploadWidget = () => {
       await sendChunksPromises
       setFileName(file.name)
     } catch (apiError) {
-      promptError(apiError.message, { scrollToTop: false })
+      promptError(apiError.message)
       fileInputRef.current.value = ''
     }
 

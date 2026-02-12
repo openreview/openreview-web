@@ -42,7 +42,7 @@ export default function Column(props) {
   const colBodyEl = useRef(null)
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
-  const { accessToken, user } = useUser()
+  const { user } = useUser()
   const query = useSearchParams()
 
   const sortOptions = [
@@ -553,7 +553,6 @@ export default function Column(props) {
             '/edges',
             { ...apiQuery, ...(version === 2 && { domain: invitation.domain }) },
             {
-              accessToken,
               version,
               ...(isCountQuery && { resultsKey: 'groupedEdges' }),
             }
@@ -689,7 +688,6 @@ export default function Column(props) {
           '/edges',
           { ...apiQuery, ...(version === 2 && { domain: startInvitation.domain }) },
           {
-            accessToken,
             version,
           }
         )
@@ -1141,6 +1139,7 @@ export default function Column(props) {
               onChange={(e) => setSearch({ term: e.target.value })}
               autoComplete="off"
               autoCorrect="off"
+              aria-label={getPlaceholderText()}
             />
             <span
               className="glyphicon glyphicon-search form-control-feedback"
@@ -1154,6 +1153,7 @@ export default function Column(props) {
               <select
                 className="form-control input-sm"
                 onChange={(e) => setColumnSort(e.target.value)}
+                aria-label="Order By"
               >
                 {sortOptions.map((p) => (
                   <option key={p.key} value={p.value}>

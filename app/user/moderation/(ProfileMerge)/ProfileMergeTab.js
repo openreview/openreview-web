@@ -38,7 +38,7 @@ const getProcessLogStatusLabelClass = (note) => {
   }
 }
 
-export default function ProfileMergeTab({ accessToken }) {
+export default function ProfileMergeTab() {
   const [profileMergeNotes, setProfileMergeNotes] = useState(null)
   const [profileMergeNotesToShow, setProfileMergeNotesToShow] = useState(null)
   const [noteToReject, setNoteToReject] = useState(null)
@@ -50,11 +50,11 @@ export default function ProfileMergeTab({ accessToken }) {
 
   const updateRequestStatus = async (noteId) => {
     try {
-      const profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
+      const profileMergeNotesP = api.get('/notes', { id: noteId })
       const decisionResultsP = api.getAll(
         '/notes/edits',
         { 'note.id': noteId },
-        { accessToken, resultsKey: 'edits' }
+        { resultsKey: 'edits' }
       )
       const [profileMergeNotesResults, decisionResults] = await Promise.all([
         profileMergeNotesP,
@@ -78,8 +78,7 @@ export default function ProfileMergeTab({ accessToken }) {
     try {
       setIdsLoading((p) => [...p, profileMergeNote.id])
       const profileMergeDecisionInvitation = await api.getInvitationById(
-        `${process.env.SUPER_USER}/Support/-/Profile_Merge_Decision`,
-        accessToken
+        `${process.env.SUPER_USER}/Support/-/Profile_Merge_Decision`
       )
       const editToPost = view2.constructEdit({
         formData: {
@@ -89,7 +88,7 @@ export default function ProfileMergeTab({ accessToken }) {
         },
         invitationObj: profileMergeDecisionInvitation,
       })
-      const result = await api.post('/notes/edits', editToPost, { accessToken })
+      const result = await api.post('/notes/edits', editToPost)
       $('#name-delete-reject').modal('hide')
       updateRequestStatus(profileMergeNote.id)
     } catch (error) {
@@ -105,32 +104,28 @@ export default function ProfileMergeTab({ accessToken }) {
       let processLogsP
 
       if (noteId) {
-        profileMergeNotesP = api.get('/notes', { id: noteId }, { accessToken })
+        profileMergeNotesP = api.get('/notes', { id: noteId })
         decisionResultsP = api.getAll(
           '/notes/edits',
           { 'note.id': noteId },
-          { accessToken, resultsKey: 'edits' }
+          { resultsKey: 'edits' }
         )
         processLogsP = Promise.resolve(null)
       } else {
-        profileMergeNotesP = api.get(
-          '/notes',
-          {
-            invitation: profileMergeInvitationId,
-          },
-          { accessToken }
-        )
+        profileMergeNotesP = api.get('/notes', {
+          invitation: profileMergeInvitationId,
+        })
         decisionResultsP = api.getAll(
           '/notes/edits',
           {
             invitation: profileMergeDecisionInvitationId,
           },
-          { accessToken, resultsKey: 'edits' }
+          { resultsKey: 'edits' }
         )
         processLogsP = api.getAll(
           '/logs/process',
           { invitation: profileMergeDecisionInvitationId },
-          { accessToken, resultsKey: 'logs' }
+          { resultsKey: 'logs' }
         )
       }
 

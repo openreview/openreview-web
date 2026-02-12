@@ -17,16 +17,16 @@ import LoadingSpinner from '../../../components/LoadingSpinner'
 export default function InvitationRevisions({ id, query }) {
   const [invitation, setInvitation] = useState(null)
   const [error, setError] = useState(null)
-  const { accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
 
   const loadInvitation = async () => {
     try {
-      const invitationObj = await api.getInvitationById(id, accessToken)
+      const invitationObj = await api.getInvitationById(id)
       if (invitationObj) {
         if (invitationObj.details?.writable) {
           setInvitation(invitationObj)
-        } else if (!accessToken) {
+        } else if (!user) {
           router.replace(
             `/login?redirect=/invitation/revisions?${encodeURIComponent(stringify(query))}`
           )
@@ -39,7 +39,7 @@ export default function InvitationRevisions({ id, query }) {
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        if (!accessToken) {
+        if (!user) {
           router.replace(
             `/login?redirect=/invitation/revisions?${encodeURIComponent(stringify(query))}`
           )
@@ -75,12 +75,7 @@ export default function InvitationRevisions({ id, query }) {
         <div id="header">
           <h1>{prettyId(invitation.id)} Invitation Edit History</h1>
         </div>
-        <EditHistory
-          invitation={invitation}
-          accessToken={accessToken}
-          setError={setError}
-          editId={query.editId}
-        />
+        <EditHistory invitation={invitation} setError={setError} editId={query.editId} />
       </div>
     </CommonLayout>
   )
