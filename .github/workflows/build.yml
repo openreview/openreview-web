@@ -46,9 +46,27 @@ jobs:
           sudo sysctl -w fs.file-max=262144
           sudo sysctl -w vm.max_map_count=262144
       - name: Start Elasticsearch
-        uses: elastic/elastic-github-actions/elasticsearch@master
-        with:
-          stack-version: 7.6.0
+        run: |
+          docker network create elastic
+          docker run -d --name elasticsearch --net elastic -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" -e "xpack.security.enabled=false" docker.elastic.co/elasticsearch/elasticsearch:7.6.0
+
+          local attempt=0
+
+          echo "Checking Elasticsearch"
+
+          while [ $attempt -lt 3 ]; do
+            if curl -f -s -o /dev/null "http://localhost:9200/_cluster/health?wait_for_status=yellow&timeout=5s"; then
+              echo "Elasticsearch is ready!"
+              exit 0
+            fi
+
+            attempt=$((attempt + 1))
+            echo "Attempt $attempt/3: Elasticsearch is not ready yet..."
+            sleep 5
+          done
+
+          echo "ERROR: Elasticsearch failed to become ready after 3 attempts"
+          exit 1
       - name: Checkout openreview-py
         uses: actions/checkout@v4
         with:
