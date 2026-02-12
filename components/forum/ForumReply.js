@@ -4,6 +4,7 @@ import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import truncate from 'lodash/truncate'
+import dayjs from 'dayjs'
 import { NoteContentV2 } from '../NoteContent'
 import NoteEditor from '../NoteEditor'
 import ForumReplyContext from './ForumReplyContext'
@@ -209,21 +210,34 @@ export default function ForumReply({
               <span className="caret" />
             </button>
             <ul className="dropdown-menu">
-              {note.editInvitations?.map((invitation) => (
-                <li key={invitation.id}>
-                  {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-                  <a
-                    href="#"
-                    data-id={invitation.id}
-                    onClick={(e) => {
-                      e.preventDefault()
-                      openNoteEditor(invitation, 'edit')
-                    }}
+              {note.editInvitations?.map((invitation) => {
+                const expired = invitation.expdate < Date.now()
+                return (
+                  <li
+                    key={invitation.id}
+                    className={expired ? 'expired' : ''}
+                    data-toggle="tooltip"
+                    data-placement="top"
+                    title={
+                      expired
+                        ? `${prettyInvitationId(invitation.id)} expired ${dayjs(invitation.expdate).fromNow()}`
+                        : ''
+                    }
                   >
-                    {prettyInvitationId(invitation.id)}
-                  </a>
-                </li>
-              ))}
+                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                    <a
+                      href="#"
+                      data-id={invitation.id}
+                      onClick={(e) => {
+                        e.preventDefault()
+                        openNoteEditor(invitation, 'edit')
+                      }}
+                    >
+                      {prettyInvitationId(invitation.id)}
+                    </a>
+                  </li>
+                )
+              })}
             </ul>
           </div>
         )}
@@ -351,17 +365,27 @@ export default function ForumReply({
         <div className="invitations-container mt-2">
           <div className="invitation-buttons">
             <span className="hint">Add:</span>
-            {replyInvitations.map((inv) => (
-              <button
-                key={inv.id}
-                type="button"
-                className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''}`}
-                data-id={inv.id}
-                onClick={() => openNoteEditor(inv, 'reply')}
-              >
-                {prettyInvitationId(inv.id)}
-              </button>
-            ))}
+            {replyInvitations.map((inv) => {
+              const expired = inv.expdate < Date.now()
+              return (
+                <button
+                  key={inv.id}
+                  type="button"
+                  className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''} ${expired ? 'expired' : ''}`}
+                  data-id={inv.id}
+                  onClick={() => openNoteEditor(inv, 'reply')}
+                  data-toggle="tooltip"
+                  data-placement="top"
+                  title={
+                    expired
+                      ? `${prettyInvitationId(inv.id)} expired ${dayjs(inv.expdate).fromNow()}`
+                      : ''
+                  }
+                >
+                  {prettyInvitationId(inv.id)}
+                </button>
+              )
+            })}
           </div>
 
           <NoteEditor

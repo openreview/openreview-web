@@ -269,7 +269,7 @@ const ProfileSearchFormAndResults = ({
   const [totalCount, setTotalCount] = useState(0)
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
-  const { accessToken } = useUser()
+
   // eslint-disable-next-line no-use-before-define
   const placeHolderName = getPlaceHolderName()
 
@@ -292,16 +292,12 @@ const ProfileSearchFormAndResults = ({
 
     if (showLoadingSpinner) setIsLoading(true)
     try {
-      const results = await api.get(
-        '/profiles/search',
-        {
-          [paramKey]: paramValue,
-          es: true,
-          limit: pageSize,
-          offset: pageSize * (pageNumber - 1),
-        },
-        { accessToken }
-      )
+      const results = await api.get('/profiles/search', {
+        [paramKey]: paramValue,
+        es: true,
+        limit: pageSize,
+        offset: pageSize * (pageNumber - 1),
+      })
       setTotalCount(results.count > 200 ? 200 : results.count)
       setProfileSearchResults(
         isEditor === false
@@ -482,7 +478,6 @@ const CustomAuthorForm = ({
   const [customAuthorName, setCustomAuthorName] = useState('')
   const [customAuthorEmail, setCustomAuthorEmail] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { accessToken } = useUser()
 
   const disableAddButton =
     isLoading ||
@@ -494,14 +489,10 @@ const CustomAuthorForm = ({
     const cleanAuthorEmail = customAuthorEmail.trim().toLowerCase()
     setIsLoading(true)
     try {
-      const results = await api.get(
-        '/profiles/search',
-        {
-          confirmedEmail: cleanAuthorEmail,
-          es: true,
-        },
-        { accessToken }
-      )
+      const results = await api.get('/profiles/search', {
+        confirmedEmail: cleanAuthorEmail,
+        es: true,
+      })
       if (results.profiles.length) {
         setTotalCount(results.count)
         setProfileSearchResults(results.profiles)
@@ -587,7 +578,7 @@ const ProfileSearchWidget = ({
   className,
   CustomProfileSearchForm,
 }) => {
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const editorComponentContext = useContext(EditorComponentContext) ?? {}
   const { field, onChange, value, error, clearError } = isEditor
     ? editorComponentContext
@@ -630,22 +621,14 @@ const ProfileSearchWidget = ({
       const ids = authorIds.filter((p) => p.startsWith('~'))
       const emails = authorIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
-        ? api.post(
-            '/profiles/search',
-            {
-              ids,
-            },
-            { accessToken }
-          )
+        ? api.post('/profiles/search', {
+            ids,
+          })
         : Promise.resolve([])
       const getProfilesByEmailsP = emails.length
-        ? api.post(
-            '/profiles/search',
-            {
-              emails,
-            },
-            { accessToken }
-          )
+        ? api.post('/profiles/search', {
+            emails,
+          })
         : Promise.resolve([])
       const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
       const allProfiles = (profileResults[0].profiles ?? []).concat(

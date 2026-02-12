@@ -9,7 +9,7 @@ import {
   prettyField,
 } from '../../../lib/utils'
 
-export default function V1Compare({ query, accessToken }) {
+export default function V1Compare({ query }) {
   const [references, setReferences] = useState(null)
   const [draftableUrl, setDraftableUrl] = useState('')
   const [contentDiff, setContentDiff] = useState(null)
@@ -23,7 +23,7 @@ export default function V1Compare({ query, accessToken }) {
           original: true,
           trash: true,
         },
-        { accessToken, version: 1 }
+        { version: 1 }
       )
 
       if (apiRes.references?.length > 1) {
@@ -49,7 +49,7 @@ export default function V1Compare({ query, accessToken }) {
           leftId: query.left,
           rightId: query.right,
         },
-        { accessToken, version: 1 }
+        { version: 1 }
       )
       setReferences([leftNote, rightNote])
       setDraftableUrl(viewerUrl)

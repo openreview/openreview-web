@@ -1,4 +1,4 @@
-/* globals $,clearMessage: false */
+/* globals $,clearMessage,promptError: false */
 
 import { useState, useRef, useEffect } from 'react'
 import { nanoid } from 'nanoid'
@@ -11,7 +11,6 @@ import {
   getAllPapersImportedByOtherProfiles,
 } from '../lib/profiles'
 import { deburrString, getNameString, inflect } from '../lib/utils'
-import useUser from '../hooks/useUser'
 
 const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   if (!dblpNames?.length) return <p>{message}</p>
@@ -63,7 +62,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
   const publicationsImportedByOtherProfiles = useRef([])
   const modalEl = useRef(null)
   const dblpNames = useRef(null)
-  const { accessToken } = useUser()
+
   const maxNumberofPublicationsToImport = 500
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
@@ -123,7 +122,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
       setMessage(`${allDblpPublications.length} publications fetched.`)
 
       // contains id (for link) and title (for filtering) of existing publications in openreivew
-      publicationsInOpenReview.current = await getAllPapersByGroupId(profileId, accessToken)
+      publicationsInOpenReview.current = await getAllPapersByGroupId(profileId)
       publicationsImportedByOtherProfiles.current = await getAllPapersImportedByOtherProfiles(
         allDblpPublications.map((p) => ({
           authorIndex: p.authorIndex,
@@ -132,8 +131,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           venue: p.venue,
           year: p.year,
         })),
-        profileNames,
-        accessToken
+        profileNames
       )
       const { numExisting, numAssociatedWithOtherProfile, noPubsToImport } =
         getExistingFromDblpPubs(allDblpPublications)
@@ -182,8 +180,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           postOrUpdatePaper(
             publications.find((p) => p.key === key),
             profileId,
-            profileNames,
-            accessToken
+            profileNames
           )
         )
       )
@@ -225,7 +222,9 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
         error.name === 'TooManyError'
           ? 'DBLP import quota has reached'
           : 'An error occurred while importing your publications. Please try again later.'
-      setMessage(errorMessage)
+
+      promptError(errorMessage)
+      $(modalEl.current).modal('hide')
     }
 
     $(modalEl.current).find('.modal-body')[0].scrollTop = 0

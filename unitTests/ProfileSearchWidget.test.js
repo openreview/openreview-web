@@ -174,8 +174,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       )
       expect(apiPost).toHaveBeenCalledWith(
         '/profiles/search',
-        expect.objectContaining({ ids: ['~test_id1'] }),
-        expect.anything()
+        expect.objectContaining({ ids: ['~test_id1'] })
       )
     })
 
@@ -375,11 +374,12 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       '   test@EMAIL.COM   '
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(getProfile).toHaveBeenCalledWith(
-      '/profiles/search',
-      { email: 'test@email.com', es: true, limit: 20, offset: 0 },
-      expect.anything()
-    )
+    expect(getProfile).toHaveBeenCalledWith('/profiles/search', {
+      email: 'test@email.com',
+      es: true,
+      limit: 20,
+      offset: 0,
+    })
   })
 
   test('search by id keyword if user input is tilde id', async () => {
@@ -411,11 +411,12 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       '   ~Test_User1   '
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(getProfile).toHaveBeenCalledWith(
-      '/profiles/search',
-      { id: '~Test_User1', es: true, limit: 20, offset: 0 },
-      expect.anything()
-    )
+    expect(getProfile).toHaveBeenCalledWith('/profiles/search', {
+      id: '~Test_User1',
+      es: true,
+      limit: 20,
+      offset: 0,
+    })
   })
 
   test('auto update author name if preferred name has changed since submission (invitation allows)', async () => {
@@ -993,11 +994,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith(
-        '/profiles/search',
-        { ids: ['~test_id1'] },
-        expect.anything()
-      )
+      expect(api.post).toHaveBeenCalledWith('/profiles/search', { ids: ['~test_id1'] })
       expect(promptError).toHaveBeenCalledWith('post search is not working')
     })
 
@@ -1819,8 +1816,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
-      expect.anything()
+      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' })
     )
 
     expect(screen.getByRole('navigation')).toBeInTheDocument()
@@ -1867,8 +1863,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
-      expect.anything()
+      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' })
     )
 
     expect(screen.getByRole('navigation')).toBeInTheDocument()
@@ -1914,8 +1909,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: 2, offset: 0, fullname: 'search text' }),
-      expect.anything()
+      expect.objectContaining({ limit: 2, offset: 0, fullname: 'search text' })
     )
 
     expect(screen.getByRole('navigation')).toBeInTheDocument()
@@ -2094,8 +2088,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
       '/profiles/search',
       expect.objectContaining({
         confirmedEmail: 'test@email.nomatch',
-      }),
-      expect.anything()
+      })
     )
     expect(onChange).toHaveBeenCalledWith(
       undefined,

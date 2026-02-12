@@ -24,7 +24,7 @@ export const NewNoteReaders = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
 
   const getRegexReaders = async () => {
     setLoading((loading) => ({ ...loading, fieldName: true }))
@@ -34,7 +34,7 @@ export const NewNoteReaders = ({
       const regexGroupResult = await api.get(
         '/groups',
         { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression },
-        { accessToken, version: regexContainsPipe ? 1 : 2 }
+        { version: regexContainsPipe ? 1 : 2 }
       )
 
       if (!regexGroupResult.groups?.length)
@@ -68,7 +68,7 @@ export const NewNoteReaders = ({
         : fieldDescription.param.items
       const optionsP = enumItemsConfigOptions.map((p) =>
         p.prefix
-          ? api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
+          ? api.get('/groups', { prefix: p.prefix }).then((result) =>
               result.groups.map((q) => ({
                 value: q.id,
                 description: prettyId(q.id, false),
@@ -235,13 +235,17 @@ export const NewReplyEditNoteReaders = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [readerOptions, setReaderOptions] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
 
   const addEnumParentReaders = (groupResults, parentReaders, invitationReaders) => {
     if (!parentReaders?.length || parentReaders.includes('everyone') || isDirectReplyToForum)
       return groupResults
 
     const invitationReadersWithRegex = invitationReaders.filter((p) => p.prefix)
+    const invitationReadersWithInGroup = invitationReaders.flatMap((p) => {
+      if (!p.inGroup) return []
+      return p.inGroup.endsWith('s') ? p.inGroup.slice(0, -1) : p.inGroup
+    })
 
     const filteredGroups = parentReaders
       .map((p) => {
@@ -273,11 +277,23 @@ export const NewReplyEditNoteReaders = ({
     })
 
     // 4. parent reader matches with a prefix of the invitation readers even if the API call doesn't return the group
-    parentReaders.forEach((p) => {
-      const isRegexReader = invitationReadersWithRegex.some((q) => p.match(q.prefix))
+    parentReaders.forEach((parentReader) => {
+      const matchRegexReader = invitationReadersWithRegex.some((invitationRegexReader) =>
+        parentReader.match(invitationRegexReader.prefix)
+      )
+      const isMemberOfInGroupReader = invitationReadersWithInGroup.some(
+        (invitationInGroupReaderSingular) =>
+          parentReader.startsWith(`${invitationInGroupReaderSingular}_`)
+      )
 
-      if (isRegexReader && !readersIntersection.find((q) => q.value === p)) {
-        readersIntersection.push({ value: p, description: prettyId(p, false) })
+      if (
+        (matchRegexReader || isMemberOfInGroupReader) &&
+        !readersIntersection.find((q) => q.value === parentReader)
+      ) {
+        readersIntersection.push({
+          value: parentReader,
+          description: prettyId(parentReader, false),
+        })
       }
     })
 
@@ -292,7 +308,7 @@ export const NewReplyEditNoteReaders = ({
       const regexGroupResult = await api.get(
         '/groups',
         { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression },
-        { accessToken, version: regexContainsPipe ? 1 : 2 }
+        { version: regexContainsPipe ? 1 : 2 }
       )
 
       if (!regexGroupResult.groups?.length)
@@ -326,7 +342,7 @@ export const NewReplyEditNoteReaders = ({
         : fieldDescription.param.items
       const optionsP = enumItemsConfigOptions.map((p) => {
         if (p.prefix)
-          return api.get('/groups', { prefix: p.prefix }, { accessToken }).then((result) =>
+          return api.get('/groups', { prefix: p.prefix }).then((result) =>
             result.groups.map((q) => ({
               value: q.id,
               description: prettyId(q.id, false),
@@ -335,7 +351,7 @@ export const NewReplyEditNoteReaders = ({
           )
         if (p.inGroup) {
           return api
-            .get('/groups', { id: p.inGroup }, { accessToken })
+            .get('/groups', { id: p.inGroup })
             .then((result) => {
               const groupMembers = result.groups[0]?.members
               if (!groupMembers?.length) return []

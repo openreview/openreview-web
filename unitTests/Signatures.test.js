@@ -318,8 +318,7 @@ describe('Signatures', () => {
       expect(apiGet).toHaveBeenCalledTimes(1)
       expect(apiGet).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ prefix: 'ICML.cc/2023/Conference/Submission5/Reviewer_.*' }),
-        expect.anything()
+        expect.objectContaining({ prefix: 'ICML.cc/2023/Conference/Submission5/Reviewer_.*' })
       )
       expect(screen.getByRole('combobox')).toBeInTheDocument()
     })
@@ -351,8 +350,7 @@ describe('Signatures', () => {
       expect(apiGet).toHaveBeenCalledTimes(1)
       expect(apiGet).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({ prefix: 'ICML.cc/2023/Conference/Submission5/Reviewer_.*' }),
-        expect.anything()
+        expect.objectContaining({ prefix: 'ICML.cc/2023/Conference/Submission5/Reviewer_.*' })
       )
       expect(screen.getByRole('combobox')).toBeInTheDocument()
     })

@@ -9,14 +9,7 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
 
-export default function ConfirmDeleteModal({
-  note,
-  invitation,
-  accessToken,
-  updateNote,
-  onClose,
-  isEdit,
-}) {
+export default function ConfirmDeleteModal({ note, invitation, updateNote, onClose, isEdit }) {
   const [editReaders, setEditReaders] = useState({ value: note?.readers })
   const [editSignatures, setEditSignatures] = useState(null)
   const [readersError, setReadersError] = useState(null)
@@ -53,10 +46,10 @@ export default function ConfirmDeleteModal({
       })
     }
     api
-      .post('/notes/edits', editToPost, { accessToken })
+      .post('/notes/edits', editToPost)
       .then((res) =>
         // the return of the post is an edit not the full note, so get the updated note again
-        api.get('/notes', { id: res.note.id, trash: !isDeleted }, { accessToken })
+        api.get('/notes', { id: res.note.id, trash: !isDeleted })
       )
       .then((result) => {
         if (result.notes?.length > 0) {

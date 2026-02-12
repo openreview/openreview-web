@@ -26,7 +26,7 @@ const paperDisplayOptions = {
 }
 
 export default function ExpertiseSelector({ invitation, venueId, apiVersion, shouldReload }) {
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
   const [userNotes, setUserNotes] = useState(null)
 
@@ -104,7 +104,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
           label: value,
           ...ddate,
         },
-        { accessToken, version: apiVersion }
+        { version: apiVersion }
       )
       setEdgesMap({
         ...edgesMap,
@@ -151,7 +151,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
           tail: user.profile.id,
           label: invitationOption,
         },
-        { accessToken, version: apiVersion }
+        { version: apiVersion }
       )
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -173,7 +173,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
             details: 'invitation',
           },
           null,
-          { accessToken, includeVersion: true }
+          { includeVersion: true }
         )
         const publicNotes = notes.filter((note) => note.readers.includes('everyone'))
         publicNotes.forEach((note) => {
@@ -195,7 +195,7 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
             invitation: invitation.id,
             tail: user.profile.id,
           },
-          { accessToken, version: apiVersion }
+          { version: apiVersion }
         )
         setEdgesMap(keyBy(edges, 'head'))
       } catch (error) {

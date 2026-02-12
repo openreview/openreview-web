@@ -55,7 +55,7 @@ const AllSubmissionsTab = ({
   profileGroupName,
 }) => {
   const { entity: invitation, scoreIds, profileGroupId } = useContext(WebFieldContext)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [isLoading, setIsLoading] = useState(true)
   const [scoreEdges, setScoreEdges] = useState([])
@@ -77,13 +77,9 @@ const AllSubmissionsTab = ({
   const getProfilesSortedByAffinity = async (score = selectedScore) => {
     setIsLoading(true)
     const getProfilesByGroupId = async () => {
-      const result = await api.get(
-        '/profiles',
-        {
-          group: profileGroupId,
-        },
-        { accessToken }
-      )
+      const result = await api.get('/profiles', {
+        group: profileGroupId,
+      })
       return {
         ...result,
         profiles: result.profiles.filter((p) => !conflictIds.includes(p.id)),
@@ -92,24 +88,16 @@ const AllSubmissionsTab = ({
 
     try {
       if (score) {
-        const edgesResult = await api.get(
-          '/edges',
-          {
-            invitation: score,
-            tail: user.profile.id,
-            sort: 'weight:desc',
-          },
-          { accessToken }
-        )
+        const edgesResult = await api.get('/edges', {
+          invitation: score,
+          tail: user.profile.id,
+          sort: 'weight:desc',
+        })
 
         if (edgesResult.count) {
           setScoreEdges(edgesResult.edges)
           const profileIds = edgesResult.edges.map((p) => p.head)
-          const profilesResult = await api.post(
-            '/profiles/search',
-            { ids: profileIds },
-            { accessToken }
-          )
+          const profilesResult = await api.post('/profiles/search', { ids: profileIds })
           const filteredProfiles = profileIds.flatMap((profileId) => {
             const matchingProfile = profilesResult.profiles.find((p) => p.id === profileId)
             if (matchingProfile && !conflictIds.includes(profileId)) {
@@ -170,8 +158,7 @@ const AllSubmissionsTab = ({
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, profile, user.profile.id, ddate),
-        { accessToken }
+        getBidObjectToPost(bidId, updatedOption, invitation, profile, user.profile.id, ddate)
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -321,7 +308,7 @@ const BidOptionTab = ({
 }) => {
   const [profiles, setProfiles] = useState([])
   const [isLoading, setIsLoading] = useState(true)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
   const profileIds = bidEdges.filter((p) => p.label === bidOption).map((q) => q.head)
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
   const emptyMessage = `No ${profileGroupName} to display at this time`
@@ -333,13 +320,9 @@ const BidOptionTab = ({
       return
     }
     try {
-      const profileSearchResults = await api.post(
-        '/profiles/search',
-        {
-          ids: profileIds,
-        },
-        { accessToken }
-      )
+      const profileSearchResults = await api.post('/profiles/search', {
+        ids: profileIds,
+      })
       setProfiles(profileSearchResults.profiles)
     } catch (error) {
       promptError(error.message)
@@ -357,8 +340,7 @@ const BidOptionTab = ({
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, profile, user.profile.id, ddate),
-        { accessToken }
+        getBidObjectToPost(bidId, updatedOption, invitation, profile, user.profile.id, ddate)
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -419,22 +401,17 @@ const ProfileBidConsole = ({ appContext }) => {
   const [bidEdges, setBidEdges] = useState([])
   const [conflictIds, setConflictIds] = useState([])
   const { setBannerContent } = appContext ?? {}
-  const { accessToken, user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const query = useSearchParams()
 
   const getBidAndConflictEdges = async () => {
     try {
-      const bidEdgeResultsP = api.getAll(
-        '/edges',
-        { invitation: invitation.id, tail: user.profile.id },
-        { accessToken }
-      )
+      const bidEdgeResultsP = api.getAll('/edges', {
+        invitation: invitation.id,
+        tail: user.profile.id,
+      })
       const conflictEdgeResultsP = conflictInvitationId
-        ? api.getAll(
-            '/edges',
-            { invitation: conflictInvitationId, tail: user.profile.id },
-            { accessToken }
-          )
+        ? api.getAll('/edges', { invitation: conflictInvitationId, tail: user.profile.id })
         : Promise.resolve([])
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
       setBidEdges(results[0])

@@ -13,7 +13,6 @@ export default function SubmissionButton({
   onNoteCreated,
   apiVersion,
   options,
-  accessToken,
 }) {
   const [invitation, setInvitation] = useState(null)
   const [isNewWorkflow, setIsNewWorkflow] = useState(false)
@@ -30,15 +29,14 @@ export default function SubmissionButton({
       const { invitations } = await api.get(
         '/invitations',
         { id: invitationId },
-        { accessToken, version: apiVersion }
+        { version: apiVersion }
       )
       if (invitations?.length > 0) {
         const domainResult = await api
-          .get(
-            '/groups',
-            { id: invitations[0].domain, select: 'content.request_form_invitation' },
-            { accessToken }
-          )
+          .get('/groups', {
+            id: invitations[0].domain,
+            select: 'content.request_form_invitation',
+          })
           .catch(() => undefined)
         setInvitation(invitations[0])
         setIsNewWorkflow(domainResult?.groups?.[0]?.content?.request_form_invitation)

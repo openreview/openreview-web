@@ -66,7 +66,6 @@ const NameDeleteRequestModal = ({
   preferredUsername,
 }) => {
   const [reason, setReason] = useState('')
-  const { accessToken } = useUser()
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
 
@@ -74,8 +73,7 @@ const NameDeleteRequestModal = ({
     setIsLoading(true)
     try {
       const profileNameRemovalInvitation = await api.getInvitationById(
-        nameDeletionInvitationId,
-        accessToken
+        nameDeletionInvitationId
       )
       const editToPost = view2.constructEdit({
         formData: {
@@ -87,7 +85,7 @@ const NameDeleteRequestModal = ({
         },
         invitationObj: profileNameRemovalInvitation,
       })
-      await api.post('/notes/edits', editToPost, { accessToken })
+      await api.post('/notes/edits', editToPost)
       $('#name-delete').modal('hide')
       promptMessage('Your request has been submitted')
       loadPendingNameDeletionNotes()
@@ -136,7 +134,6 @@ const NameDeleteRequestModal = ({
 const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   const [nameToRequestDelete, setNameToRequestDelete] = useState(null)
   const [pendingNameDeletionRequests, setPendingNameDeletionRequests] = useState(null)
-  const { accessToken } = useUser()
   const namesReducer = (names, action) => {
     if (action.addNewName) return [...names, action.data]
     if (action.updateName) {
@@ -217,11 +214,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   }
 
   const getNameDeletionRequests = async () => {
-    const result = await api.get(
-      '/notes',
-      { invitation: nameDeletionInvitationId },
-      { accessToken }
-    )
+    const result = await api.get('/notes', { invitation: nameDeletionInvitationId })
     return result.notes
   }
 

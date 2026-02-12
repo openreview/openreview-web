@@ -11,6 +11,7 @@ module.exports = {
     GUEST_API_URL: process.env.GUEST_API_URL,
     ACCESS_TOKEN_NAME: process.env.ACCESS_TOKEN_NAME,
     REFRESH_TOKEN_NAME: process.env.REFRESH_TOKEN_NAME,
+    USER_TOKEN_NAME: process.env.USER_TOKEN_NAME,
     SUPER_USER: process.env.SUPER_USER,
     USE_DBLP_VENUES: process.env.USE_DBLP_VENUES,
     GA_PROPERTY_ID: process.env.GA_PROPERTY_ID,

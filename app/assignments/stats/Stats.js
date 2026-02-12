@@ -29,7 +29,7 @@ import {
   getNumDataPerGroupDataByBidScore,
 } from '../../../lib/assignment-stats-utils'
 
-export default function Stats({ configNote, accessToken }) {
+export default function Stats({ configNote }) {
   const [labelNames, setLabelNames] = useState({})
   const [values, setValues] = useState({})
   const assignmentConfigNoteContent = getNoteContentValues(configNote.content)
@@ -64,7 +64,7 @@ export default function Stats({ configNote, accessToken }) {
     try {
       const assignmentInvitationId = configNote.content?.assignment_invitation?.value
       const assignmentInvitation = assignmentInvitationId
-        ? await api.getInvitationById(assignmentInvitationId, accessToken)
+        ? await api.getInvitationById(assignmentInvitationId)
         : Promise.resolve(null)
       const headNameInAssignmentInvitation = prettyId(
         assignmentInvitation?.edge?.head?.param?.inGroup?.split('/').pop()
@@ -103,7 +103,7 @@ export default function Stats({ configNote, accessToken }) {
           }
         })
         papersP = api
-          .getAll('/notes', getNotesArgs, { accessToken, version: 2 })
+          .getAll('/notes', getNotesArgs, { version: 2 })
           .then((results) =>
             results.filter((p) =>
               Object.keys(localFilterContentFields).every(
@@ -112,14 +112,10 @@ export default function Stats({ configNote, accessToken }) {
             )
           )
       } else {
-        papersP = api.get('/groups', { id: paperInvitationElements[0] }, { accessToken })
+        papersP = api.get('/groups', { id: paperInvitationElements[0] })
       }
 
-      const usersP = api.get(
-        '/groups',
-        { id: assignmentConfigNoteContent.match_group },
-        { accessToken }
-      )
+      const usersP = api.get('/groups', { id: assignmentConfigNoteContent.match_group })
 
       const queryParams =
         assignmentConfigNoteContent.status === 'Deployed' &&
@@ -137,7 +133,6 @@ export default function Stats({ configNote, accessToken }) {
             }
 
       const assignmentsP = api.getAll('/edges', queryParams, {
-        accessToken,
         resultsKey: 'groupedEdges',
       })
 
@@ -149,7 +144,7 @@ export default function Stats({ configNote, accessToken }) {
         ? api.getAll(
             '/edges',
             { invitation: bidInvitation, groupBy: 'head', select: 'tail,label' },
-            { accessToken, resultsKey: 'groupedEdges' }
+            { resultsKey: 'groupedEdges' }
           )
         : Promise.resolve([])
 
@@ -161,7 +156,7 @@ export default function Stats({ configNote, accessToken }) {
         ? api.getAll(
             '/edges',
             { invitation: recommendationInvitation, groupBy: 'head', select: 'tail,weight' },
-            { accessToken, resultsKey: 'groupedEdges' }
+            { resultsKey: 'groupedEdges' }
           )
         : Promise.resolve([])
 

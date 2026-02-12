@@ -194,7 +194,6 @@ export default function RevisionsList({
   revisions,
   selectedIndexes,
   setSelectedIndexes,
-  accessToken,
   loadEdits,
   isNoteWritable,
 }) {
@@ -311,7 +310,6 @@ export default function RevisionsList({
           updateNote={() => {
             loadEdits()
           }}
-          accessToken={accessToken}
           onClose={() => {
             $('#confirm-delete-modal').modal('hide')
             setConfirmDeleteModalData(null)

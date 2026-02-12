@@ -14,7 +14,6 @@ import NoteEditor from '../NoteEditor'
 // Used for both reply/edit and reply forum views
 export default function InvitationReply({
   invitation,
-  accessToken,
   loadInvitation,
   replyField,
   readOnly = false,
@@ -58,7 +57,6 @@ export default function InvitationReply({
       const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
       const requestBody = getRequestBody(replyObj)
       await api.post('/invitations', requestBody, {
-        accessToken,
         version: 1,
       })
       promptMessage(`Settings for '${prettyId(invitation.id)} updated`)
@@ -96,7 +94,6 @@ export default function InvitationReply({
 export function InvitationReplyV2({
   invitation,
   profileId,
-  accessToken,
   loadInvitation,
   replyField,
   isMetaInvitation = false,
@@ -174,7 +171,7 @@ export function InvitationReplyV2({
       const cleanReplyString = replyString.trim()
       const replyObj = JSON.parse(cleanReplyString.length ? cleanReplyString : '[]')
       const requestBody = getRequestBody(replyObj)
-      await api.post('/invitations/edits', requestBody, { accessToken })
+      await api.post('/invitations/edits', requestBody)
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`)
       loadInvitation(invitation.id)
     } catch (error) {
@@ -268,7 +265,7 @@ export function InvitationReplyV2({
       ) : (
         <CodeEditor code={replyString} onChange={setReplyString} readOnly={readOnly} isJson />
       )}
-      
+
       {!readOnly && (
         <div className="mt-2">
           <SpinnerButton
@@ -286,7 +283,7 @@ export function InvitationReplyV2({
 }
 
 // For v1 invitations only
-export function InvitationReplyWithPreview({ invitation, accessToken, loadInvitation }) {
+export function InvitationReplyWithPreview({ invitation, loadInvitation }) {
   const [replyString, setReplyString] = useState(
     invitation.reply ? JSON.stringify(invitation.reply, undefined, 2) : '[]'
   )
@@ -315,7 +312,6 @@ export function InvitationReplyWithPreview({ invitation, accessToken, loadInvita
       setIsSaving(true)
       const requestBody = getRequestBody()
       await api.post('/invitations', requestBody, {
-        accessToken,
         version: 1,
       })
       promptMessage(`Settings for '${prettyId(invitation.id)} updated`)

@@ -1,18 +1,14 @@
 import { useEffect, useState } from 'react'
 import api from '../../../../lib/api-client'
 
-export default function ProfileMergeCount({ accessToken }) {
+export default function ProfileMergeCount() {
   const [profileMergeRequestCount, setProfileMergeRequestCount] = useState(null)
 
   const getNameDeletionCount = async () => {
     try {
-      const response = await api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Merge`,
-        },
-        { accessToken }
-      )
+      const response = await api.get('/notes', {
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Merge`,
+      })
       setProfileMergeRequestCount(
         response.notes.filter((p) => p.content.status.value === 'Pending').length
       )

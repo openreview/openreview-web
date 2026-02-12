@@ -90,7 +90,7 @@ export default function Forum({
   query,
   editInvitationIdToHide,
 }) {
-  const { isRefreshing, accessToken } = useUser()
+  const { user, isRefreshing } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
   const [replyNoteMap, setReplyNoteMap] = useState(null)
   const [parentMap, setParentMap] = useState(null)
@@ -174,11 +174,7 @@ export default function Forum({
       ? { type: 'tag', details: 'writable' }
       : { type: 'note', details: 'repliedNotes,writable' }
     return api
-      .get(
-        '/invitations',
-        { replyForum: forumId, expired: true, domain, ...extraParams },
-        { accessToken }
-      )
+      .get('/invitations', { replyForum: forumId, expired: true, domain, ...extraParams })
       .then(({ invitations }) => {
         if (!invitations?.length) return []
         return invitations.flatMap((inv) => {
@@ -201,16 +197,12 @@ export default function Forum({
   const getNotesByForumId = (forumId) => {
     if (!forumId) return Promise.resolve([])
 
-    return api.getAll(
-      '/notes',
-      {
-        forum: forumId,
-        trash: true,
-        details: 'writable,signatures,invitation,presentation,tags',
-        domain,
-      },
-      { accessToken }
-    )
+    return api.getAll('/notes', {
+      forum: forumId,
+      trash: true,
+      details: 'writable,signatures,invitation,presentation,tags',
+      domain,
+    })
   }
 
   const loadNotesAndInvitations = async () => {
@@ -293,25 +285,21 @@ export default function Forum({
 
   const loadNewReplies = useCallback(async () => {
     try {
-      const { notes } = await api.get(
-        '/notes',
-        {
-          forum: id,
-          mintmdate: latestMdate,
-          sort: 'tmdate:asc',
-          details: 'writable',
-          trash: true,
-          domain,
-        },
-        { accessToken }
-      )
+      const { notes } = await api.get('/notes', {
+        forum: id,
+        mintmdate: latestMdate,
+        sort: 'tmdate:asc',
+        details: 'writable',
+        trash: true,
+        domain,
+      })
       return notes?.length > 0 ? notes : []
     } catch (error) {
       // eslint-disable-next-line no-console
       console.warn('Error loading new replies: ', error.message)
       return []
     }
-  }, [latestMdate, id, accessToken])
+  }, [latestMdate, id, user])
 
   const loadNewTags = useCallback(async () => {
     const invitation = parentNote.tagInvitations?.find((inv) =>
@@ -320,26 +308,25 @@ export default function Forum({
     if (!invitation) return []
 
     try {
-      const { tags } = await api.get(
-        '/tags',
-        { invitation: invitation.id, mintmdate: latestMdate, trash: true },
-        { accessToken }
-      )
+      const { tags } = await api.get('/tags', {
+        invitation: invitation.id,
+        mintmdate: latestMdate,
+        trash: true,
+      })
       return tags?.length > 0 ? tags.sort((a, b) => a.tmdate - b.tmdate) : []
     } catch (error) {
       return []
     }
-  }, [latestMdate, parentNote, accessToken])
+  }, [latestMdate, parentNote, user])
 
   const loadNewSignatureGroups = async (newSigIds) => {
     if (newSigIds.size === 0) return []
 
     try {
-      const { groups } = await api.get(
-        `/groups`,
-        { ids: Array.from(newSigIds), select: 'id,members,readers' },
-        { accessToken }
-      )
+      const { groups } = await api.get(`/groups`, {
+        ids: Array.from(newSigIds),
+        select: 'id,members,readers',
+      })
       return groups?.length > 0 ? groups : []
     } catch (error) {
       return []
@@ -1250,7 +1237,6 @@ export default function Forum({
           note={confirmDeleteModalData.note}
           invitation={confirmDeleteModalData.invitation}
           updateNote={confirmDeleteModalData.updateNote}
-          accessToken={accessToken}
           onClose={() => {
             $('#confirm-delete-modal').modal('hide')
             setConfirmDeleteModalData(null)
