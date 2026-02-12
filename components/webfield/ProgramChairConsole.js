@@ -1136,13 +1136,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         })
       : Promise.resolve([])
     const profileResults = await getProfilesByIdsP
-    const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
-      .concat(profileResults[1].profiles ?? [])
-      .map((profile) => ({
-        ...profile,
-        preferredName: getProfileName(profile),
-        title: formatProfileContent(profile.content).title,
-      }))
+    const acSacProfilesWithoutAssignment = (profileResults.profiles ?? []).map((profile) => ({
+      ...profile,
+      preferredName: getProfileName(profile),
+      title: formatProfileContent(profile.content).title,
+    }))
 
     const acSacProfileWithoutAssignmentMap = new Map()
     acSacProfilesWithoutAssignment.forEach((profile) => {
