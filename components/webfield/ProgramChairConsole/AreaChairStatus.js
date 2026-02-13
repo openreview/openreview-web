@@ -9,10 +9,11 @@ import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
-import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
+import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
 import api from '../../../lib/api-client'
 import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
+import ProfileLink from '../ProfileLink'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.areaChairProfile ?? {}
@@ -69,13 +70,11 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
         {preferredName ? (
           <div className="ac-sac-info">
             <h4>
-              <a
-                href={getProfileLink(id ?? rowData.areaChairProfileId)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {preferredName}
-              </a>
+              <ProfileLink
+                id={id ?? rowData.areaChairProfileId}
+                name={preferredName}
+                preferredEmailInvitationId={preferredEmailInvitationId}
+              />
             </h4>
             <div className="profile-title">{title}</div>
             {preferredEmailInvitationId && (
@@ -93,7 +92,13 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
             )}
           </div>
         ) : (
-          <h4>{rowData.areaChairProfileId}</h4>
+          <h4>
+            <ProfileLink
+              id={rowData.areaChairProfileId}
+              name={rowData.areaChairProfileId}
+              preferredEmailInvitationId={preferredEmailInvitationId}
+            />
+          </h4>
         )}
         <p>
           {bidEnabled && (
@@ -135,13 +140,11 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
           {sacProfile?.preferredName && (
             <div className="ac-sac-info">
               <h4>
-                <a
-                  href={getProfileLink(sacProfile?.id ?? seniorAreaChairId)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {sacProfile.preferredName}
-                </a>
+                <ProfileLink
+                  id={sacProfile?.id ?? seniorAreaChairId}
+                  name={sacProfile.preferredName}
+                  preferredEmailInvitationId={preferredEmailInvitationId}
+                />
               </h4>
               <div className="profile-title">{sacProfile.title}</div>
               {preferredEmailInvitationId && (

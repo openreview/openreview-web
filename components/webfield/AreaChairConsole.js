@@ -29,7 +29,6 @@ import {
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
-import { getProfileLink } from '../../lib/webfield-utils'
 import { formatProfileContent } from '../../lib/edge-utils'
 import ConsoleTabs from './ConsoleTabs'
 import SelectAllCheckBox from './SelectAllCheckbox'
@@ -861,7 +860,7 @@ const AreaChairConsole = ({ appContext }) => {
     }
     const sacProfileLinks = acConsoleData.sacProfiles.map(
       (sacProfile, index) =>
-        `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a>${
+        `<a href="/profile?id=${sacProfile.id}" target="_blank" rel="noopener noreferrer" >${prettyId(sacProfile.id)}</a>${
           sacEmails[index] ? `(${sacEmails[index]})` : ''
         }`
     )
@@ -1021,32 +1020,28 @@ const AreaChairConsole = ({ appContext }) => {
         ]),
       ]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
         ? api.post('/profiles/search', {
             ids,
           })
         : Promise.resolve([])
-      const getProfilesByEmailsP = emails.length
-        ? api.post('/profiles/search', {
-            emails,
-          })
-        : Promise.resolve([])
-      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+
+      const profileResult = await getProfilesByIdsP
       // #endregion
 
       // #region calculate reviewProgressData and metaReviewData
       const notes = result[0]
       const ithenticateEdges = result[3]
-      const allProfiles = (profileResults[0].profiles ?? [])
-        .concat(profileResults[1].profiles ?? [])
-        .map((profile) => ({
-          ...profile,
-          title: formatProfileContent(profile.content).title,
-        }))
+
+      const allProfiles = (profileResult.profiles ?? []).map((profile) => ({
+        ...profile,
+        title: formatProfileContent(profile.content).title,
+      }))
+
       const customStageInvitationIds = customStageInvitations
         ? customStageInvitations.map((p) => `/-/${p.name}`)
         : []
+
       const tableRows = notes.map((note) => {
         const assignedReviewers =
           result[1].find((p) => p.number === note.number)?.reviewers ?? []

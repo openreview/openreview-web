@@ -8,7 +8,7 @@ export default function InstituitonSearchForm({
   setInstitutions,
   setPage,
   reloadInstitutionsDomains,
-  institutions,
+  allInstitutions,
 }) {
   const [searchAddForm, setSearchAddForm] = useReducer((state, action) => {
     if (action.type === 'reset') return {}
@@ -24,7 +24,9 @@ export default function InstituitonSearchForm({
     }
 
     setInstitutions(
-      institutions.filter((p) => p.toLowerCase().includes(institutionIdToSearch.toLowerCase()))
+      allInstitutions.filter((p) =>
+        p.toLowerCase().includes(institutionIdToSearch.toLowerCase())
+      )
     )
   }
 
@@ -84,11 +86,9 @@ export default function InstituitonSearchForm({
             }
           }}
         />
-        {/* <div className="search-button"> */}
         <button type="submit" className="btn btn-xs search-button" onClick={searchInstitution}>
           Search
         </button>
-        {/* </div> */}
       </div>
       <div className="institution-add-form">
         <input

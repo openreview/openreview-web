@@ -419,29 +419,7 @@ module.exports = (function () {
     if (fieldDescription.readers && !fieldDescription.value) return null
     let contentInputResult
 
-    if (fieldName === 'authorids' && params.profileWidget) {
-      let authors
-      let authorids
-      if (params?.note) {
-        authors = params.note.content.authors?.value
-        authorids = params.note.content.authorids?.value
-      } else if (params?.user) {
-        const userProfile = params.user.profile
-        authors = [userProfile.fullname]
-        authorids = [userProfile.preferredId]
-      }
-      const invitationRegex = fieldDescription.value.param?.regex
-      // Enable allowUserDefined if the values-regex has '~.*|'
-      // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
-      contentInputResult = valueInput(
-        view.mkSearchProfile(authors, authorids, {
-          allowUserDefined: invitationRegex && invitationRegex.includes('|'),
-          allowAddRemove: !!invitationRegex,
-        }),
-        'authors',
-        fieldDescription
-      )
-    } else {
+    {
       contentInputResult = mkComposerContentInput(
         fieldName,
         fieldDescription,
@@ -451,8 +429,7 @@ module.exports = (function () {
     }
 
     var isFieldHidden = fieldDescription.value?.param?.hidden === true
-    var isProfileWidget = fieldName === 'authors' && params.profileWidget
-    if (contentInputResult && (isFieldHidden || isProfileWidget)) {
+    if (contentInputResult && isFieldHidden) {
       return contentInputResult.hide()
     }
     return contentInputResult
@@ -1161,7 +1138,6 @@ module.exports = (function () {
     }
 
     var contentOrder = order(invitation.edit?.note?.content, invitation.id)
-    var profileWidget = contentOrder.includes('authors') && contentOrder.includes('authorids')
     var $contentMap = _.reduce(
       contentOrder,
       function (ret, k) {
@@ -1169,7 +1145,7 @@ module.exports = (function () {
           k,
           invitation.edit?.note?.content?.[k],
           invitation.edit?.note?.content?.[k].value.param?.default || '',
-          { useDefaults: true, user: user, profileWidget: profileWidget }
+          { useDefaults: true, user: user }
         )
         return ret
       },
@@ -1868,7 +1844,6 @@ module.exports = (function () {
     // the order here should be from invitation, not note.details
     // presentation info may be different
     const contentOrder = order(invitation.edit?.note?.content, invitation.id)
-    var profileWidget = contentOrder.includes('authors') && contentOrder.includes('authorids')
     const $contentMap = _.reduce(
       contentOrder,
       (map, fieldName) => {
@@ -1877,7 +1852,7 @@ module.exports = (function () {
           fieldName,
           invitation.edit.note.content[fieldName],
           fieldContent,
-          { note: note, useDefaults: true, profileWidget: profileWidget }
+          { note: note, useDefaults: true }
         )
         return map
       },

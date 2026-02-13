@@ -319,25 +319,17 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       // #region get all profiles
       const allIds = [...new Set(assignedAreaChairIds.concat(allGroupMembers))]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
         ? api.post('/profiles/search', {
             ids,
           })
         : Promise.resolve([])
-      const getProfilesByEmailsP = emails.length
-        ? api.post('/profiles/search', {
-            emails,
-          })
-        : Promise.resolve([])
-      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-      const allProfiles = (profileResults[0].profiles ?? [])
-        .concat(profileResults[1].profiles ?? [])
-        .map((profile) => ({
-          ...profile,
-          preferredName: getProfileName(profile),
-          title: formatProfileContent(profile.content).title,
-        }))
+      const profileResults = await getProfilesByIdsP
+      const allProfiles = (profileResults.profiles ?? []).map((profile) => ({
+        ...profile,
+        preferredName: getProfileName(profile),
+        title: formatProfileContent(profile.content).title,
+      }))
 
       const allProfilesMap = new Map()
       allProfiles.forEach((profile) => {
