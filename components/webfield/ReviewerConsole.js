@@ -2,7 +2,6 @@
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import { chunk } from 'lodash'
 import api from '../../lib/api-client'
 import Table from '../Table'
@@ -25,15 +24,15 @@ import ErrorDisplay from '../ErrorDisplay'
 import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
-import { getProfileLink } from '../../lib/webfield-utils'
 import ConsoleTabs from './ConsoleTabs'
+import ProfileLink from './ProfileLink'
 
 const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
     <strong>{prettyField(areaChairName)}:</strong>
     {areaChairIds.map((areaChairId) => (
       <div key={areaChairId}>
-        <Link href={getProfileLink(areaChairId)}>{prettyId(areaChairId)}</Link>
+        <ProfileLink id={areaChairId} name={prettyId(areaChairId)} />
       </div>
     ))}
   </div>
