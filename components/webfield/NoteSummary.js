@@ -8,6 +8,7 @@ import NoteContent, { NoteContentV2 } from '../NoteContent'
 import NoteReaders from '../NoteReaders'
 import ExpandableList from '../ExpandableList'
 import api from '../../lib/api-client'
+import ProfileLink from './ProfileLink'
 
 const getAuthorsValue = (note, isV2Note) => {
   if (isV2Note) return note.content?.authors?.value
@@ -25,6 +26,7 @@ const NoteSummary = ({
   showDates = false,
   showReaders = false,
   ithenticateEdge,
+  preferredEmailInvitationId,
 }) => {
   const titleValue = isV2Note ? note.content?.title?.value : note.content?.title
   const pdfValue = isV2Note ? note.content?.pdf?.value : note.content?.pdf
@@ -45,7 +47,11 @@ const NoteSummary = ({
 
     return (
       <span key={authorId}>
-        {authorName}
+        <ProfileLink
+          id={authorId}
+          name={authorName}
+          preferredEmailInvitationId={preferredEmailInvitationId}
+        />
         {profileMap &&
           (authorProfile?.active ? (
             <Icon

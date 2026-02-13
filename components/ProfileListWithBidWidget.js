@@ -3,7 +3,7 @@ import List from 'rc-virtual-list'
 import { maxBy } from 'lodash'
 import { getProfileName } from '../lib/utils'
 import { BidRadioButtonGroup, BidScore } from './webfield/BidWidget'
-import { getProfileLink } from '../lib/webfield-utils'
+import ProfileLink from './webfield/ProfileLink'
 
 const getTitle = (profile) => {
   if (!profile.content) return null
@@ -25,9 +25,7 @@ const BasicProfileSummary = ({ profile, setSearchTerm }) => {
   return (
     <div className="profile-summary">
       <h4 className="profile-name">
-        <a href={getProfileLink(profile.id)} target="_blank" rel="noreferrer">
-          {profileName}
-        </a>
+        <ProfileLink id={profile.id} name={profileName} />
       </h4>
       <span className="profile-title">{getTitle(profile)}</span>
       {expertises.length ? (
