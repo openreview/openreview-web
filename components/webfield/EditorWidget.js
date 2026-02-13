@@ -50,6 +50,11 @@ const ProfileSearchWidget = dynamic(() => import('../EditorComponents/ProfileSea
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
 })
 
+const PaymentWidget = dynamic(() => import('../EditorComponents/PaymentWidget'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
+
 // #endregion
 
 const EditorWidget = () => {
@@ -117,6 +122,8 @@ const EditorWidget = () => {
       case 'profile[]':
       case 'profile{}':
         return <ProfileSearchWidget multiple={true} />
+      case 'payment':
+        return <PaymentWidget />
       case 'note':
       case 'note[]':
       case 'edit':
