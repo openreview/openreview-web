@@ -55,7 +55,7 @@ test('create new profile', async (t) => {
     .ok()
     .expect(
       Selector('span').withText(
-        `test.com does not appear in our list of publishing institutions.`
+        'We encourage you to sign up with an email address from an educational or employing institution for faster processing.'
       ).exists
     )
     .ok()
@@ -66,7 +66,7 @@ test('create new profile', async (t) => {
     .click(signupButtonSelector)
     .expect(
       Selector('span').withText(
-        `institution.email does not appear in our list of publishing institutions.`
+        'We encourage you to sign up with an email address from an educational or employing institution for faster processing.'
       ).exists
     )
     .ok()
@@ -133,7 +133,7 @@ test('create another new profile', async (t) => {
     .ok()
     .expect(
       Selector('span').withText(
-        `test.com does not appear in our list of publishing institutions.`
+        'We encourage you to sign up with an email address from an educational or employing institution for faster processing.'
       ).exists
     )
     .ok()
