@@ -21,6 +21,7 @@ import {
   prettyId,
   inflect,
   pluralizeString,
+  getNoteAuthorIds,
 } from '../../lib/utils'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import ConsoleTaskList from './ConsoleTaskList'
@@ -513,9 +514,8 @@ const AuthorConsole = ({ appContext }) => {
   const loadProfiles = async (notes, version) => {
     const authorIds = new Set()
     notes.forEach((note) => {
-      const ids = version === 2 ? note.content.authorids.value : note.content.authorids
+      const ids = getNoteAuthorIds(note, version === 2)
       if (!Array.isArray(ids)) return
-
       ids.forEach((id) => {
         if (!id.includes('@')) {
           authorIds.add(id)
@@ -528,12 +528,11 @@ const AuthorConsole = ({ appContext }) => {
       authorIds.size > 0
         ? api.get('/profiles', { ids: Array.from(authorIds).join(',') }).then(getProfiles)
         : Promise.resolve([])
-
     const emailProfilesP = Promise.all(
       notes.flatMap((note) => {
-        const emailIds = (
-          version === 2 ? note.content.authorids.value : note.content.authorids
-        )?.filter((id) => id.includes('@'))
+        const emailIds = getNoteAuthorIds(note, version === 2)?.filter((id) =>
+          id.includes('@')
+        )
         if (!emailIds?.length) return []
         return api.get('/profiles', { confirmedEmails: emailIds.join(',') }).then(getProfiles)
       })
