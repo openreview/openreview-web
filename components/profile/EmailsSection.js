@@ -238,9 +238,9 @@ const EmailsSection = ({
         <div className="activation-message">
           <Icon name="warning-sign" />
           <p>
-            Your profile does not contain any company/institution email and it can take up to 2
-            weeks for your profile to be activated. If you would like to activate your profile,
-            please add an email issued by employing or educational institution.
+            It can take up to 2 weeks for your profile to be activated. We encourage you to add
+            an email address from an educational or employing institution for faster
+            processing.
           </p>
         </div>
       )}
