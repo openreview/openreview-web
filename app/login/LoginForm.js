@@ -2,13 +2,14 @@
 
 /* globals promptError,promptMessage,$: false */
 import Link from 'next/link'
-import { useReducer } from 'react'
+import { useReducer, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
 import { isValidEmail, sanitizeRedirectUrl } from '../../lib/utils'
 import { setNotificationCount } from '../../notificationSlice'
 import { resetRefreshTokenStatus } from '../../lib/clientAuth'
+import LoginMFAModal from './LoginMFAModal'
 
 export default function LoginForm() {
   // eslint-disable-next-line no-use-before-define
@@ -18,6 +19,7 @@ export default function LoginForm() {
     loading: false,
     error: null,
   })
+  const [mfaStatus, setMfaStatus] = useState(null)
   const dispatch = useDispatch()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect')
@@ -58,17 +60,26 @@ export default function LoginForm() {
     }
   }
 
+  const completeLogin = () => {
+    resetRefreshTokenStatus()
+    dispatch(setNotificationCount(null))
+    window.location.replace(sanitizeRedirectUrl(redirect))
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setFormState({ type: 'START_LOADING' })
     try {
-      await api.post('/login', {
+      const result = await api.post('/login', {
         id: formState.email,
         password: formState.password,
       })
-      resetRefreshTokenStatus()
-      dispatch(setNotificationCount(null))
-      window.location.replace(sanitizeRedirectUrl(redirect))
+      if (!result.mfaPending) {
+        completeLogin()
+      } else {
+        setMfaStatus(result)
+        $('#login-mfa-modal').modal('show')
+      }
     } catch (error) {
       setFormState({ type: 'HAS_ERROR' })
       promptError(error.message)
@@ -76,65 +87,72 @@ export default function LoginForm() {
   }
 
   return (
-    <form>
-      <div className="form-group">
-        <label htmlFor="email-input">Email</label>
-        <input
-          id="email-input"
-          type="text"
-          className={`form-control ${formState.error ? 'form-invalid' : ''}`}
-          placeholder="Email"
-          value={formState.email}
-          maxLength={254}
-          onChange={(e) =>
-            setFormState({ type: 'UPDATE_EMAIL', payload: e.target.value.trim() })
-          }
-        />
-      </div>
+    <>
+      <form>
+        <div className="form-group">
+          <label htmlFor="email-input">Email</label>
+          <input
+            id="email-input"
+            type="text"
+            className={`form-control ${formState.error ? 'form-invalid' : ''}`}
+            placeholder="Email"
+            value={formState.email}
+            maxLength={254}
+            onChange={(e) =>
+              setFormState({ type: 'UPDATE_EMAIL', payload: e.target.value.trim() })
+            }
+          />
+        </div>
 
-      <div className="form-group">
-        <label htmlFor="password-input">Password</label>
-        <input
-          id="password-input"
-          type="password"
-          className={`form-control ${formState.error ? 'form-invalid' : ''}`}
-          placeholder="Password"
-          value={formState.password}
-          onChange={(e) =>
-            setFormState({ type: 'UPDATE_PASSWORD', payload: e.target.value.trim() })
+        <div className="form-group">
+          <label htmlFor="password-input">Password</label>
+          <input
+            id="password-input"
+            type="password"
+            className={`form-control ${formState.error ? 'form-invalid' : ''}`}
+            placeholder="Password"
+            value={formState.password}
+            onChange={(e) =>
+              setFormState({ type: 'UPDATE_PASSWORD', payload: e.target.value.trim() })
+            }
+          />
+        </div>
+        <p className="help-block">
+          By logging in, you agree to the{' '}
+          <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
+            <strong>Terms of Use</strong>
+          </a>
+          , last updated September 24, 2024.
+        </p>
+        <button
+          type="submit"
+          className="btn btn-login"
+          disabled={!isValidEmail(formState.email) || !formState.password || formState.loading}
+          data-original-title={
+            formState.email && !isValidEmail(formState.email)
+              ? 'Please enter a valid email address'
+              : ''
           }
-        />
-      </div>
-      <p className="help-block">
-        By logging in, you agree to the{' '}
-        <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
-          <strong>Terms of Use</strong>
-        </a>
-        , last updated September 24, 2024.
-      </p>
-      <button
-        type="submit"
-        className="btn btn-login"
-        disabled={!isValidEmail(formState.email) || !formState.password || formState.loading}
-        data-original-title={
-          formState.email && !isValidEmail(formState.email)
-            ? 'Please enter a valid email address'
-            : ''
-        }
-        data-toggle="tooltip"
-        onClick={handleSubmit}
-      >
-        Login to OpenReview
-      </button>
+          data-toggle="tooltip"
+          onClick={handleSubmit}
+        >
+          Login to OpenReview
+        </button>
 
-      <p className="help-block">
-        <Link href="/reset">Forgot your password?</Link>
-        <br />
-        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-        <a href="#" onClick={handleResendConfirmation}>
-          Didn&apos;t receive email confirmation?
-        </a>
-      </p>
-    </form>
+        <p className="help-block">
+          <Link href="/reset">Forgot your password?</Link>
+          <br />
+          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+          <a href="#" onClick={handleResendConfirmation}>
+            Didn&apos;t receive email confirmation?
+          </a>
+        </p>
+      </form>
+      <LoginMFAModal
+        mfaStatus={mfaStatus}
+        completeLogin={completeLogin}
+        setFormState={setFormState}
+      />
+    </>
   )
 }
