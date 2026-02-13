@@ -9,6 +9,9 @@ import styles from '../../styles/components/EditorComponentHeader.module.scss'
 const defaultAuthorFieldDescription =
   'Search author profile by first, middle and last name or email address. All authors must have an OpenReview profile prior to submitting a paper.'
 
+const defaultAuthorFieldDeascriptionV2 =
+  'Search author profile by first, middle and last name or email address. If the profile is not found, you can add the author by completing first, middle, and last names as well as author email address.'
+
 const EditorComponentHeader = ({
   inline = false,
   fieldNameOverwrite,
@@ -26,7 +29,10 @@ const EditorComponentHeader = ({
   let { description } = field[fieldName] ?? {}
   if (description === defaultAuthorFieldDescription)
     description =
-      'Search author profile by name or profile id. All authors must have an OpenReview profile prior to submitting a paper.'
+      'Search author profile by name or profile ID. All authors must have an OpenReview profile prior to submitting a paper.'
+  if (description === defaultAuthorFieldDeascriptionV2)
+    description =
+      'Search author profile by name or profile ID. If the profile is not found, you can add the author by completing author information including name and email address.'
   const { optional, deletable, scroll, hidden } = field[fieldName].value?.param ?? {}
 
   return (
