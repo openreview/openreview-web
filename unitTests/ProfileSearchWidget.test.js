@@ -46,7 +46,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByPlaceholderText('search profiles by name or OpenReview profile id')
+        screen.getByPlaceholderText('search profiles by name or OpenReview profile ID')
       ).toBeInTheDocument()
       expect(screen.getByText('Search')).toHaveAttribute('disabled')
     })
@@ -76,7 +76,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByPlaceholderText('search profiles by name or OpenReview profile id')
+        screen.queryByPlaceholderText('search profiles by name or OpenReview profile ID')
       ).not.toBeInTheDocument()
       expect(screen.queryByText('Search')).not.toBeInTheDocument()
     })
@@ -110,7 +110,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByPlaceholderText('search profiles by name or OpenReview profile id')
+        screen.queryByPlaceholderText('search profiles by name or OpenReview profile ID')
       ).not.toBeInTheDocument()
       expect(screen.queryByText('Search')).not.toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'arrow-right' })).toBeInTheDocument()
@@ -326,7 +326,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'name to search'
     )
     const searchButton = screen.getByText('Search')
@@ -375,7 +375,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '   test@EMAIL.COM   '
     )
     await userEvent.click(screen.getByText('Search'))
@@ -409,7 +409,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '   ~Test_User1   '
     )
     await userEvent.click(screen.getByText('Search'))
@@ -581,7 +581,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '~test_id1'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -650,7 +650,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '~test_id_preferred1'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -718,7 +718,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '~search_result1'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -902,7 +902,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'search text'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -961,7 +961,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'search text'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1001,7 +1001,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     })
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'search text'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1032,7 +1032,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1073,7 +1073,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1113,7 +1113,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1152,7 +1152,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'fullname of'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1221,7 +1221,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'fullname of'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1285,7 +1285,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'fullname of'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1334,7 +1334,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1392,7 +1392,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '~search_result1'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1555,7 +1555,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={false} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '~search_result1'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1565,14 +1565,14 @@ describe('ProfileSearchWidget for non authorids field', () => {
     ) // group is string instead of array
 
     expect(
-      screen.queryByPlaceholderText('search profiles by name or OpenReview profile id')
+      screen.queryByPlaceholderText('search profiles by name or OpenReview profile ID')
     ).not.toBeInTheDocument()
     expect(screen.queryByText('Search')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'remove' }))
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: undefined }))
     expect(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id')
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID')
     ).toBeInTheDocument()
     expect(screen.getByText('Search')).toBeInTheDocument()
   })
@@ -1631,7 +1631,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by name or OpenReview profile id'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '~test_id1'
     )
     await userEvent.click(screen.getByText('Search'))
