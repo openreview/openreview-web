@@ -1,0 +1,152 @@
+@use '../../styles/utils/constants';
+
+.reviews {
+  :global {
+    header {
+      margin-bottom: 2rem;
+    }
+
+    .reviews-user {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 0.5rem;
+    }
+
+    .reviews-summary {
+      margin-bottom: 1.5rem;
+      color: #555;
+      font-size: 0.95rem;
+    }
+
+    .empty-message {
+      font-style: italic;
+      color: #666;
+    }
+
+    #reviews-accordion {
+      .panel {
+        border: none;
+        box-shadow: none;
+        margin-bottom: 0;
+      }
+
+      .panel-heading {
+        background: transparent;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #eee;
+      }
+
+      .panel-title {
+        font-size: 1rem;
+        margin: 0;
+
+        .collapse-btn {
+          color: #333;
+
+          &.collapsed .glyphicon-triangle-bottom {
+            transform: rotate(-90deg);
+          }
+
+          .glyphicon-triangle-bottom {
+            transition: transform 0.2s ease;
+            font-size: 0.7rem;
+            margin-right: 0.5rem;
+          }
+        }
+      }
+
+      .venue-heading {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.75rem;
+
+        .venue-link {
+          color: constants.$mediumBlue;
+          font-weight: 600;
+
+          &:hover {
+            color: constants.$mediumDarkBlue;
+            text-decoration: underline;
+          }
+        }
+
+        .badge {
+          background-color: constants.$orRed;
+          color: white;
+          font-size: 0.75rem;
+          padding: 3px 8px;
+          border-radius: 10px;
+          font-weight: normal;
+        }
+      }
+
+      .panel-collapse {
+        border: none;
+      }
+
+      .panel-body {
+        padding: 0 0 0 1.5rem;
+      }
+
+      .webfield-accordion-divider {
+        display: none;
+      }
+    }
+
+    .reviews-list {
+      margin: 0.5rem 0 1rem;
+
+      .review-item {
+        padding: 0.75rem 0;
+        border-bottom: 1px solid #f0f0f0;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        .review-content {
+          .submission-title {
+            margin: 0 0 0.5rem;
+            font-size: 0.95rem;
+            font-weight: 500;
+            line-height: 1.4;
+
+            a {
+              color: #333;
+
+              &:hover {
+                color: constants.$mediumBlue;
+                text-decoration: underline;
+              }
+            }
+          }
+
+          .review-meta {
+            margin: 0;
+            font-size: 0.85rem;
+            color: #777;
+
+            li {
+              margin-right: 1rem;
+
+              .glyphicon {
+                margin-right: 0.25rem;
+                font-size: 0.8rem;
+              }
+            }
+
+            .review-link {
+              color: constants.$mediumBlue;
+
+              &:hover {
+                text-decoration: underline;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

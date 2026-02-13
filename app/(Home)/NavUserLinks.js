@@ -54,6 +54,9 @@ export default async function NavUserLinks() {
           <li>
             <Link href="/profile">Profile</Link>
           </li>
+          <li>
+            <Link href="/reviews">All My Reviews</Link>
+          </li>
           <li className="visible-sm-block">
             <Link href="/notifications" prefetch={false}>
               Notifications
