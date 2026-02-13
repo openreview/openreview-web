@@ -11,7 +11,7 @@ import {
   prettyField,
   getRoleHashFragment,
 } from '../../../lib/utils'
-import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
+import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -19,6 +19,7 @@ import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { formatProfileContent } from '../../../lib/edge-utils'
+import ProfileLink from '../ProfileLink'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -54,9 +55,11 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       {preferredName ? (
         <div className="reviewer-info">
           <h4>
-            <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
-              {preferredName}
-            </a>
+            <ProfileLink
+              id={id ?? reviewerProfileId}
+              name={preferredName}
+              preferredEmailInvitationId={preferredEmailInvitationId}
+            />
           </h4>
           <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
@@ -75,9 +78,11 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
         </div>
       ) : (
         <h4>
-          <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
-            {reviewerProfileId}
-          </a>
+          <ProfileLink
+            id={reviewerProfileId}
+            name={reviewerProfileId}
+            preferredEmailInvitationId={preferredEmailInvitationId}
+          />
         </h4>
       )}
       <div>
@@ -329,27 +334,18 @@ const ReviewerStatusTab = ({
           (reviewerProfileId) => !pcConsoleData.allProfilesMap.get(reviewerProfileId)
         )
         const ids = reviewerWithoutAssignmentIds.filter((p) => p.startsWith('~'))
-        const emails = reviewerWithoutAssignmentIds.filter((p) => p.match(/.+@.+/))
         const getProfilesByIdsP = ids.length
           ? api.post('/profiles/search', {
               ids,
             })
           : Promise.resolve([])
-        const getProfilesByEmailsP = emails.length
-          ? api.post('/profiles/search', {
-              emails,
-            })
-          : Promise.resolve([])
-        const reviewerProfileResults = await Promise.all([
-          getProfilesByIdsP,
-          getProfilesByEmailsP,
-        ])
-        const reviewerProfilesWithoutAssignment = (reviewerProfileResults[0].profiles ?? [])
-          .concat(reviewerProfileResults[1].profiles ?? [])
-          .map((profile) => ({
+        const reviewerProfileResults = await getProfilesByIdsP
+        const reviewerProfilesWithoutAssignment = (reviewerProfileResults.profiles ?? []).map(
+          (profile) => ({
             ...profile,
             preferredName: getProfileName(profile),
-          }))
+          })
+        )
         const reviewerProfileWithoutAssignmentMap = new Map()
         reviewerProfilesWithoutAssignment.forEach((profile) => {
           const usernames = profile.content.names.flatMap((p) => p.username ?? [])

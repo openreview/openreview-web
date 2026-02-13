@@ -95,6 +95,7 @@ const PaperRow = ({
           showReaders={true}
           isV2Note={true}
           ithenticateEdge={ithenticateEdge}
+          preferredEmailInvitationId={preferredEmailInvitationId}
         />
       </td>
       <td>

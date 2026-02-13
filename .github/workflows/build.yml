@@ -35,9 +35,9 @@ jobs:
 
     steps:
       - name: Start MongoDB
-        uses: supercharge/mongodb-github-action@1.10.0
+        uses: supercharge/mongodb-github-action@1.12.1
         with:
-          mongodb-version: 6.0
+          mongodb-version: 8.0
           mongodb-replica-set: rs0
       - name: Configure sysctl Limits
         run: |
