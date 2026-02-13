@@ -87,6 +87,7 @@ const ProfilePreviewModal = ({
         ddate: Date.now(),
         profile: tag.profile,
         label: tag.label,
+        readers: tag.readers,
         signature: tag.signature,
         invitation: tag.invitation,
       })
