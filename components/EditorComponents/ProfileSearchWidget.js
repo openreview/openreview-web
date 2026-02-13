@@ -252,9 +252,11 @@ const ProfileSearchFormAndResults = ({
   setDisplayAuthors,
   allowUserDefined,
   error,
+  setErrors,
   isAuthoridsField,
   multiple,
   field,
+  fieldName,
   onChange,
   clearError,
   pageSize,
@@ -284,7 +286,14 @@ const ProfileSearchFormAndResults = ({
     let paramKey = 'fullname'
     let paramValue = cleanSearchTerm.toLowerCase()
     if (isValidEmail(cleanSearchTerm)) {
-      promptError('Search profile by name or OpenReview profile id.')
+      setErrors((existingErrors) =>
+        existingErrors
+          .filter((e) => e.fieldName !== fieldName)
+          .concat({
+            fieldName,
+            message: 'Search profile by name or OpenReview profile id.',
+          })
+      )
       return
     }
     if (cleanSearchTerm.startsWith('~')) {
@@ -553,7 +562,7 @@ const ProfileSearchWidget = ({
 }) => {
   const { user, isRefreshing } = useUser()
   const editorComponentContext = useContext(EditorComponentContext) ?? {}
-  const { field, onChange, value, error, clearError } = isEditor
+  const { field, onChange, value, error, setErrors, clearError } = isEditor
     ? editorComponentContext
     : { field: propsField, onChange: propsOnChange, value: propsValue, error: propsError }
   const fieldName = Object.keys(field ?? {})[0]
@@ -726,9 +735,11 @@ const ProfileSearchWidget = ({
           setDisplayAuthors={setDisplayAuthors}
           allowUserDefined={allowUserDefined}
           error={error}
+          setErrors={setErrors}
           isAuthoridsField={isAuthoridsField}
           multiple={multiple}
           field={field}
+          fieldName={fieldName}
           onChange={onChange}
           clearError={clearError}
           pageSize={pageSize}

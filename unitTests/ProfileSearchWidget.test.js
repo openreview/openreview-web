@@ -350,6 +350,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
   test('search by email should fail', async () => {
     const getProfile = jest.fn(() => Promise.resolve([]))
+    const setErrors = jest.fn()
     api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = getProfile
     const providerProps = {
@@ -367,6 +368,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         },
         value: [{ authorId: '~test_id1' }],
         onChange: jest.fn(),
+        setErrors,
       },
     }
 
@@ -379,9 +381,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     await userEvent.click(screen.getByText('Search'))
 
     expect(getProfile).not.toHaveBeenCalled()
-    expect(global.promptError).toHaveBeenCalledWith(
-      'Search profile by name or OpenReview profile id.'
-    )
+    expect(setErrors).toHaveBeenCalled() // show error message as error in form instead of global prompt
   })
 
   test('search by id keyword if user input is tilde id', async () => {
