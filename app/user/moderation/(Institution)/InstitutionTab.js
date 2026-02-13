@@ -13,6 +13,7 @@ import LoadingSpinner from '../../../../components/LoadingSpinner'
 const pageSize = 25
 
 export default function InstitutionTab() {
+  const [allInstitutions, setAllInstitutions] = useState(null)
   const [institutions, setInstitutions] = useState(null)
   const [institutionsToShow, setInstitutionsToShow] = useState(null)
   const [page, setPage] = useState(1)
@@ -24,6 +25,7 @@ export default function InstitutionTab() {
       const result = await api.get(
         `/settings/institutiondomains${noCache ? '?cache=false' : ''}`
       )
+      setAllInstitutions(result)
       setInstitutions(result)
     } catch (error) {
       promptError(error.message)
@@ -127,7 +129,7 @@ export default function InstitutionTab() {
         setInstitutions={setInstitutions}
         setPage={setPage}
         reloadInstitutionsDomains={loadInstitutionsDomains}
-        institutions={institutions}
+        allInstitutions={allInstitutions}
       />
       <>
         <Table
