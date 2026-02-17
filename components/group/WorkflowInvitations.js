@@ -973,6 +973,7 @@ const WorkFlowInvitations = ({ group }) => {
       trash: true,
       type: 'all',
       filterStaticForum: true,
+      domain: groupId,
     })
 
     let getStageInvitationTemplatesP =
