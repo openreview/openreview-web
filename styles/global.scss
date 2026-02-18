@@ -919,6 +919,11 @@ header {
   .alert-danger {
     margin-bottom: 1rem;
   }
+  .message-member-signature {
+    .dropdown-select {
+      display: block;
+    }
+  }
 }
 
 #reviewer-activity-modal {
