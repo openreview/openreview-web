@@ -968,7 +968,7 @@ const WorkFlowInvitations = ({ group }) => {
       .then((result) => result.groups)
 
     const getAllInvitationsP = await api.getAll('/invitations', {
-      prefix: groupId,
+      prefix: `${groupId}/`,
       expired: true,
       trash: true,
       type: 'all',
