@@ -1,7 +1,7 @@
 /* globals promptError: false */
 import isEqual from 'lodash/isEqual'
 import { useState } from 'react'
-import { forumDate, getNotePdfUrl } from '../../lib/utils'
+import { forumDate, getNotePdfUrl, prettyId } from '../../lib/utils'
 import Collapse from '../Collapse'
 import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
@@ -83,6 +83,8 @@ const NoteSummary = ({
     }
     setIsLoadingReportLink(false)
   }
+
+  const perPaperInvitationForums = note?.perPaperInvitationForums
 
   return (
     <div className="note">
@@ -190,6 +192,23 @@ const NoteSummary = ({
           />
         )}
       </Collapse>
+
+      {perPaperInvitationForums && (
+        <div className="per-paper-invitation-forums">
+          {perPaperInvitationForums.map((invitation) => (
+            <a
+              key={invitation.forum}
+              href={`/forum?id=${invitation.forum}&referrer=${referrerUrl}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Edit {prettyId(invitation.suffix)}
+            </a>
+          ))}
+        </div>
+      )
+      }
+
     </div>
   )
 }
