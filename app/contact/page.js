@@ -133,6 +133,7 @@ export default function Page() {
         from: formData.from.trim(),
         token: turnstileToken,
       }
+      const institutionData = {}
 
       const cleanSubject = formData.subject.trim()
 
@@ -155,8 +156,13 @@ export default function Page() {
 
           break
         case institutionSubject:
-          feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution Fullname: ${formData.institutionName}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
-          feedbackData.subject = `${cleanSubject} - ${formData.institutionDomain}`
+          //feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution Fullname: ${formData.institutionName}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
+          //feedbackData.subject = `${cleanSubject} - ${formData.institutionDomain}`
+          institutionData.email = { 'value': formData.from.trim() }
+          institutionData.domain = { 'value': formData.institutionDomain }
+          institutionData.name = { 'value': formData.institutionName}
+          institutionData.url = { 'value': formData.institutionUrl }
+          institutionData.comment = { 'value': formData.message }
           break
         case createProfileSubject:
           feedbackData.message = `${formData.message}`
@@ -173,7 +179,17 @@ export default function Page() {
           feedbackData.subject = cleanSubject
       }
 
-      await api.put('/feedback', feedbackData)
+      if (institutionData.domain) {
+        await api.post('/notes/edits', {
+          invitation: `${process.env.SUPER_USER}/Support/-/Add_Institution`,
+          signatures: [user?.profile.id || '(guest)'],
+          note: {
+            content: institutionData,
+          }
+        })
+      } else {
+        await api.put('/feedback', feedbackData)
+      }
       setError(null)
       setSubmitting(false)
       setFormData({ type: 'reset' })
