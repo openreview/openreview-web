@@ -55,7 +55,7 @@ test('create new profile', async (t) => {
     .ok()
     .expect(
       Selector('span').withText(
-        `test.com does not appear in our list of publishing institutions.`
+        'We encourage you to sign up with an email address from an educational or employing institution for faster processing.'
       ).exists
     )
     .ok()
@@ -66,7 +66,7 @@ test('create new profile', async (t) => {
     .click(signupButtonSelector)
     .expect(
       Selector('span').withText(
-        `institution.email does not appear in our list of publishing institutions.`
+        'We encourage you to sign up with an email address from an educational or employing institution for faster processing.'
       ).exists
     )
     .ok()
@@ -133,7 +133,7 @@ test('create another new profile', async (t) => {
     .ok()
     .expect(
       Selector('span').withText(
-        `test.com does not appear in our list of publishing institutions.`
+        'We encourage you to sign up with an email address from an educational or employing institution for faster processing.'
       ).exists
     )
     .ok()
@@ -321,7 +321,7 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
+        'It can take up to 2 weeks for your profile to be activated. We encourage you to add an email address from an educational or employing institution for faster processing.'
       ).exists
     )
     .ok()
@@ -357,7 +357,8 @@ test('update profile', async (t) => {
     .ok()
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
+        'It can take up to 2 weeks for your profile to be activated. We encourage you to add an email address from an educational or employing institution for faster processing.'
+
       ).exists
     )
     .notOk()
@@ -396,7 +397,8 @@ test('register a profile with an institutional email', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
+        'It can take up to 2 weeks for your profile to be activated. We encourage you to add an email address from an educational or employing institution for faster processing.'
+
       ).exists
     )
     .notOk()
