@@ -15,7 +15,10 @@ jest.mock('../hooks/useUser', () => () => ({
 global.$ = jest.fn(() => ({
   tooltip: jest.fn(),
 }))
-global.promptError = jest.fn()
+
+beforeEach(() => {
+  global.promptError = jest.fn()
+})
 
 describe('ProfileSearchWidget for authors+authorids field', () => {
   test('show search input and disabled search button', async () => {
@@ -43,7 +46,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByPlaceholderText('search profiles by email or name')
+        screen.getByPlaceholderText('search profiles by name or OpenReview profile ID')
       ).toBeInTheDocument()
       expect(screen.getByText('Search')).toHaveAttribute('disabled')
     })
@@ -73,7 +76,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByPlaceholderText('search profiles by email or name')
+        screen.queryByPlaceholderText('search profiles by name or OpenReview profile ID')
       ).not.toBeInTheDocument()
       expect(screen.queryByText('Search')).not.toBeInTheDocument()
     })
@@ -107,7 +110,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     await waitFor(() => {
       expect(
-        screen.queryByPlaceholderText('search profiles by email or name')
+        screen.queryByPlaceholderText('search profiles by name or OpenReview profile ID')
       ).not.toBeInTheDocument()
       expect(screen.queryByText('Search')).not.toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'arrow-right' })).toBeInTheDocument()
@@ -174,8 +177,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       )
       expect(apiPost).toHaveBeenCalledWith(
         '/profiles/search',
-        expect.objectContaining({ ids: ['~test_id1'] }),
-        expect.anything()
+        expect.objectContaining({ ids: ['~test_id1'] })
       )
     })
 
@@ -324,7 +326,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'name to search'
     )
     const searchButton = screen.getByText('Search')
@@ -346,9 +348,10 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     ).toHaveAttribute('class', expect.stringContaining('glyphicon-remove-sign'))
   })
 
-  test('search by trimmed lowercased email if user input is email', async () => {
+  test('search by email should fail', async () => {
     const getProfile = jest.fn(() => Promise.resolve([]))
-    api.post = jest.fn(() => Promise.resolve([]))
+    const setErrors = jest.fn()
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = getProfile
     const providerProps = {
       value: {
@@ -365,26 +368,25 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         },
         value: [{ authorId: '~test_id1' }],
         onChange: jest.fn(),
+        setErrors,
       },
     }
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '   test@EMAIL.COM   '
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(getProfile).toHaveBeenCalledWith(
-      '/profiles/search',
-      { email: 'test@email.com', es: true, limit: 20, offset: 0 },
-      expect.anything()
-    )
+
+    expect(getProfile).not.toHaveBeenCalled()
+    expect(setErrors).toHaveBeenCalled() // show error message as error in form instead of global prompt
   })
 
   test('search by id keyword if user input is tilde id', async () => {
     const getProfile = jest.fn(() => Promise.resolve([]))
-    api.post = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = getProfile
     const providerProps = {
       value: {
@@ -407,15 +409,16 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       '   ~Test_User1   '
     )
     await userEvent.click(screen.getByText('Search'))
-    expect(getProfile).toHaveBeenCalledWith(
-      '/profiles/search',
-      { id: '~Test_User1', es: true, limit: 20, offset: 0 },
-      expect.anything()
-    )
+    expect(getProfile).toHaveBeenCalledWith('/profiles/search', {
+      id: '~Test_User1',
+      es: true,
+      limit: 20,
+      offset: 0,
+    })
   })
 
   test('auto update author name if preferred name has changed since submission (invitation allows)', async () => {
@@ -578,8 +581,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
-      'anothertest1@email.com'
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
+      '~test_id1'
     )
     await userEvent.click(screen.getByText('Search'))
     await expect(screen.getByRole('button', { name: 'plus' })).toHaveAttribute('disabled')
@@ -647,8 +650,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
-      'anothertest1@email.com'
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
+      '~test_id_preferred1'
     )
     await userEvent.click(screen.getByText('Search'))
     await expect(screen.getByRole('button', { name: 'plus' })).toHaveAttribute('disabled')
@@ -715,8 +718,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
-      'anothertest1@email.com'
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
+      '~search_result1'
     )
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'plus' }))
@@ -875,7 +878,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         count: 150,
       })
     )
-    api.post = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = searchProfile
     const onChange = jest.fn()
     const providerProps = {
@@ -899,7 +902,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'search text'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -934,7 +937,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         count: 1000, // db has 1000 results but limit to 200
       })
     )
-    api.post = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = searchProfile
     const onChange = jest.fn()
     const providerProps = {
@@ -958,7 +961,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'search text'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -993,16 +996,12 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget />, providerProps)
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalledWith(
-        '/profiles/search',
-        { ids: ['~test_id1'] },
-        expect.anything()
-      )
+      expect(api.post).toHaveBeenCalledWith('/profiles/search', { ids: ['~test_id1'] })
       expect(promptError).toHaveBeenCalledWith('post search is not working')
     })
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'search text'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1010,7 +1009,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
   })
 
   test('show message and custom author form if search returned empty results', async () => {
-    api.post = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
 
     const providerProps = {
@@ -1033,7 +1032,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1051,7 +1050,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
   })
 
   test('show custom author form if regex has pipe', async () => {
-    api.post = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
 
     const providerProps = {
@@ -1074,7 +1073,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1092,7 +1091,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
   })
 
   test('not to show custom author form if regex has no pipe', async () => {
-    api.post = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
 
     const providerProps = {
@@ -1114,7 +1113,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1126,48 +1125,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     ).not.toBeInTheDocument()
   })
 
-  test('fill in the custom author form based on user input (only for email)', async () => {
-    api.post = jest.fn(() => Promise.resolve([]))
-    api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
-
-    const providerProps = {
-      value: {
-        field: {
-          authorids: {
-            value: {
-              param: {
-                type: 'group[]',
-                regex:
-                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
-              },
-            },
-          },
-        },
-        value: [{ authorId: '~test_id1', authorName: 'Test First Test Last' }],
-        onChange: jest.fn(),
-      },
-    }
-
-    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
-    const searchInput = screen.getByPlaceholderText('search profiles by email or name')
-    await userEvent.type(searchInput, '   some search term   ')
-    await userEvent.click(screen.getByText('Search'))
-    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
-
-    expect(screen.getByPlaceholderText('Full name of the author to add')).toHaveValue('') // not to fill for name incase it's not complete name
-
-    await userEvent.clear(screen.getByPlaceholderText('search profiles by email or name'))
-    await userEvent.type(searchInput, '   test@EMAIL.COM   ')
-    await userEvent.click(screen.getByText('Search'))
-    await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Author Info' }))
-
-    expect(screen.getByPlaceholderText('Email of the author to add')).toHaveValue(
-      'test@email.com'
-    )
-  })
-
   test('call update when custom author is added (the custom email does not match any profile)', async () => {
-    api.post = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
     const onChange = jest.fn()
     const clearError = jest.fn()
@@ -1193,7 +1152,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'fullname of'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1224,8 +1183,8 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     )
   })
 
-  test('show search results when custom author is added (custom email has matching profile)', async () => {
-    api.post = jest.fn(() => Promise.resolve([]))
+  test('call update when custom author is added ', async () => {
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -1262,7 +1221,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'fullname of'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1284,27 +1243,20 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     await userEvent.click(screen.getByText('Add'))
 
-    // show search results found by custom email entered
-    expect(screen.getAllByText('~', { exact: false })[0].parentElement.textContent).toEqual(
-      '~search_result1'
-    )
-    expect(onChange).toHaveBeenCalledTimes(2)
-    expect(screen.getByText('Add').childElementCount).toEqual(0) // not to show loading icon
-
-    await userEvent.click(screen.getByRole('button', { name: 'plus' }))
+    expect(api.get).toHaveBeenCalledTimes(1) // the custom author email is not searched
     expect(onChange).toHaveBeenNthCalledWith(
       3,
       expect.objectContaining({
         value: [
           { authorId: '~test_id1', authorName: 'Test First Test Last' },
-          { authorId: '~search_result1', authorName: 'profile name of author' },
+          { authorId: 'test@email.com', authorName: 'fullname of the author' },
         ],
       })
     )
   })
 
   test('not to allow custom author to be duplicated', async () => {
-    api.post = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
     const onChange = jest.fn()
     const clearError = jest.fn()
@@ -1333,7 +1285,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'fullname of'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1359,7 +1311,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
   // data is array of tilde ids instead of array of id + name objects
   // no custom authors
   test('not to show custom author form', async () => {
-    api.post = jest.fn(() => Promise.resolve([]))
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
 
     const providerProps = {
@@ -1382,7 +1334,7 @@ describe('ProfileSearchWidget for non authorids field', () => {
 
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'some search term'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1440,8 +1392,8 @@ describe('ProfileSearchWidget for non authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
-      'anothertest1@email.com'
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
+      '~search_result1'
     )
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'plus' }))
@@ -1603,8 +1555,8 @@ describe('ProfileSearchWidget for non authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={false} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
-      'anothertest1@email.com'
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
+      '~search_result1'
     )
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'plus' }))
@@ -1613,13 +1565,15 @@ describe('ProfileSearchWidget for non authorids field', () => {
     ) // group is string instead of array
 
     expect(
-      screen.queryByPlaceholderText('search profiles by email or name')
+      screen.queryByPlaceholderText('search profiles by name or OpenReview profile ID')
     ).not.toBeInTheDocument()
     expect(screen.queryByText('Search')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'remove' }))
     expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ value: undefined }))
-    expect(screen.getByPlaceholderText('search profiles by email or name')).toBeInTheDocument()
+    expect(
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID')
+    ).toBeInTheDocument()
     expect(screen.getByText('Search')).toBeInTheDocument()
   })
 
@@ -1677,8 +1631,8 @@ describe('ProfileSearchWidget for non authorids field', () => {
     renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
-      'anothertest1@email.com'
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
+      '~test_id1'
     )
     await userEvent.click(screen.getByText('Search'))
     await expect(screen.getByRole('button', { name: 'plus' })).toHaveAttribute('disabled')
@@ -1819,8 +1773,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
-      expect.anything()
+      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' })
     )
 
     expect(screen.getByRole('navigation')).toBeInTheDocument()
@@ -1867,8 +1820,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' }),
-      expect.anything()
+      expect.objectContaining({ limit: props.pageSize, fullname: 'search text' })
     )
 
     expect(screen.getByRole('navigation')).toBeInTheDocument()
@@ -1914,8 +1866,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     expect(searchProfile).toHaveBeenCalledWith(
       expect.anything(),
-      expect.objectContaining({ limit: 2, offset: 0, fullname: 'search text' }),
-      expect.anything()
+      expect.objectContaining({ limit: 2, offset: 0, fullname: 'search text' })
     )
 
     expect(screen.getByRole('navigation')).toBeInTheDocument()
@@ -2044,7 +1995,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     await userEvent.type(
       screen.getByPlaceholderText('Email of the relation to add'),
-      'test@email.com'
+      '~search_result1'
     )
 
     await userEvent.click(screen.getByText('Add'))
@@ -2056,13 +2007,13 @@ describe('ProfileSearchWidget to be used by itself', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
-  test('call onChange passing name and email when profile is manually entered (no matching profile)', async () => {
+  test('call onChange passing name and email when profile is manually entered', async () => {
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
     const onChange = jest.fn()
 
     const props = {
       isEditor: false,
-      searchInputPlaceHolder: 'Search relation by name or email',
+      searchInputPlaceHolder: 'Search relation by name',
       pageSize: 2,
       field: { relation: '' },
       onChange,
@@ -2072,7 +2023,7 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     await userEvent.type(
       screen.getByPlaceholderText(props.searchInputPlaceHolder),
-      'some name/email/tildeid to search'
+      'some name/tildeid to search'
     )
     await userEvent.click(screen.getByText('Search'))
     await userEvent.click(screen.getByRole('button', { name: 'Manually Enter Relation Info' }))
@@ -2084,19 +2035,12 @@ describe('ProfileSearchWidget to be used by itself', () => {
 
     await userEvent.type(
       screen.getByPlaceholderText('Email of the relation to add'),
-      'test@email.nomatch' // does not match search result
+      'test@email.nomatch'
     )
 
     await userEvent.click(screen.getByText('Add'))
-    // a user may have this email but not confirmed
-    // seach by confiemedEmail (not returning any profile) allow user to add the custom relation
-    expect(api.get).toHaveBeenCalledWith(
-      '/profiles/search',
-      expect.objectContaining({
-        confirmedEmail: 'test@email.nomatch',
-      }),
-      expect.anything()
-    )
+
+    expect(api.get).toHaveBeenCalledTimes(1)
     expect(onChange).toHaveBeenCalledWith(
       undefined,
       'fullname',

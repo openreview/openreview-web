@@ -87,7 +87,7 @@ const addSignatureToProfile = (profile) => {
 }
 
 function Page() {
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const [profiles, setProfiles] = useState(null)
   const [error, setError] = useState(null)
   const query = useSearchParams()
@@ -105,7 +105,7 @@ function Page() {
         sort: 'cdate:desc',
       },
       null,
-      { accessToken, includeVersion: true }
+      { includeVersion: true }
     )
     if (notes?.length > 0) {
       return notes.map((publication) => {
@@ -132,9 +132,7 @@ function Page() {
       return {}
     }
     const queryParams = id.includes('@') ? { email: id } : { id }
-    const { profiles } = await api.get('/profiles', queryParams, {
-      accessToken,
-    })
+    const { profiles } = await api.get('/profiles', queryParams)
     if (profiles?.length > 0) {
       const publications = await getPublications(profiles[0].id)
       return { ...profiles[0], publications }
@@ -177,7 +175,7 @@ function Page() {
           <hr />
         </header>
         <div className="table-responsive">
-          <Compare profiles={profiles} accessToken={accessToken} loadProfiles={loadProfiles} />
+          <Compare profiles={profiles} loadProfiles={loadProfiles} />
         </div>
       </div>
     </CommonLayout>

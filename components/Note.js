@@ -168,7 +168,6 @@ export const NoteV2 = ({ note, options }) => {
           <strong>{note.forumContent.title?.value || 'No Title'}</strong>
         </div>
       )}
-
       <div className="note-authors">
         {options.customAuthor ? (
           options.customAuthor(note)

@@ -503,7 +503,7 @@ const AuthorConsole = ({ appContext }) => {
     IEEEArtSourceCode,
   } = useContext(WebFieldContext)
 
-  const { user, isRefreshing, accessToken } = useUser()
+  const { user, isRefreshing } = useUser()
   const query = useSearchParams()
   const { setBannerContent } = appContext
   const [showTasks, setShowTasks] = useState(false)
@@ -524,35 +524,20 @@ const AuthorConsole = ({ appContext }) => {
     })
 
     const getProfiles = (apiRes) => apiRes.profiles ?? []
-    const idProfilesP =
+    const profiles =
       authorIds.size > 0
-        ? api
-            .get('/profiles', { ids: Array.from(authorIds).join(',') }, { accessToken })
+        ? await api
+            .get('/profiles', { ids: Array.from(authorIds).join(',') })
             .then(getProfiles)
-        : Promise.resolve([])
-    const emailProfilesP = Promise.all(
-      notes.flatMap((note) => {
-        const emailIds = getNoteAuthorIds(note, version === 2)?.filter((id) =>
-          id.includes('@')
-        )
-        if (!emailIds?.length) return []
-        return api
-          .get('/profiles', { confirmedEmails: emailIds.join(',') }, { accessToken })
-          .then(getProfiles)
-      })
-    )
-    const [idProfiles, emailProfiles] = await Promise.all([idProfilesP, emailProfilesP])
+        : []
 
     const profilesByUsernames = {}
-    idProfiles.concat(...emailProfiles).forEach((profile) => {
+    profiles.forEach((profile) => {
       profile.content.names.forEach((name) => {
         if (name.username) {
           profilesByUsernames[name.username] = profile
         }
       })
-      if (profile.email) {
-        profilesByUsernames[profile.email] = profile
-      }
     })
     return profilesByUsernames
   }
@@ -568,7 +553,7 @@ const AuthorConsole = ({ appContext }) => {
             sort: 'number:asc',
             [authorSubmissionField]: user.profile.id,
           },
-          { accessToken, version: 1 }
+          { version: 1 }
         )
         .then((result) => {
           const originalNotes = result.notes
@@ -587,7 +572,7 @@ const AuthorConsole = ({ appContext }) => {
                   details: 'directReplies',
                   sort: 'number:asc',
                 },
-                { accessToken, version: 1 }
+                { version: 1 }
               )
               .then((blindNotesResult) =>
                 (blindNotesResult.notes || [])
@@ -621,17 +606,13 @@ const AuthorConsole = ({ appContext }) => {
 
   const loadDataV2 = async () => {
     try {
-      const notesResult = await api.getAll(
-        '/notes',
-        {
-          [authorSubmissionField]: user.profile.id,
-          invitation: submissionId,
-          domain: group.domain,
-          details: 'directReplies',
-          sort: 'number:asc',
-        },
-        { accessToken }
-      )
+      const notesResult = await api.getAll('/notes', {
+        [authorSubmissionField]: user.profile.id,
+        invitation: submissionId,
+        domain: group.domain,
+        details: 'directReplies',
+        sort: 'number:asc',
+      })
 
       setAuthorNotes(notesResult)
 

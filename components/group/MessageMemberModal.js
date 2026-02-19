@@ -1,17 +1,17 @@
 /* globals DOMPurify,marked,$,promptError,promptMessage: false */
-import React, { useState } from 'react'
+import { useState } from 'react'
 import get from 'lodash/get'
 import BasicModal from '../BasicModal'
 import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import api from '../../lib/api-client'
 import { isValidEmail, prettyId } from '../../lib/utils'
+import Signatures from '../Signatures'
 
 const MessageMemberModal = ({
   groupId,
   domainId,
   groupDomainContent,
   membersToMessage,
-  accessToken,
   setJobId,
   messageMemberInvitation,
 }) => {
@@ -22,6 +22,7 @@ const MessageMemberModal = ({
   const [message, setMessage] = useState('')
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
+  const [signature, setSignature] = useState(null)
 
   const sendMessage = async () => {
     setSubmitting(true)
@@ -46,11 +47,7 @@ const MessageMemberModal = ({
     // Reload group to make sure members haven't been removed since the modal was opened
     if (!skipCheckNewMembers) {
       try {
-        const apiRes = await api.get(
-          '/groups',
-          { id: groupId, select: 'members' },
-          { accessToken }
-        )
+        const apiRes = await api.get('/groups', { id: groupId, select: 'members' })
         const newMembers = get(apiRes, 'groups.0.members', [])
         if (!membersToMessage.every((p) => newMembers.includes(p))) {
           throw new Error(
@@ -73,7 +70,7 @@ const MessageMemberModal = ({
               message: sanitizedMessage,
               groups: membersToMessage,
               invitation: messageMemberInvitation.id,
-              signature: messageMemberInvitation.message.signature,
+              signature,
               ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
             }
           : {
@@ -87,8 +84,7 @@ const MessageMemberModal = ({
               useJob: true,
               fromName: groupDomainContent?.message_sender?.value?.fromName,
               fromEmail: groupDomainContent?.message_sender?.value?.fromEmail,
-            },
-        { accessToken }
+            }
       )
       if (result.jobId) {
         setJobId(result.jobId)
@@ -124,6 +120,7 @@ const MessageMemberModal = ({
       onClose={() => {
         setMessage('')
         setError(null)
+        setSignature(null)
         setSubmitting(false)
       }}
       options={{ useSpinnerButton: true }}
@@ -180,6 +177,26 @@ const MessageMemberModal = ({
             onValueChanged={setMessage}
             placeholder="Message"
           />
+          {messageMemberInvitation?.message?.signature && (
+            <>
+              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
+              <label>Signature</label>
+              <Signatures
+                key={`${messageMemberInvitation.id}:${membersToMessage.join(',')}`}
+                fieldDescription={messageMemberInvitation.message.signature}
+                onChange={(value) => {
+                  if (typeof value.value !== 'undefined') {
+                    setSignature(value.type === 'const' ? value.value : value.value[0])
+                  } else {
+                    setSignature(null)
+                  }
+                }}
+                currentValue={signature}
+                onError={setError}
+                extraClasses="message-member-signature"
+              />
+            </>
+          )}
         </div>
       </div>
     </BasicModal>

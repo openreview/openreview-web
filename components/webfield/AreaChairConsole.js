@@ -29,7 +29,6 @@ import {
 import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
 import ConsoleTaskList from './ConsoleTaskList'
-import { getProfileLink } from '../../lib/webfield-utils'
 import { formatProfileContent } from '../../lib/edge-utils'
 import ConsoleTabs from './ConsoleTabs'
 import SelectAllCheckBox from './SelectAllCheckbox'
@@ -812,7 +811,7 @@ const AreaChairConsole = ({ appContext }) => {
     edgeBrowserProposedUrl,
     edgeBrowserDeployedUrl,
   } = reviewerAssignment ?? {}
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const query = useSearchParams()
   const { setBannerContent } = appContext ?? {}
   const [acConsoleData, setAcConsoleData] = useState({})
@@ -851,11 +850,7 @@ const AreaChairConsole = ({ appContext }) => {
       try {
         const sacEmailPs = acConsoleData.sacProfiles.map((sacProfile) =>
           api
-            .get(
-              '/edges',
-              { invitation: preferredEmailInvitationId, head: sacProfile.id },
-              { accessToken }
-            )
+            .get('/edges', { invitation: preferredEmailInvitationId, head: sacProfile.id })
             .then((result) => result.edges[0]?.tail)
         )
         sacEmails = await Promise.all(sacEmailPs)
@@ -865,7 +860,7 @@ const AreaChairConsole = ({ appContext }) => {
     }
     const sacProfileLinks = acConsoleData.sacProfiles.map(
       (sacProfile, index) =>
-        `<a href="${getProfileLink(sacProfile.id)}" >${prettyId(sacProfile.id)}</a>${
+        `<a href="/profile?id=${sacProfile.id}" target="_blank" rel="noopener noreferrer" >${prettyId(sacProfile.id)}</a>${
           sacEmails[index] ? `(${sacEmails[index]})` : ''
         }`
     )
@@ -881,17 +876,13 @@ const AreaChairConsole = ({ appContext }) => {
 
   const loadData = async () => {
     try {
-      const allGroups = await api.getAll(
-        '/groups',
-        {
-          member: user.id,
-          prefix: `${venueId}/${submissionName}.*`,
-          select: 'id',
-          stream: true,
-          domain: group.domain,
-        },
-        { accessToken }
-      )
+      const allGroups = await api.getAll('/groups', {
+        member: user.id,
+        prefix: `${venueId}/${submissionName}.*`,
+        select: 'id',
+        stream: true,
+        domain: group.domain,
+      })
       const areaChairGroups = allGroups.filter((p) => p.id.endsWith(`/${areaChairName}`))
       const secondaryAreaChairGroups = secondaryAreaChairName
         ? allGroups.filter((p) => p.id.endsWith(`/${secondaryAreaChairName}`))
@@ -924,18 +915,14 @@ const AreaChairConsole = ({ appContext }) => {
         ...new Set(secondaryAreaChairPaperNums),
       ]
       const blindedNotesP = noteNumbers.length
-        ? api.getAll(
-            '/notes',
-            {
-              invitation: submissionInvitationId,
-              number: noteNumbers.join(','),
-              select: 'id,number,forum,content,details',
-              details: 'replies',
-              sort: 'number:asc',
-              domain: group.domain,
-            },
-            { accessToken }
-          )
+        ? api.getAll('/notes', {
+            invitation: submissionInvitationId,
+            number: noteNumbers.join(','),
+            select: 'id,number,forum,content,details',
+            details: 'replies',
+            sort: 'number:asc',
+            domain: group.domain,
+          })
         : Promise.resolve([])
 
       // #region getReviewerGroups(noteNumbers)
@@ -945,15 +932,11 @@ const AreaChairConsole = ({ appContext }) => {
             prev.then((acc) =>
               Promise.all(
                 curr.map((paperNumber) =>
-                  api.get(
-                    '/groups',
-                    {
-                      parent: `${venueId}/${submissionName}${paperNumber}`,
-                      select: 'id,members',
-                      domain: group.domain,
-                    },
-                    { accessToken }
-                  )
+                  api.get('/groups', {
+                    parent: `${venueId}/${submissionName}${paperNumber}`,
+                    select: 'id,members',
+                    domain: group.domain,
+                  })
                 )
               ).then((res) => acc.concat(res))
             ),
@@ -999,15 +982,11 @@ const AreaChairConsole = ({ appContext }) => {
       // #region assigned SAC
       const assignedSACsP = seniorAreaChairsId
         ? api
-            .get(
-              '/edges',
-              {
-                invitation: `${seniorAreaChairsId}/-/Assignment`,
-                head: user.profile.id,
-                domain: group.domain,
-              },
-              { accessToken }
-            )
+            .get('/edges', {
+              invitation: `${seniorAreaChairsId}/-/Assignment`,
+              head: user.profile.id,
+              domain: group.domain,
+            })
             .then((result) => result?.edges?.map((edge) => edge.tail) ?? [])
         : Promise.resolve([])
       // #endregion
@@ -1021,7 +1000,7 @@ const AreaChairConsole = ({ appContext }) => {
                 invitation: ithenticateInvitationId,
                 groupBy: 'id',
               },
-              { accessToken, resultsKey: 'groupedEdges' }
+              { resultsKey: 'groupedEdges' }
             )
             .then((result) => result.map((p) => p.values[0]))
         : Promise.resolve([])
@@ -1041,40 +1020,28 @@ const AreaChairConsole = ({ appContext }) => {
         ]),
       ]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
-        ? api.post(
-            '/profiles/search',
-            {
-              ids,
-            },
-            { accessToken }
-          )
+        ? api.post('/profiles/search', {
+            ids,
+          })
         : Promise.resolve([])
-      const getProfilesByEmailsP = emails.length
-        ? api.post(
-            '/profiles/search',
-            {
-              emails,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
-      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+
+      const profileResult = await getProfilesByIdsP
       // #endregion
 
       // #region calculate reviewProgressData and metaReviewData
       const notes = result[0]
       const ithenticateEdges = result[3]
-      const allProfiles = (profileResults[0].profiles ?? [])
-        .concat(profileResults[1].profiles ?? [])
-        .map((profile) => ({
-          ...profile,
-          title: formatProfileContent(profile.content).title,
-        }))
+
+      const allProfiles = (profileResult.profiles ?? []).map((profile) => ({
+        ...profile,
+        title: formatProfileContent(profile.content).title,
+      }))
+
       const customStageInvitationIds = customStageInvitations
         ? customStageInvitations.map((p) => `/-/${p.name}`)
         : []
+
       const tableRows = notes.map((note) => {
         const assignedReviewers =
           result[1].find((p) => p.number === note.number)?.reviewers ?? []

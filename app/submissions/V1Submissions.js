@@ -1,16 +1,13 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useSelector } from 'react-redux'
 import NoteList from '../../components/NoteList'
 import PaginationLinks from '../../components/PaginationLinks'
 import api from '../../lib/api-client'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import { prettyId } from '../../lib/utils'
-import useUser from '../../hooks/useUser'
 
 export default function V1Submissions({ groupId }) {
-  const { token } = useUser()
   const [currentPage, setCurrentPage] = useState(1)
   const [notes, setNotes] = useState([])
   const [count, setCount] = useState(null)
@@ -31,7 +28,6 @@ export default function V1Submissions({ groupId }) {
         '/invitations',
         { id: idToTest, expired: true },
         {
-          accessToken: token,
           version: 1,
         }
       )
@@ -60,7 +56,6 @@ export default function V1Submissions({ groupId }) {
         offset: notesPerPage * (page - 1),
       },
       {
-        accessToken: token,
         version: 1,
       }
     )

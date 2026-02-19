@@ -10,7 +10,7 @@ import { getMetaInvitationId, prettyId } from '../../lib/utils'
 
 const CodeEditor = dynamic(() => import('../CodeEditor'), { ssr: false })
 
-const InvitationCode = ({ invitation, accessToken, loadInvitation, codeType }) => {
+const InvitationCode = ({ invitation, loadInvitation, codeType }) => {
   const [code, setCode] = useState(invitation[codeType])
   const [showEditor, setShowEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -33,7 +33,6 @@ const InvitationCode = ({ invitation, accessToken, loadInvitation, codeType }) =
         rdate: undefined,
       }
       await api.post('/invitations', requestBody, {
-        accessToken,
         version: 1,
       })
       promptMessage(`Code for ${prettyId(invitation.id)} updated`)
@@ -95,7 +94,6 @@ const InvitationCode = ({ invitation, accessToken, loadInvitation, codeType }) =
 export const InvitationCodeV2 = ({
   invitation,
   profileId,
-  accessToken,
   loadInvitation,
   codeType,
   isMetaInvitation,
@@ -144,7 +142,7 @@ export const InvitationCodeV2 = ({
         signatures: [profileId],
         ...(!isMetaInvitation && { invitations: metaInvitationId }),
       }
-      await api.post('/invitations/edits', requestBody, { accessToken })
+      await api.post('/invitations/edits', requestBody)
       promptMessage(`Code for ${prettyId(invitation.id)} updated`)
       loadInvitation(invitation.id)
     } catch (error) {

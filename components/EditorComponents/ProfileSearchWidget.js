@@ -252,9 +252,11 @@ const ProfileSearchFormAndResults = ({
   setDisplayAuthors,
   allowUserDefined,
   error,
+  setErrors,
   isAuthoridsField,
   multiple,
   field,
+  fieldName,
   onChange,
   clearError,
   pageSize,
@@ -269,7 +271,7 @@ const ProfileSearchFormAndResults = ({
   const [totalCount, setTotalCount] = useState(0)
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
-  const { accessToken } = useUser()
+
   // eslint-disable-next-line no-use-before-define
   const placeHolderName = getPlaceHolderName()
 
@@ -284,24 +286,29 @@ const ProfileSearchFormAndResults = ({
     let paramKey = 'fullname'
     let paramValue = cleanSearchTerm.toLowerCase()
     if (isValidEmail(cleanSearchTerm)) {
-      paramKey = 'email'
-    } else if (cleanSearchTerm.startsWith('~')) {
+      setErrors((existingErrors) =>
+        existingErrors
+          .filter((e) => e.fieldName !== fieldName)
+          .concat({
+            fieldName,
+            message: 'Search profile by name or OpenReview profile ID.',
+          })
+      )
+      return
+    }
+    if (cleanSearchTerm.startsWith('~')) {
       paramKey = 'id'
       paramValue = cleanSearchTerm
     }
 
     if (showLoadingSpinner) setIsLoading(true)
     try {
-      const results = await api.get(
-        '/profiles/search',
-        {
-          [paramKey]: paramValue,
-          es: true,
-          limit: pageSize,
-          offset: pageSize * (pageNumber - 1),
-        },
-        { accessToken }
-      )
+      const results = await api.get('/profiles/search', {
+        [paramKey]: paramValue,
+        es: true,
+        limit: pageSize,
+        offset: pageSize * (pageNumber - 1),
+      })
       setTotalCount(results.count > 200 ? 200 : results.count)
       setProfileSearchResults(
         isEditor === false
@@ -328,7 +335,6 @@ const ProfileSearchFormAndResults = ({
       <div className={styles.noMatchingProfile}>
         {showCustomAuthorForm ? (
           <CustomAuthorForm
-            searchTerm={searchTerm}
             setTotalCount={setTotalCount}
             setProfileSearchResults={setProfileSearchResults}
             setSearchTerm={setSearchTerm}
@@ -467,7 +473,6 @@ const ProfileSearchFormAndResults = ({
 }
 
 const CustomAuthorForm = ({
-  searchTerm,
   setTotalCount,
   setProfileSearchResults,
   setSearchTerm,
@@ -481,39 +486,16 @@ const CustomAuthorForm = ({
 }) => {
   const [customAuthorName, setCustomAuthorName] = useState('')
   const [customAuthorEmail, setCustomAuthorEmail] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const { accessToken } = useUser()
 
   const disableAddButton =
-    isLoading ||
     !(customAuthorName.trim() && isValidEmail(customAuthorEmail)) ||
     displayAuthors.find((p) => p.authorId === customAuthorEmail.trim().toLowerCase())
 
   const handleAddCustomAuthor = async () => {
     const cleanAuthorName = customAuthorName.trim()
     const cleanAuthorEmail = customAuthorEmail.trim().toLowerCase()
-    setIsLoading(true)
-    try {
-      const results = await api.get(
-        '/profiles/search',
-        {
-          confirmedEmail: cleanAuthorEmail,
-          es: true,
-        },
-        { accessToken }
-      )
-      if (results.profiles.length) {
-        setTotalCount(results.count)
-        setProfileSearchResults(results.profiles)
-        setIsLoading(false)
-        return
-      }
-    } catch (error) {
-      promptError(error.message)
-    }
-    setIsLoading(false)
 
-    // no matching profile found, add the author using email
+    // add the author using email
     clearError?.()
     const updatedAuthors = displayAuthors.concat({
       authorId: cleanAuthorEmail,
@@ -533,14 +515,6 @@ const CustomAuthorForm = ({
     setProfileSearchResults(null)
     setSearchTerm('')
   }
-
-  useEffect(() => {
-    if (!searchTerm) return
-    const cleanSearchTerm = searchTerm.trim()
-    if (isValidEmail(cleanSearchTerm)) {
-      setCustomAuthorEmail(cleanSearchTerm.toLowerCase())
-    }
-  }, [searchTerm])
 
   return (
     <form className={styles.customAuthorForm}>
@@ -564,7 +538,6 @@ const CustomAuthorForm = ({
       />
       <SpinnerButton
         className="btn btn-sm"
-        loading={isLoading}
         disabled={disableAddButton}
         onClick={handleAddCustomAuthor}
       >
@@ -580,16 +553,16 @@ const ProfileSearchWidget = ({
   field: propsField,
   pageSize = 20,
   pageListLength,
-  searchInputPlaceHolder = 'search profiles by email or name',
+  searchInputPlaceHolder = 'search profiles by name or OpenReview profile ID',
   onChange: propsOnChange,
   value: propsValue,
   error: propsError,
   className,
   CustomProfileSearchForm,
 }) => {
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const editorComponentContext = useContext(EditorComponentContext) ?? {}
-  const { field, onChange, value, error, clearError } = isEditor
+  const { field, onChange, value, error, setErrors, clearError } = isEditor
     ? editorComponentContext
     : { field: propsField, onChange: propsOnChange, value: propsValue, error: propsError }
   const fieldName = Object.keys(field ?? {})[0]
@@ -628,29 +601,13 @@ const ProfileSearchWidget = ({
   const getProfiles = async (authorIds) => {
     try {
       const ids = authorIds.filter((p) => p.startsWith('~'))
-      const emails = authorIds.filter((p) => p.match(/.+@.+/))
-      const getProfilesByIdsP = ids.length
-        ? api.post(
-            '/profiles/search',
-            {
+      const allProfiles = ids.length
+        ? await api
+            .post('/profiles/search', {
               ids,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
-      const getProfilesByEmailsP = emails.length
-        ? api.post(
-            '/profiles/search',
-            {
-              emails,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
-      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-      const allProfiles = (profileResults[0].profiles ?? []).concat(
-        profileResults[1].profiles ?? []
-      )
+            })
+            .then((result) => result.profiles)
+        : []
       setSelectedAuthorProfiles(allProfiles)
       if (!value) {
         const currentAuthorProfile = allProfiles.find((p) =>
@@ -778,9 +735,11 @@ const ProfileSearchWidget = ({
           setDisplayAuthors={setDisplayAuthors}
           allowUserDefined={allowUserDefined}
           error={error}
+          setErrors={setErrors}
           isAuthoridsField={isAuthoridsField}
           multiple={multiple}
           field={field}
+          fieldName={fieldName}
           onChange={onChange}
           clearError={clearError}
           pageSize={pageSize}

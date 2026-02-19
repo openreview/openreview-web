@@ -17,7 +17,7 @@ function getVenueTabCountMessage(unrepliedCommentCount, notDeployedCount) {
   )}, ${inflect(notDeployedCount, 'venue request', 'venue requests', true)}`
 }
 
-export default function VenueRequestCount({ accessToken }) {
+export default function VenueRequestCount() {
   const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(null)
 
   const hasBeenReplied = (comment, allReplies) => {
@@ -50,7 +50,7 @@ export default function VenueRequestCount({ accessToken }) {
             details: 'replies',
             select: `id,forum,parentInvitations,tcdate,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
           },
-          { accessToken, includeVersion: true }
+          { includeVersion: true }
         )
         .then((response) =>
           response?.notes?.flatMap((p) => {

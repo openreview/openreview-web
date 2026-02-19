@@ -26,7 +26,7 @@ import useUser from '../../hooks/useUser'
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
     useContext(EdgeBrowserContext)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
 
   if (!props.note || !props.note.content) {
     return null
@@ -85,8 +85,7 @@ export default function NoteEntity(props) {
       editInvitation,
       availableSignaturesInvitationMap,
       number,
-      user,
-      accessToken
+      user
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     if (version === 1 && (!signatures || signatures.length === 0)) {
@@ -106,7 +105,7 @@ export default function NoteEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version })
+      const result = await api.post('/edges', body, { version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else {
@@ -135,8 +134,7 @@ export default function NoteEntity(props) {
       editInvitation,
       availableSignaturesInvitationMap,
       number,
-      user,
-      accessToken
+      user
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const maxLoadInvitationHead = editInvitation.head?.query?.id
@@ -167,7 +165,7 @@ export default function NoteEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version })
+      const result = await api.post('/edges', body, { version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else {
