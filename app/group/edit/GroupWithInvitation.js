@@ -18,6 +18,8 @@ import GroupMembers from '../../../components/group/GroupMembers'
 import WorkFlowInvitations from '../../../components/group/WorkflowInvitations'
 import ConsoleTabs from '../../../components/webfield/ConsoleTabs'
 import GroupSectionWithEditInvitation from './GroupSectionWithEditInvitation'
+import GroupRestrictGroup from '../../../components/group/GroupRestrictGroup'
+import Alert from '../../../components/Alert'
 
 const groupTabsConfig = (group) => {
   const tabs = [
@@ -55,6 +57,11 @@ const groupTabsConfig = (group) => {
       id: 'relatedInvitations',
       label: 'Related Invitations',
       sections: ['groupRelatedInvitations'],
+    },
+    {
+      id: 'emergencyShutdown',
+      label: 'Emergency Shutdown',
+      sections: ['groupEmergencyShutdown'],
     },
   ]
   tabs[0].default = true
@@ -129,6 +136,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
   const [messageAllMembersInvitation, setMessageAllMembersInvitation] = useState(null)
   const [messageSingleMemberInvitation, setMessageSingleMemberInvitation] = useState(null)
   const [addRemoveMembersInvitaiton, setAddRemoveMembersInvitaiton] = useState(null)
+  const [isGroupRestricted, setIsGroupRestricted] = useState(false)
 
   const renderSection = (sectionName) => {
     let editInvitations = []
@@ -184,6 +192,14 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
         return <GroupChildGroups key={sectionName} groupId={group.id} />
       case 'groupRelatedInvitations':
         return <GroupRelatedInvitations key={sectionName} group={group} />
+      case 'groupEmergencyShutdown':
+        return (
+          <GroupRestrictGroup
+            key={sectionName}
+            group={group}
+            setIsGroupRestricted={setIsGroupRestricted}
+          />
+        )
       default:
         return null
     }
@@ -241,6 +257,7 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
       <div className={styles.groupDescription}>
         <Markdown text={group.description} />
       </div>
+      {isGroupRestricted && <Alert color="danger">This venue is currently shut down.</Alert>}
       <div className={styles.invitationMeta}>
         <span className="date item">
           <Icon name="calendar" />
