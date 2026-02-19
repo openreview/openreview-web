@@ -1,7 +1,7 @@
 // eslint-disable-next-line import/prefer-default-export
 export async function GET() {
   try {
-    const apiHealthyResult = await fetch(`${process.env.API_V2_URL}/healthcheck/api`)
+    const apiHealthyResult = await fetch(`${process.env.GUEST_API_URL}/healthcheck/api`)
     if (apiHealthyResult.ok) {
       return Response.json({ healthy: true })
     }
