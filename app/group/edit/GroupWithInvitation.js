@@ -58,11 +58,15 @@ const groupTabsConfig = (group) => {
       label: 'Related Invitations',
       sections: ['groupRelatedInvitations'],
     },
-    {
-      id: 'emergencyShutdown',
-      label: 'Emergency Shutdown',
-      sections: ['groupEmergencyShutdown'],
-    },
+    ...(group.id === group.domain && group.details.writable
+      ? [
+          {
+            id: 'emergencyShutdown',
+            label: 'Emergency Shutdown',
+            sections: ['groupEmergencyShutdown'],
+          },
+        ]
+      : []),
   ]
   tabs[0].default = true
   return tabs
