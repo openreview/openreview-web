@@ -43,7 +43,7 @@
     "framer-motion": "^12.18.1",
     "handlebars": "^4.7.8",
     "isomorphic-dompurify": "^2.21.0",
-    "jquery": "^2.2.4",
+    "jquery": "^4.0.0",
     "jwt-decode": "^4.0.0",
     "lodash": "^4.17.21",
     "marked": "^15.0.6",
