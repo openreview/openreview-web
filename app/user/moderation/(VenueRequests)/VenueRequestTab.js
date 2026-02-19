@@ -45,7 +45,7 @@ const VenueRequestRow = ({ item }) => {
                 rel="noreferrer"
                 title={`
 ${dayjs(unrepliedPcComments[0].tcdate).fromNow()}
-${unrepliedPcComments[0].content?.comment}`}
+${apiVersion === 2 ? unrepliedPcComments[0].content?.comment?.value : unrepliedPcComments[0].content?.comment}`}
               >
                 {`${inflect(unrepliedPcComments.length, 'comment', 'comments', true)}`}
               </a>

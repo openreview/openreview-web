@@ -8,11 +8,11 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import AreaChairStatusMenuBar from '../ProgramChairConsole/AreaChairStatusMenuBar'
-import { getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
 import { pluralizeString, prettyField, getRoleHashFragment } from '../../../lib/utils'
 import api from '../../../lib/api-client'
 import SelectAllCheckBox from '../SelectAllCheckbox'
+import ProfileLink from '../ProfileLink'
 
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName, title } = rowData.areaChairProfile ?? {}
@@ -44,13 +44,11 @@ const CommitteeSummary = ({ rowData }) => {
       {preferredName ? (
         <div className="ac-sac-info">
           <h4>
-            <a
-              href={getProfileLink(id ?? rowData.areaChairProfileId)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {preferredName}
-            </a>
+            <ProfileLink
+              id={id ?? rowData.areaChairProfileId}
+              name={preferredName}
+              preferredEmailInvitationId={preferredEmailInvitationId}
+            />
           </h4>
           <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
