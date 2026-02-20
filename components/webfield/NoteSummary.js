@@ -52,7 +52,7 @@ const NoteSummary = ({
       return (
         <Icon
           name="minus-sign"
-          tooltip="Profile is not available"
+          tooltip="Profile status is not available"
           extraClasses="pl-1 text-default"
         />
       )
