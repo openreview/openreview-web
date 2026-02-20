@@ -27,7 +27,7 @@ describe('ContentFieldEditor', () => {
     const providerProps = {
       value: {
         field: {
-          note_cotent: {
+          note_content: {
             value: {
               param: {
                 type: 'content',
@@ -52,7 +52,7 @@ describe('ContentFieldEditor', () => {
     const providerProps = {
       value: {
         field: {
-          note_cotent: {
+          note_content: {
             value: {
               param: {
                 type: 'content',
@@ -84,7 +84,7 @@ describe('ContentFieldEditor', () => {
     const providerProps = {
       value: {
         field: {
-          note_cotent: {
+          note_content: {
             value: {
               param: {
                 type: 'content',
@@ -119,7 +119,7 @@ describe('ContentFieldEditor', () => {
     const providerProps = {
       value: {
         field: {
-          note_cotent: {
+          note_content: {
             value: {
               param: {
                 type: 'content',
@@ -172,7 +172,7 @@ describe('ContentFieldEditor', () => {
       })
     )
     // eslint-disable-next-line max-len
-    expect(Object.keys(mockedFormProps.mock.calls[0][0].fields)).toHaveLength(21) // 21 fields defined for a field (removed hidden)
+    expect(Object.keys(mockedFormProps.mock.calls[0][0].fields)).toHaveLength(22) // 22 fields defined for a field (removed hidden)
   })
 
   test('update invitation content editor when widget form is updated', async () => {
@@ -180,7 +180,7 @@ describe('ContentFieldEditor', () => {
     const providerProps = {
       value: {
         field: {
-          note_cotent: {
+          note_content: {
             value: {
               param: {
                 type: 'content',
@@ -221,7 +221,7 @@ describe('ContentFieldEditor', () => {
     // update invitation content editor's note_content field with whole json
     expect(onChange).toHaveBeenCalledWith(
       expect.objectContaining({
-        fieldName: 'note_cotent',
+        fieldName: 'note_content',
         value: expect.objectContaining({
           title: expect.objectContaining({
             description: 'the title of the submission',
@@ -230,6 +230,293 @@ describe('ContentFieldEditor', () => {
               param: {
                 regex: '^.{1,250}$',
                 type: 'string',
+              },
+            },
+          }),
+        }),
+      })
+    )
+  })
+
+  test('update definition of object author', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          note_content: {
+            value: {
+              param: {
+                type: 'content',
+              },
+            },
+          },
+        },
+        value: {
+          author: {
+            order: 1,
+            description: 'author of the submission',
+            value: {
+              param: {
+                type: 'string',
+                regex: '^.{1,250}$',
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ContentFieldEditor />, providerProps)
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Widgets' }))
+    await userEvent.click(screen.getByText('Add a field or Select a field to edit'))
+    await userEvent.click(screen.getByRole('option', { name: 'author' }))
+
+    onFormChange({
+      name: 'author',
+      description: 'author of the submission',
+      dataType: 'author{}',
+      order: 1,
+    })
+
+    // update invitation content editor's note_content field with whole json
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fieldName: 'note_content',
+        value: expect.objectContaining({
+          author: expect.objectContaining({
+            description: 'author of the submission',
+            order: 1,
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          }),
+        }),
+      })
+    )
+  })
+
+  test('add institutions to author properties when check institution checkbox', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          note_content: {
+            value: {
+              param: {
+                type: 'content',
+              },
+            },
+          },
+        },
+        value: {
+          author: {
+            order: 1,
+            description: 'author of the submission',
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ContentFieldEditor />, providerProps)
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Widgets' }))
+    await userEvent.click(screen.getByText('Add a field or Select a field to edit'))
+    await userEvent.click(screen.getByRole('option', { name: 'author' }))
+
+    onFormChange({
+      name: 'author',
+      description: 'author of the submission',
+      dataType: 'author{}',
+      order: 1,
+      institution: true,
+    })
+
+    // update invitation content editor's note_content field with whole json
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fieldName: 'note_content',
+        value: expect.objectContaining({
+          author: expect.objectContaining({
+            description: 'author of the submission',
+            order: 1,
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      properties: {
+                        name: {
+                          param: {
+                            type: 'string',
+                          },
+                        },
+                        domain: {
+                          param: {
+                            type: 'string',
+                          },
+                        },
+                        country: {
+                          param: {
+                            type: 'string',
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          }),
+        }),
+      })
+    )
+  })
+
+  test('remove institutions to author properties when uncheck institution checkbox', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          note_content: {
+            value: {
+              param: {
+                type: 'content',
+              },
+            },
+          },
+        },
+        value: {
+          author: {
+            order: 1,
+            description: 'author of the submission',
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      properties: {
+                        name: {
+                          param: {
+                            type: 'string',
+                          },
+                        },
+                        domain: {
+                          param: {
+                            type: 'string',
+                          },
+                        },
+                        country: {
+                          param: {
+                            type: 'string',
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ContentFieldEditor />, providerProps)
+
+    await userEvent.click(screen.getByRole('tab', { name: 'Widgets' }))
+    await userEvent.click(screen.getByText('Add a field or Select a field to edit'))
+    await userEvent.click(screen.getByRole('option', { name: 'author' }))
+
+    onFormChange({
+      name: 'author',
+      description: 'author of the submission',
+      dataType: 'author{}',
+      order: 1,
+      institution: false,
+    })
+
+    // update invitation content editor's note_content field with whole json
+    expect(onChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fieldName: 'note_content',
+        value: expect.objectContaining({
+          author: expect.objectContaining({
+            description: 'author of the submission',
+            order: 1,
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                },
               },
             },
           }),

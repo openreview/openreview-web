@@ -20,6 +20,10 @@
     border: 0.25rem solid transparent;
     background-clip: padding-box;
 
+    &.invalidValue {
+      border: 2px solid constants.$orRed;
+    }
+
     .dragHandle {
       opacity: 0.3;
       color: constants.$mediumBlue;
@@ -153,4 +157,44 @@ button.invalidValue {
 
 .spinnerSmall {
   height: 34px;
+}
+
+.profileSearchWithInstitution {
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+  .selectedAuthor {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .authorHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-grow: 1;
+    column-gap: 0.25rem;
+  }
+  .authorInstitution {
+    font-size: 0.875rem;
+    color: constants.$subtleGray;
+
+    .authorInstitutionDropdown {
+      display: inline-block;
+      width: 100%;
+      padding-right: 0.25rem;
+      margin-top: 0.25rem;
+      margin-left: 0;
+
+      button {
+        width: 100%;
+        border: none;
+        background-color: unset;
+        box-shadow: none;
+        padding-left: 0;
+      }
+    }
+  }
 }
