@@ -212,17 +212,35 @@ export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
 
   const authorsLinks = authors.value.map((author) => {
     if (!author) return null
+    if (!author.username) return <span key={author.fullname}>{author.fullname}</span>
+    if (author.username.startsWith('https://dblp.org')) {
+      return (
+        <a
+          key={`${author.fullname} ${author.username}`}
+          href={author.username}
+          title={author.username}
+          data-toggle="tooltip"
+          data-placement="top"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {author.fullname}
+        </a>
+      )
+    }
 
     const institutionNumbers = (author.institutions || []).map((institution) =>
       institutionIndexMap.get(institution.domain)
     )
 
     return (
-      <span key={author.username} className="note-author-with-institutions">
+      <span
+        key={`${author.fullname} ${author.username}`}
+        className="note-author-with-institutions"
+      >
         <Link
-          key={`${author.fullname} ${author.username}`}
           href={`/profile?id=${encodeURIComponent(author.username)}`}
-          title={author.fullname}
+          title={author.username}
           data-toggle="tooltip"
           data-placement="top"
         >

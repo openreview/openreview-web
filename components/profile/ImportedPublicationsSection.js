@@ -97,6 +97,16 @@ const ImportedPublicationsSection = ({
           { sort: 'tmdate:desc' }
         )
         .then((notes) => notes.map((note) => ({ ...note, apiVersion: 2 })))
+      const v2NotesWithObjectAuthorSchema = await api
+        .getAll(
+          '/notes',
+          {
+            'content.authors.username': profileId,
+            invitations: [`${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`],
+          },
+          { sort: 'tmdate:desc' }
+        )
+        .then((notes) => notes.map((note) => ({ ...note, apiVersion: 2 })))
       const v1Notes = await api
         .getAll(
           '/notes',
@@ -108,7 +118,7 @@ const ImportedPublicationsSection = ({
         )
         .then((notes) => notes.map((note) => ({ ...note, apiVersion: 1 })))
 
-      const allNotes = v2Notes.concat(v1Notes)
+      const allNotes = v2Notes.concat(v2NotesWithObjectAuthorSchema, v1Notes)
       setPublications(allNotes)
       setTotalCount(allNotes.length)
     } catch (error) {
