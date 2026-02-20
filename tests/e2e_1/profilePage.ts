@@ -1210,14 +1210,14 @@ test('add relation', async (t) => {
     .expect(
       firstRelationRow
         .find('input.search-input')
-        .withAttribute('placeholder', 'Search relation by name or email').exists
+        .withAttribute('placeholder', 'Search relation by name or OpenReview profile ID').exists
     )
     .ok()
     .click(secondRelationRow.find('.glyphicon-edit'))
     .expect(
       secondRelationRow
         .find('input.search-input')
-        .withAttribute('placeholder', 'Search relation by name or email').exists
+        .withAttribute('placeholder', 'Search relation by name or OpenReview profile ID').exists
     )
     .ok()
     .click(firstRelationRow.find('.glyphicon-minus-sign'))
