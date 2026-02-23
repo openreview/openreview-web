@@ -11,7 +11,7 @@ import ErrorDisplay from '../ErrorDisplay'
 import BasicHeader from './BasicHeader'
 import { prettyId, prettyInvitationId } from '../../lib/utils'
 import PaginationLinks from '../PaginationLinks'
-import { getProfileLink } from '../../lib/webfield-utils'
+import ProfileLink from './ProfileLink'
 
 const pageSize = 10
 
@@ -20,9 +20,7 @@ const TagRow = ({ tag, membershipIds, domain }) => {
   return (
     <tr>
       <td>
-        <a href={getProfileLink(tag.profileId)} target="_blank" rel="noopener noreferrer">
-          {tag.profileId}
-        </a>
+        <ProfileLink id={tag.profileId} />
       </td>
       <td>{tag.label}</td>
       <td>
@@ -49,19 +47,17 @@ const TagRow = ({ tag, membershipIds, domain }) => {
   )
 }
 
-const TagsPage = ({ tagsOfPage, accessToken, domain }) => {
+const TagsPage = ({ tagsOfPage, domain }) => {
   const [profileIdMembershipMap, setProfileIdMembershipMap] = useState(new Map())
 
   const loadGroupMembers = async (profileIds) => {
     try {
       const groupMemberCallsP = profileIds.map((profileId) =>
-        api
-          .get('/groups', { member: profileId, select: 'id,domain' }, { accessToken })
-          .then((result) => {
-            const memberGroups = result.groups || []
-            const memberGroupsOfDomain = memberGroups.filter((p) => p.domain === domain)
-            return memberGroupsOfDomain
-          })
+        api.get('/groups', { member: profileId, select: 'id,domain' }).then((result) => {
+          const memberGroups = result.groups || []
+          const memberGroupsOfDomain = memberGroups.filter((p) => p.domain === domain)
+          return memberGroupsOfDomain
+        })
       )
       const groupMembersResults = await Promise.all(groupMemberCallsP)
       const profileIdToGroupMap = new Map()
@@ -134,7 +130,7 @@ const TagsViewer = () => {
     instructions,
     domain = group.domain,
   } = useContext(WebFieldContext)
-  const { accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const [allTags, setAllTags] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
   const tagsToDisplay = allTags?.length
@@ -144,7 +140,7 @@ const TagsViewer = () => {
 
   const loadTags = async () => {
     try {
-      const tagsResult = await api.get('/tags', { invitation: tagInvitation }, { accessToken })
+      const tagsResult = await api.get('/tags', { invitation: tagInvitation })
       const rawTags = tagsResult.tags || []
       let tagsMap = []
       rawTags.forEach((tag) => {
@@ -163,9 +159,9 @@ const TagsViewer = () => {
   }
 
   useEffect(() => {
-    if (!accessToken || isRefreshing) return
+    if (!user || isRefreshing) return
     loadTags()
-  }, [accessToken, isRefreshing])
+  }, [user, isRefreshing])
 
   if (!allTags) return <LoadingSpinner />
   if (!allTags.length) return <ErrorDisplay message="No tags found" withLayout={false} />
@@ -191,7 +187,7 @@ const TagsViewer = () => {
           },
         ]}
       >
-        <TagsPage tagsOfPage={tagsToDisplay} accessToken={accessToken} domain={domain} />
+        <TagsPage tagsOfPage={tagsToDisplay} domain={domain} />
       </Table>
       <PaginationLinks
         currentPage={currentPage}
