@@ -143,22 +143,29 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     setIsSaving(true)
     const isAcceptResponse = status === 'showReducedLoad'
     try {
+      const options = {}
       const noteContent = {
-        title: 'Recruit response',
-        user: args.user,
-        key: args.key,
+        ...(invitation.edit?.note?.content?.title && { title: 'Recruit response' }),
+        ...(invitation.edit?.note?.content?.user && { user: args.user }),
+        ...(invitation.edit?.note?.content?.key && { key: args.key }),
         response: isAcceptResponse ? 'Yes' : 'No',
         ...(invitation.edit?.signatures?.param?.items && {
           editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
         }),
+        ...(invitation.guestPosting && {
+          editSignatureInputValues: [user ? user.profile.preferredId : args.user],
+        }),
         ...formData,
+      }
+      if (invitation.guestPosting && !user) {
+        options.guestToken = args.key
       }
       const noteToPost = view2.constructEdit({
         formData: noteContent,
         noteObj: responseNote,
         invitationObj: invitation,
       })
-      await api.post('/notes/edits', noteToPost)
+      await api.post('/notes/edits', noteToPost, options)
       setIsSaving(false)
 
       if (isAcceptResponse) {
@@ -289,9 +296,10 @@ const RecruitmentForm = () => {
       { response: 'No', loading: response === 'No', disabled: true },
     ])
     try {
+      const options = {}
       const noteContent = {
-        title: 'Recruit response',
-        key: args.key,
+        ...(invitation.edit?.note?.content?.title && { title: 'Recruit response' }),
+        ...(invitation.edit?.note?.content?.key && { key: args.key }),
         response,
         ...Object.fromEntries(
           Object.entries(args ?? {}).filter(
@@ -301,12 +309,18 @@ const RecruitmentForm = () => {
         ...(invitation.edit?.signatures?.param?.items && {
           editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
         }),
+        ...(invitation.guestPosting && {
+          editSignatureInputValues: [user ? user.profile.preferredId : args.user],
+        }),
+      }
+      if (invitation.guestPosting && !user) {
+        options.guestToken = args.key
       }
       const noteToPost = view2.constructEdit({
         formData: noteContent,
         invitationObj: invitation,
       })
-      const result = await api.post('/notes/edits', noteToPost)
+      const result = await api.post('/notes/edits', noteToPost, options)
       setResponseNote(result)
       setButtonStatus(defaultButtonState)
       setDecision(response === 'Yes' ? 'accept' : 'reject')
