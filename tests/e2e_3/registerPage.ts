@@ -55,7 +55,7 @@ test('create new profile', async (t) => {
     .ok()
     .expect(
       Selector('span').withText(
-        'We encourage you to sign up with an email address from an educational or employing institution for faster processing.'
+        /Your email address could not be automatically verified/
       ).exists
     )
     .ok()
@@ -66,7 +66,7 @@ test('create new profile', async (t) => {
     .click(signupButtonSelector)
     .expect(
       Selector('span').withText(
-        'We encourage you to sign up with an email address from an educational or employing institution for faster processing.'
+        /Your email address could not be automatically verified/
       ).exists
     )
     .ok()
@@ -133,7 +133,7 @@ test('create another new profile', async (t) => {
     .ok()
     .expect(
       Selector('span').withText(
-        'We encourage you to sign up with an email address from an educational or employing institution for faster processing.'
+        /Your email address could not be automatically verified/
       ).exists
     )
     .ok()
@@ -321,7 +321,7 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'Please note: Your email address could not be automatically verified.'
+        /Your email address could not be automatically verified/
       ).exists
     )
     .ok()
@@ -357,7 +357,7 @@ test('update profile', async (t) => {
     .ok()
     .expect(
       Selector('p').withText(
-        'Please note: Your email address could not be automatically verified.'
+        /Your email address could not be automatically verified/
       ).exists
     )
     .notOk()
@@ -396,7 +396,7 @@ test('register a profile with an institutional email', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'Please note: Your email address could not be automatically verified.'
+        /Your email address could not be automatically verified/
       ).exists
     )
     .notOk()

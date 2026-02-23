@@ -854,7 +854,7 @@ test('user open own profile', async (t) => {
     .click(step2Emails)
     .expect(
       Selector('p').withText(
-        'Please note: Your email address could not be automatically verified.'
+        /Your email address could not be automatically verified/
       ).exists
     )
     .notOk() // not activation
