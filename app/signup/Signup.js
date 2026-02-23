@@ -117,9 +117,12 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
 
   const InstitutionErrorMessage = () => (
     <span>
-      It can take up to <strong>2 weeks</strong> for your profile to be activated. We encourage
-      you to sign up with an email address from an educational or employing institution for
-      faster processing.
+      Please note: Your email address could not be automatically verified.
+      <br />
+      Accounts that cannot be automatically verified may take up to 2 weeks to be activated. To
+      expedite the process, we recommend using an email address from a recognized institution,
+      or completing your profile information as thoroughly as possible to help us verify your
+      affiliation.
     </span>
   )
 

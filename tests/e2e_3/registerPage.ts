@@ -321,7 +321,7 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'It can take up to 2 weeks for your profile to be activated. We encourage you to add an email address from an educational or employing institution for faster processing.'
+        'Please note: Your email address could not be automatically verified.'
       ).exists
     )
     .ok()
@@ -357,8 +357,7 @@ test('update profile', async (t) => {
     .ok()
     .expect(
       Selector('p').withText(
-        'It can take up to 2 weeks for your profile to be activated. We encourage you to add an email address from an educational or employing institution for faster processing.'
-
+        'Please note: Your email address could not be automatically verified.'
       ).exists
     )
     .notOk()
@@ -397,8 +396,7 @@ test('register a profile with an institutional email', async (t) => {
     .click(nextSectiomButtonSelector)
     .expect(
       Selector('p').withText(
-        'It can take up to 2 weeks for your profile to be activated. We encourage you to add an email address from an educational or employing institution for faster processing.'
-
+        'Please note: Your email address could not be automatically verified.'
       ).exists
     )
     .notOk()
