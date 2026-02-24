@@ -128,6 +128,32 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
               <ul className="dropdown-menu">
                 {editInvitations?.map((invitation) => {
                   const expired = invitation.expdate < Date.now()
+                  const paymentInvitationAmount =
+                    invitation.edit?.note?.content?.payment?.value?.param?.expectedAmount
+                  if (paymentInvitationAmount) {
+                    return (
+                      <li
+                        key={invitation.id}
+                        className={expired ? 'expired' : ''}
+                        data-toggle="tooltip"
+                        data-placement="top"
+                        title={
+                          expired
+                            ? `${prettyInvitationId(invitation.id)} expired ${dayjs(invitation.expdate).fromNow()}`
+                            : ''
+                        }
+                      >
+                        {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+                        <a
+                          href={`/payment?invitation=${invitation.id}&note=${note.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          Pay ${paymentInvitationAmount}
+                        </a>
+                      </li>
+                    )
+                  }
                   return (
                     <li
                       key={invitation.id}
@@ -227,7 +253,12 @@ function ForumTitle({ id, title, pdf, html }) {
 
 function ForumMeta({ note }) {
   const licenseInfo = getLicenseInfo(note.license)
-  const isDBLPPublication = note.invitations?.some((p) => ['DBLP.org/-/Record',`${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`].includes(p))
+  const isDBLPPublication = note.invitations?.some((p) =>
+    [
+      'DBLP.org/-/Record',
+      `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
+    ].includes(p)
+  )
 
   return (
     <div className="forum-meta">
