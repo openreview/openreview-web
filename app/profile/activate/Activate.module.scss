@@ -319,6 +319,7 @@
     .activation-message {
       display: flex;
       color: constants.$orRed;
+      max-width: 80%;
       .glyphicon {
         color: constants.$orRed;
         margin-right: 0.5rem;
