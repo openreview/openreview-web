@@ -324,7 +324,7 @@ const PasskeyForm = ({ loadMFAStatus, setRecoveryCodes }) => {
       <input
         type="text"
         className="form-control"
-        placeholder="Enter a name for passkey"
+        placeholder="Name this passkey (e.g., Laptop Touch ID)"
         value={passkeyName}
         onChange={(e) => setPasskeyName(e.target.value)}
       />
@@ -448,13 +448,14 @@ const RecoveryCodeCard = ({ mfaStatus, setRecoveryCodes }) => {
 const RecoveryCodeForm = ({ recoveryCodes }) => (
   <div className={styles.recoveryCodesContainer}>
     <p>
-      Recovery codes is the last resort of accessing your account when you lose access to all
-      other verification methods.Please save the following recovery codes in a safe place.
+      Recovery codes are your last way to access your account if you lose all other
+      verification methods.
+      <br />
+      Save these codes in a secure place.
+      <br />
+      If you lose them, you will not be able to log in.
     </p>
-    <p>
-      You will <strong>NOT</strong> be able to login if you lost them. The recovery codes will{' '}
-      <strong>NOT</strong> be shown again.
-    </p>
+    <p>These recovery codes will not be shown again.</p>
     <ul>
       {recoveryCodes.map((code) => (
         <li key={code}>

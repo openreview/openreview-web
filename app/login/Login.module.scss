@@ -47,41 +47,25 @@
         width: 120px;
       }
     }
-
-    #login-mfa-modal {
-      display: flex !important;
-      align-items: center;
-      justify-content: center;
-
-      &:not(.in) {
-        pointer-events: none;
-      }
-
-      .modal-dialog {
-        margin: 0;
-        width: auto;
-      }
-
-      .modal-content {
-        border-radius: 4px;
-        padding: 0.5rem;
-      }
-    }
   }
 }
 
-.totpContainer {
+.verificationFormContainer {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
+  gap: 1rem;
 
-  width: fit-content;
+  width: 100%;
+
+  .verificationCodeInput {
+    max-width: 200px;
+    text-align: center;
+  }
 
   .rememberDeviceContainer {
     display: flex;
     align-items: flex-start;
-    margin-top: 1rem;
-    margin-bottom: 1rem;
 
     label {
       margin-left: 0.5rem;
@@ -91,7 +75,41 @@
   }
 }
 
-.alternativeMethodsContainer {
+.mfaStepContainer {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 1rem;
+
+  .mfaMethodDescription {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+}
+
+.alternativeMethodsContainer {
+  margin-top: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+
+  padding: 1.75rem 2rem;
+  background-color: rgba(constants.$sandyBrown, 0.25);
+  border: 1px solid constants.$borderGray;
+  border-radius: 2px;
+}
+
+@media #{constants.$tablet} {
+  .mfaStepContainer {
+    padding: 0;
+  }
+
+  .alternativeMethodsContainer {
+    padding: 1rem 1.25rem;
+  }
 }

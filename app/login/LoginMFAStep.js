@@ -1,12 +1,11 @@
 /* globals promptError: false */
 
 import { useEffect, useState } from 'react'
-import BasicModal from '../../components/BasicModal'
 import SpinnerButton from '../../components/SpinnerButton'
 import api from '../../lib/api-client'
+import { arrayBufferToBase64, base64ToArrayBuffer } from '../../lib/utils'
 
 import styles from './Login.module.scss'
-import { arrayBufferToBase64, base64ToArrayBuffer } from '../../lib/utils'
 
 const TOTPVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
   const [verificationCode, setVerificationCode] = useState('')
@@ -28,14 +27,21 @@ const TOTPVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
       setError(error.message)
     }
   }
+
+  useEffect(() => {
+    if (verificationCode.length === 6) {
+      handleSubmit()
+    }
+  }, [verificationCode])
+
   return (
-    <div className={styles.totpContainer}>
+    <div className={styles.verificationFormContainer}>
       <input
         type="text"
-        className="form-control"
+        className={`form-control ${styles.verificationCodeInput}`}
         value={verificationCode}
         onChange={(e) => setVerificationCode(e.target.value)}
-        placeholder="Enter the 6-digit code from your authenticator app"
+        placeholder="XXXXXX"
         maxLength={6}
         autoFocus
       />
@@ -51,18 +57,19 @@ const TOTPVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
         </label>
       </div>
       <SpinnerButton
-        className="btn btn-xs"
+        className="btn btn-sm"
         disabled={!verificationCode || isLoading}
         loading={isLoading}
         onClick={handleSubmit}
       >
-        Submit
+        Verify
       </SpinnerButton>
     </div>
   )
 }
 
 const EmailVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
+  const [challengeRequested, setChallengeRequested] = useState(false)
   const [verificationCode, setVerificationCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [rememberDevice, setRememberDevice] = useState(false)
@@ -89,23 +96,40 @@ const EmailVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => 
         mfaPendingToken,
         method: 'emailOtp',
       })
+      setChallengeRequested(true)
     } catch (error) {
       setError(error.message)
     }
   }
 
   useEffect(() => {
-    requestChallenge()
-  }, [])
+    if (verificationCode.length === 6) {
+      handleSubmit()
+    }
+  }, [verificationCode])
+
+  if (!challengeRequested)
+    return (
+      <div className={styles.verificationFormContainer}>
+        <SpinnerButton
+          className="btn btn-sm"
+          disabled={isLoading}
+          loading={isLoading}
+          onClick={requestChallenge}
+        >
+          Send verification code to email
+        </SpinnerButton>
+      </div>
+    )
 
   return (
-    <div className={styles.totpContainer}>
+    <div className={styles.verificationFormContainer}>
       <input
         type="text"
-        className="form-control"
+        className={`form-control ${styles.verificationCodeInput}`}
         value={verificationCode}
         onChange={(e) => setVerificationCode(e.target.value)}
-        placeholder="Enter the 6-digit code from your authenticator app"
+        placeholder="XXXXXX"
         maxLength={6}
         autoFocus
       />
@@ -121,13 +145,27 @@ const EmailVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => 
         </label>
       </div>
       <SpinnerButton
-        className="btn btn-xs"
+        className="btn btn-sm"
         disabled={!verificationCode || isLoading}
         loading={isLoading}
         onClick={handleSubmit}
       >
-        Submit
+        Verify
       </SpinnerButton>
+      <span>
+        Didn’t receive the email?{' '}
+        <a
+          role="button"
+          onClick={async () => {
+            await requestChallenge()
+            promptMessage(
+              'Another verification code has been sent to your email. Any codes you received previously are now invalid.'
+            )
+          }}
+        >
+          Resend Code
+        </a>
+      </span>
     </div>
   )
 }
@@ -189,8 +227,9 @@ const PasskeyVerificationForm = ({ mfaPendingToken, completeLogin, setError }) =
   if (verified) {
     return <div>Passkey verification completed.</div>
   }
+
   return (
-    <div className={styles.totpContainer}>
+    <div className={styles.verificationFormContainer}>
       <div className={styles.rememberDeviceContainer}>
         <input
           type="checkbox"
@@ -203,18 +242,18 @@ const PasskeyVerificationForm = ({ mfaPendingToken, completeLogin, setError }) =
         </label>
       </div>
       <SpinnerButton
-        className="btn btn-xs"
+        className="btn btn-sm"
         disabled={isLoading}
         loading={isLoading}
         onClick={handleSubmit}
       >
-        Submit
+        Continue
       </SpinnerButton>
     </div>
   )
 }
 
-const RecovertyCodeVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
+const RecoveryCodeVerificationForm = ({ mfaPendingToken, completeLogin, setError }) => {
   const [recoveryCode, setRecoveryCode] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [rememberDevice, setRememberDevice] = useState(false)
@@ -236,13 +275,13 @@ const RecovertyCodeVerificationForm = ({ mfaPendingToken, completeLogin, setErro
   }
 
   return (
-    <div className={styles.totpContainer}>
+    <div className={styles.verificationFormContainer}>
       <input
         type="text"
-        className="form-control"
+        className={`form-control ${styles.verificationCodeInput}`}
         value={recoveryCode}
         onChange={(e) => setRecoveryCode(e.target.value)}
-        placeholder="Enter your recovery code"
+        placeholder="XXXX-XXXX"
         autoFocus
       />
       <div className={styles.rememberDeviceContainer}>
@@ -257,18 +296,18 @@ const RecovertyCodeVerificationForm = ({ mfaPendingToken, completeLogin, setErro
         </label>
       </div>
       <SpinnerButton
-        className="btn btn-xs"
+        className="btn btn-sm"
         disabled={!recoveryCode || isLoading}
         loading={isLoading}
         onClick={handleSubmit}
       >
-        Submit
+        Verify
       </SpinnerButton>
     </div>
   )
 }
 
-const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
+const LoginMFAStep = ({ mfaStatus, completeLogin }) => {
   const { mfaMethods, mfaPending, mfaPendingToken, preferredMethod } = mfaStatus ?? {}
   const [selectedMFAMethod, setSelectedMFAMethod] = useState(preferredMethod)
   const [verificationPassed, setVerificationPassed] = useState(false)
@@ -287,6 +326,31 @@ const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
         return 'Recovery Code'
       default:
         return method
+    }
+  }
+
+  const renderMethodDescription = () => {
+    switch (selectedMFAMethod) {
+      case 'totp':
+        return <p>Enter the 6-digit code from your authenticator app.</p>
+      case 'emailOtp':
+        return (
+          <p>
+            Enter the 6-digit code sent to your email address.
+            <br /> The code is valid for 10 minutes.
+          </p>
+        )
+      case 'passkey':
+        return <p>Verify using your passkey (Touch ID or Face ID).</p>
+      case 'recoveryCode':
+        return (
+          <p>
+            If you are unable to use your authenticator app or email OTP, enter one of your
+            recovery codes. Each code can be used only once.
+          </p>
+        )
+      default:
+        return null
     }
   }
 
@@ -327,7 +391,7 @@ const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
         )
       case 'recoveryCode':
         return (
-          <RecovertyCodeVerificationForm
+          <RecoveryCodeVerificationForm
             mfaPendingToken={mfaPendingToken}
             completeLogin={() => {
               setVerificationPassed(true)
@@ -348,49 +412,48 @@ const LoginMFAModal = ({ mfaStatus, completeLogin, setFormState }) => {
   }, [preferredMethod])
 
   return (
-    <BasicModal
-      id="login-mfa-modal"
-      options={{ hideFooter: true, extraClasses: 'modal-lg' }}
-      onClose={() => {
-        setError(null)
-        setFormState({ type: 'HAS_ERROR' })
-        promptError('Please complete multi-factor authentication.')
-      }}
-    >
-      <div className="modal-header">
-        <h3>{formatMfaMethodName(selectedMFAMethod)} Verification</h3>
-      </div>
-      <div className="modal-body">
-        {error && <div className="alert alert-danger">{error}</div>}
+    <div className={styles.mfaStepContainer}>
+      <h3>Two-Factor authentication</h3>
+      <div className={styles.mfaMethodDescription}>{renderMethodDescription()}</div>
 
-        {renderMethodForm()}
+      {error && <div className="alert alert-danger">{error}</div>}
 
-        {verificationPassed ? null : (
-          <div className={styles.alternativeMethodsContainer}>
-            {mfaMethods
-              ?.filter((p) => p !== selectedMFAMethod)
-              ?.map((alternativeMethod) => (
-                <button
-                  key={alternativeMethod}
-                  className="btn btn-link"
-                  type="button"
-                  onClick={() => setSelectedMFAMethod(alternativeMethod)}
-                >
-                  Log in using {formatMfaMethodName(alternativeMethod)}
-                </button>
-              ))}
+      {renderMethodForm()}
+
+      {verificationPassed ? null : (
+        <div className={styles.alternativeMethodsContainer}>
+          Alternatively, you can choose to verify using another method:
+          {mfaMethods
+            ?.filter((p) => p !== selectedMFAMethod)
+            ?.map((alternativeMethod) => (
+              <button
+                key={alternativeMethod}
+                className="btn btn-link"
+                type="button"
+                onClick={() => {
+                  setError(null)
+                  setSelectedMFAMethod(alternativeMethod)
+                }}
+              >
+                Log in using {formatMfaMethodName(alternativeMethod)}
+              </button>
+            ))}
+          {selectedMFAMethod !== 'recoveryCode' && (
             <button
               className="btn btn-link"
               type="button"
-              onClick={() => setSelectedMFAMethod('recoveryCode')}
+              onClick={() => {
+                setError(null)
+                setSelectedMFAMethod('recoveryCode')
+              }}
             >
               Log in using {formatMfaMethodName('recoveryCode')}
             </button>
-          </div>
-        )}
-      </div>
-    </BasicModal>
+          )}
+        </div>
+      )}
+    </div>
   )
 }
 
-export default LoginMFAModal
+export default LoginMFAStep
