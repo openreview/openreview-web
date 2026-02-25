@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { ResetForm } from '../../reset/Reset'
 import styles from '../../../styles/components/ProfilePasswordSecurity.module.scss'
-import MutltiFactorAuthentication from './MutiFactorAuthentication'
+import MultiFactorAuthenticationSetup from './MultiFactorAuthenticationSetup'
 
 const ProfilePasswordSecurity = ({ profile }) => {
   const [activeSection, setActiveSection] = useState('multiFactorAuth')
@@ -49,7 +49,7 @@ const ProfilePasswordSecurity = ({ profile }) => {
           </span>
         </div>
         <div className={styles.sectionContent}>
-          {activeSection === 'multiFactorAuth' && <MutltiFactorAuthentication />}
+          {activeSection === 'multiFactorAuth' && <MultiFactorAuthenticationSetup />}
         </div>
       </section>
     </div>

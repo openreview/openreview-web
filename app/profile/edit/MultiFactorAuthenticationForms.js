@@ -2,9 +2,7 @@
 
 import { useEffect, useReducer, useState } from 'react'
 import copy from 'copy-to-clipboard'
-import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
-import Alert from '../../../components/Alert'
 import Icon from '../../../components/Icon'
 import SpinnerButton from '../../../components/SpinnerButton'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../../lib/utils'
@@ -12,16 +10,16 @@ import ExportFile from '../../../components/ExportFile'
 
 import styles from '../../../styles/components/MultiFactorAuthentication.module.scss'
 
-const TOTPCard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
+export const TOTPCard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
   const enabled = mfaStatus?.methods?.includes('totp')
   const isPreferred = mfaStatus?.preferredMethod === 'totp'
   return (
     <div className={`${styles.method} ${enabled ? styles.enabled : styles.disabled}`}>
       <div className={styles.methodHeader}>
-        <strong>Authentication App</strong>
+        <strong>Authenticator App</strong>
       </div>
       <span className={styles.methodDescription}>
-        use an authentication app to get codes when prompted
+        use an authenticator app to get codes when prompted
       </span>
       <Icon name="phone" />
       <div className={styles.cardActions}>
@@ -43,7 +41,7 @@ const TOTPCard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
   )
 }
 
-const TOTPSetup = ({ loadMFAStatus, setRecoveryCodes }) => {
+export const TOTPSetup = ({ loadMFAStatus, setRecoveryCodes }) => {
   const [totpForm, setTotpForm] = useReducer(totpFormReducer, {})
 
   function totpFormReducer(state, action) {
@@ -131,7 +129,7 @@ const TOTPSetup = ({ loadMFAStatus, setRecoveryCodes }) => {
   )
 }
 
-const TOTPDelete = ({ loadMFAStatus }) => {
+export const TOTPDelete = ({ loadMFAStatus }) => {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleDeletTotp = async () => {
@@ -154,13 +152,13 @@ const TOTPDelete = ({ loadMFAStatus }) => {
         loading={isLoading}
         onClick={handleDeletTotp}
       >
-        Disable Authentication App
+        Disable Authenticator App
       </SpinnerButton>
     </div>
   )
 }
 
-const EmailOtpCard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
+export const EmailOtpCard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
   const enabled = mfaStatus?.methods?.includes('emailOtp')
   const isPreferred = mfaStatus?.preferredMethod === 'emailOtp'
   return (
@@ -189,7 +187,7 @@ const EmailOtpCard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
   )
 }
 
-const EmailSetupDelete = ({ mfaStatus, loadMFAStatus, setRecoveryCodes }) => {
+export const EmailSetupDelete = ({ mfaStatus, loadMFAStatus, setRecoveryCodes }) => {
   const enabled = mfaStatus?.methods?.includes('emailOtp')
 
   const initEmailSetup = async () => {
@@ -226,7 +224,7 @@ const EmailSetupDelete = ({ mfaStatus, loadMFAStatus, setRecoveryCodes }) => {
   return null
 }
 
-const Passkey2FACard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
+export const Passkey2FACard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
   const enabled = mfaStatus?.methods?.includes('passkey')
   const isPreferred = mfaStatus?.preferredMethod === 'passkey'
   return (
@@ -255,7 +253,7 @@ const Passkey2FACard = ({ mfaStatus, setMethodToEdit, handleSetPreferred }) => {
   )
 }
 
-const PasskeyForm = ({ loadMFAStatus, setRecoveryCodes }) => {
+export const PasskeyForm = ({ loadMFAStatus, setRecoveryCodes }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [passkeyName, setPasskeyName] = useState('')
 
@@ -340,14 +338,14 @@ const PasskeyForm = ({ loadMFAStatus, setRecoveryCodes }) => {
   )
 }
 
-const PasskeySetup = ({ loadMFAStatus, setRecoveryCodes }) => (
+export const PasskeySetup = ({ loadMFAStatus, setRecoveryCodes }) => (
   <div className={styles.passkeyFormContainer}>
     <h4>Set up Passkey</h4>
     <PasskeyForm loadMFAStatus={loadMFAStatus} setRecoveryCodes={setRecoveryCodes} />
   </div>
 )
 
-const PasskeyDelete = ({ loadMFAStatus }) => {
+export const PasskeyDelete = () => {
   const [passKeys, setPassKeys] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -365,7 +363,7 @@ const PasskeyDelete = ({ loadMFAStatus }) => {
     try {
       await api.delete(`/mfa/passkeys/${passkey}`)
       promptMessage('Passkey is deleted')
-      loadMFAStatus()
+      loadPassKeys()
     } catch (error) {
       promptError(error.message)
     } finally {
@@ -413,13 +411,13 @@ const PasskeyDelete = ({ loadMFAStatus }) => {
 
       <div className={styles.addPasskeySection}>
         <h4>Add a new passkey</h4>
-        <PasskeyForm loadMFAStatus={loadMFAStatus} onSuccess={loadPassKeys} />
+        <PasskeyForm loadMFAStatus={loadPassKeys} />
       </div>
     </div>
   )
 }
 
-const RecoveryCodeCard = ({ mfaStatus, setRecoveryCodes }) => {
+export const RecoveryCodeCard = ({ mfaStatus, setRecoveryCodes }) => {
   const generateRecoveryCodes = async () => {
     try {
       const result = await api.post('/mfa/recovery-codes/regenerate')
@@ -445,7 +443,7 @@ const RecoveryCodeCard = ({ mfaStatus, setRecoveryCodes }) => {
   )
 }
 
-const RecoveryCodeForm = ({ recoveryCodes }) => (
+export const RecoveryCodeForm = ({ recoveryCodes }) => (
   <div className={styles.recoveryCodesContainer}>
     <p>
       Recovery codes are your last way to access your account if you lose all other
@@ -483,107 +481,3 @@ const RecoveryCodeForm = ({ recoveryCodes }) => (
     </div>
   </div>
 )
-
-const MutltiFactorAuthentication = () => {
-  const [mfaStatus, setMfaStatus] = useState(null)
-  const [methodToEdit, setMethodToEdit] = useState(null)
-  const [recoveryCodes, setRecoveryCodes] = useState(null)
-
-  const loadMFAStatus = async () => {
-    setMethodToEdit(null)
-    try {
-      const result = await api.get('/mfa/status')
-      setMfaStatus(result)
-    } catch (error) {
-      promptError(error.message)
-    }
-  }
-
-  const handleSetPreferred = async (method) => {
-    try {
-      await api.put('/mfa/preferred', { method })
-      loadMFAStatus()
-    } catch (error) {
-      promptError(error.message)
-    }
-  }
-
-  const renderSetupEdit = () => {
-    switch (methodToEdit) {
-      case 'totp':
-        return mfaStatus.methods.includes('totp') ? (
-          <TOTPDelete loadMFAStatus={loadMFAStatus} />
-        ) : (
-          <TOTPSetup loadMFAStatus={loadMFAStatus} setRecoveryCodes={setRecoveryCodes} />
-        )
-      case 'emailOtp':
-        return (
-          <EmailSetupDelete
-            mfaStatus={mfaStatus}
-            loadMFAStatus={loadMFAStatus}
-            setRecoveryCodes={setRecoveryCodes}
-          />
-        )
-      case 'passkey':
-        return mfaStatus.methods.includes('passkey') ? (
-          <PasskeyDelete loadMFAStatus={loadMFAStatus} />
-        ) : (
-          <PasskeySetup loadMFAStatus={loadMFAStatus} setRecoveryCodes={setRecoveryCodes} />
-        )
-
-      default:
-        if (recoveryCodes) {
-          return <RecoveryCodeForm recoveryCodes={recoveryCodes} />
-        }
-        return null
-    }
-  }
-
-  useEffect(() => {
-    loadMFAStatus()
-  }, [])
-
-  useEffect(() => {
-    if (methodToEdit) {
-      setRecoveryCodes(null)
-    }
-  }, [methodToEdit])
-
-  if (!mfaStatus) return <LoadingSpinner />
-  return (
-    <div className={styles.multiFactorAuthenticationContainer}>
-      <p>
-        Multi-Factor Authentication is necessary to make sure your OpenReview profile is
-        secure.
-      </p>
-      {mfaStatus.enabled === false && (
-        <Alert color="danger">
-          Multi-Factor Authentication is currently disabled. Please configure below.
-        </Alert>
-      )}
-      <div className={styles.methodsContainer}>
-        <TOTPCard
-          mfaStatus={mfaStatus}
-          setMethodToEdit={setMethodToEdit}
-          handleSetPreferred={handleSetPreferred}
-        />
-        <Passkey2FACard
-          mfaStatus={mfaStatus}
-          setMethodToEdit={setMethodToEdit}
-          handleSetPreferred={handleSetPreferred}
-        />
-        <EmailOtpCard
-          mfaStatus={mfaStatus}
-          setMethodToEdit={setMethodToEdit}
-          handleSetPreferred={handleSetPreferred}
-        />
-        {mfaStatus.enabled && (
-          <RecoveryCodeCard mfaStatus={mfaStatus} setRecoveryCodes={setRecoveryCodes} />
-        )}
-      </div>
-      {renderSetupEdit()}
-    </div>
-  )
-}
-
-export default MutltiFactorAuthentication
