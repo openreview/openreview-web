@@ -154,10 +154,10 @@ export default function Page() {
       <LimitedStateAlert profile={profile} />
       <Tabs>
         <TabList>
-          <Tab id="profile-info">Profile Info</Tab>
-          <Tab id="password-security" active>
-            Password and Security
+          <Tab id="profile-info" active>
+            Profile Info
           </Tab>
+          <Tab id="password-security">Password and Security</Tab>
         </TabList>
         <TabPanels>
           <TabPanel id="profile-info">

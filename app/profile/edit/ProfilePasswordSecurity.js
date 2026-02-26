@@ -2,8 +2,9 @@
 
 import { useState } from 'react'
 import { ResetForm } from '../../reset/Reset'
-import styles from '../../../styles/components/ProfilePasswordSecurity.module.scss'
 import MultiFactorAuthenticationSetup from './MultiFactorAuthenticationSetup'
+
+import styles from '../../../styles/components/ProfilePasswordSecurity.module.scss'
 
 const ProfilePasswordSecurity = ({ profile }) => {
   const [activeSection, setActiveSection] = useState('multiFactorAuth')
@@ -14,12 +15,14 @@ const ProfilePasswordSecurity = ({ profile }) => {
     <div className={styles.profilePasswordSecurityContainer}>
       <section>
         <div className={styles.sectionHeader}>
-          {activeSection === 'passwordReset' ? '▼' : '▶'}
           <span
             className={styles.sectionHeaderText}
             onClick={() => toggleSection('passwordReset')}
             style={{ cursor: 'pointer', userSelect: 'none' }}
           >
+            <span className={styles.sectionHeaderIcon}>
+              {activeSection === 'passwordReset' ? '▼' : '▶'}
+            </span>
             Password Reset
           </span>
         </div>
@@ -39,12 +42,14 @@ const ProfilePasswordSecurity = ({ profile }) => {
       </section>
       <section>
         <div className={styles.sectionHeader}>
-          {activeSection === 'multiFactorAuth' ? '▼' : '▶'}
           <span
             className={styles.sectionHeaderText}
             onClick={() => toggleSection('multiFactorAuth')}
             style={{ cursor: 'pointer', userSelect: 'none' }}
           >
+            <span className={styles.sectionHeaderIcon}>
+              {activeSection === 'multiFactorAuth' ? '▼' : '▶'}
+            </span>
             Multi-Factor Authentication
           </span>
         </div>
