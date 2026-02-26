@@ -39,7 +39,7 @@ export default function Page() {
     committeeSubject,
     createProfileSubject,
     accessPublicationSubject,
-    institutionSubject,
+    // institutionSubject,
   ].map((subject) => ({
     label: subject,
     value: subject,
