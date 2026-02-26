@@ -1,9 +1,11 @@
+/* globals promptError,promptMessage: false */
 import { useState } from 'react'
-import { isValidEmail } from '../../lib/utils'
 import Link from 'next/link'
+import { isValidEmail } from '../../lib/utils'
 import SpinnerButton from '../../components/SpinnerButton'
 
 import styles from './Login.module.scss'
+import api from '../../lib/api-client'
 
 const ResetPasswordResendConfirmationLinks = ({ email }) => {
   const handleResendConfirmation = async (e) => {
