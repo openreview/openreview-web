@@ -1,6 +1,6 @@
 /* globals promptError: false */
 import { useState } from 'react'
-import { forumDate, getNoteAuthorIds, getNoteAuthors, getNotePdfUrl } from '../../lib/utils'
+import { forumDate, getNoteAuthorIds, getNoteAuthors, getNotePdfUrl, isValidEmail } from '../../lib/utils'
 import Collapse from '../Collapse'
 import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
@@ -28,30 +28,53 @@ const NoteSummary = ({
 
   const [reportLink, setReportLink] = useState(null)
   const [isLoadingReportLink, setIsLoadingReportLink] = useState(false)
+
+  const getAuthorActivationStatus = (isEmail, hasProfile, isActiveProfile) => {
+    if (isEmail) {
+      return (
+        <Icon
+          name="question-sign"
+          tooltip="Profile status is unknown"
+          extraClasses="pl-1 text-default"
+        />
+      )
+    }
+    if (!hasProfile) {
+      return (
+        <Icon
+          name="minus-sign"
+          tooltip="Profile status is not available"
+          extraClasses="pl-1 text-default"
+        />
+      )
+    }
+    if (!isActiveProfile) {
+      return (
+        <Icon
+          name="remove-sign"
+          tooltip="Profile is not yet activated"
+          extraClasses="pl-1 text-danger"
+        />
+      )
+    }
+    return <Icon name="ok-sign" tooltip="Profile is active" extraClasses="pl-1 text-success" />
+  }
+
   const authorNames = authorsValue?.map((authorName, i) => {
     const authorId = authorIdsValue[i]
     const authorProfile = profileMap?.[authorIdsValue[i]]
-    const errorTooltip = authorProfile
-      ? 'Profile not yet activated'
-      : 'Profile not yet created or email not confirmed'
+    const isActiveProfile = authorProfile?.active
+    const isEmailAuthorId = isValidEmail(authorId)
 
     return (
-      <span key={authorId}>
+      <span key={authorId} className="text-nowrap">
         <ProfileLink
           id={authorId}
           name={authorName}
           preferredEmailInvitationId={preferredEmailInvitationId}
         />
         {profileMap &&
-          (authorProfile?.active ? (
-            <Icon
-              name="ok-sign"
-              tooltip="Profile is active and email confirmed"
-              extraClasses="pl-1 text-success"
-            />
-          ) : (
-            <Icon name="remove-sign" tooltip={errorTooltip} extraClasses="pl-1 text-danger" />
-          ))}
+          getAuthorActivationStatus(isEmailAuthorId, !!authorProfile, isActiveProfile)}
       </span>
     )
   })

@@ -114,26 +114,15 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [institutionDomains, setInstitutionDomains] = useState([])
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
-  const router = useRouter()
 
-  const storeFeedbackInfo = (e) => {
-    e.preventDefault()
-    sessionStorage.setItem('feedbackInstitution', email)
-    router.push('/contact')
-  }
-
-  const InstitutionErrorMessage = ({ email: invalidEmail }) => (
+  const InstitutionErrorMessage = () => (
     <span>
-      <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
-      publishing institutions. It can take up to <strong>2 weeks</strong> for profiles using
-      public email services to be activated. To activate immediately, please sign up with an
-      email address that uses an educational or employing institution domain. If your
-      institution is not yet in our list,{' '}
-      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <Link href="#" onClick={storeFeedbackInfo}>
-        contact us
-      </Link>{' '}
-      to request that it be added.
+      Please note: Your email address could not be automatically verified.
+      <br />
+      Accounts that cannot be automatically verified may take up to 2 weeks to be activated. To
+      expedite the process, we recommend using an email address from a recognized institution,
+      or completing your profile information as thoroughly as possible to help us verify your
+      affiliation.
     </span>
   )
 
@@ -219,7 +208,7 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
           <div className="activation-message-row">
             <div>
               <Icon name="warning-sign" extraClasses="email-tooltip" />
-              <InstitutionErrorMessage email={nonInstitutionEmail} />
+              <InstitutionErrorMessage />
             </div>
           </div>
         )}
