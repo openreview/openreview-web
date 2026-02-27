@@ -53,11 +53,13 @@ const TagsPage = ({ tagsOfPage, domain }) => {
   const loadGroupMembers = async (profileIds) => {
     try {
       const groupMemberCallsP = profileIds.map((profileId) =>
-        api.get('/groups', { member: profileId, select: 'id,domain' }).then((result) => {
-          const memberGroups = result.groups || []
-          const memberGroupsOfDomain = memberGroups.filter((p) => p.domain === domain)
-          return memberGroupsOfDomain
-        })
+        api
+          .get('/groups', { member: profileId, select: 'id,domain', domain })
+          .then((result) => {
+            const memberGroups = result.groups || []
+            const memberGroupsOfDomain = memberGroups.filter((p) => p.domain === domain)
+            return memberGroupsOfDomain
+          })
       )
       const groupMembersResults = await Promise.all(groupMemberCallsP)
       const profileIdToGroupMap = new Map()
@@ -96,6 +98,7 @@ const TagsPage = ({ tagsOfPage, domain }) => {
  * @typedef {Object} TagsViewerConfig
  *
  * @property {string} tagInvitation optional
+ * @property {string} title optional
  * @property {string} instructions optional
  * @property {string} domain optional
  */
@@ -105,6 +108,14 @@ const TagsPage = ({ tagsOfPage, domain }) => {
  * @description The invitation id to get tags. By default it shows the blocked profiles.
  * @type {string}
  * @default `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`
+ */
+
+/**
+ * @name TagsViewerConfig.title
+ * @description title of the component/page.
+ * @type {string}
+ * @default `Tags For ${prettyInvitationId(tagInvitation)}`
+ * @example "some title overwrite"
  */
 
 /**
@@ -127,6 +138,7 @@ const TagsViewer = () => {
   const {
     entity: group,
     tagInvitation = `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`,
+    title = `Tags For ${prettyInvitationId(tagInvitation)}`,
     instructions,
     domain = group.domain,
   } = useContext(WebFieldContext)
@@ -167,10 +179,7 @@ const TagsViewer = () => {
   if (!allTags.length) return <ErrorDisplay message="No tags found" withLayout={false} />
   return (
     <>
-      <BasicHeader
-        title={`Tags For ${prettyInvitationId(tagInvitation)}`}
-        instructions={instructions}
-      />
+      <BasicHeader title={title} instructions={instructions} />
       <Table
         className="console-table table-striped"
         headings={[
