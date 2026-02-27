@@ -537,6 +537,36 @@ describe('PasskeyDelete', () => {
       expect(api.get).toHaveBeenCalledTimes(2) // called once on load and once after delete to reload passkeys
     })
   })
+
+  test('reload status when all passkeys are deleted', async () => {
+    let deleted = false
+
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        passkeys: deleted
+          ? []
+          : [{ name: 'some key name', credentialId: 'some id', createdAt: undefined }],
+      })
+    )
+
+    api.delete = jest.fn(() => {
+      deleted = true
+      return Promise.resolve()
+    })
+    global.promptMessage = jest.fn()
+    const loadMFAStatus = jest.fn()
+    render(<PasskeyDelete loadMFAStatus={loadMFAStatus} />)
+
+    await waitFor(() => {
+      userEvent.click(screen.getByRole('button', { name: 'Delete' }))
+    })
+
+    await waitFor(() => {
+      expect(api.delete).toHaveBeenCalledWith('/mfa/passkeys/some id')
+      expect(loadMFAStatus).toHaveBeenCalled()
+      expect(global.promptMessage).toHaveBeenCalledWith('All Passkeys are deleted')
+    })
+  })
 })
 
 describe('RecoveryCodeForm', () => {

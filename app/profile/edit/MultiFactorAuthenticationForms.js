@@ -257,6 +257,17 @@ export const PasskeyForm = ({ loadMFAStatus, setRecoveryCodes }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [passkeyName, setPasskeyName] = useState('')
 
+  const createPasskeyCredential = async (options) => {
+    try {
+      return await navigator.credentials.create({ publicKey: options })
+    } catch (error) {
+      if (error?.name === 'NotAllowedError') {
+        throw new Error('Passkey creation failed. Please try again.')
+      }
+      throw error
+    }
+  }
+
   const handleSubmit = async () => {
     setIsLoading(true)
     try {
@@ -288,9 +299,7 @@ export const PasskeyForm = ({ loadMFAStatus, setRecoveryCodes }) => {
         attestation,
       }
 
-      const credential = await navigator.credentials.create({
-        publicKey: publicKeyCredentialCreationOptions,
-      })
+      const credential = await createPasskeyCredential(publicKeyCredentialCreationOptions)
 
       const verifyResult = await api.post('/mfa/setup/passkey/verify', {
         response: {
@@ -345,7 +354,7 @@ export const PasskeySetup = ({ loadMFAStatus, setRecoveryCodes }) => (
   </div>
 )
 
-export const PasskeyDelete = () => {
+export const PasskeyDelete = ({ loadMFAStatus }) => {
   const [passKeys, setPassKeys] = useState([])
   const [isLoading, setIsLoading] = useState(false)
 
@@ -353,8 +362,10 @@ export const PasskeyDelete = () => {
     try {
       const result = await api.get('/mfa/passkeys')
       setPassKeys(result.passkeys)
+      return result.passkeys
     } catch (error) {
       promptError(error.message)
+      return null
     }
   }
 
@@ -362,8 +373,13 @@ export const PasskeyDelete = () => {
     setIsLoading(true)
     try {
       await api.delete(`/mfa/passkeys/${passkey}`)
-      promptMessage('Passkey is deleted')
-      loadPassKeys()
+      const updatedPassKeys = await loadPassKeys()
+      if (!updatedPassKeys?.length) {
+        promptMessage('All Passkeys are deleted')
+        loadMFAStatus()
+      } else {
+        promptMessage('Passkey is deleted')
+      }
     } catch (error) {
       promptError(error.message)
     } finally {

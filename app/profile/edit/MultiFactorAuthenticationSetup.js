@@ -61,7 +61,7 @@ const MultiFactorAuthenticationSetup = () => {
         )
       case 'passkey':
         return mfaStatus.methods.includes('passkey') ? (
-          <PasskeyDelete />
+          <PasskeyDelete loadMFAStatus={loadMFAStatus} />
         ) : (
           <PasskeySetup loadMFAStatus={loadMFAStatus} setRecoveryCodes={setRecoveryCodes} />
         )

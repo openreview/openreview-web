@@ -1,3 +1,5 @@
+/* globals promptError,promptMessage: false */
+
 import { useEffect, useState } from 'react'
 import SpinnerButton from '../../components/SpinnerButton'
 import api from '../../lib/api-client'
@@ -151,7 +153,7 @@ export const EmailVerificationForm = ({ mfaPendingToken, completeLogin, setError
         Verify
       </SpinnerButton>
       <span>
-        Didn’t receive the email?{' '}
+        Didn’t receive the email? {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
         <a
           role="button"
           onClick={async () => {
@@ -173,6 +175,17 @@ export const PasskeyVerificationForm = ({ mfaPendingToken, completeLogin, setErr
   const [verified, setVerified] = useState(false)
   const [rememberDevice, setRememberDevice] = useState(false)
 
+  const getPasskeyCredential = async (publicKey) => {
+    try {
+      return await navigator.credentials.get({ publicKey })
+    } catch (error) {
+      if (error?.name === 'NotAllowedError') {
+        throw new Error('Passkey verification failed. Please try again.')
+      }
+      throw error
+    }
+  }
+
   const handleSubmit = async () => {
     setIsLoading(true)
     try {
@@ -181,7 +194,6 @@ export const PasskeyVerificationForm = ({ mfaPendingToken, completeLogin, setErr
         method: 'passkey',
       })
       const { allowCredentials, challenge, rpId, timeout, userVerification } = result
-      console.log('Passkey challenge result', result)
 
       const publicKeyCredentialRequestOptions = {
         challenge: base64ToArrayBuffer(challenge),
@@ -195,9 +207,7 @@ export const PasskeyVerificationForm = ({ mfaPendingToken, completeLogin, setErr
         userVerification,
       }
 
-      const credential = await navigator.credentials.get({
-        publicKey: publicKeyCredentialRequestOptions,
-      })
+      const credential = await getPasskeyCredential(publicKeyCredentialRequestOptions)
       const { authenticatorAttachment, id, rawId, response, type } = credential
       const { authenticatorData, clientDataJSON, signature, userHandle } = response
       await api.post('/mfa/verify', {
