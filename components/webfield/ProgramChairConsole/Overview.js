@@ -265,7 +265,7 @@ const BiddingStatsRow = ({
   )
 }
 
-const ReviewRatingStatsRow = ({ pcConsoleData }) => {
+export const ReviewRatingStatsRow = ({ pcConsoleData }) => {
   const {
     reviewRatingName,
     reviewerName = 'Reviewers',
@@ -374,6 +374,7 @@ const ReviewRatingStatsRow = ({ pcConsoleData }) => {
   }, [pcConsoleData.notes, shouldShowReviewRatingStatsRow])
 
   if (!shouldShowReviewRatingStatsRow) return null
+
   return reviewRatingName.map((ratingName) => {
     const { allOfficialReviews, reviewersComplete, paperWithMoreThanThresholdReviews } =
       reviewRatingStats[ratingName] ?? {}
