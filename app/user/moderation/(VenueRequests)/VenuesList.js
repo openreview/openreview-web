@@ -1,7 +1,7 @@
 import { Col, Flex, Pagination, Popover, Row, Space, Tag } from 'antd'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
-import { inflect, prettyId } from '../../../../lib/utils'
+import { prettyId } from '../../../../lib/utils'
 import Markdown from '../../../../components/EditorComponents/Markdown'
 
 const pageSize = 25
@@ -20,13 +20,13 @@ const VenuesList = ({ venueRequestNotes }) => {
         {venueRequestNotesToDisplay.map((venueRequestNote) => {
           const {
             forum,
+            tcdate,
             abbreviatedName,
-            unrepliedPcComments,
             latestComment,
             tauthor,
-            tcdate,
             signature,
             apiVersion,
+            state,
           } = venueRequestNote
 
           return (
@@ -43,7 +43,7 @@ const VenuesList = ({ venueRequestNotes }) => {
                 </a>
               </Col>
               <Col xs={14} md={9} lg={10}>
-                {latestComment && (
+                {latestComment ? (
                   <Space>
                     <Popover
                       placement="right"
@@ -71,24 +71,27 @@ const VenuesList = ({ venueRequestNotes }) => {
                       title={`Posted ${dayjs(latestComment.tcdate).fromNow()}`}
                     >
                       <Tag color="warning" variant="solid">
-                        Latest Comment
+                        {prettyId(latestComment.signatures[0])}
                       </Tag>
                     </Popover>
 
                     {dayjs(latestComment.cdate).fromNow()}
                   </Space>
+                ) : (
+                  <>{dayjs(tcdate).fromNow()}</>
                 )}
               </Col>
               <Col xs={24} md={5} lg={5}>
-                {apiVersion === 2 ? (
-                  <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
-                    {prettyId(signature)}
-                  </a>
-                ) : (
-                  <a href={`/profile?email=${tauthor}`} target="_blank" rel="noreferrer">
-                    {prettyId(tauthor)}
-                  </a>
-                )}
+                <Tag
+                  style={{
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                  title={state}
+                >
+                  {state}
+                </Tag>
               </Col>
             </Row>
           )

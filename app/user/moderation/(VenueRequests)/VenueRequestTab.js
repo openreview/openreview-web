@@ -1,73 +1,14 @@
 /* globals promptError: false */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { orderBy, sortBy } from 'lodash'
-import { inflect, prettyId } from '../../../../lib/utils'
 import api from '../../../../lib/api-client'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import VenueRequestList from './VenueRequestList'
 
 dayjs.extend(relativeTime)
-
-const VenueRequestRow = ({ item }) => {
-  const {
-    forum,
-    abbreviatedName,
-    unrepliedPcComments,
-    deployed,
-    tauthor,
-    tcdate,
-    signature,
-    apiVersion,
-  } = item
-  return (
-    <div className="venue-request-row">
-      <a className="request-name" href={`/forum?id=${forum}`} target="_blank" rel="noreferrer">
-        {abbreviatedName}
-        {apiVersion === 2 && <span className="label label-default">workflow</span>}
-      </a>
-      <div className="request-status">
-        <div className="deploy-label">
-          <span className={`label label-${deployed ? 'success' : 'default'}`}>
-            {deployed ? 'Deployed' : 'Not Deployed'}
-          </span>
-        </div>
-        <div className="comment-label">
-          <span
-            className={`label label-${unrepliedPcComments.length ? 'warning' : 'success'}`}
-          >
-            {unrepliedPcComments.length > 0 ? (
-              <a
-                href={`/forum?id=${forum}&noteId=${unrepliedPcComments[0].id}`}
-                target="_blank"
-                rel="noreferrer"
-                title={`
-${dayjs(unrepliedPcComments[0].tcdate).fromNow()}
-${apiVersion === 2 ? unrepliedPcComments[0].content?.comment?.value : unrepliedPcComments[0].content?.comment}`}
-              >
-                {`${inflect(unrepliedPcComments.length, 'comment', 'comments', true)}`}
-              </a>
-            ) : (
-              'no comment'
-            )}
-          </span>
-        </div>
-        <div className="tcdate-label">{dayjs(tcdate).fromNow()}</div>
-      </div>
-      {apiVersion === 2 ? (
-        <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
-          {prettyId(signature)}
-        </a>
-      ) : (
-        <a href={`/profile?email=${tauthor}`} target="_blank" rel="noreferrer">
-          {prettyId(tauthor)}
-        </a>
-      )}
-    </div>
-  )
-}
 
 export default function VenueRequestTab() {
   const [venueRequestNotes, setVenueRequestNotes] = useState(null)
@@ -122,31 +63,20 @@ export default function VenueRequestTab() {
         hasOfficialReply: p.details?.replies?.find((q) =>
           q.signatures.includes(`${process.env.SUPER_USER}/Support`)
         ),
-        unrepliedPcComments: sortBy(
-          p.details?.replies?.filter(
-            (q) =>
-              (p.apiVersion === 2
-                ? q.invitations.find((r) => r.endsWith('Comment'))
-                : q.invitation.endsWith('Comment')) &&
-              !q.signatures.includes(`${process.env.SUPER_USER}/Support`) &&
-              !hasBeenReplied(q, p.details?.replies ?? [])
-            // &&
-            // dayjs().diff(dayjs(q.cdate), 'd') < 7
+        latestComment: sortBy(
+          p.details?.replies?.filter((q) =>
+            p.apiVersion === 2
+              ? q.invitations.find((r) => r.endsWith('Comment'))
+              : q.invitation.endsWith('Comment')
           ),
           (s) => -s.cdate
-        ),
+        )?.[0],
         tauthor: p.tauthor,
         signature: p.signatures?.[0],
         apiVersion: p.apiVersion,
       }))
 
-      setVenueRequestNotes(
-        orderBy(
-          allVenueRequests,
-          [(p) => p.unrepliedPcComments.length, 'tcdate'],
-          ['desc', 'desc']
-        )
-      )
+      setVenueRequestNotes(orderBy(allVenueRequests, ['cdate'], ['desc']))
     } catch (error) {
       promptError(error.message)
     }

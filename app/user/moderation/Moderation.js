@@ -6,7 +6,6 @@ import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import NewVenueRequestCount from './(VenueRequests)/NewVenueRequestCount'
 import UserModerationTab from './UserModerationTab'
-import DeployedVenueCommentsCount from './(VenueRequests)/DeployedVenueCommentsCount'
 
 const EmailDeletionTab = dynamic(() => import('./(EmailDeletion)/EmailDeletionTab'))
 const NameDeletionTab = dynamic(() => import('./(NameDeletion)/NameDeletionTab'))
@@ -49,7 +48,7 @@ export default function Moderation() {
     },
     {
       key: 'venues',
-      label: <DeployedVenueCommentsCount>Venues</DeployedVenueCommentsCount>,
+      label: 'Deployed Venues',
       children: <VenuesTab />,
     },
   ]

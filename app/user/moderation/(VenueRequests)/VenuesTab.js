@@ -1,11 +1,9 @@
 /* globals promptError: false */
 
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { orderBy, sortBy } from 'lodash'
-import PaginatedList from '../../../../components/PaginatedList'
-import { inflect, prettyId } from '../../../../lib/utils'
 import api from '../../../../lib/api-client'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import VenuesList from './VenuesList'
@@ -37,13 +35,13 @@ export default function VenueRequestTab() {
           invitation: `${process.env.SUPER_USER}/Support/-/Request_Form`,
           sort: 'tcdate',
           details: 'replies',
-          select: `id,forum,tcdate,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
+          select: `id,forum,tcdate,content.state,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
         },
         {
           invitation: `${process.env.SUPER_USER}/Support/Venue_Request.*`,
           sort: 'tcdate',
           details: 'replies',
-          select: `id,forum,parentInvitations,signatures,tcdate,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
+          select: `id,forum,parentInvitations,signatures,tcdate,content.state,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].tcdate`,
         },
         { includeVersion: true }
       )
@@ -65,19 +63,6 @@ export default function VenueRequestTab() {
         hasOfficialReply: p.details?.replies?.find((q) =>
           q.signatures.includes(`${process.env.SUPER_USER}/Support`)
         ),
-        unrepliedPcComments: sortBy(
-          p.details?.replies?.filter(
-            (q) =>
-              (p.apiVersion === 2
-                ? q.invitations.find((r) => r.endsWith('Comment'))
-                : q.invitation.endsWith('Comment')) &&
-              !q.signatures.includes(`${process.env.SUPER_USER}/Support`) &&
-              !hasBeenReplied(q, p.details?.replies ?? [])
-            // &&
-            // dayjs().diff(dayjs(q.cdate), 'd') < 7
-          ),
-          (s) => -s.cdate
-        ),
         latestComment: sortBy(
           p.details?.replies?.filter((q) =>
             p.apiVersion === 2
@@ -89,11 +74,13 @@ export default function VenueRequestTab() {
         tauthor: p.tauthor,
         signature: p.signatures?.[0],
         apiVersion: p.apiVersion,
+        state: p.apiVersion === 2 ? p.content.state?.value : p.content?.state,
       }))
+
       setVenueRequestNotes(
         orderBy(
           deployedVenueRequests,
-          [(p) => (p.latestComment ? 1 : 0), (p) => p.latestComment?.cdate ?? 0],
+          [(p) => (p.latestComment ? 0 : 1), (p) => p.latestComment?.cdate ?? p.cdate],
           ['desc', 'desc']
         )
       )

@@ -2,7 +2,7 @@ import { Col, Flex, Pagination, Popover, Row, Space, Tag } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useMemo, useState } from 'react'
-import { inflect, prettyId } from '../../../../lib/utils'
+import { prettyId } from '../../../../lib/utils'
 import Markdown from '../../../../components/EditorComponents/Markdown'
 
 dayjs.extend(relativeTime)
@@ -24,7 +24,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
           const {
             forum,
             abbreviatedName,
-            unrepliedPcComments,
+            latestComment,
             tauthor,
             tcdate,
             signature,
@@ -46,7 +46,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
 
               <Col xs={14} md={9} lg={10}>
                 <Space>
-                  {unrepliedPcComments.length > 0 ? (
+                  {latestComment ? (
                     <Popover
                       placement="right"
                       styles={{
@@ -57,13 +57,13 @@ const VenueRequestList = ({ newRequestNotes }) => {
                           <Markdown
                             text={
                               apiVersion === 2
-                                ? unrepliedPcComments[0].content?.comment?.value
-                                : unrepliedPcComments[0].content?.comment
+                                ? latestComment.content?.comment?.value
+                                : latestComment.content?.comment
                             }
                           />
 
                           <a
-                            href={`/forum?id=${forum}&noteId=${unrepliedPcComments[0].id}`}
+                            href={`/forum?id=${forum}&noteId=${latestComment.id}`}
                             target="_blank"
                             rel="noreferrer"
                           >
@@ -71,12 +71,11 @@ const VenueRequestList = ({ newRequestNotes }) => {
                           </a>
                         </Space>
                       }
-                      title={`Posted ${dayjs(unrepliedPcComments[0].tcdate).fromNow()}`}
+                      title={`Posted ${dayjs(latestComment.tcdate).fromNow()}`}
                     >
-                      <Tag
-                        color="warning"
-                        variant="solid"
-                      >{`${inflect(unrepliedPcComments.length, 'comment', 'comments', true)}`}</Tag>
+                      <Tag color="warning" variant="solid">
+                        {prettyId(latestComment.signatures[0])}
+                      </Tag>
                     </Popover>
                   ) : (
                     <Tag color="success" variant="solid">
