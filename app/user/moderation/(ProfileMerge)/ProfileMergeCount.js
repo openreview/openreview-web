@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import { Badge } from 'antd'
 import api from '../../../../lib/api-client'
 
-export default function ProfileMergeCount() {
+export default function ProfileMergeCount({ children }) {
   const [profileMergeRequestCount, setProfileMergeRequestCount] = useState(null)
 
   const getNameDeletionCount = async () => {
@@ -21,6 +22,9 @@ export default function ProfileMergeCount() {
     getNameDeletionCount()
   }, [])
 
-  if (!profileMergeRequestCount) return null
-  return <span className="badge">{profileMergeRequestCount}</span>
+  return (
+    <Badge count={profileMergeRequestCount} size="small" offset={[0, -5]}>
+      {children}
+    </Badge>
+  )
 }

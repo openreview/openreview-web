@@ -4,70 +4,13 @@ import { useCallback, useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { orderBy, sortBy } from 'lodash'
+import PaginatedList from '../../../../components/PaginatedList'
 import { inflect, prettyId } from '../../../../lib/utils'
 import api from '../../../../lib/api-client'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
-import VenueRequestList from './VenueRequestList'
+import VenuesList from './VenuesList'
 
 dayjs.extend(relativeTime)
-
-const VenueRequestRow = ({ item }) => {
-  const {
-    forum,
-    abbreviatedName,
-    unrepliedPcComments,
-    deployed,
-    tauthor,
-    tcdate,
-    signature,
-    apiVersion,
-  } = item
-  return (
-    <div className="venue-request-row">
-      <a className="request-name" href={`/forum?id=${forum}`} target="_blank" rel="noreferrer">
-        {abbreviatedName}
-        {apiVersion === 2 && <span className="label label-default">workflow</span>}
-      </a>
-      <div className="request-status">
-        <div className="deploy-label">
-          <span className={`label label-${deployed ? 'success' : 'default'}`}>
-            {deployed ? 'Deployed' : 'Not Deployed'}
-          </span>
-        </div>
-        <div className="comment-label">
-          <span
-            className={`label label-${unrepliedPcComments.length ? 'warning' : 'success'}`}
-          >
-            {unrepliedPcComments.length > 0 ? (
-              <a
-                href={`/forum?id=${forum}&noteId=${unrepliedPcComments[0].id}`}
-                target="_blank"
-                rel="noreferrer"
-                title={`
-${dayjs(unrepliedPcComments[0].tcdate).fromNow()}
-${apiVersion === 2 ? unrepliedPcComments[0].content?.comment?.value : unrepliedPcComments[0].content?.comment}`}
-              >
-                {`${inflect(unrepliedPcComments.length, 'comment', 'comments', true)}`}
-              </a>
-            ) : (
-              'no comment'
-            )}
-          </span>
-        </div>
-        <div className="tcdate-label">{dayjs(tcdate).fromNow()}</div>
-      </div>
-      {apiVersion === 2 ? (
-        <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
-          {prettyId(signature)}
-        </a>
-      ) : (
-        <a href={`/profile?email=${tauthor}`} target="_blank" rel="noreferrer">
-          {prettyId(tauthor)}
-        </a>
-      )}
-    </div>
-  )
-}
 
 export default function VenueRequestTab() {
   const [venueRequestNotes, setVenueRequestNotes] = useState(null)
@@ -108,10 +51,10 @@ export default function VenueRequestTab() {
       const notes = notesResult?.notes?.filter(
         (p) =>
           !p.parentInvitations &&
-          (p.apiVersion === 2 ? !p.content?.venue_id?.value : !p.content?.venue_id)
+          (p.apiVersion === 2 ? p.content?.venue_id?.value : p.content?.venue_id)
       )
 
-      const allVenueRequests = notes?.map((p) => ({
+      const deployedVenueRequests = notes?.map((p) => ({
         id: p.id,
         forum: p.forum,
         tcdate: p.tcdate,
@@ -135,15 +78,22 @@ export default function VenueRequestTab() {
           ),
           (s) => -s.cdate
         ),
+        latestComment: sortBy(
+          p.details?.replies?.filter((q) =>
+            p.apiVersion === 2
+              ? q.invitations.find((r) => r.endsWith('Comment'))
+              : q.invitation.endsWith('Comment')
+          ),
+          (s) => -s.cdate
+        )?.[0],
         tauthor: p.tauthor,
         signature: p.signatures?.[0],
         apiVersion: p.apiVersion,
       }))
-
       setVenueRequestNotes(
         orderBy(
-          allVenueRequests,
-          [(p) => p.unrepliedPcComments.length, 'tcdate'],
+          deployedVenueRequests,
+          [(p) => (p.latestComment ? 1 : 0), (p) => p.latestComment?.cdate ?? 0],
           ['desc', 'desc']
         )
       )
@@ -157,6 +107,5 @@ export default function VenueRequestTab() {
   }, [])
 
   if (!venueRequestNotes) return <LoadingSpinner inline />
-
-  return <VenueRequestList newRequestNotes={venueRequestNotes} />
+  return <VenuesList venueRequestNotes={venueRequestNotes} />
 }
