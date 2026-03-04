@@ -71,8 +71,6 @@ export default function VenueRequestTab() {
           ),
           (s) => -s.cdate
         )?.[0],
-        tauthor: p.tauthor,
-        signature: p.signatures?.[0],
         apiVersion: p.apiVersion,
         state: p.apiVersion === 2 ? p.content.state?.value : p.content?.state,
       }))

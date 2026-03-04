@@ -16,22 +16,14 @@ const VenuesList = ({ venueRequestNotes }) => {
 
   return (
     <>
-      <Flex vertical gap="small" style={{ marginBottom: '1.5rem' }}>
+      <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '400px' }}>
         {venueRequestNotesToDisplay.map((venueRequestNote) => {
-          const {
-            forum,
-            tcdate,
-            abbreviatedName,
-            latestComment,
-            tauthor,
-            signature,
-            apiVersion,
-            state,
-          } = venueRequestNote
+          const { forum, tcdate, abbreviatedName, latestComment, apiVersion, state } =
+            venueRequestNote
 
           return (
             <Row key={forum} align="middle" gutter={[15, 15]} className="venue-request-row">
-              <Col xs={10} md={10} lg={9}>
+              <Col xs={24} md={10} lg={9}>
                 <a
                   className="request-name"
                   href={`/forum?id=${forum}`}
@@ -42,7 +34,7 @@ const VenuesList = ({ venueRequestNotes }) => {
                   {apiVersion === 2 && <Tag>workflow</Tag>}
                 </a>
               </Col>
-              <Col xs={14} md={9} lg={10}>
+              <Col xs={24} md={9} lg={10}>
                 {latestComment ? (
                   <Space>
                     <Popover

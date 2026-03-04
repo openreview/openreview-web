@@ -19,7 +19,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
 
   return (
     <>
-      <Flex vertical gap="small" style={{ marginBottom: '1.5rem' }}>
+      <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '400px' }}>
         {newRequestNotesToDisplay.map((newRequest) => {
           const {
             forum,
@@ -32,7 +32,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
           } = newRequest
           return (
             <Row key={forum} align="middle" gutter={[15, 15]} className="venue-request-row">
-              <Col xs={10} md={10} lg={9}>
+              <Col xs={24} md={10} lg={9}>
                 <a
                   className="request-name"
                   href={`/forum?id=${forum}`}
@@ -44,7 +44,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
                 </a>
               </Col>
 
-              <Col xs={14} md={9} lg={10}>
+              <Col xs={24} md={9} lg={10}>
                 <Space>
                   {latestComment ? (
                     <Popover
