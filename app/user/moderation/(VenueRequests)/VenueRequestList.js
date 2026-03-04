@@ -26,7 +26,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
             abbreviatedName,
             latestComment,
             tauthor,
-            tcdate,
+            cdate,
             signature,
             apiVersion,
           } = newRequest
@@ -71,7 +71,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
                           </a>
                         </Space>
                       }
-                      title={`Posted ${dayjs(latestComment.tcdate).fromNow()}`}
+                      title={`Posted ${dayjs(latestComment.cdate).fromNow()}`}
                     >
                       <Tag color="warning" variant="solid">
                         {prettyId(latestComment.signatures[0])}
@@ -82,7 +82,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
                       No comment
                     </Tag>
                   )}
-                  Created{dayjs(tcdate).fromNow()}
+                  Created{dayjs(cdate).fromNow()}
                 </Space>
               </Col>
 

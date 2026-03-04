@@ -18,7 +18,7 @@ const VenuesList = ({ venueRequestNotes }) => {
     <>
       <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '400px' }}>
         {venueRequestNotesToDisplay.map((venueRequestNote) => {
-          const { forum, tcdate, abbreviatedName, latestComment, apiVersion, state } =
+          const { forum, cdate, abbreviatedName, latestComment, apiVersion, state } =
             venueRequestNote
 
           return (
@@ -60,7 +60,7 @@ const VenuesList = ({ venueRequestNotes }) => {
                           </a>
                         </Space>
                       }
-                      title={`Posted ${dayjs(latestComment.tcdate).fromNow()}`}
+                      title={`Posted ${dayjs(latestComment.cdate).fromNow()}`}
                     >
                       <Tag color="warning" variant="solid">
                         {prettyId(latestComment.signatures[0])}
@@ -70,7 +70,7 @@ const VenuesList = ({ venueRequestNotes }) => {
                     {dayjs(latestComment.cdate).fromNow()}
                   </Space>
                 ) : (
-                  <>{dayjs(tcdate).fromNow()}</>
+                  <>{dayjs(cdate).fromNow()}</>
                 )}
               </Col>
               <Col xs={24} md={5} lg={5}>
