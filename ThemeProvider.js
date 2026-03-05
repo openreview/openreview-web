@@ -18,6 +18,7 @@ const theme = {
       cardBg: '#efece3',
       cardGutter: 5,
       itemColor: primaryColor,
+      itemActiveColor: primaryColor,
       itemSelectedColor: '#555',
       itemHoverColor: 'unset',
     },

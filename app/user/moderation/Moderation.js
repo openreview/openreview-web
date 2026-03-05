@@ -1,11 +1,11 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { Tabs } from 'antd'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import NewVenueRequestCount from './(VenueRequests)/NewVenueRequestCount'
 import UserModerationTab from './UserModerationTab'
+import { AntdTabs } from '../../../components/Tabs'
 
 const EmailDeletionTab = dynamic(() => import('./(EmailDeletion)/EmailDeletionTab'))
 const NameDeletionTab = dynamic(() => import('./(NameDeletion)/NameDeletionTab'))
@@ -52,5 +52,5 @@ export default function Moderation() {
       children: <VenuesTab />,
     },
   ]
-  return <Tabs type="card" items={items} />
+  return <AntdTabs type="card" items={items} />
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Badge } from 'antd'
+import Badge from '../../../../components/Badge'
 import api from '../../../../lib/api-client'
 
 export default function NameDeletionCount({ children }) {

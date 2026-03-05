@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Badge } from 'antd'
 import api from '../../../../lib/api-client'
+import Badge from '../../../../components/Badge'
 
 export default function NewVenueRequestCount({ children }) {
   const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(null)

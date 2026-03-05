@@ -1049,22 +1049,3 @@ header {
     }
   }
 }
-
-// Ant Design overrides
-.ant-tabs-tab-btn {
-  font-weight: bold;
-  color: constants.$mediumBlue;
-
-  .ant-badge {
-    color: inherit;
-  }
-
-  .ant-badge-count {
-    background-color: #777 !important;
-    box-shadow: none;
-  }
-}
-
-.ant-tabs-tab-active .ant-tabs-tab-btn {
-  color: constants.$subtleGray;
-}
