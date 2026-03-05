@@ -15,7 +15,7 @@ export default function NewVenueRequestCount({ children }) {
             select: 'content.venue_id',
           },
           {
-            invitation: `${process.env.SUPER_USER}/Support/Venue_Request.*`,
+            invitation: `${process.env.SUPER_USER}/Support/Venue_Request`,
             select: `parentInvitations,content.venue_id`,
           },
           { includeVersion: true }
