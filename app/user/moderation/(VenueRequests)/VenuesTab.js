@@ -24,7 +24,7 @@ export default function VenuesTab() {
           select: `id,forum,cdate,content.state,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         {
-          invitation: `${process.env.SUPER_USER}/Support/Venue_Request`,
+          invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/Conference_Review_Workflow`,
           sort: 'cdate',
           details: 'replies',
           select: `id,forum,parentInvitations,signatures,cdate,content.state,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
