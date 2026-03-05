@@ -11,6 +11,7 @@ const theme = {
   token: {
     borderRadius: 2,
     colorLink: primaryColor,
+    fontFamily: "'Noto Sans', sans-serif",
   },
   components: {
     Tabs: {
