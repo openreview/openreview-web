@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { Tabs as ATabs } from 'antd'
 import Icon from './Icon'
 
 export function Tabs({ children, className }) {
@@ -58,5 +59,20 @@ export function TabPanel({ id, className, children }) {
     <div id={id} className={`tab-pane fade ${className || ''}`} role="tabpanel">
       {children}
     </div>
+  )
+}
+
+export function AntdTabs({ items }) {
+  return (
+    <ATabs
+      type="card"
+      items={items}
+      styles={{
+        item: {
+          fontWeight: 'bold',
+          color: '#3e6775',
+        },
+      }}
+    />
   )
 }
