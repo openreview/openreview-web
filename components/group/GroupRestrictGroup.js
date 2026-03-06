@@ -45,6 +45,24 @@ const GroupRestrictGroup = ({ group, setIsGroupRestricted }) => {
   return (
     <EditorSection title="Group Emergency Shutdown" className="restrict">
       <div className="container restrict-container">
+        <div className="restrict-instructions">
+          <p>
+            <strong>⚠️ Emergency use only.</strong> Use this if you suspect a misconfiguration
+            is exposing sensitive data (e.g., reviewer identities, confidential submissions,
+            or private notes).
+          </p>
+          <p>When shut down:</p>
+          <ul>
+            <li>All read and write access for non-organizers is immediately suspended</li>
+            <li>Authors, reviewers, and the public cannot access any venue data</li>
+            <li>Venue organizers retain full access to investigate and fix the issue</li>
+          </ul>
+          <p>
+            Access can be restored at any time by typing the group id and clicking{' '}
+            <strong>Lift Emergency Shutdown</strong>. Only use this feature if there is an
+            active data leak or misconfiguration that needs immediate containment.
+          </p>
+        </div>
         <label htmlFor="confirm-group-id">
           Type the group id to{' '}
           {restrictStatus === 'restricted'
