@@ -55,7 +55,7 @@ export default function VenuesTab() {
           (s) => -s.cdate
         )?.[0],
         apiVersion: p.apiVersion,
-        state: p.apiVersion === 2 ? p.content.state?.value : p.content?.state,
+        status: p.apiVersion === 2 ? p.content.status?.value : p.content?.status,
       }))
 
       setVenueRequestNotes(
