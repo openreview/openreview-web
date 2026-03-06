@@ -1,4 +1,4 @@
-import { Col, Flex, Pagination, Popover, Row, Space, Tag } from 'antd'
+import { Col, Flex, Pagination, Popover, Row, Space, Tag, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useMemo, useState } from 'react'
@@ -25,7 +25,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
             newRequest
           return (
             <Row key={forum} align="middle" gutter={[15, 15]} className="venue-request-row">
-              <Col xs={24} md={10} lg={9}>
+              <Col xs={24} md={9} lg={9}>
                 <a
                   className="request-name"
                   href={`/forum?id=${forum}`}
@@ -37,7 +37,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
                 </a>
               </Col>
 
-              <Col xs={24} md={9} lg={10}>
+              <Col xs={24} md={9} lg={9}>
                 <Space>
                   {latestComment ? (
                     <Popover
@@ -79,17 +79,19 @@ const VenueRequestList = ({ newRequestNotes }) => {
                 </Space>
               </Col>
 
-              <Col xs={24} md={5} lg={5}>
-                <Tag
-                  style={{
-                    maxWidth: '100%',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                  }}
-                  title={status}
-                >
-                  {status}
-                </Tag>
+              <Col xs={24} md={6} lg={6}>
+                <Tooltip title={status}>
+                  <Tag
+                    style={{
+                      maxWidth: '100%',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                    title={status}
+                  >
+                    {status}
+                  </Tag>
+                </Tooltip>
               </Col>
             </Row>
           )
