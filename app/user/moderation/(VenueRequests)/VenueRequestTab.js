@@ -27,7 +27,7 @@ export default function VenueRequestTab() {
           invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/Conference_Review_Workflow`,
           sort: 'cdate',
           details: 'replies',
-          select: `id,forum,parentInvitations,signatures,cdate,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+          select: `id,forum,parentInvitations,signatures,cdate,content.abbreviated_venue_name,content.venue_id,content.status,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         { includeVersion: true }
       )

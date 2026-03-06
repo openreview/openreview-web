@@ -18,7 +18,7 @@ const VenuesList = ({ venueRequestNotes }) => {
     <>
       <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '400px' }}>
         {venueRequestNotesToDisplay.map((venueRequestNote) => {
-          const { forum, cdate, abbreviatedName, latestComment, apiVersion, state } =
+          const { forum, cdate, abbreviatedName, latestComment, apiVersion, status } =
             venueRequestNote
 
           return (
@@ -80,9 +80,9 @@ const VenuesList = ({ venueRequestNotes }) => {
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                   }}
-                  title={state}
+                  title={status}
                 >
-                  {state}
+                  {status}
                 </Tag>
               </Col>
             </Row>
