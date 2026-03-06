@@ -57,9 +57,8 @@ export default function VenueRequestTab() {
           ),
           (s) => -s.cdate
         )?.[0],
-        tauthor: p.tauthor,
-        signature: p.signatures?.[0],
         apiVersion: p.apiVersion,
+        status: p.apiVersion === 2 ? p.content.status?.value : p.content?.status,
       }))
 
       setVenueRequestNotes(orderBy(allVenueRequests, ['cdate'], ['desc']))
