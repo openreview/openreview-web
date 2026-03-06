@@ -6,11 +6,11 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import { orderBy, sortBy } from 'lodash'
 import api from '../../../../lib/api-client'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
-import VenueRequestList from './VenueRequestList'
+import VenuesList from './VenuesList'
 
 dayjs.extend(relativeTime)
 
-export default function VenueRequestTab() {
+export default function VenuesTab() {
   const [venueRequestNotes, setVenueRequestNotes] = useState(null)
 
   const loadRequestNotes = async () => {
@@ -21,13 +21,13 @@ export default function VenueRequestTab() {
           invitation: `${process.env.SUPER_USER}/Support/-/Request_Form`,
           sort: 'cdate',
           details: 'replies',
-          select: `id,forum,cdate,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+          select: `id,forum,cdate,content.state,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         {
           invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/Conference_Review_Workflow`,
           sort: 'cdate',
           details: 'replies',
-          select: `id,forum,parentInvitations,signatures,cdate,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+          select: `id,forum,parentInvitations,signatures,cdate,content.state,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         { includeVersion: true }
       )
@@ -35,10 +35,10 @@ export default function VenueRequestTab() {
       const notes = notesResult?.notes?.filter(
         (p) =>
           !p.parentInvitations &&
-          (p.apiVersion === 2 ? !p.content?.venue_id?.value : !p.content?.venue_id)
+          (p.apiVersion === 2 ? p.content?.venue_id?.value : p.content?.venue_id)
       )
 
-      const allVenueRequests = notes?.map((p) => ({
+      const deployedVenueRequests = notes?.map((p) => ({
         id: p.id,
         forum: p.forum,
         cdate: p.cdate,
@@ -46,9 +46,6 @@ export default function VenueRequestTab() {
           p.apiVersion === 2
             ? p.content.abbreviated_venue_name?.value
             : p.content?.['Abbreviated Venue Name'],
-        hasOfficialReply: p.details?.replies?.find((q) =>
-          q.signatures.includes(`${process.env.SUPER_USER}/Support`)
-        ),
         latestComment: sortBy(
           p.details?.replies?.filter((q) =>
             p.apiVersion === 2
@@ -61,7 +58,13 @@ export default function VenueRequestTab() {
         status: p.apiVersion === 2 ? p.content.status?.value : p.content?.status,
       }))
 
-      setVenueRequestNotes(orderBy(allVenueRequests, ['cdate'], ['desc']))
+      setVenueRequestNotes(
+        orderBy(
+          deployedVenueRequests,
+          [(p) => (p.latestComment ? 0 : 1), (p) => p.latestComment?.cdate ?? p.cdate],
+          ['desc', 'desc']
+        )
+      )
     } catch (error) {
       promptError(error.message)
     }
@@ -72,6 +75,5 @@ export default function VenueRequestTab() {
   }, [])
 
   if (!venueRequestNotes) return <LoadingSpinner inline />
-
-  return <VenueRequestList newRequestNotes={venueRequestNotes} />
+  return <VenuesList venueRequestNotes={venueRequestNotes} />
 }

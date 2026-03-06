@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
+import Badge from '../../../../components/Badge'
 import api from '../../../../lib/api-client'
 
-export default function NameDeletionCount() {
+export default function NameDeletionCount({ children }) {
   const [nameDeletionRequestCount, setNameDeletionRequestCount] = useState(null)
 
   const getNameDeletionCount = async () => {
@@ -21,6 +22,9 @@ export default function NameDeletionCount() {
     getNameDeletionCount()
   }, [])
 
-  if (!nameDeletionRequestCount) return null
-  return <span className="badge">{nameDeletionRequestCount}</span>
+  return (
+    <Badge count={nameDeletionRequestCount} size="small" offset={[0, -5]}>
+      {children}
+    </Badge>
+  )
 }
