@@ -15,6 +15,7 @@ import legacyStyles from './LegacyForum.module.scss'
 import LegacyForum from '../../components/forum/LegacyForum'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import ArxivForum from './ArxivForum'
+import ClientForum from './ClientForum'
 
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
@@ -102,7 +103,7 @@ const getForumNote = async (
       }
 
       // Redirect to login, unless request is from a Google crawler
-      if (!token && !userAgent.includes('Googlebot')) {
+      if (!token && !userAgent?.includes('Googlebot')) {
         redirectPath = `/login?redirect=/forum?${encodeURIComponent(stringify(query))}`
         return { redirectPath }
       }
@@ -114,12 +115,14 @@ const getForumNote = async (
 // #endregion
 
 export async function generateMetadata({ searchParams }) {
-  const query = await searchParams
   const headersList = await headers()
   const userAgent = headersList.get('user-agent')
-  const remoteIpAddress = headersList.get('x-forwarded-for')
-  const { id, noteId, arxivid, invitationId } = query
+  if (!userAgent?.includes('Googlebot')) return fallbackMetadata
 
+  const query = await searchParams
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
+  const { id, noteId, arxivid, invitationId } = query
   const queryId = id || noteId
   if (!queryId || arxivid) return fallbackMetadata
 
@@ -238,7 +241,11 @@ export default async function page({ searchParams }) {
     return <ArxivForum id={arxivid} />
   }
 
-  const { token, user } = await serverAuth()
+  if (!userAgent?.includes('Googlebot')) {
+    return <ClientForum queryId={queryId} query={query} />
+  }
+
+  const { token } = await serverAuth()
 
   const {
     forumNote,
