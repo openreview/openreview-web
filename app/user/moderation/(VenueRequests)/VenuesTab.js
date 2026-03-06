@@ -21,13 +21,13 @@ export default function VenuesTab() {
           invitation: `${process.env.SUPER_USER}/Support/-/Request_Form`,
           sort: 'cdate',
           details: 'replies',
-          select: `id,forum,cdate,content.state,content['Abbreviated Venue Name'],content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+          select: `id,forum,cdate,content['Abbreviated Venue Name'],content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         {
           invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/Conference_Review_Workflow`,
           sort: 'cdate',
           details: 'replies',
-          select: `id,forum,parentInvitations,signatures,cdate,content.state,content.abbreviated_venue_name,content.venue_id,tauthor,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+          select: `id,forum,parentInvitations,cdate,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         { includeVersion: true }
       )
@@ -55,7 +55,7 @@ export default function VenuesTab() {
           (s) => -s.cdate
         )?.[0],
         apiVersion: p.apiVersion,
-        status: p.apiVersion === 2 ? p.content.status?.value : p.content?.status,
+        status: p.apiVersion === 2 ? p.content.status?.value : undefined,
       }))
 
       setVenueRequestNotes(
