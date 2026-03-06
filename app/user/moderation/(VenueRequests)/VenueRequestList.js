@@ -21,15 +21,8 @@ const VenueRequestList = ({ newRequestNotes }) => {
     <>
       <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '400px' }}>
         {newRequestNotesToDisplay.map((newRequest) => {
-          const {
-            forum,
-            abbreviatedName,
-            latestComment,
-            tauthor,
-            cdate,
-            signature,
-            apiVersion,
-          } = newRequest
+          const { forum, abbreviatedName, latestComment, cdate, apiVersion, status } =
+            newRequest
           return (
             <Row key={forum} align="middle" gutter={[15, 15]} className="venue-request-row">
               <Col xs={24} md={10} lg={9}>
@@ -87,15 +80,16 @@ const VenueRequestList = ({ newRequestNotes }) => {
               </Col>
 
               <Col xs={24} md={5} lg={5}>
-                {apiVersion === 2 ? (
-                  <a href={`/profile?id=${signature}`} target="_blank" rel="noreferrer">
-                    {prettyId(signature)}
-                  </a>
-                ) : (
-                  <a href={`/profile?email=${tauthor}`} target="_blank" rel="noreferrer">
-                    {prettyId(tauthor)}
-                  </a>
-                )}
+                <Tag
+                  style={{
+                    maxWidth: '100%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                  title={status}
+                >
+                  {status}
+                </Tag>
               </Col>
             </Row>
           )
@@ -110,6 +104,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
           setPageNumber(page)
         }}
         hideOnSinglePage
+        showSizeChanger={false}
       />
     </>
   )
