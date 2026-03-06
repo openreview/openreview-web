@@ -562,8 +562,6 @@ export default function Forum({
   }
 
   const renderReplies = () => {
-    if (!orderedReplies) return null
-
     const replies =
       layout === 'chat' || cutoffIndex.current >= orderedReplies.length
         ? orderedReplies
@@ -1020,7 +1018,7 @@ export default function Forum({
         deleteOrRestoreNote={deleteOrRestoreNote}
       />
 
-      {repliesLoaded && orderedReplies.length > 0 && (
+      {repliesLoaded && (
         <div className="filters-container mt-4">
           {replyForumViews && (
             <FilterTabs
