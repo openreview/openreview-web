@@ -1127,7 +1127,14 @@ const AreaChairConsole = ({ appContext }) => {
           }
         })
         const metaReview = allMetaReviews.find((p) => !p.isByOtherAC)
-
+        if (typeof note.content?.authors?.value === 'object') {
+          // eslint-disable-next-line no-param-reassign
+          note.authorSearchValue = note.content.authors.value.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          }))
+        }
+        
         const customStageReviews = customStageInvitations?.reduce((prev, curr) => {
           const customStageReview = note.details.replies.find((p) =>
             p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))

@@ -105,6 +105,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
             authorIds={content?.authorids}
             signatures={signatures}
             noteReaders={note.readers}
+            showAuthorInstitutions={true}
           />
         </h3>
       </div>

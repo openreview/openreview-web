@@ -5,7 +5,7 @@
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import api from '../../../lib/api-client'
-import { prettyId } from '../../../lib/utils'
+import { getNoteAuthorIds, getNoteAuthors, prettyId } from '../../../lib/utils'
 import Compare from './Compare'
 import styles from './Compare.module.scss'
 import ErrorDisplay from '../../../components/ErrorDisplay'
@@ -108,21 +108,21 @@ function Page() {
       { includeVersion: true }
     )
     if (notes?.length > 0) {
-      return notes.map((publication) => ({
-        forum: publication.forum,
-        title:
-          publication.apiVersion === 1
-            ? publication.content.title
-            : publication.content.title.value,
-        authors:
-          publication.apiVersion === 1
-            ? publication.content.authors
-            : publication.content.authors.value,
-        authorids: (publication.apiVersion === 1
-          ? publication.content.authorids
-          : publication.content.authorids.value
-        ).filter((id) => id),
-      }))
+      return notes.map((publication) => {
+        const authors = getNoteAuthors(publication, publication.apiVersion !== 1)
+        const authorids = getNoteAuthorIds(publication, publication.apiVersion !== 1).filter(
+          (id) => id
+        )
+        return {
+          forum: publication.forum,
+          title:
+            publication.apiVersion === 1
+              ? publication.content.title
+              : publication.content.title.value,
+          authors,
+          authorids,
+        }
+      })
     }
     return []
   }
