@@ -64,6 +64,7 @@
     "react-redux": "^9.1.2",
     "react-select": "^5.8.0",
     "redux": "^5.0.1",
+    "server-only": "^0.0.1",
     "socket.io-client": "^4.8.1",
     "universal-cookie": "^6.1.1"
   },
