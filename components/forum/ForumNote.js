@@ -227,7 +227,12 @@ function ForumTitle({ id, title, pdf, html }) {
 
 function ForumMeta({ note }) {
   const licenseInfo = getLicenseInfo(note.license)
-  const isDBLPPublication = note.invitations?.some((p) => ['DBLP.org/-/Record',`${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`].includes(p))
+  const isDBLPPublication = note.invitations?.some((p) =>
+    [
+      'DBLP.org/-/Record',
+      `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
+    ].includes(p)
+  )
 
   return (
     <div className="forum-meta">

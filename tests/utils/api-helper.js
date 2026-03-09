@@ -131,11 +131,15 @@ export async function createUser({
   activate = true,
 }) {
   // register
-  const { id: tildeId } = await api.post('/register', {
-    email,
-    password,
-    fullname,
-  }, { version: 2 })
+  const { id: tildeId } = await api.post(
+    '/register',
+    {
+      email,
+      password,
+      fullname,
+    },
+    { version: 2 }
+  )
 
   // activate
   const defaultHistory = {
@@ -188,11 +192,14 @@ export async function createProfile(fullname, email, tildeId, superUserToken) {
     readers: [tildeId],
     signatories: [tildeId],
   }
-  await createGroupEdit({
-        invitation: 'openreview.net/-/Edit',
-        signatures: ['~Super_User1'],
-        group: tildeGroupJson,
-      }, superUserToken)
+  await createGroupEdit(
+    {
+      invitation: 'openreview.net/-/Edit',
+      signatures: ['~Super_User1'],
+      group: tildeGroupJson,
+    },
+    superUserToken
+  )
   // post email group
   const emailGroupJson = {
     id: email,
@@ -202,11 +209,14 @@ export async function createProfile(fullname, email, tildeId, superUserToken) {
     readers: [email],
     signatories: [email],
   }
-  await createGroupEdit({
-        invitation: 'openreview.net/-/Edit',
-        signatures: ['~Super_User1'],
-        group: emailGroupJson,
-      }, superUserToken)
+  await createGroupEdit(
+    {
+      invitation: 'openreview.net/-/Edit',
+      signatures: ['~Super_User1'],
+      group: emailGroupJson,
+    },
+    superUserToken
+  )
   // post profile
   const profileJson = {
     id: tildeId,
@@ -250,11 +260,14 @@ export async function createEmptyProfile(fullname, tildeId, superUserToken) {
     readers: [tildeId],
     signatories: [tildeId],
   }
-  await createGroupEdit({
-        invitation: 'openreview.net/-/Edit',
-        signatures: ['~Super_User1'],
-        group: tildeGroupJson,
-      }, superUserToken)
+  await createGroupEdit(
+    {
+      invitation: 'openreview.net/-/Edit',
+      signatures: ['~Super_User1'],
+      group: tildeGroupJson,
+    },
+    superUserToken
+  )
   // post profile
   const profileJson = {
     id: tildeId,
@@ -316,7 +329,9 @@ export function getNoteEdits(params, token) {
 }
 
 export function getProcessLogs(id, token) {
-  return api.get('/logs/process', { id }, { accessToken: token, version: 2 }).then((result) => result.logs)
+  return api
+    .get('/logs/process', { id }, { accessToken: token, version: 2 })
+    .then((result) => result.logs)
 }
 
 export function getJobsStatus(token) {

@@ -15,8 +15,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
 })
 
 // eslint-disable-next-line no-unused-expressions
-fixture`Messages`
-  .page`http://localhost:${process.env.NEXT_PORT}/messages`
+fixture`Messages`.page`http://localhost:${process.env.NEXT_PORT}/messages`
 
 test('guest user should be redirected to login page', async (t) => {
   const getPageUrl = ClientFunction(() => window.location.href.toString())
@@ -38,9 +37,8 @@ test('guest user should be redirected to login page', async (t) => {
 test('logged user should be able to filter messages', async (t) => {
   await t
     .useRole(testUserRole)
-    .navigateTo(
-      `http://localhost:${process.env.NEXT_PORT}/messages`
-    )
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/messages`)
     .typeText(Selector('input#to-search-input'), 'test@mail.com')
-    .expect(Selector('table.messages-table tr').count).eql(2)
+    .expect(Selector('table.messages-table tr').count)
+    .eql(2)
 })

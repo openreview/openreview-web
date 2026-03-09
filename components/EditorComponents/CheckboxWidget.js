@@ -131,7 +131,7 @@ const CheckboxWidget = ({
               checked={
                 isArrayType
                   ? // eslint-disable-next-line eqeqeq
-                    value?.find((p) => p == option.value) ?? false
+                    (value?.find((p) => p == option.value) ?? false)
                   : // eslint-disable-next-line eqeqeq
                     value == option.value
               }

@@ -111,33 +111,35 @@ const ForumAuthors = ({ authors, authorIds, signatures, original }) => (
 
 const ForumMeta = ({ note }) => {
   const isdblpPublication = note.invitation === 'dblp.org/-/record'
-  return <div className="meta_row">
-    <span className="date item">
-      {forumDate(
-        note.cdate,
-        note.tcdatem,
-        note.mdate,
-        note.tmdate,
-        note.content.year,
-        note.pdate,
-        false,
-        false,
-        isdblpPublication
-      )}
-    </span>
-
-    {note.content.venue ? (
-      <span className="item">{note.content.venue}</span>
-    ) : (
-      <span className="item">{prettyId(note.invitation)}</span>
-    )}
-
-    {note.readers && (
-      <span className="item">
-        Readers: <NoteReaders readers={note.readers} />
+  return (
+    <div className="meta_row">
+      <span className="date item">
+        {forumDate(
+          note.cdate,
+          note.tcdatem,
+          note.mdate,
+          note.tmdate,
+          note.content.year,
+          note.pdate,
+          false,
+          false,
+          isdblpPublication
+        )}
       </span>
-    )}
-  </div>
+
+      {note.content.venue ? (
+        <span className="item">{note.content.venue}</span>
+      ) : (
+        <span className="item">{prettyId(note.invitation)}</span>
+      )}
+
+      {note.readers && (
+        <span className="item">
+          Readers: <NoteReaders readers={note.readers} />
+        </span>
+      )}
+    </div>
+  )
 }
 
 const ForumReplyCount = ({ count }) => (
