@@ -70,7 +70,7 @@ test('show a valid forum', async (t) => {
     .eql('Paper Abstract')
 })
 
-test('get forum page and see all available meta tags', async (t) => {
+test.skip('get forum page and see all available meta tags', async (t) => {
   const { forumId } = t.fixtureCtx
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)

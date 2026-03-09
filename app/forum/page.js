@@ -17,7 +17,7 @@ import ErrorDisplay from '../../components/ErrorDisplay'
 import ArxivForum from './ArxivForum'
 import ClientForum from './ClientForum'
 
-const enableClientForum = false
+const enableClientForum = true
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
 // #region data fetching
