@@ -11,6 +11,7 @@ const container = Selector('.forum-container')
 const confirmDeleteModal = Selector('#confirm-delete-modal')
 
 class GoogleBotUAHook extends RequestHook {
+  // eslint-disable-next-line class-methods-use-this
   onRequest(e: { requestOptions: { headers: { [x: string]: string } } }) {
     e.requestOptions.headers['user-agent'] = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z Safari/537.36'
   }
