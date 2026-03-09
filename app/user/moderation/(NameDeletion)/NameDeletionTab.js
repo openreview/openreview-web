@@ -151,7 +151,7 @@ export default function NameDeletionTab() {
             let processLogStatus = 'N/A'
             if (p.content.status.value !== 'Pending')
               processLogStatus =
-                processLogs.find((q) => q.id === decisionEdit.id)?.status ?? 'running'
+                processLogs.find((q) => q.id === decisionEdit?.id)?.status ?? 'running'
             return {
               ...p,
               processLogStatus,

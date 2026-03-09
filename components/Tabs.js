@@ -1,5 +1,13 @@
 import { useEffect, useRef } from 'react'
+import { Tabs as ATabs } from 'antd'
 import Icon from './Icon'
+
+const ORStyles = {
+  tab: {
+    fontWeight: 'bold',
+    color: '#3e6775',
+  },
+}
 
 export function Tabs({ children, className }) {
   return <div className={`tabs-container ${className || ''}`}>{children}</div>
@@ -59,4 +67,8 @@ export function TabPanel({ id, className, children }) {
       {children}
     </div>
   )
+}
+
+export function AntdTabs({ items, ...props }) {
+  return <ATabs {...props} items={items} styles={ORStyles} />
 }
