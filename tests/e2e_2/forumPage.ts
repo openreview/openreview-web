@@ -70,6 +70,83 @@ test('show a valid forum', async (t) => {
     .eql('Paper Abstract')
 })
 
+test('get forum page and see all available meta tags', async (t) => {
+  const { forumId } = t.fixtureCtx
+  await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
+    .expect(
+      Selector('title')
+        .withAttribute('content', 'Paper Title 1').exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'description')
+        .withAttribute('content', 'Paper Abstract').exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'og:title')
+        .withAttribute('content', 'Paper Title 1').exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'og:description')
+        .withAttribute('content', 'Paper Abstract').exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'og:type')
+        .withAttribute('content', 'article').exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'citation_title')
+        .withAttribute('content', 'Paper Title 1').exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'citation_author') // guest can't see author
+        .exists
+    )
+    .notOk()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'citation_online_date')
+        .exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'citation_pdf_url')
+        .exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'citation_abstract')
+        .exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'citation_conference_title')
+        .exists
+    )
+    .ok()
+    .expect(
+      Selector('meta')
+        .withAttribute('name', 'citation_doi')
+        .exists
+    )
+    .notOk()
+})
+
 test('view forum bibtex', async (t) => {
   const { forumId } = t.fixtureCtx
   await t
