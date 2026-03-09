@@ -12,9 +12,10 @@ const confirmDeleteModal = Selector('#confirm-delete-modal')
 
 class GoogleBotUAHook extends RequestHook {
   onRequest(e: { requestOptions: { headers: { [x: string]: string } } }) {
-    e.requestOptions.headers['user-agent'] = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z Safari/537.36';
+    e.requestOptions.headers['user-agent'] = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z Safari/537.36'
   }
 
+  // eslint-disable-next-line class-methods-use-this
   onResponse(_e: { response: { statusCode: number } }) {
   }
 }
