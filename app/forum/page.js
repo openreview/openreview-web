@@ -17,6 +17,7 @@ import ErrorDisplay from '../../components/ErrorDisplay'
 import ArxivForum from './ArxivForum'
 import ClientForum from './ClientForum'
 
+const enableClientForum = false
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
 // #region data fetching
@@ -117,7 +118,7 @@ const getForumNote = async (
 export async function generateMetadata({ searchParams }) {
   const headersList = await headers()
   const userAgent = headersList.get('user-agent')
-  if (!userAgent?.includes('Googlebot')) return fallbackMetadata
+  if (enableClientForum && !userAgent?.includes('Googlebot')) return fallbackMetadata
 
   const query = await searchParams
   const remoteIpAddress = headersList.get('x-forwarded-for')
@@ -143,10 +144,10 @@ export async function generateMetadata({ searchParams }) {
     const content =
       version === 2
         ? Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-            // eslint-disable-next-line no-param-reassign
-            translatedContent[key] = forumNote.content[key].value
-            return translatedContent
-          }, {})
+          // eslint-disable-next-line no-param-reassign
+          translatedContent[key] = forumNote.content[key].value
+          return translatedContent
+        }, {})
         : forumNote.content
     const noteInvitation = version === 2 ? forumNote.invitations[0] : forumNote.invitation
 
@@ -220,7 +221,7 @@ export async function generateMetadata({ searchParams }) {
     // #endregion
 
     return metaData
-  } catch (error) {
+  } catch {
     return fallbackMetadata
   }
 }
@@ -241,7 +242,7 @@ export default async function page({ searchParams }) {
     return <ArxivForum id={arxivid} />
   }
 
-  if (!userAgent?.includes('Googlebot')) {
+  if (enableClientForum && !userAgent?.includes('Googlebot')) {
     return <ClientForum queryId={queryId} query={query} />
   }
 
@@ -259,10 +260,10 @@ export default async function page({ searchParams }) {
   const content =
     version === 2
       ? Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-          // eslint-disable-next-line no-param-reassign
-          translatedContent[key] = forumNote.content[key].value
-          return translatedContent
-        }, {})
+        // eslint-disable-next-line no-param-reassign
+        translatedContent[key] = forumNote.content[key].value
+        return translatedContent
+      }, {})
       : forumNote.content
   const noteInvitation = version === 2 ? forumNote.invitations[0] : forumNote.invitation
 
