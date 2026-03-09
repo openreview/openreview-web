@@ -84,7 +84,7 @@ const DropdownWidget = () => {
       }))
       setDropdownOptions(options)
       if (!value && defaultValues?.length) {
-        onChange({ fieldName, value: [...new Set([...defaultValues])] })
+        onChange({ fieldName, value: [...new Set(defaultValues)] })
       }
       if (value) {
         onChange({

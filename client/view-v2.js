@@ -1827,7 +1827,7 @@ module.exports = (function () {
       onValidate: null,
       onError: null,
       isEdit: false,
-      ...(options ?? {}),
+      ...options,
     }
     if ($('.note_editor.panel').length) {
       promptError(

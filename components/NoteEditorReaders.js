@@ -111,7 +111,7 @@ export const NewNoteReaders = ({
           defaultValues = fieldDescription?.param?.default ?? []
 
           if (!value && defaultValues?.length) {
-            onChange([...new Set([...defaultValues])])
+            onChange([...new Set(defaultValues)])
           }
           setReaderOptions(options)
       }
