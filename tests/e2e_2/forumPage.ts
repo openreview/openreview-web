@@ -1,4 +1,4 @@
-import { Selector, Role } from 'testcafe'
+import { Selector, Role, RequestHook } from 'testcafe'
 import { getToken, getNotes, superUserName, strongPassword } from '../utils/api-helper'
 
 const titleLabel = Selector('.forum-title h2')
@@ -9,6 +9,17 @@ const passwordInput = Selector('#password-input')
 const loginButton = Selector('button').withText('Login to OpenReview')
 const container = Selector('.forum-container')
 const confirmDeleteModal = Selector('#confirm-delete-modal')
+
+class GoogleBotUAHook extends RequestHook {
+  onRequest(e: { requestOptions: { headers: { [x: string]: string } } }) {
+    e.requestOptions.headers['user-agent'] = 'Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; Googlebot/2.1; +http://www.google.com/bot.html) Chrome/W.X.Y.Z Safari/537.36';
+  }
+
+  onResponse(_e: { response: { statusCode: number } }) {
+  }
+}
+
+const googlebotUAHookInstance = new GoogleBotUAHook()
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
@@ -70,15 +81,26 @@ test('show a valid forum', async (t) => {
     .eql('Paper Abstract')
 })
 
-test.skip('get forum page and see all available meta tags', async (t) => {
+test('show fallback meta for non-google bots', async (t) => {
   const { forumId } = t.fixtureCtx
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
+    .expect(Selector('title').innerText)
+    .eql('Forum | OpenReview')
     .expect(
-      Selector('title')
+      Selector('meta')
+        .withAttribute('property', 'og:title')
         .withAttribute('content', 'Paper Title 1').exists
     )
-    .ok()
+    .notOk()
+})
+
+test.requestHooks(googlebotUAHookInstance)('get forum page and see all available meta tags for googlebot', async (t) => {
+  const { forumId } = t.fixtureCtx
+  await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
+    .expect(Selector('title').innerText)
+    .eql('Paper Title 1 | OpenReview')
     .expect(
       Selector('meta')
         .withAttribute('name', 'description')
@@ -87,19 +109,19 @@ test.skip('get forum page and see all available meta tags', async (t) => {
     .ok()
     .expect(
       Selector('meta')
-        .withAttribute('name', 'og:title')
+        .withAttribute('property', 'og:title')
         .withAttribute('content', 'Paper Title 1').exists
     )
     .ok()
     .expect(
       Selector('meta')
-        .withAttribute('name', 'og:description')
+        .withAttribute('property', 'og:description')
         .withAttribute('content', 'Paper Abstract').exists
     )
     .ok()
     .expect(
       Selector('meta')
-        .withAttribute('name', 'og:type')
+        .withAttribute('property', 'og:type')
         .withAttribute('content', 'article').exists
     )
     .ok()
