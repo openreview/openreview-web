@@ -147,6 +147,7 @@ export const CreatableDropdown = (props) => {
 
 export default function Dropdown(props) {
   const customTheme = createCustomTheme(props.height)
+  const [isClientRendering, setIsClientRendering] = useState(false)
   const defaultFilterOption = {
     ignoreCase: true,
     ignoreAccents: true,
@@ -155,6 +156,13 @@ export default function Dropdown(props) {
     trim: true,
   }
   const filterOption = createFilter(props.filterOption ?? defaultFilterOption)
+
+  useEffect(() => {
+    setIsClientRendering(true)
+  }, [])
+
+  if (!isClientRendering)
+    return <LoadingSpinner inline text={null} extraClass="spinner-small" />
 
   if (props.hideArrow) {
     // eslint-disable-next-line no-param-reassign
