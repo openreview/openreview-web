@@ -66,17 +66,15 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
   const maxNumberofPublicationsToImport = 500
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
-    const existingPubsInAllDblpPubs = allDblpPubs.filter(
-      (dblpPub) =>
-        publicationsInOpenReview.current.find(
-          (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
-        )
+    const existingPubsInAllDblpPubs = allDblpPubs.filter((dblpPub) =>
+      publicationsInOpenReview.current.find(
+        (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
+      )
     )
-    const associatedWithOtherProfilesPubsInAllDblpPubs = allDblpPubs.filter(
-      (dblpPub) =>
-        publicationsImportedByOtherProfiles.current.find(
-          (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
-        )
+    const associatedWithOtherProfilesPubsInAllDblpPubs = allDblpPubs.filter((dblpPub) =>
+      publicationsImportedByOtherProfiles.current.find(
+        (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
+      )
     )
     return {
       numExisting: existingPubsInAllDblpPubs.length,

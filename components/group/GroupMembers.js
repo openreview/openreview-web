@@ -146,10 +146,7 @@ const GroupMembers = ({
     isDeleted: false,
     isSelected: false,
   }))
-  const [groupMembers, setGroupMembers] = useReducer(
-    groupMemberReducer,
-    defaultGroupMembers
-  )
+  const [groupMembers, setGroupMembers] = useReducer(groupMemberReducer, defaultGroupMembers)
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
 
   const { user } = useUser()

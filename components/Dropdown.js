@@ -58,13 +58,7 @@ export const NoteEditorReadersDropdown = ({
 const CustomOption = ({ children, ...props }) => {
   const { onMouseMove, onMouseOver, ...rest } = props.innerProps
   const newProps = { ...props, innerProps: rest }
-  return (
-    <components.Option
-      {...newProps}
-    >
-      {children}
-    </components.Option>
-  )
+  return <components.Option {...newProps}>{children}</components.Option>
 }
 
 const CustomMenuList = ({ children }) => (

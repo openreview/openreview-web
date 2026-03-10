@@ -492,8 +492,7 @@ const PaperStatusMenuBar = ({
   ]
 
   const basicSearchFunction = (row, term) =>
-    row.note.number == term ||
-    row.note.content?.title?.value?.toLowerCase()?.includes(term)
+    row.note.number == term || row.note.content?.title?.value?.toLowerCase()?.includes(term)
   return (
     <BaseMenuBar
       tableRowsAll={tableRowsAllWithFilterProperties}

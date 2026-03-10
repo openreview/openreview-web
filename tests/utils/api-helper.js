@@ -1,4 +1,3 @@
-
 import fetch from 'node-fetch-cjs'
 import { loadEnvConfig } from '@next/env'
 import api from '../../lib/api-client'

@@ -1,4 +1,3 @@
-
 import { prettyId } from '../../lib/utils'
 
 export default function EdgeBrowserHeader({ invitation }) {

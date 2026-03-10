@@ -111,10 +111,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                     .then((batchResult) => batchResult.notes)
                 )
               ).then((allBatchResults) =>
-                allBatchResults.flat()?.filter(
-                  (note) =>
-                    (filterFunction && Function('note', filterFunction)(note)) ?? true
-                )
+                allBatchResults
+                  .flat()
+                  ?.filter(
+                    (note) =>
+                      (filterFunction && Function('note', filterFunction)(note)) ?? true
+                  )
               )
             })
         : Promise.resolve([])

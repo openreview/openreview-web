@@ -227,7 +227,7 @@ export default function InstitutionTab() {
                     }}
                   />
                 </span>
-                <th key="empty" scope="col" style={{ width: '8%' }}></th>
+                <th key="empty" scope="col" style={{ width: '8%' }} />
                 <th key="country" scope="col" style={{ width: '20%' }}>
                   Country/Region
                 </th>
@@ -237,7 +237,7 @@ export default function InstitutionTab() {
                 <th key="webpages" scope="col" style={{ width: '50%' }}>
                   Webpages
                 </th>
-                <span className="col-actions"></span>
+                <span className="col-actions" />
                 <span className="col-country">
                   <Dropdown
                     options={countryOptions}

@@ -5,9 +5,9 @@
   "scripts": {
     "dev": "next dev --port $NEXT_PORT",
     "prod": "npm run build && next start --port $NEXT_PORT",
-    "lint": "oxlint",
-    "lint:fix": "oxlint --fix",
-    "build": "oxlint && next build",
+    "lint": "oxlint --report-unused-disable-directives",
+    "lint:fix": "oxlint --fix --report-unused-disable-directives",
+    "build": "oxlint --report-unused-disable-directives && next build",
     "start": "next start --port $NEXT_PORT",
     "unit-test": "jest",
     "test": "testcafe firefox tests/setup --concurrency 4 && (testcafe firefox:headless tests/e2e_1 & testcafe firefox:headless tests/e2e_2 & testcafe firefox:headless tests/e2e_3)",

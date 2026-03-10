@@ -3,12 +3,10 @@
     "builtin": true
   },
   "ignorePatterns": ["client/templates.js", "unitTests"],
+  "plugins": ["react"],
   "rules": {
-    "no-unused-vars": "off",
-    "no-console": "error",
     "consistent-return": "warn",
-    "semi": ["error", "never"],
-    "prefer-destructuring": ["warn", { "object": true, "array": false }],
+    "eqeqeq": "warn",
     "max-len": [
       "error",
       {
@@ -17,6 +15,18 @@
         "ignoreTemplateLiterals": true,
         "ignoreRegExpLiterals": true
       }
-    ]
+    ],
+    "no-console": "error",
+    "no-else-return": "warn",
+    "no-nested-ternary": "warn",
+    "no-param-reassign": "warn",
+    "no-shadow": "warn",
+    "no-unused-expressions": "warn",
+    "no-unused-vars": "warn",
+    "no-var": "warn",
+    "prefer-destructuring": ["warn", { "object": true, "array": false }],
+    "semi": ["error", "never"],
+    "react/rules-of-hooks": "error",
+    "react/self-closing-comp": "error"
   }
 }
