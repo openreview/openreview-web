@@ -11,7 +11,7 @@ export default async function NavUserLinks() {
     return (
       <ul className="nav navbar-nav navbar-right">
         <li id="user-menu">
-          <Link href="/login">Login</Link>
+          <a href="/login">Login</a>
         </li>
       </ul>
     )

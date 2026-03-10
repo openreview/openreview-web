@@ -6,11 +6,11 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import { orderBy, sortBy } from 'lodash'
 import api from '../../../../lib/api-client'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
-import VenueRequestList from './VenueRequestList'
+import VenuesList from './VenuesList'
 
 dayjs.extend(relativeTime)
 
-export default function VenueRequestTab() {
+export default function VenuesTab() {
   const [venueRequestNotes, setVenueRequestNotes] = useState(null)
 
   const loadRequestNotes = async () => {
@@ -35,10 +35,10 @@ export default function VenueRequestTab() {
       const notes = notesResult?.notes?.filter(
         (p) =>
           !p.parentInvitations &&
-          (p.apiVersion === 2 ? !p.content?.venue_id?.value : !p.content?.venue_id)
+          (p.apiVersion === 2 ? p.content?.venue_id?.value : p.content?.venue_id)
       )
 
-      const allVenueRequests = notes?.map((p) => ({
+      const deployedVenueRequests = notes?.map((p) => ({
         id: p.id,
         forum: p.forum,
         cdate: p.cdate,
@@ -58,7 +58,13 @@ export default function VenueRequestTab() {
         status: p.apiVersion === 2 ? p.content.status?.value : undefined,
       }))
 
-      setVenueRequestNotes(orderBy(allVenueRequests, ['cdate'], ['desc']))
+      setVenueRequestNotes(
+        orderBy(
+          deployedVenueRequests,
+          [(p) => (p.latestComment ? 0 : 1), (p) => p.latestComment?.cdate ?? p.cdate],
+          ['desc', 'desc']
+        )
+      )
     } catch (error) {
       promptError(error.message)
     }
@@ -69,6 +75,5 @@ export default function VenueRequestTab() {
   }, [])
 
   if (!venueRequestNotes) return <LoadingSpinner inline />
-
-  return <VenueRequestList newRequestNotes={venueRequestNotes} />
+  return <VenuesList venueRequestNotes={venueRequestNotes} />
 }
