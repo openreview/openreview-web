@@ -3,7 +3,7 @@ import { Tabs as ATabs } from 'antd'
 import Icon from './Icon'
 
 const ORStyles = {
-  tab: {
+  item: {
     fontWeight: 'bold',
     color: '#3e6775',
   },
