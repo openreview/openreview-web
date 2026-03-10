@@ -158,7 +158,7 @@ const ChatReply = ({
         try {
           MathJax.typesetPromise()
         } catch (error) {
-          // eslint-disable-next-line no-console
+          // oxlint-disable-next-line no-console
           console.warn('Could not format math notation')
         }
       }, 0)

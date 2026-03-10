@@ -1,4 +1,3 @@
-/* eslint-disable global-require */
 
 'use client'
 
@@ -58,13 +57,11 @@ export default function AppInit() {
 
     window.typesetMathJax = () => {
       const runTypeset = () => {
-        // eslint-disable-next-line no-undef
         MathJax.startup.promise.then(MathJax.typesetPromise).catch((error) => {
-          // eslint-disable-next-line no-console
+          // oxlint-disable-next-line no-console
           console.warn('Could not typeset TeX content')
         })
       }
-      // eslint-disable-next-line no-undef
       if (window.isMathJaxLoaded && MathJax.startup?.promise) {
         runTypeset()
       } else {
@@ -77,7 +74,7 @@ export default function AppInit() {
             tryCount += 1
             setTimeout(waitForMathJax, 500)
           } else {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn('Could not typeset TeX content')
           }
         }
@@ -88,7 +85,7 @@ export default function AppInit() {
     // Register Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch((error) => {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn('Failed to register service worker: ', error)
       })
     }

@@ -67,14 +67,12 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
     const existingPubsInAllDblpPubs = allDblpPubs.filter(
-      // eslint-disable-next-line max-len
       (dblpPub) =>
         publicationsInOpenReview.current.find(
           (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
         )
     )
     const associatedWithOtherProfilesPubsInAllDblpPubs = allDblpPubs.filter(
-      // eslint-disable-next-line max-len
       (dblpPub) =>
         publicationsImportedByOtherProfiles.current.find(
           (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
@@ -208,7 +206,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
       // replace other format of dblp homepage with persistent url
       if ($('#dblp_url').val() !== dblpUrl) {
-        // eslint-disable-next-line no-unused-expressions
+        // oxlint-disable-next-line no-unused-expressions
         updateDBLPUrl ? updateDBLPUrl(dblpUrl) : $('#dblp_url').val(dblpUrl)
       }
 

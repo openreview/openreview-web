@@ -113,7 +113,6 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               ).then((allBatchResults) =>
                 allBatchResults.flat()?.filter(
                   (note) =>
-                    // eslint-disable-next-line no-new-func
                     (filterFunction && Function('note', filterFunction)(note)) ?? true
                 )
               )

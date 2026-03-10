@@ -63,7 +63,6 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
           </h4>
           <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
-            // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
               className="copy-email-link"
@@ -359,9 +358,7 @@ const ReviewerStatusTab = ({
               userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
             }
           })
-          // eslint-disable-next-line no-param-reassign
           profile.registrationNotes = userRegNotes
-          // eslint-disable-next-line no-param-reassign
           profile.title = formatProfileContent(profile.content).title
 
           usernames.concat(profile.email ?? []).forEach((key) => {
@@ -374,7 +371,7 @@ const ReviewerStatusTab = ({
         const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
         pcConsoleData.paperGroups.reviewerGroups.forEach((reviewerGroup) => {
           reviewerGroup.members.forEach((member) => {
-            const noteNumber = reviewerGroup.noteNumber // eslint-disable-line prefer-destructuring
+            const noteNumber = reviewerGroup.noteNumber // oxlint-disable-line prefer-destructuring
             if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
             const reviewMetaReviewInfo =
               pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}

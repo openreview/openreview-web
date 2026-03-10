@@ -96,7 +96,6 @@ export default function InstitutionTab() {
   }
 
   const deleteInstitution = async (institutionId) => {
-    // eslint-disable-next-line no-alert
     const confirmed = window.confirm(`Are you sure you want to delete ${institutionId}?`)
     if (!confirmed) return
     try {

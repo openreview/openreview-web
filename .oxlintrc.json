@@ -1,0 +1,22 @@
+{
+  "env": {
+    "builtin": true
+  },
+  "ignorePatterns": ["client/templates.js", "unitTests"],
+  "rules": {
+    "no-unused-vars": "off",
+    "no-console": "error",
+    "consistent-return": "warn",
+    "semi": ["error", "never"],
+    "prefer-destructuring": ["warn", { "object": true, "array": false }],
+    "max-len": [
+      "error",
+      {
+        "code": 120,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true
+      }
+    ]
+  }
+}

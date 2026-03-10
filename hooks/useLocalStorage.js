@@ -57,7 +57,7 @@ export default function useLocalStorage(key, initialValue) {
           setLocalStorageItem(key, newValue)
         }
       } catch (e) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(e)
       }
     },

@@ -295,7 +295,7 @@ const AreaChairConsoleMenuBar = ({
   const basicSearchFunction = (row, term) => {
     const noteTitle = row.note.content?.title?.value
     return (
-      row.note.number == term || // eslint-disable-line eqeqeq
+      row.note.number == term ||
       noteTitle.toLowerCase().includes(term)
     )
   }
