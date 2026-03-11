@@ -54,6 +54,9 @@ export default async function NavUserLinks() {
           <li>
             <Link href="/profile">Profile</Link>
           </li>
+          <li>
+            <Link href="/profile/password-security">Password &amp; Security</Link>
+          </li>
           <li className="visible-sm-block">
             <Link href="/notifications" prefetch={false}>
               Notifications
