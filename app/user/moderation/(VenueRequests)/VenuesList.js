@@ -1,4 +1,4 @@
-import { Col, Flex, Pagination, Popover, Row, Space, Tag, Tooltip } from 'antd'
+import { Col, Flex, Input, Pagination, Popover, Row, Space, Tag, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
 import { prettyId } from '../../../../lib/utils'
@@ -8,14 +8,33 @@ const pageSize = 25
 
 const VenuesList = ({ venueRequestNotes }) => {
   const [pageNumber, setPageNumber] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const filteredVenueRequestNotes = useMemo(() => {
+    if (!searchTerm) return venueRequestNotes
+    return venueRequestNotes.filter((note) =>
+      note.abbreviatedName.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [venueRequestNotes, searchTerm])
 
   const venueRequestNotesToDisplay = useMemo(() => {
     const start = (pageNumber - 1) * pageSize
-    return venueRequestNotes.slice(start, start + pageSize)
-  }, [venueRequestNotes, pageNumber])
+    return filteredVenueRequestNotes.slice(start, start + pageSize)
+  }, [filteredVenueRequestNotes, pageNumber])
 
   return (
-    <>
+    <Flex vertical gap="large" >
+      {venueRequestNotes.length > 0 &&
+        <Input
+          placeholder="Search venue"
+          value={searchTerm}
+          allowClear
+          onChange={(e) => {
+            setSearchTerm(e.target.value)
+            setPageNumber(1)
+          }}
+          style={{ width: '100%', maxWidth: '400px' }}
+        />}
       <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '400px' }}>
         {venueRequestNotesToDisplay.map((venueRequestNote) => {
           const { forum, cdate, abbreviatedName, latestComment, apiVersion, status } =
@@ -95,14 +114,14 @@ const VenuesList = ({ venueRequestNotes }) => {
         align="center"
         current={pageNumber}
         pageSize={pageSize}
-        total={venueRequestNotes?.length || 0}
-        onChange={(page, size) => {
+        total={filteredVenueRequestNotes?.length || 0}
+        onChange={(page, _size) => {
           setPageNumber(page)
         }}
         hideOnSinglePage
         showSizeChanger={false}
       />
-    </>
+    </Flex>
   )
 }
 
