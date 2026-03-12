@@ -44,7 +44,6 @@ export default async function page({ searchParams }) {
 
   let profileResult
   try {
-    // eslint-disable-next-line no-nested-ternary
     profileResult = await api.get('/profiles', isProfileOwner ? {} : id ? { id } : { email }, {
       accessToken: token,
       remoteIpAddress,
@@ -82,6 +81,7 @@ export default async function page({ searchParams }) {
         ['desc']
       )
     } catch (error) {
+      // oxlint-disable-next-line no-console
       console.log('Error in page', {
         page: 'Home',
         error,

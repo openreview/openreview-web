@@ -11,6 +11,7 @@ const ErrorDisplay = ({ statusCode, message, withLayout = true }) => {
       window.location.reload()
       window.localStorage.setItem('openreview.lastLogout', Date.now())
     } catch (error) {
+      // oxlint-disable-next-line no-console
       console.log('Error in ErrorDisplay', {
         component: 'ErrorDisplay',
         apiError: error,
