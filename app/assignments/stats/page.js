@@ -53,6 +53,7 @@ export default async function page({ searchParams }) {
     /* empty */
   }
   if (!note) {
+    // oxlint-disable-next-line no-console
     console.log('Error in getNoteById', {
       page: 'assignments/stats',
       user: user?.id,

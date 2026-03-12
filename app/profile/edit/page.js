@@ -27,7 +27,7 @@ export default function Page() {
       invitation = note.invitations[0]
     } else {
       authorIds = note.content.authorids
-      // eslint-disable-next-line prefer-destructuring
+      // oxlint-disable-next-line prefer-destructuring
       invitation = note.invitation
     }
     const invitationMap = {
@@ -91,7 +91,6 @@ export default function Page() {
       : api.post('/notes', updateAuthorIdsObject, { version: 1 })
   }
 
-  // eslint-disable-next-line consistent-return
   const loadProfile = async () => {
     try {
       const { profiles } = await api.get('/profiles')

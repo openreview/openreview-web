@@ -5,7 +5,7 @@ const activeVenues = Selector('#active-venues').filterVisible()
 const openVenues = Selector('#open-venues').filterVisible()
 const allVenues = Selector('#all-venues').filterVisible()
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Home page`.page`http://localhost:${process.env.NEXT_PORT}`
 
 test('show active venues', async (t) => {
@@ -23,11 +23,9 @@ test('show active venues', async (t) => {
     .expect(activeVenues.find('a').withText('ICLR 2021 Conference').exists)
     .ok()
 
-
     // Open for submissions
     .expect(openVenues.find('li').count)
     .eql(1)
-
 
     // All venues
     .expect(allVenues.find('li').count)
