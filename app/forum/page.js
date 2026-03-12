@@ -15,7 +15,9 @@ import legacyStyles from './LegacyForum.module.scss'
 import LegacyForum from '../../components/forum/LegacyForum'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import ArxivForum from './ArxivForum'
+import ClientForum from './ClientForum'
 
+const enableClientForum = true
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
 // #region data fetching
@@ -102,7 +104,7 @@ const getForumNote = async (
       }
 
       // Redirect to login, unless request is from a Google crawler
-      if (!token && !userAgent.includes('Googlebot')) {
+      if (!token && !userAgent?.includes('Googlebot')) {
         redirectPath = `/login?redirect=/forum?${encodeURIComponent(stringify(query))}`
         return { redirectPath }
       }
@@ -114,12 +116,14 @@ const getForumNote = async (
 // #endregion
 
 export async function generateMetadata({ searchParams }) {
-  const query = await searchParams
   const headersList = await headers()
   const userAgent = headersList.get('user-agent')
-  const remoteIpAddress = headersList.get('x-forwarded-for')
-  const { id, noteId, arxivid, invitationId } = query
+  if (enableClientForum && !userAgent?.includes('Googlebot')) return fallbackMetadata
 
+  const query = await searchParams
+  const remoteIpAddress = headersList.get('x-forwarded-for')
+
+  const { id, noteId, arxivid, invitationId } = query
   const queryId = id || noteId
   if (!queryId || arxivid) return fallbackMetadata
 
@@ -140,10 +144,10 @@ export async function generateMetadata({ searchParams }) {
     const content =
       version === 2
         ? Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-            // eslint-disable-next-line no-param-reassign
-            translatedContent[key] = forumNote.content[key].value
-            return translatedContent
-          }, {})
+          // eslint-disable-next-line no-param-reassign
+          translatedContent[key] = forumNote.content[key].value
+          return translatedContent
+        }, {})
         : forumNote.content
     const noteInvitation = version === 2 ? forumNote.invitations[0] : forumNote.invitation
 
@@ -217,7 +221,7 @@ export async function generateMetadata({ searchParams }) {
     // #endregion
 
     return metaData
-  } catch (error) {
+  } catch {
     return fallbackMetadata
   }
 }
@@ -238,7 +242,11 @@ export default async function page({ searchParams }) {
     return <ArxivForum id={arxivid} />
   }
 
-  const { token, user } = await serverAuth()
+  if (enableClientForum && !userAgent?.includes('Googlebot')) {
+    return <ClientForum queryId={queryId} query={query} />
+  }
+
+  const { token } = await serverAuth()
 
   const {
     forumNote,
@@ -252,10 +260,10 @@ export default async function page({ searchParams }) {
   const content =
     version === 2
       ? Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-          // eslint-disable-next-line no-param-reassign
-          translatedContent[key] = forumNote.content[key].value
-          return translatedContent
-        }, {})
+        // eslint-disable-next-line no-param-reassign
+        translatedContent[key] = forumNote.content[key].value
+        return translatedContent
+      }, {})
       : forumNote.content
   const noteInvitation = version === 2 ? forumNote.invitations[0] : forumNote.invitation
 
