@@ -2703,7 +2703,7 @@ module.exports = (function () {
             .replace(/^\./g, '') // journal names start with '.'
             .replace(/\..+/g, '') // remove text after dots, ex: uai.org
             .replace(/^-$/g, '') // remove dashes
-            .replace(/_/g, ' ') // replace undescores with spaces
+            .replace(/_/g, ' ') // replace underscores with spaces
 
           // if the letters in the token are all lowercase, replace it with empty string
           var lettersOnly = token.replace(/\d|\W/g, '')
@@ -2742,7 +2742,7 @@ module.exports = (function () {
         }
         return token
           .replace(/^-$/g, '') // remove dashes
-          .replace(/_/g, ' ') // replace undescores with spaces
+          .replace(/_/g, ' ') // replace underscores with spaces
           .replace(/\.\*/g, '') // remove wildcards
           .replace(/^.*[0-9]$/g, '') // remove tokens ending with a digit
           .trim()
