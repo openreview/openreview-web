@@ -12,7 +12,7 @@ import {
   TOTPCard,
   TOTPDelete,
   TOTPSetup,
-} from '../app/profile/edit/MultiFactorAuthenticationForms'
+} from '../app/profile/password-security/MultiFactorAuthenticationForms'
 import userEvent from '@testing-library/user-event'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
