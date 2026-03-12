@@ -49,7 +49,6 @@ const BasicProfileSummary = ({ profile, profileId }) => {
           </h4>
           <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
-            // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
               className="copy-email-link"
@@ -106,8 +105,8 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
     submissionName,
     preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
-  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
+  const numCompletedReviews = rowData.numCompletedReviews // oxlint-disable-line prefer-destructuring
+  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // oxlint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
 
   const getEmail = async () => {
@@ -147,7 +146,6 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
               </h4>
               <div className="profile-title">{title}</div>
               {preferredEmailInvitationId && (
-                // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
                   className="copy-email-link"

@@ -27,7 +27,6 @@ const ResetPasswordResendConfirmationLinks = ({ email }) => {
     <p className="help-block">
       <Link href="/reset">Forgot your password?</Link>
       <br />
-      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
       <a href="#" onClick={handleResendConfirmation}>
         Didn&apos;t receive email confirmation?
       </a>

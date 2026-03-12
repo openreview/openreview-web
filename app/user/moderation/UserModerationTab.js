@@ -392,7 +392,6 @@ const UserModerationQueue = ({
 
     const actionLabel = actionIsDelete ? 'delete' : 'restore'
     const name = profile.content?.names?.[0]?.fullname ?? 'this profile'
-    // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionLabel} ${name}?\n\n${noteCountMessage}`
     )
@@ -747,7 +746,6 @@ export default function UserModerationTab() {
   }, [])
 
   const enableDisableModeration = async () => {
-    // eslint-disable-next-line no-alert
     const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
     if (!result) return
 
@@ -768,7 +766,6 @@ export default function UserModerationTab() {
 
   const updateTermStamp = async () => {
     const currentTimeStamp = dayjs().valueOf()
-    // eslint-disable-next-line no-alert
     const result = window.confirm(
       `Update terms of service timestamp to ${currentTimeStamp}? (${dayjs(
         currentTimeStamp

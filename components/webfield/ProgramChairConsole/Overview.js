@@ -294,7 +294,7 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
       if (!activeNoteNumbers.includes(reviewerGroup.noteNumber)) return
       reviewerGroup.members.forEach((reviewer) => {
         if (!reviewer.anonymizedGroup) return
-        const reviewerProfileId = reviewer.reviewerProfileId // eslint-disable-line prefer-destructuring
+        const reviewerProfileId = reviewer.reviewerProfileId // oxlint-disable-line prefer-destructuring
         if (reviewerAnonGroupIds[reviewerProfileId]) {
           reviewerAnonGroupIds[reviewerProfileId].push({
             noteNumber: reviewerGroup.noteNumber,
@@ -434,7 +434,7 @@ const MetaReviewStatsRow = ({ pcConsoleData }) => {
     if (!activeNoteNumbers.includes(areaChairGroup.noteNumber)) return
     areaChairGroup.members.forEach((areaChair) => {
       if (!areaChair.anonymizedGroup) return
-      const areaChairProfileId = areaChair.areaChairProfileId // eslint-disable-line prefer-destructuring
+      const areaChairProfileId = areaChair.areaChairProfileId // oxlint-disable-line prefer-destructuring
       if (areaChairAnonGroupIds[areaChairProfileId]) {
         areaChairAnonGroupIds[areaChairProfileId].push({
           noteNumber: areaChairGroup.noteNumber,

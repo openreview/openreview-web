@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
@@ -367,7 +366,7 @@ const ReviewerConsoleTabs = ({
  *
  * @typedef {Object} ReviewerConsoleConfig
  *
- // eslint-disable-next-line max-len
+ // oxlint-disable-next-line max-len
  * @property {Object} header mandatory but can be empty object
  * @property {string} venueId mandatory
  * @property {string} reviewerName mandatory

@@ -153,7 +153,7 @@ export const EmailVerificationForm = ({ mfaPendingToken, completeLogin, setError
         Verify
       </SpinnerButton>
       <span>
-        Didn’t receive the email? {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
+        Didn’t receive the email?
         <a
           role="button"
           onClick={async () => {
