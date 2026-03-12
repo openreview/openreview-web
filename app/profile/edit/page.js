@@ -2,7 +2,6 @@
 
 /* globals promptMessage,promptError: false */
 import { useEffect, useState } from 'react'
-import { marked } from 'marked'
 import { useRouter } from 'next/navigation'
 import ProfileEditor from '../../../components/profile/ProfileEditor'
 import api from '../../../lib/api-client'
@@ -11,8 +10,6 @@ import useUser from '../../../hooks/useUser'
 import LimitedStateAlert from './LimitedStateAlert'
 import styles from './Edit.module.scss'
 import LoadingSpinner from '../../../components/LoadingSpinner'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../../components/Tabs'
-import ProfilePasswordSecurity from './ProfilePasswordSecurity'
 
 export default function Page() {
   const [profile, setProfile] = useState(null)
@@ -30,7 +27,7 @@ export default function Page() {
       invitation = note.invitations[0]
     } else {
       authorIds = note.content.authorids
-      // eslint-disable-next-line prefer-destructuring
+      // oxlint-disable-next-line prefer-destructuring
       invitation = note.invitation
     }
     const invitationMap = {
@@ -68,33 +65,32 @@ export default function Page() {
 
     const updateAuthorIdsObject = isV2Note
       ? {
-          invitation: invitationMap[invitation],
-          signatures: [profileId],
-          note: {
-            id: note.id,
-          },
-          content: {
-            author_index: { value: matchedIdx[0] },
-            author_id: { value: '' },
-          },
-        }
+        invitation: invitationMap[invitation],
+        signatures: [profileId],
+        note: {
+          id: note.id,
+        },
+        content: {
+          author_index: { value: matchedIdx[0] },
+          author_id: { value: '' },
+        },
+      }
       : {
-          id: null,
-          referent: noteId,
-          invitation: invitationMap[invitation],
-          signatures: [profileId],
-          readers: ['everyone'],
-          writers: [],
-          content: {
-            authorids: authorIds,
-          },
-        }
+        id: null,
+        referent: noteId,
+        invitation: invitationMap[invitation],
+        signatures: [profileId],
+        readers: ['everyone'],
+        writers: [],
+        content: {
+          authorids: authorIds,
+        },
+      }
     return isV2Note
       ? api.post('/notes/edits', updateAuthorIdsObject)
       : api.post('/notes', updateAuthorIdsObject, { version: 1 })
   }
 
-  // eslint-disable-next-line consistent-return
   const loadProfile = async () => {
     try {
       const { profiles } = await api.get('/profiles')
@@ -143,7 +139,10 @@ export default function Page() {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!user) router.replace('/login?redirect=/profile/edit')
+    if (!user) {
+      router.replace('/login?redirect=/profile/edit')
+      return
+    }
     loadProfile()
   }, [isRefreshing])
 
@@ -152,32 +151,17 @@ export default function Page() {
   return (
     <div className={styles.edit}>
       <LimitedStateAlert profile={profile} />
-      <Tabs>
-        <TabList>
-          <Tab id="profile-info" active>
-            Profile Info
-          </Tab>
-          <Tab id="password-security">Password and Security</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel id="profile-info">
-            <header>
-              <h1>Edit Profile</h1>
-            </header>
-            <ProfileEditor
-              loadedProfile={profile}
-              submitHandler={saveProfile}
-              cancelHandler={() => router.push('/profile')}
-              loading={loading}
-              saveProfileErrors={saveProfileErrors}
-              loadProfile={loadProfile}
-            />
-          </TabPanel>
-          <TabPanel id="password-security">
-            <ProfilePasswordSecurity profile={profile} />
-          </TabPanel>
-        </TabPanels>
-      </Tabs>
+      <header>
+        <h1>Edit Profile</h1>
+      </header>
+      <ProfileEditor
+        loadedProfile={profile}
+        submitHandler={saveProfile}
+        cancelHandler={() => router.push('/profile')}
+        loading={loading}
+        saveProfileErrors={saveProfileErrors}
+        loadProfile={loadProfile}
+      />
     </div>
   )
 }

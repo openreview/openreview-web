@@ -27,7 +27,6 @@ const BibtexModal = () => {
       cancelButtonText="Done"
       primaryButtonText={null}
     >
-      {/* eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions */}
       <pre
         ref={bibTexContentRef}
         className="bibtex-content"

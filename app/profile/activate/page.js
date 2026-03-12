@@ -77,7 +77,6 @@ export default function Page() {
   return (
     <CommonLayout banner={null}>
       <div className={styles.activate}>
-        <header></header>
         <h1>Complete Registration</h1>
         <h5>
           {' '}

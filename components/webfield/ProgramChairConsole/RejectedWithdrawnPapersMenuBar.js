@@ -57,8 +57,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
   ]
 
   const basicSearchFunction = (row, term) =>
-    row.number == term || // eslint-disable-line eqeqeq
-    row.note.content?.title?.value?.toLowerCase()?.includes(term)
+    row.number == term || row.note.content?.title?.value?.toLowerCase()?.includes(term)
 
   return (
     <BaseMenuBar

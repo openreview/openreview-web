@@ -10,7 +10,7 @@ let onFormChange
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/Form', () => (props) => {
   mockedFormProps(props)
-  // eslint-disable-next-line prefer-destructuring
+  // oxlint-disable-next-line prefer-destructuring
   onFormChange = props.onFormChange
   return 'mocked Form'
 }) // used by widgets editor
@@ -171,7 +171,7 @@ describe('ContentFieldEditor', () => {
         }),
       })
     )
-    // eslint-disable-next-line max-len
+
     expect(Object.keys(mockedFormProps.mock.calls[0][0].fields)).toHaveLength(21) // 21 fields defined for a field (removed hidden)
   })
 

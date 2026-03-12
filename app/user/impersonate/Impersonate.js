@@ -34,7 +34,6 @@ const PreviousImpersonationList = ({
             typeof impersonation === 'string' ? { groupId: impersonation } : impersonation
           return (
             <li key={groupId}>
-              {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
               <a
                 href="#"
                 role="button"
