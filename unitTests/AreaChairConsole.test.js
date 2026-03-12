@@ -432,7 +432,7 @@ describe('AreaChairConsole', () => {
     await waitFor(() => {
       expect(global.marked).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>(senior@ac.1) and <a href="/profile?id=~Senior_AC2" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>(senior@ac.2)'
+          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a> (senior@ac.1) and <a href="/profile?id=~Senior_AC2" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a> (senior@ac.2)'
         )
       )
     })
