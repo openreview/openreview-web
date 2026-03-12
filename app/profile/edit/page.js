@@ -65,27 +65,27 @@ export default function Page() {
 
     const updateAuthorIdsObject = isV2Note
       ? {
-        invitation: invitationMap[invitation],
-        signatures: [profileId],
-        note: {
-          id: note.id,
-        },
-        content: {
-          author_index: { value: matchedIdx[0] },
-          author_id: { value: '' },
-        },
-      }
+          invitation: invitationMap[invitation],
+          signatures: [profileId],
+          note: {
+            id: note.id,
+          },
+          content: {
+            author_index: { value: matchedIdx[0] },
+            author_id: { value: '' },
+          },
+        }
       : {
-        id: null,
-        referent: noteId,
-        invitation: invitationMap[invitation],
-        signatures: [profileId],
-        readers: ['everyone'],
-        writers: [],
-        content: {
-          authorids: authorIds,
-        },
-      }
+          id: null,
+          referent: noteId,
+          invitation: invitationMap[invitation],
+          signatures: [profileId],
+          readers: ['everyone'],
+          writers: [],
+          content: {
+            authorids: authorIds,
+          },
+        }
     return isV2Note
       ? api.post('/notes/edits', updateAuthorIdsObject)
       : api.post('/notes', updateAuthorIdsObject, { version: 1 })

@@ -23,8 +23,8 @@ const VenuesList = ({ venueRequestNotes }) => {
   }, [filteredVenueRequestNotes, pageNumber])
 
   return (
-    <Flex vertical gap="large" >
-      {venueRequestNotes.length > 0 &&
+    <Flex vertical gap="large">
+      {venueRequestNotes.length > 0 && (
         <Input
           placeholder="Search venue"
           value={searchTerm}
@@ -34,7 +34,8 @@ const VenuesList = ({ venueRequestNotes }) => {
             setPageNumber(1)
           }}
           style={{ width: '100%', maxWidth: '400px' }}
-        />}
+        />
+      )}
       <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '400px' }}>
         {venueRequestNotesToDisplay.map((venueRequestNote) => {
           const { forum, cdate, abbreviatedName, latestComment, apiVersion, status } =
