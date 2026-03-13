@@ -263,15 +263,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #region get ac recommendation count
       const getAcRecommendationsP =
         recommendationName && areaChairsId
-          ? api.get(
-              '/edges',
-              {
-                invitation: `${reviewersId}/-/${recommendationName}`,
-                groupBy: 'id',
-                select: 'signatures',
-                domain: venueId,
-              },
-            )
+          ? api.get('/edges', {
+              invitation: `${reviewersId}/-/${recommendationName}`,
+              groupBy: 'id',
+              select: 'signatures',
+              domain: venueId,
+            })
           : Promise.resolve([])
       // #endregion
 
