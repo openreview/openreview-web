@@ -1,8 +1,5 @@
-/* globals promptError: false */
-import React, { useContext, useEffect, useMemo, useState } from 'react'
+import React, { useContext, useMemo } from 'react'
 import Link from 'next/link'
-import useUser from '../../../hooks/useUser'
-import api from '../../../lib/api-client'
 import LoadingSpinner from '../../LoadingSpinner'
 import WebFieldContext from '../../WebFieldContext'
 import {
@@ -100,10 +97,10 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
 const SubmissionsStatsRow = ({ pcConsoleData }) => {
   const submissionByStatus = pcConsoleData.notes
     ? {
-        activeSubmissionsCount: pcConsoleData.notes.length,
-        deskRejectedNotesCount: pcConsoleData.deskRejectedNotesCount,
-        withdrawnNotesCount: pcConsoleData.withdrawnNotesCount,
-      }
+      activeSubmissionsCount: pcConsoleData.notes.length,
+      deskRejectedNotesCount: pcConsoleData.deskRejectedNotesCount,
+      withdrawnNotesCount: pcConsoleData.withdrawnNotesCount,
+    }
     : null
 
   return (
@@ -268,6 +265,164 @@ const BiddingStatsRow = ({
   )
 }
 
+export const ReviewRatingStatsRow = ({ pcConsoleData }) => {
+  const {
+    reviewRatingName,
+    reviewerName = 'Reviewers',
+    submissionName,
+  } = useContext(WebFieldContext)
+  const singularReviewerName = getSingularRoleName(reviewerName)
+  const shouldShowReviewRatingStatsRow =
+    Array.isArray(reviewRatingName) &&
+    reviewRatingName.length > 1 &&
+    reviewRatingName.every((p) => typeof p === 'string')
+
+  const reviewRatingStats = useMemo(() => {
+    const result = {}
+    if (!pcConsoleData.notes || !shouldShowReviewRatingStatsRow) return result
+
+    reviewRatingName.forEach((ratingName) => {
+      result[ratingName] = {
+        allOfficialReviews: 0,
+        reviewersComplete: 0,
+        paperWithMoreThanThresholdReviews: 0,
+      }
+    })
+
+    const allOfficialReviews = [
+      ...(pcConsoleData.officialReviewsByPaperNumberMap?.values() ?? []),
+    ]?.flat()
+
+    reviewRatingName.forEach((ratingName) => {
+      result[ratingName].allOfficialReviews = allOfficialReviews.filter(
+        (review) => review.content?.[ratingName]?.value !== undefined
+      ).length
+    })
+
+    const assignedReviewsCount = pcConsoleData.paperGroups?.reviewerGroups?.reduce(
+      (prev, curr) => prev + curr.members.length,
+      0
+    )
+
+    // map tilde id in reviewerGroup to anon reviewer group id in anonReviewerGroups
+    const reviewerAnonGroupIds = {}
+    const activeNoteNumbers = pcConsoleData.notes.map((note) => note.number)
+    pcConsoleData.paperGroups?.reviewerGroups.forEach((reviewerGroup) => {
+      if (!activeNoteNumbers.includes(reviewerGroup.noteNumber)) return
+      reviewerGroup.members.forEach((reviewer) => {
+        if (!reviewer.anonymizedGroup) return
+        const reviewerProfileId = reviewer.reviewerProfileId // eslint-disable-line prefer-destructuring
+        if (reviewerAnonGroupIds[reviewerProfileId]) {
+          reviewerAnonGroupIds[reviewerProfileId].push({
+            noteNumber: reviewerGroup.noteNumber,
+            anonGroupId: reviewer.anonymizedGroup,
+          })
+        } else {
+          reviewerAnonGroupIds[reviewerProfileId] = [
+            {
+              noteNumber: reviewerGroup.noteNumber,
+              anonGroupId: reviewer.anonymizedGroup,
+            },
+          ]
+        }
+      })
+    })
+
+    // all anon reviewer id group have signed official review
+    reviewRatingName.forEach((ratingName) => {
+      result[ratingName].reviewersComplete = Object.values(reviewerAnonGroupIds ?? {}).filter(
+        (anonReviewerGroups) =>
+          anonReviewerGroups?.every((anonReviewerGroup) => {
+            const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumberMap.get(
+              anonReviewerGroup.noteNumber
+            )
+            return paperOfficialReviews?.find(
+              (p) =>
+                p.signatures[0] === anonReviewerGroup.anonGroupId &&
+                p.content?.[ratingName]?.value !== undefined
+            )
+          })
+      ).length
+    })
+
+    const reviewersWithAssignmentsCount = Object.values(reviewerAnonGroupIds ?? {}).length
+
+    reviewRatingName.forEach((ratingName) => {
+      result[ratingName].paperWithMoreThanThresholdReviews = pcConsoleData.notes?.filter(
+        (note) => {
+          const paperOfficialReviews = pcConsoleData.officialReviewsByPaperNumberMap.get(
+            note.number
+          )
+          const paperReviewers = pcConsoleData.paperGroups?.reviewerGroups?.find(
+            (p) => p.noteNumber === note.number
+          )?.members
+          const completedReviewsCount = paperOfficialReviews?.filter(
+            (p) => p.content?.[ratingName]?.value !== undefined
+          )?.length
+          const assignedReviewersCount = paperReviewers?.length
+          return assignedReviewersCount > 0 && completedReviewsCount >= 3
+        }
+      ).length
+    })
+
+    return {
+      ...result,
+      allOfficialReviews,
+      assignedReviewsCount,
+      reviewersWithAssignmentsCount,
+    }
+  }, [pcConsoleData.notes, shouldShowReviewRatingStatsRow])
+
+  if (!shouldShowReviewRatingStatsRow) return null
+
+  return reviewRatingName.map((ratingName) => {
+    const { allOfficialReviews, reviewersComplete, paperWithMoreThanThresholdReviews } =
+      reviewRatingStats[ratingName] ?? {}
+    return (
+      <>
+        <div className="row">
+          <StatContainer
+            title={`${prettyField(ratingName)} Progress`}
+            hint={`% of all assigned reviews with ${prettyField(ratingName)} that have been submitted`}
+            value={
+              pcConsoleData.notes ? (
+                renderStat(allOfficialReviews, reviewRatingStats.assignedReviewsCount)
+              ) : (
+                <LoadingSpinner inline={true} text={null} />
+              )
+            }
+          />
+          <StatContainer
+            title={`${prettyField(ratingName)} ${prettyField(singularReviewerName)} Progress`}
+            hint={`% of ${prettyField(
+              reviewerName
+            ).toLowerCase()} who have posted all their assigned reviews with ${prettyField(ratingName)}`}
+            value={
+              pcConsoleData.notes ? (
+                renderStat(reviewersComplete, reviewRatingStats.reviewersWithAssignmentsCount)
+              ) : (
+                <LoadingSpinner inline={true} text={null} />
+              )
+            }
+          />
+          <StatContainer
+            title={`${prettyField(ratingName)} ${submissionName} Progress`}
+            hint={`% of papers that have received at least 3 ${prettyField(ratingName)} reviews`}
+            value={
+              pcConsoleData.notes ? (
+                renderStat(paperWithMoreThanThresholdReviews, pcConsoleData.notes.length)
+              ) : (
+                <LoadingSpinner inline={true} text={null} />
+              )
+            }
+          />
+        </div>
+        <hr className="spacer" />
+      </>
+    )
+  })
+}
+
 const ReviewStatsRow = ({ pcConsoleData }) => {
   const {
     paperReviewsCompleteThreshold,
@@ -389,11 +544,10 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
         />
         <StatContainer
           title={`${submissionName} Progress`}
-          hint={`% of papers that have received ${
-            paperReviewsCompleteThreshold
+          hint={`% of papers that have received ${paperReviewsCompleteThreshold
               ? `at least ${inflect(paperReviewsCompleteThreshold, 'review', 'reviews', true)}`
               : `reviews from all assigned ${prettyField(reviewerName).toLowerCase()}`
-          }`}
+            }`}
           value={
             pcConsoleData.notes ? (
               renderStat(
@@ -805,11 +959,11 @@ const DescriptionTimelineOtherConfigRow = ({
     { id: submissionId, displayName: `${pluralizeString(submissionName)}` },
     ...(bidName
       ? [
-          {
-            id: `${reviewersId}/-/${bidName}`,
-            displayName: `${prettyField(reviewerName)} Bidding`,
-          },
-        ]
+        {
+          id: `${reviewersId}/-/${bidName}`,
+          displayName: `${prettyField(reviewerName)} Bidding`,
+        },
+      ]
       : []),
     {
       id: `${reviewersId}/-/${recruitmentName}`,
@@ -817,35 +971,35 @@ const DescriptionTimelineOtherConfigRow = ({
     },
     ...(seniorAreaChairsId
       ? [
-          ...(bidName
-            ? [
-                {
-                  id: `${seniorAreaChairsId}/-/${bidName}`,
-                  displayName: `${prettyField(seniorAreaChairName)} Bidding`,
-                },
-              ]
-            : []),
-          {
-            id: `${seniorAreaChairsId}/-/${recruitmentName}`,
-            displayName: `${prettyField(seniorAreaChairName)} Recruitment`,
-          },
-        ]
+        ...(bidName
+          ? [
+            {
+              id: `${seniorAreaChairsId}/-/${bidName}`,
+              displayName: `${prettyField(seniorAreaChairName)} Bidding`,
+            },
+          ]
+          : []),
+        {
+          id: `${seniorAreaChairsId}/-/${recruitmentName}`,
+          displayName: `${prettyField(seniorAreaChairName)} Recruitment`,
+        },
+      ]
       : []),
     ...(areaChairsId
       ? [
-          ...(bidName
-            ? [
-                {
-                  id: `${areaChairsId}/-/${bidName}`,
-                  displayName: `${prettyField(areaChairName)} Bidding`,
-                },
-              ]
-            : []),
-          {
-            id: `${areaChairsId}/-/${recruitmentName}`,
-            displayName: `${prettyField(areaChairName)} Recruitment`,
-          },
-        ]
+        ...(bidName
+          ? [
+            {
+              id: `${areaChairsId}/-/${bidName}`,
+              displayName: `${prettyField(areaChairName)} Bidding`,
+            },
+          ]
+          : []),
+        {
+          id: `${areaChairsId}/-/${recruitmentName}`,
+          displayName: `${prettyField(areaChairName)} Recruitment`,
+        },
+      ]
       : []),
     { id: `${venueId}/-/${officialReviewName}`, displayName: 'Reviewing' },
     { id: `${venueId}/-/${commentName}`, displayName: 'Commenting' },
@@ -853,9 +1007,9 @@ const DescriptionTimelineOtherConfigRow = ({
     { id: `${venueId}/-/${decisionName}`, displayName: 'Decisions' },
     ...(customStageInvitations?.length > 0
       ? customStageInvitations.map((p) => ({
-          id: `${venueId}/-/${p.name}`,
-          displayName: prettyId(p.name),
-        }))
+        id: `${venueId}/-/${p.name}`,
+        displayName: prettyId(p.name),
+      }))
       : []),
   ].flatMap((p) => {
     const invitation = invitations?.find((q) => q.id === p.id)
@@ -911,10 +1065,9 @@ const DescriptionTimelineOtherConfigRow = ({
                 <br />
                 {requestFormContent?.['Open Reviewing Policy']}
                 <br />
-                {`Paper matching uses ${
-                  requestFormContent?.submission_reviewer_assignment ??
+                {`Paper matching uses ${requestFormContent?.submission_reviewer_assignment ??
                   requestFormContent?.['Paper Matching']?.join(', ')
-                }`}
+                  }`}
                 {requestFormContent?.['Other Important Information'] && (
                   <>
                     <br />
@@ -1203,6 +1356,7 @@ const Overview = ({ pcConsoleData, timelineData }) => {
         pcConsoleData={pcConsoleData}
       />
       <ReviewStatsRow pcConsoleData={pcConsoleData} />
+      <ReviewRatingStatsRow pcConsoleData={pcConsoleData} />
       <MetaReviewStatsRow pcConsoleData={pcConsoleData} />
       <MetaReviewAgreementStatsRow pcConsoleData={pcConsoleData} />
       <CustomStageStatsRow pcConsoleData={pcConsoleData} />
