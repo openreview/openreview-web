@@ -1024,7 +1024,7 @@ export default function Forum({
             />
           )}
 
-          {filterOptions && layout === 'default' && (
+          {filterOptions && numRepliesHidden < Object.keys(replyNoteMap).length && layout === 'default' && (
             <FilterForm
               forumId={id}
               selectedFilters={selectedFilters}
