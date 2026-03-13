@@ -52,6 +52,10 @@ const PastStatesSection = ({ email, pastStates }) => {
               {pastState.state}
             </span>
 
+            {pastState.setBy && (
+              <span className={styles.pastStateSetBy}>{pastState.setBy}</span>
+            )}
+
             {message && (
               <a
                 href={`${process.env.API_V2_URL}/messages?id=${message.id}`}
