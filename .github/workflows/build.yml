@@ -16,8 +16,16 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run lint
+        run: npx --yes oxlint@latest --report-unused-disable-directives --quiet
+
   build:
     runs-on: ubuntu-latest
+    needs: lint
 
     env:
       NEXT_PORT: 3030
@@ -111,6 +119,9 @@ jobs:
           cd openreview-web
           npm ci
           cp .env.example .env.local
+      - name: Build openreview-web
+        run: |
+          cd openreview-web
           NODE_ENV=production SUPER_USER=openreview.net npm run build
       - name: Run Unit Tests
         run: |
