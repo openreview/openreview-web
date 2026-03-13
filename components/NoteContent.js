@@ -156,7 +156,6 @@ export function DownloadLink({ noteId, fieldName, fieldValue, isReference, isV2 
   const href = `${urlPath}?id=${noteId}&name=${fieldName}`
 
   return (
-    // eslint-disable-next-line react/jsx-no-target-blank
     <a
       href={href}
       className="attachment-download-link"

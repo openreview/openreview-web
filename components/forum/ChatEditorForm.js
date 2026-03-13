@@ -178,7 +178,6 @@ export default function ChatEditorForm({
             <span>Replying to {prettyId(replyToNote.signatures[0], true)}</span>
             {' – '}
             {getReplySnippet(replyToNote.content.message?.value || replyToNote.generatedTitle)}
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
               href="#"
               className="pl-3"
@@ -214,7 +213,6 @@ export default function ChatEditorForm({
           </>
         )}
         {signatureOptions.length > 1 && !showSignatureDropdown && (
-          // eslint-disable-next-line jsx-a11y/anchor-is-valid
           <a
             href="#"
             className="pl-3"
@@ -321,7 +319,7 @@ export default function ChatEditorForm({
                 try {
                   MathJax.typesetPromise()
                 } catch (error) {
-                  // eslint-disable-next-line no-console
+                  // oxlint-disable-next-line no-console
                   console.warn('Could not format math notation')
                 }
               }

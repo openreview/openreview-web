@@ -1342,11 +1342,9 @@ describe('DropdownWidget', () => {
     const optionOne = screen.getByText('option description one')
 
     expect(
-      // eslint-disable-next-line no-bitwise
       optionTwo.compareDocumentPosition(optionThree) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
     expect(
-      // eslint-disable-next-line no-bitwise
       optionThree.compareDocumentPosition(optionOne) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
   })

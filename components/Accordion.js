@@ -63,7 +63,6 @@ const SectionHeadingLink = ({
   }
 
   return (
-    // eslint-disable-next-line jsx-a11y/anchor-is-valid
     <a
       className={`collapse-btn${collapsed ? ' collapsed' : ''}`}
       role="button"
@@ -91,12 +90,7 @@ const SectionBody = ({ id, body, options }) => {
   return (
     <div id={id} className={`panel-collapse collapse${options.collapsed ? '' : ' in'}`}>
       <div className="panel-body">
-        {options.html ? (
-          // eslint-disable-next-line react/no-danger
-          <div dangerouslySetInnerHTML={{ __html: body }} />
-        ) : (
-          renderBody()
-        )}
+        {options.html ? <div dangerouslySetInnerHTML={{ __html: body }} /> : renderBody()}
       </div>
     </div>
   )

@@ -51,6 +51,7 @@ export default async function page({ searchParams }) {
       return <ErrorDisplay message={`The Group ${id} was not found`} />
     }
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.log('Error in getGroups', {
       page: 'group',
       apiError: error,

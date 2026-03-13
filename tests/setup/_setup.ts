@@ -73,8 +73,9 @@ fixture`Set up test data`.before(async (ctx) => {
 
 test('Set up TestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
-    }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${
+    submissionDate.getMonth() + 1
+  }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
@@ -106,17 +107,17 @@ test('Set up TestVenue', async (t) => {
         'Yes, author identities of desk rejected submissions should be revealed.',
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
-      'publication_chairs': 'No, our venue does not have Publication Chairs',
+      publication_chairs: 'No, our venue does not have Publication Chairs',
       submission_license: ['CC BY 4.0'],
       api_version: '2',
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
         'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
         'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
-        'We acknowledge that, if our venue\'s reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.',
+        "We acknowledge that, if our venue's reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.",
         'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
-        'We will treat the OpenReview staff with kindness and consideration.'
-      ]
+        'We will treat the OpenReview staff with kindness and consideration.',
+      ],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -161,7 +162,7 @@ test('Set up TestVenue', async (t) => {
   const { id: noteId } = await createNoteEdit(editJson, hasTaskUserToken)
 
   // close deadline
-  const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
+  const submissionCloseDate = new Date(Date.now() - 28 * 60 * 1000) // 28 minutes ago
   const year = submissionCloseDate.getFullYear()
   const month = `0${submissionCloseDate.getMonth() + 1}`.slice(-2)
   const day = `0${submissionCloseDate.getDate()}`.slice(-2)
@@ -182,7 +183,7 @@ test('Set up TestVenue', async (t) => {
       Location: 'Virtual',
       submission_reviewer_assignment: 'Automatic',
       'Expected Submissions': '6000',
-      'publication_chairs': 'No, our venue does not have Publication Chairs',
+      publication_chairs: 'No, our venue does not have Publication Chairs',
     },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Revision`,
@@ -196,7 +197,10 @@ test('Set up TestVenue', async (t) => {
 
   await waitForJobs(referenceId, superUserToken)
   await waitForJobs('TestVenue/2020/Conference/-/Post_Submission-0-0', superUserToken)
-  await waitForJobs('TestVenue/2020/Conference/Reviewers/-/Submission_Group-0-0', superUserToken)
+  await waitForJobs(
+    'TestVenue/2020/Conference/Reviewers/-/Submission_Group-0-0',
+    superUserToken
+  )
 
   const postSubmissionJson = {
     content: { force: 'Yes', submission_readers: 'Everyone (submissions are public)' },
@@ -213,8 +217,9 @@ test('Set up TestVenue', async (t) => {
   await waitForJobs(postSubmissionId, superUserToken)
 
   const reviewDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000)
-  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${reviewDeadline.getMonth() + 1
-    }/${reviewDeadline.getDate()}`
+  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${
+    reviewDeadline.getMonth() + 1
+  }/${reviewDeadline.getDate()}`
   const reviewStageJson = {
     content: {
       review_deadline: reviewDeadlineString,
@@ -248,8 +253,9 @@ test('Set up TestVenue', async (t) => {
 
 test('Set up AnotherTestVenue', async (t) => {
   const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
-    }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${
+    submissionDate.getMonth() + 1
+  }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
 
   const requestVenueJson = {
@@ -283,17 +289,17 @@ test('Set up AnotherTestVenue', async (t) => {
         'Yes, author identities of desk rejected submissions should be revealed.',
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
-      'publication_chairs': 'No, our venue does not have Publication Chairs',
+      publication_chairs: 'No, our venue does not have Publication Chairs',
       api_version: '2',
       submission_license: ['CC BY 4.0'],
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
         'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
         'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
-        'We acknowledge that, if our venue\'s reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.',
+        "We acknowledge that, if our venue's reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.",
         'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
-        'We will treat the OpenReview staff with kindness and consideration.'
-      ]
+        'We will treat the OpenReview staff with kindness and consideration.',
+      ],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -370,8 +376,9 @@ test('Set up AnotherTestVenue', async (t) => {
 
 test('Set up ICLR', async (t) => {
   const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
-    }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${
+    submissionDate.getMonth() + 1
+  }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
 
   const requestVenueJson = {
@@ -405,17 +412,17 @@ test('Set up ICLR', async (t) => {
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
       reviewer_identity: ['Program Chairs', 'Assigned Area Chair'],
-      'publication_chairs': 'No, our venue does not have Publication Chairs',
+      publication_chairs: 'No, our venue does not have Publication Chairs',
       submission_license: ['CC BY 4.0'],
       api_version: '2',
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
         'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
         'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
-        'We acknowledge that, if our venue\'s reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.',
+        "We acknowledge that, if our venue's reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.",
         'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
-        'We will treat the OpenReview staff with kindness and consideration.'
-      ]
+        'We will treat the OpenReview staff with kindness and consideration.',
+      ],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -463,9 +470,8 @@ test('Set up ICLR', async (t) => {
 
   await waitForJobs(noteId, superUserToken)
 
-
   // close deadline
-  const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
+  const submissionCloseDate = new Date(Date.now() - 28 * 60 * 1000) // 28 minutes ago
   const year = submissionCloseDate.getFullYear()
   const month = `0${submissionCloseDate.getMonth() + 1}`.slice(-2)
   const day = `0${submissionCloseDate.getDate()}`.slice(-2)
@@ -486,7 +492,7 @@ test('Set up ICLR', async (t) => {
       Location: 'Virtual',
       submission_reviewer_assignment: 'Automatic',
       'Expected Submissions': '6000',
-      'publication_chairs': 'No, our venue does not have Publication Chairs',
+      publication_chairs: 'No, our venue does not have Publication Chairs',
     },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Revision`,
@@ -502,7 +508,11 @@ test('Set up ICLR', async (t) => {
   await waitForJobs('ICLR.cc/2021/Conference/-/Post_Submission-0-0', superUserToken)
 
   const postSubmissionJson = {
-    content: { force: 'Yes', submission_readers: 'Everyone (submissions are public)', 'hide_fields': ['pdf'] },
+    content: {
+      force: 'Yes',
+      submission_readers: 'Everyone (submissions are public)',
+      hide_fields: ['pdf'],
+    },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Post_Submission`,
     readers: ['ICLR.cc/2021/Conference/Program_Chairs', 'openreview.net/Support'],
@@ -541,13 +551,20 @@ test('Set up ICLR', async (t) => {
 
 test('Set up TestVenue using API 2', async (t) => {
   const submissionDate = new Date(Date.now() + 48 * 60 * 60 * 1000)
-  const submissionDateString = `${submissionDate.getFullYear()}/${submissionDate.getMonth() + 1
-    }/${submissionDate.getDate()}`
+  const submissionDateString = `${submissionDate.getFullYear()}/${
+    submissionDate.getMonth() + 1
+  }/${submissionDate.getDate()}`
   const { superUserToken } = t.fixtureCtx
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
     signatures: ['~Super_User1'],
-    readers: ['openreview.net/Support', '~Super_User1', 'john@mail.com', 'tom@mail.com', 'program_chair@mail.com'],
+    readers: [
+      'openreview.net/Support',
+      '~Super_User1',
+      'john@mail.com',
+      'tom@mail.com',
+      'program_chair@mail.com',
+    ],
     writers: [],
     content: {
       title: 'Test Venue Conference V2',
@@ -574,17 +591,17 @@ test('Set up TestVenue using API 2', async (t) => {
         'Yes, author identities of desk rejected submissions should be revealed.',
       'How did you hear about us?': 'ML conferences',
       'Expected Submissions': '6000',
-      'publication_chairs': 'No, our venue does not have Publication Chairs',
-      'api_version': '2',
+      publication_chairs: 'No, our venue does not have Publication Chairs',
+      api_version: '2',
       submission_license: ['CC BY 4.0'],
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
         'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
         'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
-        'We acknowledge that, if our venue\'s reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.',
+        "We acknowledge that, if our venue's reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.",
         'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
-        'We will treat the OpenReview staff with kindness and consideration.'
-      ]
+        'We will treat the OpenReview staff with kindness and consideration.',
+      ],
     },
   }
   const { id: requestForumId, number } = await createNote(requestVenueJson, superUserToken)
@@ -615,21 +632,21 @@ test('Set up TestVenue using API 2', async (t) => {
     signatures: [hasTaskUserTildeId],
     note: {
       content: {
-        title: { 'value': 'Paper Title 1' },
-        authors: { 'value': ['FirstA LastA'] },
-        authorids: { 'value': [hasTaskUserTildeId] },
-        abstract: { 'value': 'Paper Abstract' },
-        keywords: { 'value': ['keyword1', 'keyword2'] },
-        pdf: { 'value': '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
-      }
-    }
+        title: { value: 'Paper Title 1' },
+        authors: { value: ['FirstA LastA'] },
+        authorids: { value: [hasTaskUserTildeId] },
+        abstract: { value: 'Paper Abstract' },
+        keywords: { value: ['keyword1', 'keyword2'] },
+        pdf: { value: '/pdf/acef91d0b896efccb01d9d60ed5150433528395a.pdf' },
+      },
+    },
   }
   const { id: editId } = await createNoteEdit(ediJson, hasTaskUserToken)
 
   await waitForJobs(editId, superUserToken)
 
   // close deadline
-  const submissionCloseDate = new Date(Date.now() - (28 * 60 * 1000)) // 28 minutes ago
+  const submissionCloseDate = new Date(Date.now() - 28 * 60 * 1000) // 28 minutes ago
   const year = submissionCloseDate.getFullYear()
   const month = `0${submissionCloseDate.getMonth() + 1}`.slice(-2)
   const day = `0${submissionCloseDate.getDate()}`.slice(-2)
@@ -650,7 +667,7 @@ test('Set up TestVenue using API 2', async (t) => {
       Location: 'Virtual',
       submission_reviewer_assignment: 'Automatic',
       'Expected Submissions': '6000',
-      'publication_chairs': 'No, our venue does not have Publication Chairs',
+      publication_chairs: 'No, our venue does not have Publication Chairs',
     },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Revision`,
@@ -666,15 +683,19 @@ test('Set up TestVenue using API 2', async (t) => {
   await waitForJobs('TestVenue/2023/Conference/-/Post_Submission-0-0', superUserToken)
 
   const reviewDeadline = new Date(Date.now() + 48 * 60 * 60 * 1000)
-  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${reviewDeadline.getMonth() + 1
-    }/${reviewDeadline.getDate()}`
+  const reviewDeadlineString = `${reviewDeadline.getFullYear()}/${
+    reviewDeadline.getMonth() + 1
+  }/${reviewDeadline.getDate()}`
   const reviewStageJson = {
     content: {
       review_deadline: reviewDeadlineString,
       make_reviews_public: 'No, reviews should NOT be revealed publicly when they are posted',
-      release_reviews_to_authors: 'No, reviews should NOT be revealed when they are posted to the paper\'s authors',
-      release_reviews_to_reviewers: 'Review should not be revealed to any reviewer, except to the author of the review',
-      email_program_chairs_about_reviews: 'No, do not email program chairs about received reviews',
+      release_reviews_to_authors:
+        "No, reviews should NOT be revealed when they are posted to the paper's authors",
+      release_reviews_to_reviewers:
+        'Review should not be revealed to any reviewer, except to the author of the review',
+      email_program_chairs_about_reviews:
+        'No, do not email program chairs about received reviews',
     },
     forum: requestForumId,
     invitation: `openreview.net/Support/-/Request${number}/Review_Stage`,
@@ -697,7 +718,11 @@ test('Set up TestVenue using API 2', async (t) => {
     2
   )
 
-  const reviewersGroups = await getGroups({ id: 'TestVenue/2023/Conference/Submission1/Reviewers' }, superUserToken, 2)
+  const reviewersGroups = await getGroups(
+    { id: 'TestVenue/2023/Conference/Submission1/Reviewers' },
+    superUserToken,
+    2
+  )
   const testUserToken = await getToken('test@mail.com', hasTaskUser.password)
 
   // Add a review
@@ -706,15 +731,14 @@ test('Set up TestVenue using API 2', async (t) => {
     signatures: [reviewersGroups[0].members[0]],
     note: {
       content: {
-        title: { 'value': 'Review Title 1' },
-        review: { 'value': 'Great paper!' },
-        rating: { 'value': 7 },
-        confidence: { 'value': 5 }
-      }
-    }
+        title: { value: 'Review Title 1' },
+        review: { value: 'Great paper!' },
+        rating: { value: 7 },
+        confidence: { value: 5 },
+      },
+    },
   }
   const { id: editReviewId } = await createNoteEdit(reviewJson, testUserToken)
 
   await waitForJobs(editReviewId, superUserToken)
-
 })
