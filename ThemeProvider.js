@@ -38,7 +38,7 @@ const theme = {
     Input: {
       colorBorder: primaryColor,
       hoverBorderColor: '#4f7a8a',
-      activeBorderColor: '#2e4f5a',
+      activeBorderColor: '#3e6775',
       lineWidth: 2,
     },
     Layout: {
