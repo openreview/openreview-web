@@ -48,8 +48,8 @@ const GroupRestrictGroup = ({ group, setIsGroupRestricted }) => {
         <div className="restrict-instructions">
           <p>
             <strong>⚠️ Emergency use only.</strong> Use this if you suspect a misconfiguration
-            is exposing sensitive data (e.g., reviewer identities, confidential submissions,
-            or private notes).
+            is exposing sensitive data (e.g., reviewer identities, confidential submissions, or
+            private notes).
           </p>
           <p>When shut down:</p>
           <ul>

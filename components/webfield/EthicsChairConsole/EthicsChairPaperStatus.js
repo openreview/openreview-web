@@ -175,7 +175,7 @@ const EthicsChairPaperStatus = () => {
       const ethicsReviewsByPaperNumberMap = new Map()
 
       notes.forEach((note) => {
-        const replies = note.details.replies // eslint-disable-line prefer-destructuring
+        const replies = note.details.replies // oxlint-disable-line prefer-destructuring
         const ethicsReviews = replies
           .filter((p) => {
             const ethicsReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${ethicsReviewName}`
@@ -215,7 +215,7 @@ const EthicsChairPaperStatus = () => {
           numReviewersAssigned: assignedEthicsReviewers.length,
           replyCount: note.details.replies?.length ?? 0,
           ethicsMetaReview,
-          hasEthicsMetaReview: ethicsMetaReview ? true : false, // eslint-disable-line no-unneeded-ternary
+          hasEthicsMetaReview: ethicsMetaReview ? true : false,
         }
       })
 

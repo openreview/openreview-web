@@ -224,7 +224,6 @@ export default function ForumReply({
                         : ''
                     }
                   >
-                    {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                     <a
                       href="#"
                       data-id={invitation.id}

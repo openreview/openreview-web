@@ -9,7 +9,6 @@ const GroupIdList = ({ groupIds }) => {
 
   return groupIds
     .map((groupId, index) => (
-      // eslint-disable-next-line react/no-array-index-key
       <span key={index}>
         {commonGroups.includes(groupId) ? (
           prettyId(groupId)
@@ -26,7 +25,6 @@ export const InvitationIdList = ({ invitationIds }) => {
 
   return invitationIds
     .map((invitationId, index) => (
-      // eslint-disable-next-line react/no-array-index-key
       <span key={index}>
         <Link href={`/invitation/edit?id=${invitationId}`}>{prettyId(invitationId)}</Link>
       </span>

@@ -1,11 +1,11 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
-import MultiFactorAuthenticationSetup from '../app/profile/edit/MultiFactorAuthenticationSetup'
+import MultiFactorAuthenticationSetup from '../app/profile/password-security/MultiFactorAuthenticationSetup'
 import api from '../lib/api-client'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/LoadingSpinner', () => () => <span>loading spinner</span>)
-jest.mock('../app/profile/edit/MultiFactorAuthenticationForms', () => ({
+jest.mock('../app/profile/password-security/MultiFactorAuthenticationForms', () => ({
   TOTPCard: jest.fn(() => <div>totp card</div>),
   Passkey2FACard: jest.fn(() => <div>passkey card</div>),
   EmailOtpCard: jest.fn(() => <div>email otp card</div>),

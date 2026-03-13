@@ -275,7 +275,6 @@ export const AcPcConsoleReviewerStatusRow = ({
           />
           <div>{reviewer.profile?.title}</div>
           {preferredEmailInvitationId && (
-            // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
               className="text-muted"
@@ -337,7 +336,6 @@ export const AcPcConsoleReviewerStatusRow = ({
               submissionName={submissionName}
               messageSignature={messageSignature}
             />
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
               href="#"
               className="send-reminder-link"
@@ -358,7 +356,6 @@ export const AcPcConsoleReviewerStatusRow = ({
         )}
         {completedReview && showActivity && (
           <>
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
               href="#"
               className="show-activity-modal"

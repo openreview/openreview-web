@@ -642,7 +642,11 @@ describe('RecruitmentForm', () => {
     await userEvent.type(screen.getByRole('textbox'), 'some comment')
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }))
-    expect(postResponse).toHaveBeenLastCalledWith(expect.anything(), responseUpdateEditMock, {})
+    expect(postResponse).toHaveBeenLastCalledWith(
+      expect.anything(),
+      responseUpdateEditMock,
+      {}
+    )
     expect(screen.getByText('You have declined the invitation')).toBeVisible()
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument() // only show message after submit comment
     expect(screen.queryByRole('button', { name: 'Submit' })).not.toBeInTheDocument()
@@ -735,7 +739,11 @@ describe('RecruitmentForm', () => {
     expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled()
 
     await userEvent.click(screen.getByRole('button', { name: 'Submit' }))
-    expect(postResponse).toHaveBeenLastCalledWith(expect.anything(), responseUpdateEditMock, {})
+    expect(postResponse).toHaveBeenLastCalledWith(
+      expect.anything(),
+      responseUpdateEditMock,
+      {}
+    )
     expect(screen.getByText('You have requested a reduced load of 3 papers')).toBeVisible()
     expect(screen.getByText('Thank you for accepting this invitation')).toBeVisible()
   })

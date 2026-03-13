@@ -66,7 +66,6 @@ const GroupUICode = ({ group, profileId, reloadGroup }) => {
         {}
       )
     } catch (error) {
-      // eslint-disable-next-line react/display-name
       setWebComponent(() => () => (
         <em className="preview-error">{`Error parsing component code: ${error.message}`}</em>
       ))

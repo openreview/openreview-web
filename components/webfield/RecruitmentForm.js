@@ -421,7 +421,7 @@ const RecruitmentForm = () => {
                 Decline
               </SpinnerButton>
             </div>
-            <div className="mt-4 text-center" ref={turnstileContainerRef}></div>
+            <div className="mt-4 text-center" ref={turnstileContainerRef} />
           </div>
         )
     }

@@ -561,7 +561,7 @@ describe('Signatures', () => {
         enum: ['~.*'],
       },
     }
-    const apiGet = jest.fn(() => Promise.reject({ message: 'some api error occured' }))
+    const apiGet = jest.fn(() => Promise.reject({ message: 'some api error occurred' }))
     api.get = apiGet
 
     render(
@@ -573,7 +573,7 @@ describe('Signatures', () => {
     )
 
     await waitFor(() => {
-      expect(onError).toHaveBeenCalledWith('some api error occured')
+      expect(onError).toHaveBeenCalledWith('some api error occurred')
     })
   })
 
