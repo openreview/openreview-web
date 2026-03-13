@@ -177,7 +177,7 @@ import LoadingSpinner from '../LoadingSpinner'
 
 /**
  * @name ProgramChairConsoleConfig.requestFormId
- * @description Request form note id used for overview timeline/details links. This was made optional together with `decisionName` in PR #1232.
+ * @description Request form note id used for overview timeline/details links. If missing, bottom part of overview tab will not be shown.
  * @type {string}
  * @default no default value
  * @example
@@ -215,7 +215,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @name ProgramChairConsoleConfig.reviewerName
  * @description Reviewer role label used to identify per-paper role groups and UI labels.
  * @type {string}
- * @default "Reviewers"
+ * @default 'Reviewers'
  * @example
  * { "reviewerName": "Reviewers" }
  */
@@ -242,7 +242,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @name ProgramChairConsoleConfig.areaChairName
  * @description AC role label used to identify per-paper AC groups and display labels.
  * @type {string}
- * @default "Area_Chairs"
+ * @default 'Area_Chairs'
  * @example
  * { "areaChairName": "Area_Chairs" }
  */
@@ -269,7 +269,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @name ProgramChairConsoleConfig.seniorAreaChairName
  * @description SAC role label used to identify per-paper SAC groups and display labels.
  * @type {string}
- * @default "Senior_Area_Chairs"
+ * @default 'Senior_Area_Chairs'
  * @example
  * { "seniorAreaChairName": "Senior_Area_Chairs" }
  */
@@ -323,7 +323,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @name ProgramChairConsoleConfig.officialMetaReviewName
  * @description Meta-review invitation name used for status/statistics/link generation.
  * @type {string}
- * @default "Meta_Review"
+ * @default 'Meta_Review'
  * @example
  * { "officialMetaReviewName": "Meta_Review" }
  */
@@ -341,7 +341,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @name ProgramChairConsoleConfig.decisionName
  * @description Decision invitation name used to parse/display per-submission decisions. Made optional in PR #1232.
  * @type {string}
- * @default "Decision"
+ * @default 'Decision'
  * @example
  * { "decisionName": "Decision" }
  */
@@ -377,7 +377,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @name ProgramChairConsoleConfig.metaReviewRecommendationName
  * @description Recommendation field key in meta-review content.
  * @type {string}
- * @default "recommendation"
+ * @default 'recommendation'
  * @example
  * { "metaReviewRecommendationName": "recommendation" }
  */
@@ -440,22 +440,34 @@ import LoadingSpinner from '../LoadingSpinner'
  * @name ProgramChairConsoleConfig.recruitmentName
  * @description Recruitment invitation suffix used in overview timeline.
  * @type {string}
- * @default "Recruitment"
+ * @default 'Recruitment'
  * @example
  * { "recruitmentName": "Recruitment" }
  */
 
 /**
  * @name ProgramChairConsoleConfig.paperStatusExportColumns
- * @description Extra export columns for the paper status table.
+ * @description Extra export columns for the paper status table. This is an array of objects, where each object has: `header` (column title) and `getValue` (function body string executed with `row` in scope). getValue can get rather complex and the char escape should be handled carefully.
  * @type {Object[]}
  * @default no default value
- * @example
+ * @example <caption>basic exmaple</caption>
  * {
  *   "paperStatusExportColumns": [
  *     {
  *       "header": "Submission Type",
  *       "getValue": "row.note?.content?.submission_type?.value ?? 'N/A'"
+ *     }
+ *   ]
+ * }
+ * @example <caption>complex exmaple</caption>
+ * {
+ *   "paperStatusExportColumns": [
+ *     {
+ *       "header": "SAC Recommendation",
+ *       "getValue": `const SACRecommendationNote = row.note?.details?.replies?.find(p => p.invitations.some(q => q.includes('SAC_Recommendation')));
+return SACRecommendationNote ? \`\${SACRecommendationNote.content.decision?.value ?? 'N/A'}\` : 'N/A';`,
+     },
+
  *     }
  *   ]
  * }
@@ -495,21 +507,24 @@ import LoadingSpinner from '../LoadingSpinner'
 
 /**
  * @name ProgramChairConsoleConfig.propertiesAllowed
- * @description Additional query-search properties for paper status. Supports paths and function strings. AC-specific override was split into `areaChairStatusPropertiesAllowed` in PR #2098.
+ * @description Additional query-search properties for paper status. Supports paths array and function strings.
  * @type {Object}
  * @default no default value
  * @example
  * {
  *   "propertiesAllowed": {
- *     "flagged": ["note.content.flagged_for_ethics_review.value"],
- *     "officialReviewCount": "return row.officialReviews?.length ?? 0"
+ *     "flagged": ["note.content.flagged_for_ethics_review.value","note.content.flagged_for_something_else.value"],
+ *     "officialReviewCount": `const invitationToCheck="Official_Review";
+const officialReviews = row.note?.details?.replies?.filter(reply => (reply.invitations.some(invitation => invitation.includes(invitationToCheck))))
+return officialReviews.length;
+`
  *   }
  * }
  */
 
 /**
  * @name ProgramChairConsoleConfig.areaChairStatusPropertiesAllowed
- * @description Query-search properties override for AC status (introduced in PR #2098).
+ * @description Query-search properties override (instead of addition) for AC status
  * @type {Object}
  * @default built-in AC defaults
  * @example
@@ -546,7 +561,7 @@ import LoadingSpinner from '../LoadingSpinner'
 
 /**
  * @name ProgramChairConsoleConfig.customStageInvitations
- * @description Additional stage configs used in overview progress cards and table search/export (custom-stage support added in PR #1404).
+ * @description Additional stage configs used in overview progress cards and table search/export
  * @type {Object[]}
  * @default []
  * @example
@@ -565,7 +580,7 @@ import LoadingSpinner from '../LoadingSpinner'
 
 /**
  * @name ProgramChairConsoleConfig.metaReviewAgreementConfig
- * @description Config for dedicated meta-review agreement stage shown in overview and search/export (multi-AC behavior fixed in PR #1410).
+ * @description Config for dedicated meta-review agreement stage shown in overview and search/export, similar to customStageInvitations but has no extraDisplayFields. Another difference is metaReviewAgreement checks for reply to meta review instead of forum reply
  * @type {Object}
  * @default no default value
  * @example
@@ -589,11 +604,11 @@ import LoadingSpinner from '../LoadingSpinner'
  * {
  *   "assignmentUrls": {
  *     "Reviewers": {
- *       "manualAssignmentUrl": "/edges/browse?start=ICLR.cc/202X/Conference/Reviewers",
+ *       "manualAssignmentUrl": "/edges/browse?...",
  *       "automaticAssignment": false
  *     },
  *     "Area_Chairs": {
- *       "manualAssignmentUrl": "/edges/browse?start=ICLR.cc/202X/Conference/Area_Chairs",
+ *       "manualAssignmentUrl": "/edges/browse?...",
  *       "automaticAssignment": true
  *     }
  *   }
@@ -602,7 +617,11 @@ import LoadingSpinner from '../LoadingSpinner'
 
 /**
  * @name ProgramChairConsoleConfig.submissionContentFields
- * @description Adds extra paper-status tabs keyed by submission content fields (feature added in PR #1897).
+ * @description Adds extra paper-status tabs keyed by submission content fields
+ * field: The submission content field that the tab will be based on. The tab will filter based on whether or not this field is present in a submission's content
+responseInvitations: Array of invitation endings that are used to display replies that were made after, and in response to the submission being flagged
+reasonInvitations: Array of invitation endings that are used to display replies that were made before, or in parallel, the flag and are the reason that the flag was raised
+reasonFields: Object that contains content fields that may be in any of the notes that reply to any of the reason invitations. These are the fields and possible values that would cause the process function to flag the submission
  * @type {Object[]}
  * @default []
  * @example
@@ -611,7 +630,7 @@ import LoadingSpinner from '../LoadingSpinner'
  *     {
  *       "field": "ethics_review_flag",
  *       "reasonInvitations": ["Ethics_Review"],
- *       "reasonFields": { "flag": ["Yes"] },
+ *       "reasonFields": { "ethics_review_triage": ['Ethics review needed.'] },
  *       "responseInvitations": ["Ethics_Response"]
  *     }
  *   ]
@@ -661,7 +680,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @default no default value
  * @example
  * {
- *   "messageSubmissionReviewersInvitationId": "ICLR.cc/202X/Conference/Submission{number}/-/Message_Reviewers"
+ *   "messageSubmissionReviewersInvitationId": "ICLR.cc/202X/Conference/Submission{number}/-/Message"
  * }
  */
 
@@ -672,7 +691,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @default no default value
  * @example
  * {
- *   "messageSubmissionAreaChairsInvitationId": "ICLR.cc/202X/Conference/Submission{number}/-/Message_Area_Chairs"
+ *   "messageSubmissionAreaChairsInvitationId": "ICLR.cc/202X/Conference/Submission{number}/Area_Chairs/-/Message"
  * }
  */
 
@@ -683,7 +702,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @default no default value
  * @example
  * {
- *   "messageSubmissionSecondaryAreaChairsInvitationId": "ICLR.cc/202X/Conference/Submission{number}/-/Message_Secondary_Area_Chairs"
+ *   "messageSubmissionSecondaryAreaChairsInvitationId": "ICLR.cc/202X/Conference/Submission{number}/Secondary_Area_Chairs/-/Message"
  * }
  */
 
@@ -693,7 +712,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @type {string}
  * @default no default value
  * @example
- * { "preferredEmailInvitationId": "OpenReview.net/-/Preferred_Email" }
+ * { "preferredEmailInvitationId": "ICLR.cc/202X/Conference/-/Preferred_Email" }
  */
 
 /**
@@ -714,8 +733,11 @@ import LoadingSpinner from '../LoadingSpinner'
  * {
  *   "reviewerEmailFuncs": [
  *     {
- *       "label": "Reviewers from custom filter",
- *       "filterFunc": "return row.notesInfo?.length > 5"
+ *       "label": "Reviewers with Zero Load",
+ *       "filterFunc": `
+        var loadNotes = row.reviewerProfile.registrationNotes?.filter(n => n.invitations.some(i => i.includes('Max_Load')));
+        return parseInt(loadNotes?.[0]?.content?.maximum_load_this_cycle?.value, 10) == 0 ?? False
+        `
  *     }
  *   ]
  * }
@@ -723,7 +745,7 @@ import LoadingSpinner from '../LoadingSpinner'
 
 /**
  * @name ProgramChairConsoleConfig.acEmailFuncs
- * @description Extra custom message filter options for the Area Chair Status message dropdown.
+ * @description Extra custom message filter options for the Area Chair Status message dropdown, similar to reviewerEmailFuncs.
  * @type {Object[]}
  * @default no default value
  * @example
@@ -739,7 +761,7 @@ import LoadingSpinner from '../LoadingSpinner'
 
 /**
  * @name ProgramChairConsoleConfig.sacEmailFuncs
- * @description Extra custom message filter options for the Senior Area Chair Status message dropdown.
+ * @description Extra custom message filter options for the Senior Area Chair Status message dropdown, similar to reviewerEmailFuncs.
  * @type {Object[]}
  * @default no default value
  * @example
@@ -774,7 +796,11 @@ import LoadingSpinner from '../LoadingSpinner'
  *   "displayReplyInvitations": [
  *     {
  *       "id": "ICLR.cc/202X/Conference/Submission{number}/-/Official_Comment",
- *       "fields": ["comment"]
+ *       "fields": ["summary", "limitations"]
+ *     },
+ *     {
+ *       "id": "ICLR.cc/202X/Conference/Submission{number}/-/Public_Comment",
+ *       "fields": ["strengths", "suitability"]
  *     }
  *   ]
  * }
@@ -793,7 +819,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @name ProgramChairConsoleConfig.ethicsReviewersName
  * @description Ethics reviewer role label used in timeline/overview role display.
  * @type {string}
- * @default "Ethics_Reviewers"
+ * @default 'Ethics_Reviewers'
  * @example
  * { "ethicsReviewersName": "Ethics_Reviewers" }
  */
@@ -802,7 +828,7 @@ import LoadingSpinner from '../LoadingSpinner'
  * @name ProgramChairConsoleConfig.ethicsChairsName
  * @description Ethics chair role label used in timeline/overview role display.
  * @type {string}
- * @default "Ethics_Chairs"
+ * @default 'Ethics_Chairs'
  * @example
  * { "ethicsChairsName": "Ethics_Chairs" }
  */
