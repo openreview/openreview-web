@@ -2,7 +2,6 @@ import '../lib/logger'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
 import '../styles/components.scss'
-// eslint-disable-next-line camelcase
 import { Noto_Sans } from 'next/font/google'
 import AppInit from './AppInit'
 import StoreProvider from '../storeProvider'

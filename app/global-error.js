@@ -32,7 +32,7 @@ export default function GlobalError({ error }) {
                 </Link>
               </div>
 
-              <div id="navbar" className="navbar-collapse collapse"></div>
+              <div id="navbar" className="navbar-collapse collapse" />
             </div>
           </nav>
           <div id="or-banner" className="banner">

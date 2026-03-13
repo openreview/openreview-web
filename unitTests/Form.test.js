@@ -1,4 +1,4 @@
-/* eslint-disable no-useless-computed-key */
+/* oxlint-disable no-useless-computed-key */
 import { render, waitFor } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import Form from '../components/Form'

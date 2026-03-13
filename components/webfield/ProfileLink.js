@@ -27,7 +27,6 @@ const ProfileLink = ({ id, name, preferredEmailInvitationId }) => {
   if (!isValidEmail(id) || !preferredEmailInvitationId) return <span>{name}</span>
 
   return (
-    // eslint-disable-next-line jsx-a11y/anchor-is-valid
     <a
       role="button"
       onClick={(e) => {

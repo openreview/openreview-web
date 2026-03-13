@@ -25,12 +25,12 @@ export default function Moderation() {
       },
       {
         key: 'email',
-        label: <NameDeletionCount>Email Delete</NameDeletionCount>,
+        label: 'Email Delete',
         children: <EmailDeletionTab />,
       },
       {
         key: 'name',
-        label: 'Name Delete',
+        label: <NameDeletionCount>Name Delete</NameDeletionCount>,
         children: <NameDeletionTab />,
       },
       {

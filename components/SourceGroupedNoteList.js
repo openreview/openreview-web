@@ -91,7 +91,6 @@ const SourceGroupedNoteList = ({ notes, displayOptions }) => {
         `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
       ].some((p) => curr.invitations.includes(p))
     ) {
-      // eslint-disable-next-line no-param-reassign
       prev[curr.id] = [curr]
       return prev
     }
@@ -100,7 +99,6 @@ const SourceGroupedNoteList = ({ notes, displayOptions }) => {
     const key = `${title}|${authors}`
 
     if (!prev[key]) {
-      // eslint-disable-next-line no-param-reassign
       prev[key] = []
     }
     prev[key].push(curr)

@@ -20,6 +20,7 @@ export default async function AllVenues() {
       .then(formatGroupResults)
       .then(sortAlpha)
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.log('Error in AllVenues', {
       page: 'Home',
       component: 'AllVenues',

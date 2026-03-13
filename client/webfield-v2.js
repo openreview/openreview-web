@@ -14,7 +14,6 @@
 
 const copy = require('copy-to-clipboard')
 
-// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   // AJAX Functions
   var get = function (url, queryObj, options) {
@@ -153,9 +152,7 @@ module.exports = (function () {
         var remainingRequests = offsetList.map(function (n) {
           return get(url, Object.assign({}, queryObj, { offset: n }))
         })
-        // eslint-disable-next-line prefer-spread
         return $.when.apply($, remainingRequests).then(function () {
-          // eslint-disable-next-line prefer-rest-params
           var rest = _.compact(_.flatMap(arguments, resultsKey))
           return initialResults.concat(rest)
         })
@@ -225,9 +222,9 @@ module.exports = (function () {
   }
 
   var jqErrorCallback = function (jqXhr, textStatus, errorThrown) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus)
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2))
 
     var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus)
@@ -787,7 +784,7 @@ module.exports = (function () {
             try {
               localStorage.setItem(postData.forumUrl + '|' + userId, Date.now())
             } catch (error) {
-              // eslint-disable-next-line no-console
+              // oxlint-disable-next-line no-console
               console.warn(`Could not set timestamp for ${userId}`)
             }
           }
@@ -1445,7 +1442,7 @@ module.exports = (function () {
   var renderInvitationButton = function (container, invitationId, options) {
     var defaults = {
       onNoteCreated: function () {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn('onNoteCreated option is required')
       },
     }
@@ -1580,7 +1577,6 @@ module.exports = (function () {
     }
 
     // Wrap in IIFE to prevent memory leaks
-    // eslint-disable-next-line wrap-iife
     ;(function () {
       var submissionListHtml = Handlebars.templates['components/submissions']({
         heading: options.heading,
@@ -2080,7 +2076,7 @@ module.exports = (function () {
         .off('click', 'ul.pagination > li > a')
         .on('click', 'ul.pagination > li > a', function () {
           if (!_.isFunction(options.onPageClick)) {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn('Missing required onPageClick callback')
             return false
           }
