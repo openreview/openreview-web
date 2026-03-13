@@ -142,7 +142,6 @@ export default function Dropdown(props) {
   }
   const filterOption = createFilter(props.filterOption ?? defaultFilterOption)
 
-
   if (props.hideArrow) {
     props = {
       ...props,
