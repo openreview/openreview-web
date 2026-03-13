@@ -634,8 +634,8 @@ export default function Forum({
 
       const primaryInvitationId = tab.expandedInvitations?.[0]
       if (primaryInvitationId) {
-        const primaryInvitation = parentNote.replyInvitations.find(
-          (inv) => inv.id === primaryInvitationId
+        const primaryInvitation = parentNote.replyInvitations?.find((inv) =>
+          inv.id.match(primaryInvitationId)
         )
         if (
           !primaryInvitation ||
@@ -773,8 +773,8 @@ export default function Forum({
     // Special case for chat layout: make sure all participants in the chat can read all the notes
     let chatReaders = null
     if (expandedInvitations?.length > 0) {
-      const primaryInv = parentNote.replyInvitations.find(
-        (inv) => inv.id === expandedInvitations[0]
+      const primaryInv = parentNote.replyInvitations.find((inv) =>
+        inv.id.match(expandedInvitations[0])
       )
       chatReaders = primaryInv ? primaryInv.edit.note.readers : null
     }
@@ -927,7 +927,7 @@ export default function Forum({
           }
 
           // Track details of new notes for chat notifications
-          if (isNewNote && expandedInvitations?.includes(invId) && !note.ddate) {
+          if (isNewNote && expandedInvitations?.some((pattern) => invId.match(pattern)) && !note.ddate) {
             if (!newMessageAuthor) {
               newMessageAuthor = prettyId(sigId, true)
               newMessage = truncate(note.content.message?.value || note.content.title?.value, {
@@ -1161,8 +1161,8 @@ export default function Forum({
         <div className="chat-invitations-container">
           {expandedInvitations ? (
             expandedInvitations.map((invitationId) => {
-              const invitation = parentNote.replyInvitations.find(
-                (inv) => inv.id === invitationId
+              const invitation = parentNote.replyInvitations.find((inv) =>
+                inv.id.match(invitationId)
               )
               if (!invitation) {
                 return (
