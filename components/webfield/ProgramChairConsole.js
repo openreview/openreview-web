@@ -34,31 +34,849 @@ import { clearCache, getCache, setCache } from '../../lib/console-cache'
 import SpinnerButton from '../SpinnerButton'
 import LoadingSpinner from '../LoadingSpinner'
 
+// #region config docs
+/** Program Chair Console config doc
+ *
+ * @typedef {Object} ProgramChairConsoleConfig
+ *
+ // oxlint-disable-next-line max-len
+ * @property {Object} header mandatory but can be empty object
+ * @property {Object} entity mandatory
+ * @property {string} venueId mandatory
+ * @property {string} reviewersId mandatory
+ * @property {string} programChairsId mandatory
+ * @property {string} authorsId mandatory
+ * @property {number} paperReviewsCompleteThreshold mandatory
+ * @property {string} submissionId mandatory
+ * @property {string} submissionVenueId mandatory
+ * @property {string} officialReviewName mandatory
+ * @property {string} commentName mandatory
+ * @property {string} anonReviewerName mandatory
+ * @property {string} shortPhrase mandatory
+ * @property {boolean} enableQuerySearch mandatory
+ * @property {string} submissionName mandatory
+ * @property {string} areaChairsId optional
+ * @property {string} seniorAreaChairsId optional
+ * @property {string} bidName optional
+ * @property {string} recommendationName optional
+ * @property {string} metaReviewRecommendationName optional
+ * @property {string[]} additionalMetaReviewFields optional
+ * @property {string} requestFormId optional
+ * @property {string} withdrawnVenueId optional
+ * @property {string} deskRejectedVenueId optional
+ * @property {string} officialMetaReviewName optional
+ * @property {string} decisionName optional
+ * @property {string} anonAreaChairName optional
+ * @property {string} reviewerName optional
+ * @property {string} areaChairName optional
+ * @property {string} seniorAreaChairName optional
+ * @property {string} secondaryAreaChairName optional
+ * @property {string} secondaryAnonAreaChairName optional
+ * @property {string} scoresName optional
+ * @property {string|string[]|object[]} reviewRatingName optional
+ * @property {string} reviewConfidenceName optional
+ * @property {string} recruitmentName optional
+ * @property {Object[]} paperStatusExportColumns optional
+ * @property {Object[]} reviewerStatusExportColumns optional
+ * @property {Object[]} areaChairStatusExportColumns optional
+ * @property {Object[]} customStageInvitations optional
+ * @property {Object} assignmentUrls optional
+ * @property {string} emailReplyTo optional
+ * @property {Object[]} reviewerEmailFuncs optional
+ * @property {Object[]} acEmailFuncs optional
+ * @property {Object[]} sacEmailFuncs optional
+ * @property {Object[]} submissionContentFields optional
+ * @property {boolean} sacDirectPaperAssignment optional
+ * @property {Object} propertiesAllowed optional
+ * @property {Object} areaChairStatusPropertiesAllowed optional
+ * @property {Object} sacStatuspropertiesAllowed optional
+ * @property {string[]} filterOperators optional
+ * @property {string} messageReviewersInvitationId optional
+ * @property {string} messageAreaChairsInvitationId optional
+ * @property {string} messageSeniorAreaChairsInvitationId optional
+ * @property {string} messageSubmissionReviewersInvitationId optional
+ * @property {string} messageSubmissionAreaChairsInvitationId optional
+ * @property {string} messageSubmissionSecondaryAreaChairsInvitationId optional
+ * @property {string} preferredEmailInvitationId optional
+ * @property {string} ithenticateInvitationId optional
+ * @property {Object[]} displayReplyInvitations optional
+ * @property {Object} metaReviewAgreementConfig optional
+ * @property {boolean} useCache optional
+ * @property {string} ethicsReviewersName optional
+ * @property {string} ethicsChairsName optional
+ * @property {Object} domainContent optional
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.header
+ * @description Page header object with "title" and "instructions" (markdown supported).
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "header": {
+ *     "title": "Some conference",
+ *     "instructions": "some **instructions**"
+ *   }
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.entity
+ * @description Venue group entity. Required for loading and permission checks.
+ * @type {Object}
+ * @default no default value
+ * @example
+ * { "entity": { "id": "ICLR.cc/202X/Conference" } }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.venueId
+ * @description Venue group id used as base id/domain for links and API filters.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "venueId": "ICLR.cc/202X/Conference" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.submissionId
+ * @description Submission invitation id used to load submissions shown in the console.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionId": "ICLR.cc/202X/Conference/-/Submission" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.submissionName
+ * @description Submission label used for tab names, invitation/group ids and links.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionName": "Submission" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.paperReviewsCompleteThreshold
+ * @description Threshold used for overview paper progress (papers at or above threshold are considered complete).
+ * @type {number}
+ * @default no default value
+ * @example
+ * { "paperReviewsCompleteThreshold": 3 }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.submissionVenueId
+ * @description Venue id value for active submissions under review. Used in reminder/status filtering.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "submissionVenueId": "ICLR.cc/202X/Conference/Submission" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.requestFormId
+ * @description Request form note id used for overview timeline/details links. If missing, bottom part of overview tab will not be shown.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "requestFormId": "u4QodE3u4r" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.withdrawnVenueId
+ * @description Venue id value that marks withdrawn submissions.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "withdrawnVenueId": "ICLR.cc/202X/Conference/Withdrawn_Submission" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.deskRejectedVenueId
+ * @description Venue id value that marks desk-rejected submissions.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "deskRejectedVenueId": "ICLR.cc/202X/Conference/Desk_Rejected_Submission" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.reviewersId
+ * @description Reviewer group id. Used for reviewer invitations, assignments, bids and messaging.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "reviewersId": "ICLR.cc/202X/Conference/Reviewers" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.reviewerName
+ * @description Reviewer role label used to identify per-paper role groups and UI labels.
+ * @type {string}
+ * @default 'Reviewers'
+ * @example
+ * { "reviewerName": "Reviewers" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.anonReviewerName
+ * @description Prefix of anonymous reviewer groups used to map reviews to assigned reviewers.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "anonReviewerName": "Reviewer_" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.areaChairsId
+ * @description AC group id. Enables AC timeline/stats, AC status tab and AC messaging.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "areaChairsId": "ICLR.cc/202X/Conference/Area_Chairs" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.areaChairName
+ * @description AC role label used to identify per-paper AC groups and display labels.
+ * @type {string}
+ * @default 'Area_Chairs'
+ * @example
+ * { "areaChairName": "Area_Chairs" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.anonAreaChairName
+ * @description Prefix of anonymous AC groups used to map meta reviews to assigned ACs.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "anonAreaChairName": "Area_Chair_" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.seniorAreaChairsId
+ * @description SAC group id. Enables SAC timeline/stats, SAC status tab and SAC messaging.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "seniorAreaChairsId": "ICLR.cc/202X/Conference/Senior_Area_Chairs" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.seniorAreaChairName
+ * @description SAC role label used to identify per-paper SAC groups and display labels.
+ * @type {string}
+ * @default 'Senior_Area_Chairs'
+ * @example
+ * { "seniorAreaChairName": "Senior_Area_Chairs" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.secondaryAreaChairName
+ * @description Secondary AC role label used for assignment/status/messaging for secondary ACs (secondary AC email support in PR #2208).
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "secondaryAreaChairName": "Secondary_Area_Chairs" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.secondaryAnonAreaChairName
+ * @description Prefix for anonymous secondary AC groups.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "secondaryAnonAreaChairName": "Secondary_Area_Chair_" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.programChairsId
+ * @description Program chairs group id used in overview links.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "programChairsId": "ICLR.cc/202X/Conference/Program_Chairs" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.authorsId
+ * @description Authors group id used in overview links and counts.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "authorsId": "ICLR.cc/202X/Conference/Authors" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.officialReviewName
+ * @description Official review invitation name used for review parsing, stats and links.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "officialReviewName": "Official_Review" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.officialMetaReviewName
+ * @description Meta-review invitation name used for status/statistics/link generation.
+ * @type {string}
+ * @default 'Meta_Review'
+ * @example
+ * { "officialMetaReviewName": "Meta_Review" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.commentName
+ * @description Comment invitation name used in overview timeline display.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "commentName": "Official_Comment" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.decisionName
+ * @description Decision invitation name used to parse/display per-submission decisions. Made optional in PR #1232.
+ * @type {string}
+ * @default 'Decision'
+ * @example
+ * { "decisionName": "Decision" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.bidName
+ * @description Bid invitation suffix used for reviewer/AC/SAC bidding data and links. This config is optional since PR #1729.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "bidName": "Bid" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.recommendationName
+ * @description Reviewer recommendation invitation suffix used for AC recommendation progress.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "recommendationName": "Recommendation" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.scoresName
+ * @description Score invitation suffix used in edge browser links for bids/recommendations.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "scoresName": "Affinity_Score" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.metaReviewRecommendationName
+ * @description Recommendation field key in meta-review content.
+ * @type {string}
+ * @default 'recommendation'
+ * @example
+ * { "metaReviewRecommendationName": "recommendation" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.additionalMetaReviewFields
+ * @description Extra meta-review fields added to table/search/export and status views (feature added in PR #1828).
+ * @type {string[]}
+ * @default []
+ * @example
+ * { "additionalMetaReviewFields": ["final_recommendation"] }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.reviewRatingName
+ * @description Review rating field config. Supports string, string[] and object[] with fallback fields (fallback support added in PR #1808).
+ * @type {string|string[]|object[]}
+ * @default no default value
+ * @example <caption>single field</caption>
+ * { "reviewRatingName": "rating" }
+ * @example <caption>multiple fields</caption>
+ * { "reviewRatingName": ["soundness", "overall_recommendation"] }
+ * @example <caption>fallback mapping</caption>
+ * {
+ *   "reviewRatingName": [
+ *     { "overall_rating": ["final_rating", "preliminary_rating"] },
+ *     "overall_recommendation"
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.reviewConfidenceName
+ * @description Review confidence field used for confidence stats and export.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "reviewConfidenceName": "confidence" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.enableQuerySearch
+ * @description Enables query-search controls in paper, AC and withdrawn/desk-rejected tabs.
+ * @type {boolean}
+ * @default no default value
+ * @example
+ * { "enableQuerySearch": true }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.shortPhrase
+ * @description Short venue phrase used in email subject and export file names.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "shortPhrase": "ICLR 202X" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.recruitmentName
+ * @description Recruitment invitation suffix used in overview timeline.
+ * @type {string}
+ * @default 'Recruitment'
+ * @example
+ * { "recruitmentName": "Recruitment" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.paperStatusExportColumns
+ * @description Extra export columns for the paper status table. This is an array of objects, where each object has: `header` (column title) and `getValue` (function body string executed with `row` in scope). getValue can get rather complex and the char escape should be handled carefully.
+ * @type {Object[]}
+ * @default no default value
+ * @example <caption>basic exmaple</caption>
+ * {
+ *   "paperStatusExportColumns": [
+ *     {
+ *       "header": "Submission Type",
+ *       "getValue": "row.note?.content?.submission_type?.value ?? 'N/A'"
+ *     }
+ *   ]
+ * }
+ * @example <caption>complex exmaple</caption>
+ * {
+ *   "paperStatusExportColumns": [
+ *     {
+ *       "header": "SAC Recommendation",
+ *       "getValue": `const SACRecommendationNote = row.note?.details?.replies?.find(p => p.invitations.some(q => q.includes('SAC_Recommendation')));
+return SACRecommendationNote ? \`\${SACRecommendationNote.content.decision?.value ?? 'N/A'}\` : 'N/A';`,
+     },
+
+ *     }
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.reviewerStatusExportColumns
+ * @description Extra export columns for reviewer status table.
+ * @type {Object[]}
+ * @default no default value
+ * @example
+ * {
+ *   "reviewerStatusExportColumns": [
+ *     {
+ *       "header": "OpenReview ID",
+ *       "getValue": "row.reviewerProfileId"
+ *     }
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.areaChairStatusExportColumns
+ * @description Extra export columns for AC/SAC status tables.
+ * @type {Object[]}
+ * @default no default value
+ * @example
+ * {
+ *   "areaChairStatusExportColumns": [
+ *     {
+ *       "header": "AC GS Scholar",
+ *       "getValue": "row.areaChairProfile?.content?.gscholar ?? 'N/A'"
+ *     }
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.propertiesAllowed
+ * @description Additional query-search properties for paper status. Supports paths array and function strings.
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "propertiesAllowed": {
+ *     "flagged": ["note.content.flagged_for_ethics_review.value","note.content.flagged_for_something_else.value"],
+ *     "officialReviewCount": `const invitationToCheck="Official_Review";
+const officialReviews = row.note?.details?.replies?.filter(reply => (reply.invitations.some(invitation => invitation.includes(invitationToCheck))))
+return officialReviews.length;
+`
+ *   }
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.areaChairStatusPropertiesAllowed
+ * @description Query-search properties override (instead of addition) for AC status
+ * @type {Object}
+ * @default built-in AC defaults
+ * @example
+ * {
+ *   "areaChairStatusPropertiesAllowed": {
+ *     "name": ["areaChairProfile.preferredName"],
+ *     "sac": ["seniorAreaChair.seniorAreaChairId"]
+ *   }
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.sacStatuspropertiesAllowed
+ * @description Query-search properties override for SAC status (direct paper assignment mode).
+ * @type {Object}
+ * @default built-in SAC defaults
+ * @example
+ * {
+ *   "sacStatuspropertiesAllowed": {
+ *     "name": ["sacProfile.preferredName"],
+ *     "email": ["sacProfile.preferredEmail"]
+ *   }
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.filterOperators
+ * @description Allowed query operators for query-search menu bars.
+ * @type {string[]}
+ * @default ["!=", ">=", "<=", ">", "<", "==", "="]
+ * @example
+ * { "filterOperators": ["=", "==", "!=", ">", "<", ">=", "<="] }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.customStageInvitations
+ * @description Additional stage configs used in overview progress cards and table search/export
+ * @type {Object[]}
+ * @default []
+ * @example
+ * {
+ *   "customStageInvitations": [
+ *     {
+ *       "name": "Custom_Stage_Field_One",
+ *       "role": "Area_Chairs",
+ *       "repliesPerSubmission": 1,
+ *       "displayField": "custom_stage_field_one",
+ *       "extraDisplayFields": ["some_field"]
+ *     }
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.metaReviewAgreementConfig
+ * @description Config for dedicated meta-review agreement stage shown in overview and search/export, similar to customStageInvitations but has no extraDisplayFields. Another difference is metaReviewAgreement checks for reply to meta review instead of forum reply
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "metaReviewAgreementConfig": {
+ *     "name": "Meta_Review_Agreement",
+ *     "role": "Area_Chairs",
+ *     "repliesPerSubmission": 1,
+ *     "displayField": "decision",
+ *     "description": "Agreement stage completion"
+ *   }
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.assignmentUrls
+ * @description Per-role assignment URL configuration for timeline and paper status assignment links.
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "assignmentUrls": {
+ *     "Reviewers": {
+ *       "manualAssignmentUrl": "/edges/browse?...",
+ *       "automaticAssignment": false
+ *     },
+ *     "Area_Chairs": {
+ *       "manualAssignmentUrl": "/edges/browse?...",
+ *       "automaticAssignment": true
+ *     }
+ *   }
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.submissionContentFields
+ * @description Adds extra paper-status tabs keyed by submission content fields
+ * field: The submission content field that the tab will be based on. The tab will filter based on whether or not this field is present in a submission's content
+responseInvitations: Array of invitation endings that are used to display replies that were made after, and in response to the submission being flagged
+reasonInvitations: Array of invitation endings that are used to display replies that were made before, or in parallel, the flag and are the reason that the flag was raised
+reasonFields: Object that contains content fields that may be in any of the notes that reply to any of the reason invitations. These are the fields and possible values that would cause the process function to flag the submission
+ * @type {Object[]}
+ * @default []
+ * @example
+ * {
+ *   "submissionContentFields": [
+ *     {
+ *       "field": "ethics_review_flag",
+ *       "reasonInvitations": ["Ethics_Review"],
+ *       "reasonFields": { "ethics_review_triage": ['Ethics review needed.'] },
+ *       "responseInvitations": ["Ethics_Response"]
+ *     }
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.sacDirectPaperAssignment
+ * @description If true, SAC status tab shows direct paper assignment progress instead of SAC-to-AC mapping.
+ * @type {boolean}
+ * @default no default value
+ * @example
+ * { "sacDirectPaperAssignment": true }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.messageReviewersInvitationId
+ * @description Invitation id used when sending bulk reminders from Reviewer Status tab.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "messageReviewersInvitationId": "ICLR.cc/202X/Conference/Reviewers/-/Message" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.messageAreaChairsInvitationId
+ * @description Invitation id used when sending bulk reminders from AC Status tab.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "messageAreaChairsInvitationId": "ICLR.cc/202X/Conference/Area_Chairs/-/Message" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.messageSeniorAreaChairsInvitationId
+ * @description Invitation id used when sending bulk reminders from SAC Status tab.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "messageSeniorAreaChairsInvitationId": "ICLR.cc/202X/Conference/Senior_Area_Chairs/-/Message" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.messageSubmissionReviewersInvitationId
+ * @description Per-submission reviewer reminder invitation id used by Paper Status messaging modal.
+ * @type {string}
+ * @default no default value
+ * @example
+ * {
+ *   "messageSubmissionReviewersInvitationId": "ICLR.cc/202X/Conference/Submission{number}/-/Message"
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.messageSubmissionAreaChairsInvitationId
+ * @description Per-submission AC reminder invitation id used by Paper Status messaging modal (selected-paper AC messaging added in PR #2011).
+ * @type {string}
+ * @default no default value
+ * @example
+ * {
+ *   "messageSubmissionAreaChairsInvitationId": "ICLR.cc/202X/Conference/Submission{number}/Area_Chairs/-/Message"
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.messageSubmissionSecondaryAreaChairsInvitationId
+ * @description Per-submission secondary-AC reminder invitation id used by Paper Status messaging modal (secondary AC messaging support in PR #2208).
+ * @type {string}
+ * @default no default value
+ * @example
+ * {
+ *   "messageSubmissionSecondaryAreaChairsInvitationId": "ICLR.cc/202X/Conference/Submission{number}/Secondary_Area_Chairs/-/Message"
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.preferredEmailInvitationId
+ * @description Invitation id for preferred-email edges used by profile links and copy-email actions.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "preferredEmailInvitationId": "ICLR.cc/202X/Conference/-/Preferred_Email" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.emailReplyTo
+ * @description Reply-to address for reminder emails sent from PC console tabs.
+ * @type {string}
+ * @default no default value
+ * @example
+ * { "emailReplyTo": "pc@conference.org" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.reviewerEmailFuncs
+ * @description Extra custom message filter options for the Reviewer Status message dropdown.
+ * @type {Object[]}
+ * @default no default value
+ * @example
+ * {
+ *   "reviewerEmailFuncs": [
+ *     {
+ *       "label": "Reviewers with Zero Load",
+ *       "filterFunc": `
+        var loadNotes = row.reviewerProfile.registrationNotes?.filter(n => n.invitations.some(i => i.includes('Max_Load')));
+        return parseInt(loadNotes?.[0]?.content?.maximum_load_this_cycle?.value, 10) == 0 ?? False
+        `
+ *     }
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.acEmailFuncs
+ * @description Extra custom message filter options for the Area Chair Status message dropdown, similar to reviewerEmailFuncs.
+ * @type {Object[]}
+ * @default no default value
+ * @example
+ * {
+ *   "acEmailFuncs": [
+ *     {
+ *       "label": "ACs from custom filter",
+ *       "filterFunc": "return row.numCompletedMetaReviews === 0"
+ *     }
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.sacEmailFuncs
+ * @description Extra custom message filter options for the Senior Area Chair Status message dropdown, similar to reviewerEmailFuncs.
+ * @type {Object[]}
+ * @default no default value
+ * @example
+ * {
+ *   "sacEmailFuncs": [
+ *     {
+ *       "label": "SACs from custom filter",
+ *       "filterFunc": "return row.notes?.length === 0"
+ *     }
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.ithenticateInvitationId
+ * @description Duplication edge invitation id used to display/export similarity percentages.
+ * @type {string}
+ * @default no default value
+ * @example
+ * {
+ *   "ithenticateInvitationId": "ICLR.cc/202X/Conference/Submission/-/Ithenticate"
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.displayReplyInvitations
+ * @description Enables and configures the “Latest Replies” column in Paper Status (added in PR #2237).
+ * @type {Object[]}
+ * @default no default value
+ * @example
+ * {
+ *   "displayReplyInvitations": [
+ *     {
+ *       "id": "ICLR.cc/202X/Conference/Submission{number}/-/Official_Comment",
+ *       "fields": ["summary", "limitations"]
+ *     },
+ *     {
+ *       "id": "ICLR.cc/202X/Conference/Submission{number}/-/Public_Comment",
+ *       "fields": ["strengths", "suitability"]
+ *     }
+ *   ]
+ * }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.useCache
+ * @description If true, PC console loads/saves data via console cache and shows reload banner.
+ * @type {boolean}
+ * @default false
+ * @example
+ * { "useCache": true }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.ethicsReviewersName
+ * @description Ethics reviewer role label used in timeline/overview role display.
+ * @type {string}
+ * @default 'Ethics_Reviewers'
+ * @example
+ * { "ethicsReviewersName": "Ethics_Reviewers" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.ethicsChairsName
+ * @description Ethics chair role label used in timeline/overview role display.
+ * @type {string}
+ * @default 'Ethics_Chairs'
+ * @example
+ * { "ethicsChairsName": "Ethics_Chairs" }
+ */
+
+/**
+ * @name ProgramChairConsoleConfig.domainContent
+ * @description Domain-level content fallback used in overview for role setup metadata.
+ * @type {Object}
+ * @default no default value
+ * @example
+ * {
+ *   "domainContent": {
+ *     "reviewer_roles": ["Reviewers"],
+ *     "area_chair_roles": ["Area_Chairs"],
+ *     "senior_area_chair_roles": ["Senior_Area_Chairs"]
+ *   }
+ * }
+ */
+// #endregion
+
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const {
     header,
     entity: group,
     venueId,
-    areaChairsId,
-    seniorAreaChairsId,
     reviewersId,
     programChairsId,
     authorsId,
     paperReviewsCompleteThreshold,
+    submissionId,
+    submissionVenueId,
+    officialReviewName,
+    commentName,
+    anonReviewerName,
+    shortPhrase,
+    enableQuerySearch,
+    submissionName,
+    areaChairsId,
+    seniorAreaChairsId,
     bidName,
     recommendationName, // to get ac recommendation edges
     metaReviewRecommendationName = 'recommendation', // recommendation field in meta review
     additionalMetaReviewFields = [],
     requestFormId,
-    submissionId,
-    submissionVenueId,
     withdrawnVenueId,
     deskRejectedVenueId,
-    officialReviewName,
-    commentName,
     officialMetaReviewName = 'Meta_Review',
     decisionName = 'Decision',
-    anonReviewerName,
     anonAreaChairName,
     reviewerName = 'Reviewers',
     areaChairName = 'Area_Chairs',
@@ -66,13 +884,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     secondaryAreaChairName,
     secondaryAnonAreaChairName,
     scoresName,
-    shortPhrase,
-    enableQuerySearch,
     reviewRatingName,
     reviewConfidenceName,
-    submissionName,
     recruitmentName,
     paperStatusExportColumns,
+    reviewerStatusExportColumns,
     areaChairStatusExportColumns,
     customStageInvitations,
     assignmentUrls,
@@ -85,13 +901,21 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     propertiesAllowed,
     areaChairStatusPropertiesAllowed,
     sacStatuspropertiesAllowed,
+    filterOperators,
+    messageReviewersInvitationId,
     messageAreaChairsInvitationId,
     messageSeniorAreaChairsInvitationId,
+    messageSubmissionReviewersInvitationId,
+    messageSubmissionAreaChairsInvitationId,
+    messageSubmissionSecondaryAreaChairsInvitationId,
     preferredEmailInvitationId,
     ithenticateInvitationId,
     displayReplyInvitations,
     metaReviewAgreementConfig,
     useCache = false,
+    ethicsReviewersName = 'Ethics_Reviewers',
+    ethicsChairsName = 'Ethics_Chairs',
+    domainContent = {},
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
   const { user, isRefreshing } = useUser()
