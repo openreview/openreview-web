@@ -21,6 +21,12 @@
   margin-right: 0.25rem;
 }
 
+.pastStateSetBy {
+  margin-right: 0.25rem;
+  color: constants.$subtleGray;
+  font-size: 0.85em;
+}
+
 .pastStateMessage {
   flex: 1;
   overflow: hidden;
