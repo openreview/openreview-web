@@ -88,7 +88,6 @@ function MessageContent({ content = '' }) {
   if (!sanitizedHtml) return null
 
   return (
-    // eslint-disable-next-line react/no-danger
     <div className="markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
   )
 }
@@ -101,7 +100,6 @@ export default function NotificationsTable({
 }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [allMessages, setAllMessages] = useState(null)
-  const { token } = useUser()
   const pageSize = 25
 
   const count = allMessages?.length
@@ -126,14 +124,10 @@ export default function NotificationsTable({
   )
 
   const getMessages = async (after) => {
-    const result = await api.get(
-      '/messages',
-      {
-        to: toEmail,
-        after,
-      },
-      { accessToken: token }
-    )
+    const result = await api.get('/messages', {
+      to: toEmail,
+      after,
+    })
     setAllMessages((existingMessages) => existingMessages.concat(result.messages || []))
   }
 

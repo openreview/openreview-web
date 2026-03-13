@@ -5,11 +5,10 @@ import api from '../../../../lib/api-client'
 
 export default function InstituitonSearchForm({
   countryOptions,
-  accessToken,
   setInstitutions,
   setPage,
   reloadInstitutionsDomains,
-  institutions,
+  allInstitutions,
 }) {
   const [searchAddForm, setSearchAddForm] = useReducer((state, action) => {
     if (action.type === 'reset') return {}
@@ -25,7 +24,9 @@ export default function InstituitonSearchForm({
     }
 
     setInstitutions(
-      institutions.filter((p) => p.toLowerCase().includes(institutionIdToSearch.toLowerCase()))
+      allInstitutions.filter((p) =>
+        p.toLowerCase().includes(institutionIdToSearch.toLowerCase())
+      )
     )
   }
 
@@ -44,21 +45,17 @@ export default function InstituitonSearchForm({
       .flatMap((p) => (p.trim().toLowerCase()?.length ? p.trim().toLowerCase() : []))
 
     try {
-      await api.post(
-        '/settings/institutions',
-        {
-          id: institutionId,
-          shortname: searchAddForm.shortname?.trim(),
-          fullname: searchAddForm.fullname?.trim(),
-          parent: searchAddForm.parent?.trim(),
-          domains: institutionDomains,
-          country: searchAddForm.country?.label,
-          alphaTwoCode: searchAddForm.country?.value,
-          stateProvince: searchAddForm.stateProvince?.trim(),
-          webPages,
-        },
-        { accessToken }
-      )
+      await api.post('/settings/institutions', {
+        id: institutionId,
+        shortname: searchAddForm.shortname?.trim(),
+        fullname: searchAddForm.fullname?.trim(),
+        parent: searchAddForm.parent?.trim(),
+        domains: institutionDomains,
+        country: searchAddForm.country?.label,
+        alphaTwoCode: searchAddForm.country?.value,
+        stateProvince: searchAddForm.stateProvince?.trim(),
+        webPages,
+      })
       promptMessage(`${searchAddForm.id} added.`)
       setSearchAddForm({ type: 'reset' })
       reloadInstitutionsDomains(true)
@@ -89,11 +86,9 @@ export default function InstituitonSearchForm({
             }
           }}
         />
-        {/* <div className="search-button"> */}
         <button type="submit" className="btn btn-xs search-button" onClick={searchInstitution}>
           Search
         </button>
-        {/* </div> */}
       </div>
       <div className="institution-add-form">
         <input

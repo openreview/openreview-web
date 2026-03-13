@@ -1,7 +1,6 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
-import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
@@ -41,7 +40,6 @@ const RejectedWithdrawnPapers = ({ consoleData, isSacConsole = false }) => {
   } = useContext(WebFieldContext)
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
-  const { accessToken } = useUser()
   const pageSize = 25
   const referrerUrl = encodeURIComponent(
     `[${
@@ -70,26 +68,18 @@ const RejectedWithdrawnPapers = ({ consoleData, isSacConsole = false }) => {
     Promise.all(
       ids.map((id) => {
         if (!id) return Promise.resolve([])
-        return api.getAll(
-          '/notes',
-          { 'content.venueid': id, domain: venueId },
-          { accessToken }
-        )
+        return api.getAll('/notes', { 'content.venueid': id, domain: venueId })
       })
     )
 
   const filterAssignedNotes = async (results) => {
     const assignedNoteNumbers = await api
-      .get(
-        '/groups',
-        {
-          prefix: `${venueId}/${submissionName}.*`,
-          stream: true,
-          select: 'id',
-          domain: venueId,
-        },
-        { accessToken }
-      )
+      .get('/groups', {
+        prefix: `${venueId}/${submissionName}.*`,
+        stream: true,
+        select: 'id',
+        domain: venueId,
+      })
       .then((result) =>
         result.groups.flatMap((group) => {
           if (!group.id.endsWith(seniorAreaChairName)) return []

@@ -176,6 +176,7 @@ export default function page() {
           <stripe-buy-button
             buy-button-id="buy_btn_1S0p87Cl36NCiRDgXCL1qdDL"
             publishable-key="pk_live_51RP76TCl36NCiRDgxC9p1LwEBdv9OyLylD60bImUgP4lKuylNIR6euYrEPd9SNIiJrhzKVdKE4L3pojPkLoD1qPS00hFNOq3y9"
+            // oxlint-disable-next-line react/self-closing-comp
           ></stripe-buy-button>
         </div>
         <div className="col-xs-12 col-md-10 col-md-offset-1 text-center">

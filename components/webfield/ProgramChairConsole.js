@@ -1,9 +1,8 @@
-/* eslint-disable no-continue */
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import groupBy from 'lodash/groupBy'
-import { camelCase, orderBy } from 'lodash'
+import { camelCase } from 'lodash'
 import dayjs from 'dayjs'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -95,7 +94,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     useCache = false,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const query = useSearchParams()
   const [pcConsoleData, setPcConsoleData] = useState({})
   const [timelineData, setTimelineData] = useState({})
@@ -118,61 +117,41 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
     try {
       // #region getInvitationMap
-      const conferenceInvitationsP = api.getAll(
-        '/invitations',
-        {
-          prefix: `${venueId}/-/.*`,
-          expired: true,
-          type: 'all',
-          domain: venueId,
-        },
-        { accessToken }
-      )
-      const reviewerInvitationsP = api.getAll(
-        '/invitations',
-        {
-          prefix: `${reviewersId}/-/.*`,
-          expired: true,
-          type: 'all',
-          domain: venueId,
-        },
-        { accessToken }
-      )
+      const conferenceInvitationsP = api.getAll('/invitations', {
+        prefix: `${venueId}/-/.*`,
+        expired: true,
+        type: 'all',
+        domain: venueId,
+      })
+      const reviewerInvitationsP = api.getAll('/invitations', {
+        prefix: `${reviewersId}/-/.*`,
+        expired: true,
+        type: 'all',
+        domain: venueId,
+      })
       const acInvitationsP = areaChairsId
-        ? api.getAll(
-            '/invitations',
-            {
-              prefix: `${areaChairsId}/-/.*`,
-              expired: true,
-              type: 'all',
-              domain: venueId,
-            },
-            { accessToken }
-          )
+        ? api.getAll('/invitations', {
+            prefix: `${areaChairsId}/-/.*`,
+            expired: true,
+            type: 'all',
+            domain: venueId,
+          })
         : Promise.resolve([])
       const sacInvitationsP = seniorAreaChairsId
-        ? api.getAll(
-            '/invitations',
-            {
-              prefix: `${seniorAreaChairsId}/-/.*`,
-              expired: true,
-              type: 'all',
-              domain: venueId,
-            },
-            { accessToken }
-          )
+        ? api.getAll('/invitations', {
+            prefix: `${seniorAreaChairsId}/-/.*`,
+            expired: true,
+            type: 'all',
+            domain: venueId,
+          })
         : Promise.resolve([])
 
       const customStageInvitationsP = customStageInvitations
-        ? api.getAll(
-            '/invitations',
-            {
-              ids: customStageInvitations.map((p) => `${venueId}/-/${p.name}`),
-              type: 'note',
-              domain: venueId,
-            },
-            { accessToken }
-          )
+        ? api.getAll('/invitations', {
+            ids: customStageInvitations.map((p) => `${venueId}/-/${p.name}`),
+            type: 'note',
+            domain: venueId,
+          })
         : Promise.resolve([])
 
       const invitationResultsP = Promise.all([
@@ -190,7 +169,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         ? api
             .getNoteById(
               requestFormId,
-              accessToken,
+              undefined,
               {
                 select: 'id,content',
               },
@@ -213,16 +192,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const getRegistrationFormResultsP = Promise.all(
         prefixes.map((prefix) =>
           api
-            .getAll(
-              '/notes',
-              {
-                invitation: `${prefix}/-/.*`,
-                signature: venueId,
-                select: 'id,invitation,invitations,content.title',
-                domain: venueId,
-              },
-              { accessToken }
-            )
+            .getAll('/notes', {
+              invitation: `${prefix}/-/.*`,
+              signature: venueId,
+              select: 'id,invitation,invitations,content.title',
+              domain: venueId,
+            })
             .then((notes) =>
               notes.filter((note) => note.invitations.some((p) => p.endsWith('_Form')))
             )
@@ -249,11 +224,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       // #region get invited groups
       const invitedGroupsP = await Promise.all(
-        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
-          (invitedId) =>
-            invitedId
-              ? api.getGroupById(invitedId, accessToken, { select: 'members' })
-              : Promise.resolve(null)
+        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map((invitedId) =>
+          invitedId
+            ? api.getGroupById(invitedId, undefined, { select: 'members' })
+            : Promise.resolve(null)
         )
       )
       // #endregion
@@ -261,7 +235,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #region get Reviewer, AC, SAC members
       const committeeMemberResultsP = Promise.all(
         [reviewersId, areaChairsId, seniorAreaChairsId].map((id) =>
-          id ? api.getGroupById(id, accessToken, { select: 'members' }) : Promise.resolve([])
+          id ? api.getGroupById(id, undefined, { select: 'members' }) : Promise.resolve([])
         )
       )
       // #endregion
@@ -277,7 +251,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           domain: venueId,
         },
         {
-          accessToken,
           statusUpdate: (loadedCount, totalCount) => {
             setDataLoadingStatusMessage(
               `Loading ${submissionName}s: ${loadedCount}/${totalCount}`
@@ -298,7 +271,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 select: 'signatures',
                 domain: venueId,
               },
-              { accessToken }
             )
           : Promise.resolve([])
       // #endregion
@@ -315,23 +287,19 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               select: 'count',
               domain: venueId,
             },
-            { accessToken, resultsKey: 'groupedEdges' }
+            { resultsKey: 'groupedEdges' }
           )
         })
       )
       // #endregion
 
       // #region getGroups (per paper groups)
-      const perPaperGroupResultsP = api.get(
-        '/groups',
-        {
-          prefix: `${venueId}/${submissionName}.*`,
-          stream: true,
-          select: 'id,members',
-          domain: venueId,
-        },
-        { accessToken }
-      )
+      const perPaperGroupResultsP = api.get('/groups', {
+        prefix: `${venueId}/${submissionName}.*`,
+        stream: true,
+        select: 'id,members',
+        domain: venueId,
+      })
       // #endregion
 
       // #region get ithenticate edges
@@ -343,7 +311,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 invitation: ithenticateInvitationId,
                 groupBy: 'id',
               },
-              { accessToken, resultsKey: 'groupedEdges' }
+              { resultsKey: 'groupedEdges' }
             )
             .then((result) => result.map((p) => p.values[0]))
         : Promise.resolve([])
@@ -514,43 +482,27 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #region get all profiles(with assignments)
       const allIds = [...allGroupMembers]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const emails = allIds.filter((p) => p.match(/.+@.+/))
       const getProfilesByIdsP = ids.length
-        ? api.post(
-            '/profiles/search',
-            {
-              ids,
-            },
-            { accessToken }
-          )
-        : Promise.resolve([])
-      const getProfilesByEmailsP = emails.length
-        ? api.post(
-            '/profiles/search',
-            {
-              emails,
-            },
-            { accessToken }
-          )
+        ? api.post('/profiles/search', {
+            ids,
+          })
         : Promise.resolve([])
       setDataLoadingStatusMessage('Loading profiles')
-      const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
+      const profileResults = await getProfilesByIdsP
       const allProfilesMap = new Map()
-      const _ = (profileResults[0].profiles ?? [])
-        .concat(profileResults[1].profiles ?? [])
-        .forEach((profile) => {
-          const reducedProfile = {
-            id: profile.id,
-            preferredName: getProfileName(profile),
-            title: formatProfileContent(profile.content).title,
-            usernames: profile.content.names.flatMap((p) => p.username ?? []),
-          }
+      const _ = (profileResults.profiles ?? []).forEach((profile) => {
+        const reducedProfile = {
+          id: profile.id,
+          preferredName: getProfileName(profile),
+          title: formatProfileContent(profile.content).title,
+          usernames: profile.content.names.flatMap((p) => p.username ?? []),
+        }
 
-          const usernames = profile.content.names.flatMap((p) => p.username ?? [])
-          usernames.concat(profile.email ?? []).forEach((key) => {
-            allProfilesMap.set(key, reducedProfile)
-          })
+        const usernames = profile.content.names.flatMap((p) => p.username ?? [])
+        usernames.concat(profile.email ?? []).forEach((key) => {
+          allProfilesMap.set(key, reducedProfile)
         })
+      })
       // #endregion
       const officialReviewsByPaperNumberMap = new Map()
       const metaReviewsByPaperNumberMap = new Map()
@@ -697,9 +649,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         if (latestDisplayReplies.length) {
           displayReplyInvitationsByPaperNumberMap.set(note.number, latestDisplayReplies)
         }
-        // eslint-disable-next-line no-param-reassign
         note.replyCount = replies.length
-        // eslint-disable-next-line no-param-reassign
         if (useCache) delete note.details?.replies
       })
 
@@ -850,7 +800,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     }
   }
 
-  // eslint-disable-next-line consistent-return
   const calculateNotesReviewMetaReviewData = () => {
     if (!pcConsoleData) return new Map()
     const noteNumberReviewMetaReviewMap = new Map()
@@ -1148,7 +1097,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
         }
       })
-      // eslint-disable-next-line no-param-reassign
       profile.registrationNotes = userRegNotes
     })
 
@@ -1159,16 +1107,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     // #region get sac edges to get sac of ac
     const sacEdgeResult = seniorAreaChairsId
       ? await api
-          .get(
-            '/edges',
-            {
-              invitation: `${seniorAreaChairsId}/-/Assignment`,
-              groupBy: 'head,tail',
-              select: 'head,tail',
-              domain: venueId,
-            },
-            { accessToken }
-          )
+          .get('/edges', {
+            invitation: `${seniorAreaChairsId}/-/Assignment`,
+            groupBy: 'head,tail',
+            select: 'head,tail',
+            domain: venueId,
+          })
           .then((result) => result.groupedEdges)
       : []
 
@@ -1194,33 +1138,17 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       seniorAreaChairWithoutAssignmentIds
     )
     const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
-    const emails = allIdsNoAssignment.filter((p) => p.match(/.+@.+/))
     const getProfilesByIdsP = ids.length
-      ? api.post(
-          '/profiles/search',
-          {
-            ids,
-          },
-          { accessToken }
-        )
+      ? api.post('/profiles/search', {
+          ids,
+        })
       : Promise.resolve([])
-    const getProfilesByEmailsP = emails.length
-      ? api.post(
-          '/profiles/search',
-          {
-            emails,
-          },
-          { accessToken }
-        )
-      : Promise.resolve([])
-    const profileResults = await Promise.all([getProfilesByIdsP, getProfilesByEmailsP])
-    const acSacProfilesWithoutAssignment = (profileResults[0].profiles ?? [])
-      .concat(profileResults[1].profiles ?? [])
-      .map((profile) => ({
-        ...profile,
-        preferredName: getProfileName(profile),
-        title: formatProfileContent(profile.content).title,
-      }))
+    const profileResults = await getProfilesByIdsP
+    const acSacProfilesWithoutAssignment = (profileResults.profiles ?? []).map((profile) => ({
+      ...profile,
+      preferredName: getProfileName(profile),
+      title: formatProfileContent(profile.content).title,
+    }))
 
     const acSacProfileWithoutAssignmentMap = new Map()
     acSacProfilesWithoutAssignment.forEach((profile) => {
@@ -1232,7 +1160,6 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         }
       })
 
-      // eslint-disable-next-line no-param-reassign
       profile.registrationNotes = userRegNotes
 
       usernames.concat(profile.email ?? []).forEach((key) => {
@@ -1261,16 +1188,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     try {
       const registrationNoteResults = await Promise.all(
         pcConsoleData.registrationForms.map((regForm) =>
-          api.get(
-            '/notes',
-            {
-              forum: regForm.id,
-              select: 'id,signatures,invitations,content',
-              domain: venueId,
-              stream: true,
-            },
-            { accessToken }
-          )
+          api.get('/notes', {
+            forum: regForm.id,
+            select: 'id,signatures,invitations,content',
+            domain: venueId,
+            stream: true,
+          })
         )
       )
       const registrationNoteMap = groupBy(

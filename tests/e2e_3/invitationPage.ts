@@ -25,7 +25,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .click(loginButton)
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Bidding page`
   .page`http://localhost:${process.env.NEXT_PORT}/invitation?id=ICLR.cc/2021/Conference/Reviewers/-/Bid`
 
@@ -41,8 +41,8 @@ test('guest user should be redirected to login page and be able to access the in
     .expect(Selector('#invitation-container').exists)
     .ok()
     .expect(Selector('#invitation-container h1').innerText)
-    .eql('Reviewers Bidding Console')
-    .expect(Selector('#notes').exists)
+    .eql('Reviewer Bidding Console')
+    .expect(Selector('#all-submissions').exists)
     .ok()
 })
 
@@ -70,8 +70,8 @@ test('logged in user should be able to access to the invitation', async (t) => {
     .expect(Selector('#invitation-container').exists)
     .ok()
     .expect(Selector('#invitation-container h1').innerText)
-    .eql('Reviewers Bidding Console')
-    .expect(Selector('#notes').exists)
+    .eql('Reviewer Bidding Console')
+    .expect(Selector('#all-submissions').exists)
     .ok()
 })
 
@@ -87,7 +87,7 @@ test('logged in user should get a forbidden error', async (t) => {
     .eql("You don't have permission to read this invitation")
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Invitation page`.page`http://localhost:${process.env.NEXT_PORT}`
 
 test('accessing an invalid invitation should get a not found error', async (t) => {

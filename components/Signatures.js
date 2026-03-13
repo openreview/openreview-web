@@ -25,7 +25,7 @@ const Signatures = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
 
   const getRegexSignatureOptions = async () => {
     onChange({ loading: true })
@@ -35,7 +35,7 @@ const Signatures = ({
       const regexGroupResult = await api.get(
         '/groups',
         { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression, signatory: user?.id },
-        { accessToken, version: regexContainsPipe ? 1 : 2 }
+        { version: regexContainsPipe ? 1 : 2 }
       )
       if (!regexGroupResult.groups?.length) {
         throw new Error('You do not have permission to create a note')
@@ -74,9 +74,7 @@ const Signatures = ({
         const params = p.prefix
           ? { prefix: p.prefix, signatory: user?.id }
           : { id: p.value, signatory: user?.id }
-        return api
-          .get('/groups', params, { accessToken })
-          .then((result) => result.groups ?? [])
+        return api.get('/groups', params).then((result) => result.groups ?? [])
       })
       const groupResults = await Promise.all(optionsP)
       const uniqueGroupResults = uniqBy(flatten(groupResults), 'id')

@@ -8,7 +8,6 @@ import { prettyField } from '../../lib/utils'
 export default function InvitationProcessFunctionsV2({
   invitation,
   profileId,
-  accessToken,
   loadInvitation,
   isMetaInvitation,
 }) {
@@ -36,7 +35,6 @@ export default function InvitationProcessFunctionsV2({
               <InvitationCodeV2
                 invitation={invitation}
                 profileId={profileId}
-                accessToken={accessToken}
                 loadInvitation={loadInvitation}
                 codeType={`content.${fieldName}.value`}
                 isMetaInvitation={isMetaInvitation}

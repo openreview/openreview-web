@@ -9,7 +9,7 @@ import {
   prettyField,
 } from '../../../lib/utils'
 
-export default function V1Compare({ query, accessToken }) {
+export default function V1Compare({ query }) {
   const [references, setReferences] = useState(null)
   const [draftableUrl, setDraftableUrl] = useState('')
   const [contentDiff, setContentDiff] = useState(null)
@@ -23,7 +23,7 @@ export default function V1Compare({ query, accessToken }) {
           original: true,
           trash: true,
         },
-        { accessToken, version: 1 }
+        { version: 1 }
       )
 
       if (apiRes.references?.length > 1) {
@@ -49,7 +49,7 @@ export default function V1Compare({ query, accessToken }) {
           leftId: query.left,
           rightId: query.right,
         },
-        { accessToken, version: 1 }
+        { version: 1 }
       )
       setReferences([leftNote, rightNote])
       setDraftableUrl(viewerUrl)
@@ -63,11 +63,8 @@ export default function V1Compare({ query, accessToken }) {
 
     return Object.entries(diff).map(([fieldName, fieldValue]) => {
       if (fieldName.startsWith(prefixToRemove))
-        // eslint-disable-next-line no-param-reassign
         fieldName = fieldName.substring(prefixToRemove.length)
-      // eslint-disable-next-line no-param-reassign
       if (fieldName.endsWith('.value')) fieldName = fieldName.slice(0, -6)
-      // eslint-disable-next-line no-param-reassign
       if (fieldName.endsWith('.readers')) fieldName = `${fieldName.slice(0, -8)} readers`
 
       const prettifiedFieldName = shouldPrettyField ? prettyField(fieldName) : fieldName
@@ -79,7 +76,6 @@ export default function V1Compare({ query, accessToken }) {
           <td>
             {fieldValue.left && (
               <>
-                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                 <strong>{prettifiedFieldName}:</strong> {prettifiedLeftValue}
               </>
             )}
@@ -87,7 +83,6 @@ export default function V1Compare({ query, accessToken }) {
           <td>
             {fieldValue.right && (
               <>
-                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                 <strong>{prettifiedFieldName}:</strong> {prettifiedRightValue}
               </>
             )}

@@ -27,7 +27,10 @@ export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()
   const query = await searchParams
   const { id, email } = query
-  if (!user) redirect(`/login?redirect=/profile?${encodeURIComponent(stringify(query))}`)
+
+  if (!user && !id && !email)
+    redirect(`/login?redirect=/profile?${encodeURIComponent(stringify(query))}`)
+  if (email && !isSuperUser(user)) return <ErrorDisplay message="Profile id is required" />
 
   const headersList = await headers()
   const remoteIpAddress = headersList.get('x-forwarded-for')
@@ -41,7 +44,6 @@ export default async function page({ searchParams }) {
 
   let profileResult
   try {
-    // eslint-disable-next-line no-nested-ternary
     profileResult = await api.get('/profiles', isProfileOwner ? {} : id ? { id } : { email }, {
       accessToken: token,
       remoteIpAddress,
@@ -79,6 +81,7 @@ export default async function page({ searchParams }) {
         ['desc']
       )
     } catch (error) {
+      // oxlint-disable-next-line no-console
       console.log('Error in page', {
         page: 'Home',
         error,

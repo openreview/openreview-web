@@ -269,7 +269,7 @@ export const InvitationGeneralViewV2 = ({ invitation, isMetaInvitation }) => {
   )
 }
 
-const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsEditMode }) => {
+const InvitationGeneralEdit = ({ invitation, loadInvitation, setIsEditMode }) => {
   const [isSaving, setIsSaving] = useState(false)
   const generalInfoReducer = (state, action) => {
     switch (action.type) {
@@ -339,7 +339,7 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
     setIsSaving(true)
     const requestBody = constructInvitationToPost()
     try {
-      await api.post('/invitations', requestBody, { accessToken, version: 1 })
+      await api.post('/invitations', requestBody, { version: 1 })
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`)
       setIsEditMode(false)
       loadInvitation(invitation.id)
@@ -559,7 +559,6 @@ const InvitationGeneralEdit = ({ invitation, accessToken, loadInvitation, setIsE
 const InvitationGeneralEditV2 = ({
   invitation,
   profileId,
-  accessToken,
   loadInvitation,
   setIsEditMode,
   isMetaInvitation,
@@ -675,7 +674,7 @@ const InvitationGeneralEditV2 = ({
       if (!isMetaInvitation && !requestBody.invitations) {
         throw new Error('No meta invitation found')
       }
-      await api.post('/invitations/edits', requestBody, { accessToken })
+      await api.post('/invitations/edits', requestBody)
       promptMessage(`Settings for ${prettyId(invitation.id)} updated`)
       setIsEditMode(false)
       await loadInvitation(invitation.id)
@@ -885,7 +884,7 @@ const InvitationGeneralEditV2 = ({
   )
 }
 
-const InvitationGeneral = ({ invitation, profileId, accessToken, loadInvitation }) => {
+const InvitationGeneral = ({ invitation, profileId, loadInvitation }) => {
   const [isEditMode, setIsEditMode] = useState(false)
 
   return (
@@ -894,7 +893,6 @@ const InvitationGeneral = ({ invitation, profileId, accessToken, loadInvitation 
         <InvitationGeneralEdit
           invitation={invitation}
           profileId={profileId}
-          accessToken={accessToken}
           loadInvitation={loadInvitation}
           setIsEditMode={setIsEditMode}
         />
@@ -911,7 +909,6 @@ const InvitationGeneral = ({ invitation, profileId, accessToken, loadInvitation 
 export const InvitationGeneralV2 = ({
   invitation,
   profileId,
-  accessToken,
   loadInvitation,
   isMetaInvitation,
 }) => {
@@ -923,7 +920,6 @@ export const InvitationGeneralV2 = ({
         <InvitationGeneralEditV2
           invitation={invitation}
           profileId={profileId}
-          accessToken={accessToken}
           loadInvitation={loadInvitation}
           setIsEditMode={setIsEditMode}
           isMetaInvitation={isMetaInvitation}

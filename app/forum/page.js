@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import { redirect } from 'next/navigation'
 import { headers } from 'next/headers'
 import { stringify } from 'query-string'
@@ -140,7 +139,6 @@ export async function generateMetadata({ searchParams }) {
     const content =
       version === 2
         ? Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-            // eslint-disable-next-line no-param-reassign
             translatedContent[key] = forumNote.content[key].value
             return translatedContent
           }, {})
@@ -209,6 +207,10 @@ export async function generateMetadata({ searchParams }) {
       if (issn) {
         metaData.other.citation_issn = issn
       }
+      const doiExternalId = forumNote.externalIds?.find((id) => id.startsWith('doi:'))
+      if (doiExternalId) {
+        metaData.other.citation_doi = doiExternalId.slice(4)
+      }
     }
     // #endregion
 
@@ -248,7 +250,6 @@ export default async function page({ searchParams }) {
   const content =
     version === 2
       ? Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-          // eslint-disable-next-line no-param-reassign
           translatedContent[key] = forumNote.content[key].value
           return translatedContent
         }, {})

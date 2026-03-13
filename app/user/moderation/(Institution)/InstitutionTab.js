@@ -12,7 +12,8 @@ import LoadingSpinner from '../../../../components/LoadingSpinner'
 
 const pageSize = 25
 
-export default function InstitutionTab({ accessToken }) {
+export default function InstitutionTab() {
+  const [allInstitutions, setAllInstitutions] = useState(null)
   const [institutions, setInstitutions] = useState(null)
   const [institutionsToShow, setInstitutionsToShow] = useState(null)
   const [page, setPage] = useState(1)
@@ -24,6 +25,7 @@ export default function InstitutionTab({ accessToken }) {
       const result = await api.get(
         `/settings/institutiondomains${noCache ? '?cache=false' : ''}`
       )
+      setAllInstitutions(result)
       setInstitutions(result)
     } catch (error) {
       promptError(error.message)
@@ -46,27 +48,23 @@ export default function InstitutionTab({ accessToken }) {
 
   const saveInstitution = async () => {
     try {
-      await api.post(
-        '/settings/institutions',
-        {
-          id: institutionToEdit.id,
-          shortname: institutionToEdit.shortname ? institutionToEdit.shortname.trim() : null,
-          fullname: institutionToEdit.fullname ? institutionToEdit.fullname.trim() : null,
-          parent: institutionToEdit.parent ? institutionToEdit.parent.trim() : null,
-          domains: institutionToEdit.domains
-            ? institutionToEdit.domains.split(',').map((p) => p.trim())
-            : [],
-          country: institutionToEdit.country,
-          alphaTwoCode: institutionToEdit.alphaTwoCode,
-          stateProvince: institutionToEdit.stateProvince
-            ? institutionToEdit.stateProvince.trim()
-            : null,
-          webPages: institutionToEdit.webPages
-            ? institutionToEdit.webPages.split(',').map((p) => p.trim())
-            : null,
-        },
-        { accessToken }
-      )
+      await api.post('/settings/institutions', {
+        id: institutionToEdit.id,
+        shortname: institutionToEdit.shortname ? institutionToEdit.shortname.trim() : null,
+        fullname: institutionToEdit.fullname ? institutionToEdit.fullname.trim() : null,
+        parent: institutionToEdit.parent ? institutionToEdit.parent.trim() : null,
+        domains: institutionToEdit.domains
+          ? institutionToEdit.domains.split(',').map((p) => p.trim())
+          : [],
+        country: institutionToEdit.country,
+        alphaTwoCode: institutionToEdit.alphaTwoCode,
+        stateProvince: institutionToEdit.stateProvince
+          ? institutionToEdit.stateProvince.trim()
+          : null,
+        webPages: institutionToEdit.webPages
+          ? institutionToEdit.webPages.split(',').map((p) => p.trim())
+          : null,
+      })
       promptMessage(`${institutionToEdit.id} saved.`)
       setInstitutionToEdit(null)
       loadInstitutionsDomains()
@@ -98,11 +96,10 @@ export default function InstitutionTab({ accessToken }) {
   }
 
   const deleteInstitution = async (institutionId) => {
-    // eslint-disable-next-line no-alert
     const confirmed = window.confirm(`Are you sure you want to delete ${institutionId}?`)
     if (!confirmed) return
     try {
-      await api.delete(`/settings/institutions/${institutionId}`, undefined, { accessToken })
+      await api.delete(`/settings/institutions/${institutionId}`)
       promptMessage(`${institutionId} is deleted.`)
       loadInstitutionsDomains(true)
     } catch (error) {
@@ -127,12 +124,11 @@ export default function InstitutionTab({ accessToken }) {
   return (
     <div className="institution-container">
       <InstituitonSearchForm
-        accessToken={accessToken}
         countryOptions={countryOptions}
         setInstitutions={setInstitutions}
         setPage={setPage}
         reloadInstitutionsDomains={loadInstitutionsDomains}
-        institutions={institutions}
+        allInstitutions={allInstitutions}
       />
       <>
         <Table
@@ -231,7 +227,7 @@ export default function InstitutionTab({ accessToken }) {
                     }}
                   />
                 </span>
-                <th key="empty" scope="col" style={{ width: '8%' }}></th>
+                <th key="empty" scope="col" style={{ width: '8%' }} />
                 <th key="country" scope="col" style={{ width: '20%' }}>
                   Country/Region
                 </th>
@@ -241,7 +237,7 @@ export default function InstitutionTab({ accessToken }) {
                 <th key="webpages" scope="col" style={{ width: '50%' }}>
                   Webpages
                 </th>
-                <span className="col-actions"></span>
+                <span className="col-actions" />
                 <span className="col-country">
                   <Dropdown
                     options={countryOptions}

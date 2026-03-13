@@ -57,12 +57,13 @@ export default async function Profile({
       )
       if (apiRes.notes) {
         publications = apiRes.notes
-        // eslint-disable-next-line prefer-destructuring
+        // oxlint-disable-next-line prefer-destructuring
         count = apiRes.count
         coAuthors = getCoAuthorsFromPublications(profile, publications)
       }
     } catch (error) {
       apiRes = error
+      // oxlint-disable-next-line no-console
       console.error('Error in loadPublications', {
         page: 'profile',
         component: 'Profile',

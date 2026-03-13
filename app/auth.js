@@ -5,7 +5,7 @@ export function isSuperUser(user) {
   return user?.id === process.env.SUPER_USER
 }
 
-function getTokenPayload(token) {
+export function getTokenPayload(token) {
   if (!token) {
     return null
   }

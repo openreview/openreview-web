@@ -15,7 +15,7 @@ import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
 import ContentProcessFunctions from './ContentProcessFunctions'
 import { isSuperUser } from '../../lib/clientAuth'
 
-const InvitationAdminV1 = ({ invitation, user, accessToken, loadInvitation }) => {
+const InvitationAdminV1 = ({ invitation, user, loadInvitation }) => {
   const profileId = user?.profile?.id
   const showProcessEditor = isSuperUser(user)
 
@@ -26,33 +26,24 @@ const InvitationAdminV1 = ({ invitation, user, accessToken, loadInvitation }) =>
       <InvitationGeneral
         invitation={invitation}
         profileId={profileId}
-        accessToken={accessToken}
         loadInvitation={loadInvitation}
       />
       <InvitationReplyWithPreview
         key={`${invitation.id}-edit`}
         invitation={invitation}
-        accessToken={accessToken}
         loadInvitation={loadInvitation}
       />
       <InvitationReply
         key={`${invitation.id}-replyForumViews`}
         invitation={invitation}
-        accessToken={accessToken}
         loadInvitation={loadInvitation}
         replyField="replyForumViews"
       />
       <InvitationChildInvitations invitation={invitation} />
-      <InvitationCode
-        invitation={invitation}
-        accessToken={accessToken}
-        loadInvitation={loadInvitation}
-        codeType="web"
-      />
+      <InvitationCode invitation={invitation} loadInvitation={loadInvitation} codeType="web" />
       {showProcessEditor && (
         <InvitationCode
           invitation={invitation}
-          accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="process"
         />
@@ -60,7 +51,6 @@ const InvitationAdminV1 = ({ invitation, user, accessToken, loadInvitation }) =>
       {showProcessEditor && (
         <InvitationCode
           invitation={invitation}
-          accessToken={accessToken}
           loadInvitation={loadInvitation}
           codeType="preprocess"
         />
@@ -69,13 +59,7 @@ const InvitationAdminV1 = ({ invitation, user, accessToken, loadInvitation }) =>
   )
 }
 
-export const InvitationAdminV2 = ({
-  invitation,
-  isMetaInvitation,
-  user,
-  accessToken,
-  loadInvitation,
-}) => {
+export const InvitationAdminV2 = ({ invitation, isMetaInvitation, user, loadInvitation }) => {
   const [isClientRendering, setIsClientRendering] = useState(false)
   const profileId = user?.profile?.id
 
@@ -97,7 +81,6 @@ export const InvitationAdminV2 = ({
       <InvitationGeneralV2
         invitation={invitation}
         profileId={profileId}
-        accessToken={accessToken}
         loadInvitation={loadInvitation}
         isMetaInvitation={isMetaInvitation}
       />
@@ -108,7 +91,6 @@ export const InvitationAdminV2 = ({
             key={`${invitation.id}-edit`}
             invitation={invitation}
             profileId={profileId}
-            accessToken={accessToken}
             loadInvitation={loadInvitation}
             replyField={getReplyFieldByInvitationType()}
           />
@@ -116,7 +98,6 @@ export const InvitationAdminV2 = ({
             key={`${invitation.id}-replyForumViews`}
             invitation={invitation}
             profileId={profileId}
-            accessToken={accessToken}
             loadInvitation={loadInvitation}
             replyField="replyForumViews"
           />
@@ -126,7 +107,6 @@ export const InvitationAdminV2 = ({
         key={`${invitation.id}-content`}
         invitation={invitation}
         profileId={profileId}
-        accessToken={accessToken}
         loadInvitation={loadInvitation}
         replyField="content"
         isMetaInvitation={isMetaInvitation}
@@ -134,21 +114,18 @@ export const InvitationAdminV2 = ({
       <ContentProcessFunctions
         invitation={invitation}
         profileId={profileId}
-        accessToken={accessToken}
         loadInvitation={loadInvitation}
         isMetaInvitation={isMetaInvitation}
       />
       <InvitationProcessFunctionsV2
         invitation={invitation}
         profileId={profileId}
-        accessToken={accessToken}
         loadInvitation={loadInvitation}
         isMetaInvitation={isMetaInvitation}
       />
       <InvitationCodeV2
         invitation={invitation}
         profileId={profileId}
-        accessToken={accessToken}
         loadInvitation={loadInvitation}
         codeType="web"
         isMetaInvitation={isMetaInvitation}

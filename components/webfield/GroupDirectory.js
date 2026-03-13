@@ -6,7 +6,6 @@ import ErrorAlert from '../ErrorAlert'
 import Markdown from '../EditorComponents/Markdown'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
-import useUser from '../../hooks/useUser'
 import LoadingSpinner from '../LoadingSpinner'
 
 export default function GroupDirectory({ appContext }) {
@@ -14,7 +13,6 @@ export default function GroupDirectory({ appContext }) {
   const [childGroupIds, setChildGroupIds] = useState(null)
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
-  const { accessToken } = useUser()
   const { setBannerContent } = appContext ?? {}
   const query = useSearchParams()
 
@@ -32,7 +30,7 @@ export default function GroupDirectory({ appContext }) {
     const loadChildGroups = async () => {
       setIsLoading(true)
       try {
-        const { groups } = await api.get('/groups', { parent: group.id }, { accessToken })
+        const { groups } = await api.get('/groups', { parent: group.id })
         if (groups?.length > 0) {
           setChildGroupIds(
             groups

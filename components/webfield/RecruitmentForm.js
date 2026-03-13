@@ -14,6 +14,7 @@ import { translateInvitationMessage } from '../../lib/webfield-utils'
 import styles from '../../styles/components/RecruitmentForm.module.scss'
 import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
+import useUser from '../../hooks/useUser'
 
 const fieldsToHide = ['id', 'title', 'key', 'response']
 
@@ -112,6 +113,7 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     allowAcceptWithReducedLoad = false,
   } = useContext(WebFieldContext)
   const [isSaving, setIsSaving] = useState(false)
+  const { user } = useUser()
   const hasReducedLoadField = invitation.edit?.note?.content?.reduced_load
   const hasCommentField = invitation.edit?.note?.content?.comment
   const fieldsToRender = orderNoteInvitationFields(
@@ -141,19 +143,29 @@ const DeclineForm = ({ responseNote, setDecision, setReducedLoad }) => {
     setIsSaving(true)
     const isAcceptResponse = status === 'showReducedLoad'
     try {
+      const options = {}
       const noteContent = {
-        title: 'Recruit response',
-        user: args.user,
-        key: args.key,
+        ...(invitation.edit?.note?.content?.title && { title: 'Recruit response' }),
+        ...(invitation.edit?.note?.content?.user && { user: args.user }),
+        ...(invitation.edit?.note?.content?.key && { key: args.key }),
         response: isAcceptResponse ? 'Yes' : 'No',
+        ...(invitation.edit?.signatures?.param?.items && {
+          editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
+        }),
+        ...(invitation.guestPosting && {
+          editSignatureInputValues: [user ? user.profile.preferredId : args.user],
+        }),
         ...formData,
+      }
+      if (invitation.guestPosting && !user) {
+        options.guestToken = args.key
       }
       const noteToPost = view2.constructEdit({
         formData: noteContent,
         noteObj: responseNote,
         invitationObj: invitation,
       })
-      await api.post('/notes/edits', noteToPost)
+      await api.post('/notes/edits', noteToPost, options)
       setIsSaving(false)
 
       if (isAcceptResponse) {
@@ -260,6 +272,7 @@ const RecruitmentForm = () => {
   } = useContext(WebFieldContext)
   const responseDescription = invitation.edit?.note?.content?.response?.description
   const invitationContentFields = Object.keys(invitation.edit?.note?.content)
+  const { user } = useUser()
 
   const defaultButtonState = [
     { response: 'Yes', loading: false, disabled: false },
@@ -283,21 +296,31 @@ const RecruitmentForm = () => {
       { response: 'No', loading: response === 'No', disabled: true },
     ])
     try {
+      const options = {}
       const noteContent = {
-        title: 'Recruit response',
-        key: args.key,
+        ...(invitation.edit?.note?.content?.title && { title: 'Recruit response' }),
+        ...(invitation.edit?.note?.content?.key && { key: args.key }),
         response,
         ...Object.fromEntries(
           Object.entries(args ?? {}).filter(
             ([key]) => !fieldsToHide.includes(key) && invitationContentFields.includes(key)
           )
         ),
+        ...(invitation.edit?.signatures?.param?.items && {
+          editSignatureInputValues: [user ? user.profile.preferredId : '(guest)'],
+        }),
+        ...(invitation.guestPosting && {
+          editSignatureInputValues: [user ? user.profile.preferredId : args.user],
+        }),
+      }
+      if (invitation.guestPosting && !user) {
+        options.guestToken = args.key
       }
       const noteToPost = view2.constructEdit({
         formData: noteContent,
         invitationObj: invitation,
       })
-      const result = await api.post('/notes/edits', noteToPost)
+      const result = await api.post('/notes/edits', noteToPost, options)
       setResponseNote(result)
       setButtonStatus(defaultButtonState)
       setDecision(response === 'Yes' ? 'accept' : 'reject')
@@ -398,7 +421,7 @@ const RecruitmentForm = () => {
                 Decline
               </SpinnerButton>
             </div>
-            <div className="mt-4 text-center" ref={turnstileContainerRef}></div>
+            <div className="mt-4 text-center" ref={turnstileContainerRef} />
           </div>
         )
     }

@@ -1,4 +1,3 @@
-/* eslint-disable newline-per-chained-call */
 // note: existing es index may cause this test to fail. better to empty notes index
 import { Selector, Role, RequestMock } from 'testcafe'
 import {
@@ -164,595 +163,615 @@ const responseDBLPXML = `<?xml version="1.0"?>
 
 const dblpMock = RequestMock()
   .onRequestTo('https://dblp.org/pid/95/7448-1.xml')
-  .respond(responseDBLPXML, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/xml' })
+  .respond(responseDBLPXML, 200, {
+    'access-control-allow-origin': '*',
+    'content-type': 'application/xml',
+  })
 
-const orcidMock = RequestMock().onRequestTo('https://pub.orcid.org/v3.0/0000-0002-0613-2229/person')
-  .respond({
-    name: {
-      "given-names": {
-        "value": "Di"
+const orcidMock = RequestMock()
+  .onRequestTo('https://pub.orcid.org/v3.0/0000-0002-0613-2229/person')
+  .respond(
+    {
+      name: {
+        'given-names': {
+          value: 'Di',
+        },
+        'family-name': {
+          value: 'Xu',
+        },
+        'credit-name': null,
+        source: null,
+        visibility: 'public',
+        path: '0000-0002-0613-2229',
       },
-      "family-name": {
-        "value": "Xu"
+      'other-names': {
+        'other-name': [],
       },
-      "credit-name": null,
-      "source": null,
-      "visibility": "public",
-      "path": "0000-0002-0613-2229"
     },
-    "other-names": {
-      "other-name"
-        : []
-    },
-  }, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/json' })
+    200,
+    { 'access-control-allow-origin': '*', 'content-type': 'application/json' }
+  )
   .onRequestTo('https://pub.orcid.org/v3.0/0000-0002-0613-2229/works')
-  .respond({
-    group: [
-      {
-        "last-modified-date": {
-          "value": 1659733982465
-        },
-        "external-ids": {
-          "external-id": [
+  .respond(
+    {
+      group: [
+        {
+          'last-modified-date': {
+            value: 1659733982465,
+          },
+          'external-ids': {
+            'external-id': [
+              {
+                'external-id-type': 'doi',
+                'external-id-value': '10.1364/OE.413844',
+                'external-id-normalized': {
+                  value: '10.1364/oe.413844',
+                  transient: true,
+                },
+                'external-id-normalized-error': null,
+                'external-id-url': {
+                  value: 'https://doi.org/10.1364/OE.413844',
+                },
+                'external-id-relationship': 'self',
+              },
+            ],
+          },
+          'work-summary': [
             {
-              "external-id-type": "doi",
-              "external-id-value": "10.1364/OE.413844",
-              "external-id-normalized": {
-                "value": "10.1364/oe.413844",
-                "transient": true
+              'put-code': 89975745,
+              'created-date': {
+                value: 1614900258303,
               },
-              "external-id-normalized-error": null,
-              "external-id-url": {
-                "value": "https://doi.org/10.1364/OE.413844"
+              'last-modified-date': {
+                value: 1659733982465,
               },
-              "external-id-relationship": "self"
-            }
-          ]
-        },
-        "work-summary": [
-          {
-            "put-code": 89975745,
-            "created-date": {
-              "value": 1614900258303
-            },
-            "last-modified-date": {
-              "value": 1659733982465
-            },
-            "source": {
-              "source-orcid": null,
-              "source-client-id": {
-                "uri": "https://orcid.org/client/0000-0001-9884-1913",
-                "path": "0000-0001-9884-1913",
-                "host": "orcid.org"
+              source: {
+                'source-orcid': null,
+                'source-client-id': {
+                  uri: 'https://orcid.org/client/0000-0001-9884-1913',
+                  path: '0000-0001-9884-1913',
+                  host: 'orcid.org',
+                },
+                'source-name': {
+                  value: 'Crossref',
+                },
+                'assertion-origin-orcid': null,
+                'assertion-origin-client-id': null,
+                'assertion-origin-name': null,
               },
-              "source-name": {
-                "value": "Crossref"
+              title: {
+                title: {
+                  value:
+                    'Verification of cascade optical coherence tomography for freeform optics form metrology',
+                },
+                subtitle: null,
+                'translated-title': null,
               },
-              "assertion-origin-orcid": null,
-              "assertion-origin-client-id": null,
-              "assertion-origin-name": null
-            },
-            "title": {
-              "title": {
-                "value": "Verification of cascade optical coherence tomography for freeform optics form metrology"
-              },
-              "subtitle": null,
-              "translated-title": null
-            },
-            "external-ids": {
-              "external-id": [
-                {
-                  "external-id-type": "doi",
-                  "external-id-value": "10.1364/OE.413844",
-                  "external-id-normalized": {
-                    "value": "10.1364/oe.413844",
-                    "transient": true
+              'external-ids': {
+                'external-id': [
+                  {
+                    'external-id-type': 'doi',
+                    'external-id-value': '10.1364/OE.413844',
+                    'external-id-normalized': {
+                      value: '10.1364/oe.413844',
+                      transient: true,
+                    },
+                    'external-id-normalized-error': null,
+                    'external-id-url': {
+                      value: 'https://doi.org/10.1364/OE.413844',
+                    },
+                    'external-id-relationship': 'self',
                   },
-                  "external-id-normalized-error": null,
-                  "external-id-url": {
-                    "value": "https://doi.org/10.1364/OE.413844"
-                  },
-                  "external-id-relationship": "self"
-                }
-              ]
-            },
-            "url": {
-              "value": "https://doi.org/10.1364/OE.413844"
-            },
-            "type": "journal-article",
-            "publication-date": {
-              "year": {
-                "value": "2021"
+                ],
               },
-              "month": {
-                "value": "03"
+              url: {
+                value: 'https://doi.org/10.1364/OE.413844',
               },
-              "day": {
-                "value": "15"
-              }
+              type: 'journal-article',
+              'publication-date': {
+                year: {
+                  value: '2021',
+                },
+                month: {
+                  value: '03',
+                },
+                day: {
+                  value: '15',
+                },
+              },
+              'journal-title': {
+                value: 'Optics Express',
+              },
+              visibility: 'public',
+              path: '/0000-0002-0613-2229/work/89975745',
+              'display-index': '0',
             },
-            "journal-title": {
-              "value": "Optics Express"
-            },
-            "visibility": "public",
-            "path": "/0000-0002-0613-2229/work/89975745",
-            "display-index": "0"
-          }
-        ]
-      },
-      {
-        "last-modified-date": {
-          "value": 1663265211991
+          ],
         },
-        "external-ids": {
-          "external-id": [
+        {
+          'last-modified-date': {
+            value: 1663265211991,
+          },
+          'external-ids': {
+            'external-id': [
+              {
+                'external-id-type': 'doi',
+                'external-id-value': '10.1364/OE.394638',
+                'external-id-normalized': {
+                  value: '10.1364/oe.394638',
+                  transient: true,
+                },
+                'external-id-normalized-error': null,
+                'external-id-url': {
+                  value: 'https://doi.org/10.1364/OE.394638',
+                },
+                'external-id-relationship': 'self',
+              },
+            ],
+          },
+          'work-summary': [
             {
-              "external-id-type": "doi",
-              "external-id-value": "10.1364/OE.394638",
-              "external-id-normalized": {
-                "value": "10.1364/oe.394638",
-                "transient": true
+              'put-code': 76065020,
+              'created-date': {
+                value: 1592855844182,
               },
-              "external-id-normalized-error": null,
-              "external-id-url": {
-                "value": "https://doi.org/10.1364/OE.394638"
+              'last-modified-date': {
+                value: 1663265211991,
               },
-              "external-id-relationship": "self"
-            }
-          ]
-        },
-        "work-summary": [
-          {
-            "put-code": 76065020,
-            "created-date": {
-              "value": 1592855844182
-            },
-            "last-modified-date": {
-              "value": 1663265211991
-            },
-            "source": {
-              "source-orcid": null,
-              "source-client-id": {
-                "uri": "https://orcid.org/client/0000-0001-9884-1913",
-                "path": "0000-0001-9884-1913",
-                "host": "orcid.org"
+              source: {
+                'source-orcid': null,
+                'source-client-id': {
+                  uri: 'https://orcid.org/client/0000-0001-9884-1913',
+                  path: '0000-0001-9884-1913',
+                  host: 'orcid.org',
+                },
+                'source-name': {
+                  value: 'Crossref',
+                },
+                'assertion-origin-orcid': null,
+                'assertion-origin-client-id': null,
+                'assertion-origin-name': null,
               },
-              "source-name": {
-                "value": "Crossref"
+              title: {
+                title: {
+                  value: 'Cascade optical coherence tomography (C-OCT)',
+                },
+                subtitle: null,
+                'translated-title': null,
               },
-              "assertion-origin-orcid": null,
-              "assertion-origin-client-id": null,
-              "assertion-origin-name": null
-            },
-            "title": {
-              "title": {
-                "value": "Cascade optical coherence tomography (C-OCT)"
-              },
-              "subtitle": null,
-              "translated-title": null
-            },
-            "external-ids": {
-              "external-id": [
-                {
-                  "external-id-type": "doi",
-                  "external-id-value": "10.1364/OE.394638",
-                  "external-id-normalized": {
-                    "value": "10.1364/oe.394638",
-                    "transient": true
+              'external-ids': {
+                'external-id': [
+                  {
+                    'external-id-type': 'doi',
+                    'external-id-value': '10.1364/OE.394638',
+                    'external-id-normalized': {
+                      value: '10.1364/oe.394638',
+                      transient: true,
+                    },
+                    'external-id-normalized-error': null,
+                    'external-id-url': {
+                      value: 'https://doi.org/10.1364/OE.394638',
+                    },
+                    'external-id-relationship': 'self',
                   },
-                  "external-id-normalized-error": null,
-                  "external-id-url": {
-                    "value": "https://doi.org/10.1364/OE.394638"
-                  },
-                  "external-id-relationship": "self"
-                }
-              ]
-            },
-            "url": {
-              "value": "https://doi.org/10.1364/OE.394638"
-            },
-            "type": "journal-article",
-            "publication-date": {
-              "year": {
-                "value": "2020"
+                ],
               },
-              "month": {
-                "value": "07"
+              url: {
+                value: 'https://doi.org/10.1364/OE.394638',
               },
-              "day": {
-                "value": "06"
-              }
+              type: 'journal-article',
+              'publication-date': {
+                year: {
+                  value: '2020',
+                },
+                month: {
+                  value: '07',
+                },
+                day: {
+                  value: '06',
+                },
+              },
+              'journal-title': {
+                value: 'Optics Express',
+              },
+              visibility: 'public',
+              path: '/0000-0002-0613-2229/work/76065020',
+              'display-index': '0',
             },
-            "journal-title": {
-              "value": "Optics Express"
-            },
-            "visibility": "public",
-            "path": "/0000-0002-0613-2229/work/76065020",
-            "display-index": "0"
-          }
-        ]
-      },
-      {
-        "last-modified-date": {
-          "value": 1653805860366
+          ],
         },
-        "external-ids": {
-          "external-id": [
+        {
+          'last-modified-date': {
+            value: 1653805860366,
+          },
+          'external-ids': {
+            'external-id': [
+              {
+                'external-id-type': 'doi',
+                'external-id-value': '10.1364/OE.27.034593',
+                'external-id-normalized': {
+                  value: '10.1364/oe.27.034593',
+                  transient: true,
+                },
+                'external-id-normalized-error': null,
+                'external-id-url': {
+                  value: 'https://doi.org/10.1364/OE.27.034593',
+                },
+                'external-id-relationship': 'self',
+              },
+            ],
+          },
+          'work-summary': [
             {
-              "external-id-type": "doi",
-              "external-id-value": "10.1364/OE.27.034593",
-              "external-id-normalized": {
-                "value": "10.1364/oe.27.034593",
-                "transient": true
+              'put-code': 64418159,
+              'created-date': {
+                value: 1573499904152,
               },
-              "external-id-normalized-error": null,
-              "external-id-url": {
-                "value": "https://doi.org/10.1364/OE.27.034593"
+              'last-modified-date': {
+                value: 1653805860366,
               },
-              "external-id-relationship": "self"
-            }
-          ]
+              source: {
+                'source-orcid': null,
+                'source-client-id': {
+                  uri: 'https://orcid.org/client/0000-0001-9884-1913',
+                  path: '0000-0001-9884-1913',
+                  host: 'orcid.org',
+                },
+                'source-name': {
+                  value: 'Crossref',
+                },
+                'assertion-origin-orcid': null,
+                'assertion-origin-client-id': null,
+                'assertion-origin-name': null,
+              },
+              title: {
+                title: {
+                  value:
+                    'Absolute linear-in-k spectrometer designs enabled by freeform optics',
+                },
+                subtitle: null,
+                'translated-title': null,
+              },
+              'external-ids': {
+                'external-id': [
+                  {
+                    'external-id-type': 'doi',
+                    'external-id-value': '10.1364/OE.27.034593',
+                    'external-id-normalized': {
+                      value: '10.1364/oe.27.034593',
+                      transient: true,
+                    },
+                    'external-id-normalized-error': null,
+                    'external-id-url': {
+                      value: 'https://doi.org/10.1364/OE.27.034593',
+                    },
+                    'external-id-relationship': 'self',
+                  },
+                ],
+              },
+              url: {
+                value: 'https://doi.org/10.1364/OE.27.034593',
+              },
+              type: 'journal-article',
+              'publication-date': null, // no pdate, should be filtered out
+              'journal-title': {
+                value: 'Optics Express',
+              },
+              visibility: 'public',
+              path: '/0000-0002-0613-2229/work/64418159',
+              'display-index': '0',
+            },
+          ],
         },
-        "work-summary": [
-          {
-            "put-code": 64418159,
-            "created-date": {
-              "value": 1573499904152
-            },
-            "last-modified-date": {
-              "value": 1653805860366
-            },
-            "source": {
-              "source-orcid": null,
-              "source-client-id": {
-                "uri": "https://orcid.org/client/0000-0001-9884-1913",
-                "path": "0000-0001-9884-1913",
-                "host": "orcid.org"
-              },
-              "source-name": {
-                "value": "Crossref"
-              },
-              "assertion-origin-orcid": null,
-              "assertion-origin-client-id": null,
-              "assertion-origin-name": null
-            },
-            "title": {
-              "title": {
-                "value": "Absolute linear-in-k spectrometer designs enabled by freeform optics"
-              },
-              "subtitle": null,
-              "translated-title": null
-            },
-            "external-ids": {
-              "external-id": [
-                {
-                  "external-id-type": "doi",
-                  "external-id-value": "10.1364/OE.27.034593",
-                  "external-id-normalized": {
-                    "value": "10.1364/oe.27.034593",
-                    "transient": true
-                  },
-                  "external-id-normalized-error": null,
-                  "external-id-url": {
-                    "value": "https://doi.org/10.1364/OE.27.034593"
-                  },
-                  "external-id-relationship": "self"
-                }
-              ]
-            },
-            "url": {
-              "value": "https://doi.org/10.1364/OE.27.034593"
-            },
-            "type": "journal-article",
-            "publication-date": null, // no pdate, should be filtered out
-            "journal-title": {
-              "value": "Optics Express"
-            },
-            "visibility": "public",
-            "path": "/0000-0002-0613-2229/work/64418159",
-            "display-index": "0"
-          }
-        ]
-      },
-    ]
-  }, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/json' })
+      ],
+    },
+    200,
+    { 'access-control-allow-origin': '*', 'content-type': 'application/json' }
+  )
   .onRequestTo('https://pub.orcid.org/v3.0/0000-0002-0613-2229/works/89975745,76065020')
-  .respond({
-    "bulk": [
-      {
-        "work": {
-          "created-date": {
-            "value": 1592855844182
-          },
-          "last-modified-date": {
-            "value": 1663265211991
-          },
-          "source": {
-            "source-orcid": null,
-            "source-client-id": {
-              "uri": "https://orcid.org/client/0000-0001-9884-1913",
-              "path": "0000-0001-9884-1913",
-              "host": "orcid.org"
+  .respond(
+    {
+      bulk: [
+        {
+          work: {
+            'created-date': {
+              value: 1592855844182,
             },
-            "source-name": {
-              "value": "Crossref"
+            'last-modified-date': {
+              value: 1663265211991,
             },
-            "assertion-origin-orcid": null,
-            "assertion-origin-client-id": null,
-            "assertion-origin-name": null
-          },
-          "put-code": 76065020,
-          "path": "/0000-0002-0613-2229/work/76065020",
-          "title": {
-            "title": {
-              "value": "Cascade optical coherence tomography (C-OCT)"
+            source: {
+              'source-orcid': null,
+              'source-client-id': {
+                uri: 'https://orcid.org/client/0000-0001-9884-1913',
+                path: '0000-0001-9884-1913',
+                host: 'orcid.org',
+              },
+              'source-name': {
+                value: 'Crossref',
+              },
+              'assertion-origin-orcid': null,
+              'assertion-origin-client-id': null,
+              'assertion-origin-name': null,
             },
-            "subtitle": null,
-            "translated-title": null
-          },
-          "journal-title": {
-            "value": "Optics Express"
-          },
-          "short-description": null,
-          "citation": {
-            "citation-type": "bibtex",
-            "citation-value": "<head>\n<META HTTP-EQUIV=\"Refresh\" CONTENT=\"0;URL=/servlet/useragent\">\n</head>\n"
-          },
-          "type": "journal-article",
-          "publication-date": {
-            "year": {
-              "value": "2020"
+            'put-code': 76065020,
+            path: '/0000-0002-0613-2229/work/76065020',
+            title: {
+              title: {
+                value: 'Cascade optical coherence tomography (C-OCT)',
+              },
+              subtitle: null,
+              'translated-title': null,
             },
-            "month": {
-              "value": "07"
+            'journal-title': {
+              value: 'Optics Express',
             },
-            "day": {
-              "value": "06"
-            }
-          },
-          "external-ids": {
-            "external-id": [
-              {
-                "external-id-type": "doi",
-                "external-id-value": "10.1364/OE.394638",
-                "external-id-normalized": {
-                  "value": "10.1364/oe.394638",
-                  "transient": true
-                },
-                "external-id-normalized-error": null,
-                "external-id-url": {
-                  "value": "https://doi.org/10.1364/OE.394638"
-                },
-                "external-id-relationship": "self"
-              }
-            ]
-          },
-          "url": {
-            "value": "https://doi.org/10.1364/OE.394638"
-          },
-          "contributors": {
-            "contributor": [
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Di Xu"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Andres Garcia Coleto"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Benjamin Moon"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Jonathan C. Papa"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Michael Pomerantz"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Jannick P. Rolland"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              }
-            ]
-          },
-          "language-code": null,
-          "country": null,
-          "visibility": "public"
-        }
-      },
-      {
-        "work": {
-          "created-date": {
-            "value": 1614900258303
-          },
-          "last-modified-date": {
-            "value": 1659733982465
-          },
-          "source": {
-            "source-orcid": null,
-            "source-client-id": {
-              "uri": "https://orcid.org/client/0000-0001-9884-1913",
-              "path": "0000-0001-9884-1913",
-              "host": "orcid.org"
+            'short-description': null,
+            citation: {
+              'citation-type': 'bibtex',
+              'citation-value':
+                '<head>\n<META HTTP-EQUIV="Refresh" CONTENT="0;URL=/servlet/useragent">\n</head>\n',
             },
-            "source-name": {
-              "value": "Crossref"
+            type: 'journal-article',
+            'publication-date': {
+              year: {
+                value: '2020',
+              },
+              month: {
+                value: '07',
+              },
+              day: {
+                value: '06',
+              },
             },
-            "assertion-origin-orcid": null,
-            "assertion-origin-client-id": null,
-            "assertion-origin-name": null
-          },
-          "put-code": 89975745,
-          "path": "/0000-0002-0613-2229/work/89975745",
-          "title": {
-            "title": {
-              "value": "Verification of cascade optical coherence tomography for freeform optics form metrology"
+            'external-ids': {
+              'external-id': [
+                {
+                  'external-id-type': 'doi',
+                  'external-id-value': '10.1364/OE.394638',
+                  'external-id-normalized': {
+                    value: '10.1364/oe.394638',
+                    transient: true,
+                  },
+                  'external-id-normalized-error': null,
+                  'external-id-url': {
+                    value: 'https://doi.org/10.1364/OE.394638',
+                  },
+                  'external-id-relationship': 'self',
+                },
+              ],
             },
-            "subtitle": null,
-            "translated-title": null
-          },
-          "journal-title": {
-            "value": "Optics Express"
-          },
-          "short-description": null,
-          "citation": {
-            "citation-type": "bibtex",
-            "citation-value": "@article{Xu_2021,\n\tdoi = {10.1364/oe.413844},\n\turl = {https://doi.org/10.1364%2Foe.413844},\n\tyear = 2021,\n\tmonth = {mar},\n\tpublisher = {The Optical Society},\n\tvolume = {29},\n\tnumber = {6},\n\tpages = {8542},\n\tauthor = {Di Xu and Zhenkun Wen and Andres Garcia Coleto and Michael Pomerantz and John C. Lambropoulos and Jannick P. Rolland},\n\ttitle = {Verification of cascade optical coherence tomography for freeform optics form metrology},\n\tjournal = {Optics Express}\n}"
-          },
-          "type": "journal-article",
-          "publication-date": {
-            "year": {
-              "value": "2021"
+            url: {
+              value: 'https://doi.org/10.1364/OE.394638',
             },
-            "month": {
-              "value": "03"
+            contributors: {
+              contributor: [
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Di Xu',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Andres Garcia Coleto',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Benjamin Moon',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Jonathan C. Papa',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Michael Pomerantz',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Jannick P. Rolland',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+              ],
             },
-            "day": {
-              "value": "15"
-            }
+            'language-code': null,
+            country: null,
+            visibility: 'public',
           },
-          "external-ids": {
-            "external-id": [
-              {
-                "external-id-type": "doi",
-                "external-id-value": "10.1364/OE.413844",
-                "external-id-normalized": {
-                  "value": "10.1364/oe.413844",
-                  "transient": true
+        },
+        {
+          work: {
+            'created-date': {
+              value: 1614900258303,
+            },
+            'last-modified-date': {
+              value: 1659733982465,
+            },
+            source: {
+              'source-orcid': null,
+              'source-client-id': {
+                uri: 'https://orcid.org/client/0000-0001-9884-1913',
+                path: '0000-0001-9884-1913',
+                host: 'orcid.org',
+              },
+              'source-name': {
+                value: 'Crossref',
+              },
+              'assertion-origin-orcid': null,
+              'assertion-origin-client-id': null,
+              'assertion-origin-name': null,
+            },
+            'put-code': 89975745,
+            path: '/0000-0002-0613-2229/work/89975745',
+            title: {
+              title: {
+                value:
+                  'Verification of cascade optical coherence tomography for freeform optics form metrology',
+              },
+              subtitle: null,
+              'translated-title': null,
+            },
+            'journal-title': {
+              value: 'Optics Express',
+            },
+            'short-description': null,
+            citation: {
+              'citation-type': 'bibtex',
+              'citation-value':
+                '@article{Xu_2021,\n\tdoi = {10.1364/oe.413844},\n\turl = {https://doi.org/10.1364%2Foe.413844},\n\tyear = 2021,\n\tmonth = {mar},\n\tpublisher = {The Optical Society},\n\tvolume = {29},\n\tnumber = {6},\n\tpages = {8542},\n\tauthor = {Di Xu and Zhenkun Wen and Andres Garcia Coleto and Michael Pomerantz and John C. Lambropoulos and Jannick P. Rolland},\n\ttitle = {Verification of cascade optical coherence tomography for freeform optics form metrology},\n\tjournal = {Optics Express}\n}',
+            },
+            type: 'journal-article',
+            'publication-date': {
+              year: {
+                value: '2021',
+              },
+              month: {
+                value: '03',
+              },
+              day: {
+                value: '15',
+              },
+            },
+            'external-ids': {
+              'external-id': [
+                {
+                  'external-id-type': 'doi',
+                  'external-id-value': '10.1364/OE.413844',
+                  'external-id-normalized': {
+                    value: '10.1364/oe.413844',
+                    transient: true,
+                  },
+                  'external-id-normalized-error': null,
+                  'external-id-url': {
+                    value: 'https://doi.org/10.1364/OE.413844',
+                  },
+                  'external-id-relationship': 'self',
                 },
-                "external-id-normalized-error": null,
-                "external-id-url": {
-                  "value": "https://doi.org/10.1364/OE.413844"
+              ],
+            },
+            url: {
+              value: 'https://doi.org/10.1364/OE.413844',
+            },
+            contributors: {
+              contributor: [
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Di Xu',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
                 },
-                "external-id-relationship": "self"
-              }
-            ]
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Zhenkun Wen',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Andres Garcia Coleto',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Michael Pomerantz',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'John C. Lambropoulos',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+                {
+                  'contributor-orcid': null,
+                  'credit-name': {
+                    value: 'Jannick P. Rolland',
+                  },
+                  'contributor-email': null,
+                  'contributor-attributes': {
+                    'contributor-sequence': null,
+                    'contributor-role': 'author',
+                  },
+                },
+              ],
+            },
+            'language-code': null,
+            country: null,
+            visibility: 'public',
           },
-          "url": {
-            "value": "https://doi.org/10.1364/OE.413844"
-          },
-          "contributors": {
-            "contributor": [
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Di Xu"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Zhenkun Wen"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Andres Garcia Coleto"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Michael Pomerantz"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "John C. Lambropoulos"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              },
-              {
-                "contributor-orcid": null,
-                "credit-name": {
-                  "value": "Jannick P. Rolland"
-                },
-                "contributor-email": null,
-                "contributor-attributes": {
-                  "contributor-sequence": null,
-                  "contributor-role": "author"
-                }
-              }
-            ]
-          },
-          "language-code": null,
-          "country": null,
-          "visibility": "public"
-        }
-      }
-    ]
-  }, 200, { 'access-control-allow-origin': '*', 'content-type': 'application/json' })
+        },
+      ],
+    },
+    200,
+    { 'access-control-allow-origin': '*', 'content-type': 'application/json' }
+  )
 // #region long repeated selectors
 const errorMessageSelector = Selector('.rc-notification-notice-content', {
   visibilityCheck: true,
@@ -807,10 +826,12 @@ const orcidImportModalAddToProfileBtn = Selector('#orcid-import-modal')
 
 // #endregion
 
-fixture`Profile page`.before(async (ctx) => {
-  ctx.superUserToken = await getToken(superUserName, strongPassword)
-  return ctx
-}).requestHooks(dblpMock)
+fixture`Profile page`
+  .before(async (ctx) => {
+    ctx.superUserToken = await getToken(superUserName, strongPassword)
+    return ctx
+  })
+  .requestHooks(dblpMock)
 
 test('user open own profile', async (t) => {
   await t
@@ -853,9 +874,7 @@ test('user open own profile', async (t) => {
     // add a email
     .click(step2Emails)
     .expect(
-      Selector('p').withText(
-        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
-      ).exists
+      Selector('p').withText(/Your email address could not be automatically verified/).exists
     )
     .notOk() // not activation
     .click(emailSectionPlusIconSelector)
@@ -926,20 +945,19 @@ test('user open own profile', async (t) => {
     .typeText(homepageUrlInput, 'http://google.com', { replace: true, paste: true })
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
-    .eql(
-      'Error: dblp link is invalid. A valid link should include https://dblp.org/pid/'
-    )
+    .eql('Error: dblp link is invalid. A valid link should include https://dblp.org/pid/')
     .selectText(dblpUrlInput)
     .pressKey('delete')
     // add empty expertise
     .click(step6Expertise)
     .typeText(Selector('div.expertise').find('input').nth(0), '        ')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 }).skipJsErrors({
-  message: "[Cloudflare Turnstile] Error: 300030."
+  message: '[Cloudflare Turnstile] Error: 300030.',
 })
 
 test('add and delete year of birth', async (t) => {
@@ -1028,7 +1046,8 @@ test('add and delete pronouns', async (t) => {
     .wait(500)
     .click(Selector('div.pronouns-dropdown__option').nth(3))
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('h4').nth(0).textContent)
     .notEql('Pronouns: he/him')
@@ -1047,7 +1066,8 @@ test('add and delete geolocation of history', async (t) => {
     .typeText(Selector('input.institution-state'), 'test state', { replace: true })
     .typeText(Selector('input.institution-department'), 'test department')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('.glyphicon-map-marker').exists)
     .ok()
@@ -1070,15 +1090,13 @@ test('add and delete geolocation of history', async (t) => {
     .selectText(Selector('input.institution-city'))
     .pressKey('delete')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('.glyphicon-map-marker').exists)
     .ok()
     .expect(
-      Selector('.glyphicon-map-marker').withAttribute(
-        'data-original-title',
-        'MX'
-      ).exists
+      Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'MX').exists
     )
     .ok()
 
@@ -1095,7 +1113,13 @@ test('add and delete geolocation of history', async (t) => {
     .click(saveProfileButton)
     .expect(errorMessageSelector.innerText)
     .eql('Error: There are errors in your Career & Education History.')
-    .expect(Selector('span.invalid-value-icon').withAttribute('data-original-title', 'Country/Region is required for current positions').exists).ok()
+    .expect(
+      Selector('span.invalid-value-icon').withAttribute(
+        'data-original-title',
+        'Country/Region is required for current positions'
+      ).exists
+    )
+    .ok()
 })
 
 test('add links', async (t) => {
@@ -1124,7 +1148,8 @@ test('add links', async (t) => {
     .expect(aclanthologyUrlInput.hasClass('invalid-value'))
     .notOk()
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -1183,7 +1208,8 @@ test('add relation', async (t) => {
       '2023'
     )
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
     .expect(Selector('span').withText('Some Relation Name').exists)
@@ -1210,14 +1236,16 @@ test('add relation', async (t) => {
     .expect(
       firstRelationRow
         .find('input.search-input')
-        .withAttribute('placeholder', 'Search relation by name or email').exists
+        .withAttribute('placeholder', 'Search relation by name or OpenReview profile ID')
+        .exists
     )
     .ok()
     .click(secondRelationRow.find('.glyphicon-edit'))
     .expect(
       secondRelationRow
         .find('input.search-input')
-        .withAttribute('placeholder', 'Search relation by name or email').exists
+        .withAttribute('placeholder', 'Search relation by name or OpenReview profile ID')
+        .exists
     )
     .ok()
     .click(firstRelationRow.find('.glyphicon-minus-sign'))
@@ -1254,7 +1282,8 @@ test('add expertise', async (t) => {
     )
     .typeText(thirdExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
     .expect(Selector('span').withText('other expertise').exists)
@@ -1314,9 +1343,11 @@ test('import paper from dblp', async (t) => {
     .typeText(editFullNameInputSelector, 'Di Xu')
     .click(saveProfileButton)
     // wait until profile save complete
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
 
-  await t.click(step3Links)
+  await t
+    .click(step3Links)
     .click(addDBLPPaperToProfileButton)
     .expect(Selector('#dblp-import-modal').find('div.modal-body').innerText)
     .contains('Please select the new publications of which you are actually an author.')
@@ -1415,7 +1446,8 @@ test('unlink paper', async (t) => {
     // keep 1 publication to check history
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
 })
 
 test('check import history', async (t) => {
@@ -1516,7 +1548,8 @@ test('validate current history', async (t) => {
       paste: true,
     })
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 
@@ -1529,7 +1562,8 @@ test('validate current history', async (t) => {
     .selectText(firstHistoryEndInput)
     .pressKey('delete')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 })
@@ -1557,13 +1591,16 @@ test('profile should be auto merged', async (t) => {
     .click(Selector('button').withText('Verify').nth(0))
     .expect(messageSelector.innerText)
     .eql('alternate@a.com has been verified')
-    .expect(Selector('div.emails__confirmed-text').withText('(Confirmed)').count).eql(2, { timeout: 2000 }) // email section is updated
-    .expect(Selector('div.emails__preferred-text').withText('(Preferred Email)').count).eql(1) // userA's existing email
-    .expect(Selector('button').withText('Make Preferred').exists)// userF's email
+    .expect(Selector('div.emails__confirmed-text').withText('(Confirmed)').count)
+    .eql(2, { timeout: 2000 }) // email section is updated
+    .expect(Selector('div.emails__preferred-text').withText('(Preferred Email)').count)
+    .eql(1) // userA's existing email
+    .expect(Selector('button').withText('Make Preferred').exists) // userF's email
     .ok()
 
     .click(saveProfileButton) // save profile should success
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 
@@ -1577,12 +1614,7 @@ test('profile should be auto merged', async (t) => {
     .contains(
       'This alternate email address is already associated with the user [~FirstF_LastF1]'
     )
-  await t
-    .expect(messages[0].content.text)
-    .contains(
-      'Verification Token'
-    )
-
+  await t.expect(messages[0].content.text).contains('Verification Token')
 
   // email should have been added to hasTaskUser's profile
   await t
@@ -1597,7 +1629,7 @@ test('profile should be auto merged', async (t) => {
     .ok()
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Profile page different user`
 
 test('open profile of other user by email', async (t) => {
@@ -1684,18 +1716,22 @@ test('show orcid publications', async (t) => {
     .expect(Selector('#orcid-import-modal').visible)
     .ok()
     .expect(Selector('#orcid-import-modal').find('div.modal-body>p').innerText)
-    .eql('We found 2 publications, 0 of which already exist in OpenReview, 2 of which are new. Please select the new publications of which you are actually an author. Then click "Add to Your Profile" to import them.')
+    .eql(
+      'We found 2 publications, 0 of which already exist in OpenReview, 2 of which are new. Please select the new publications of which you are actually an author. Then click "Add to Your Profile" to import them.'
+    )
     .expect(Selector('div.publication-title').count)
     .eql(2)
     .expect(Selector('div.publication-title').nth(0).innerText)
-    .eql('Verification of cascade optical coherence tomography for freeform optics form metrology\nOptics Express - Crossref')
+    .eql(
+      'Verification of cascade optical coherence tomography for freeform optics form metrology\nOptics Express - Crossref'
+    )
     .expect(Selector('div.publication-title').nth(1).innerText)
     .eql('Cascade optical coherence tomography (C-OCT)\nOptics Express - Crossref')
     .expect(orcidImportModalAddToProfileBtn.hasAttribute('disabled'))
     .ok()
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Issue related tests`
 
 test('#83 email status is missing', async (t) => {
@@ -1744,7 +1780,8 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .eql('FirstB LastB ')
     .click(nameMakePreferredButton)
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('#user-menu').innerText)
     .eql('Di Xu ')
@@ -1764,7 +1801,8 @@ test('#160 allow user to overwrite name to be lowercase', async (t) => {
     .expect(editFullNameInputSelector.value)
     .eql('first')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('span').withText('first').exists)
     .ok()
@@ -1781,7 +1819,8 @@ test('fail before 2099', async (t) => {
       { replace: true }
     ) // to fail in 2090, update validation regex
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated', undefined, {
       timeout: 5000,
@@ -1799,7 +1838,8 @@ test('#1011 remove space in personal links', async (t) => {
     })
     .pressKey('tab')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(
       Selector('a')
@@ -1842,7 +1882,8 @@ test('confirm an email with a numeric token', async (t) => {
     .expect(Selector('button').withText('Make Preferred').nth(0).exists)
     .ok()
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('span').withText('aaa@alternate.com').exists)
     .ok()
@@ -1897,7 +1938,8 @@ test('check if a user can add multiple emails without entering verification toke
     .eql('Error: token must NOT have fewer than 1 characters')
 
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists).notOk({ timeout: 15000 })
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('span').withText('aab@alternate.com').exists)
     .ok()

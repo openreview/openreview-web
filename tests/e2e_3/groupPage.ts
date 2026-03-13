@@ -25,7 +25,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .click(loginButton)
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Program Chairs page`
   .page`http://localhost:${process.env.NEXT_PORT}/group?id=ICLR.cc/2021/Conference/Program_Chairs`
 
@@ -42,7 +42,7 @@ test('guest user should be redirected to login page and access to the group', as
     .ok()
     .expect(Selector('#group-container h1').innerText)
     .eql('Program Chairs Console')
-    .expect(Selector('#notes').exists)
+    .expect(Selector('.tabs-container').exists)
     .ok()
 })
 
@@ -71,7 +71,7 @@ test('logged user should access to the group', async (t) => {
     .ok()
     .expect(Selector('#group-container h1').innerText)
     .eql('Program Chairs Console')
-    .expect(Selector('#notes').exists)
+    .expect(Selector('.tabs-container').exists)
     .ok()
 })
 
@@ -87,7 +87,7 @@ test('logged user should get a forbidden error', async (t) => {
     .eql("You don't have permission to read this group")
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Group page`.page`http://localhost:${process.env.NEXT_PORT}`
 
 test('try to access to an invalid group and get a not found error', async (t) => {

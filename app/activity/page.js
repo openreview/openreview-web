@@ -11,7 +11,7 @@ import BaseActivityList from '../../components/BaseActivityList'
 import ErrorAlert from '../../components/ErrorAlert'
 
 export default function Page() {
-  const { accessToken, isRefreshing } = useUser()
+  const { isRefreshing, user } = useUser()
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
   const router = useRouter()
@@ -26,7 +26,7 @@ export default function Page() {
     }
 
     api
-      .get('/notes/edits', queryParam, { accessToken })
+      .get('/notes/edits', queryParam)
       .then(
         ({ edits }) => (edits?.length > 0 ? edits : []),
         () => []
@@ -41,7 +41,7 @@ export default function Page() {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!accessToken) {
+    if (!user) {
       router.push('/login?redirect=/activity')
       return
     }

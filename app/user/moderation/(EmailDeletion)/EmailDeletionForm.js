@@ -6,7 +6,6 @@ import api from '../../../../lib/api-client'
 
 export default function EmailDeletionForm({
   emailRemovalInvitationId,
-  accessToken,
   setEmailDeletionNotes,
 }) {
   const emailDeletionFormRef = useRef(null)
@@ -21,10 +20,7 @@ export default function EmailDeletionForm({
       formContent[name] = cleanValue?.length ? cleanValue : undefined
     })
     try {
-      const emailRemovalInvitation = await api.getInvitationById(
-        emailRemovalInvitationId,
-        accessToken
-      )
+      const emailRemovalInvitation = await api.getInvitationById(emailRemovalInvitationId)
 
       const editToPost = view2.constructEdit({
         formData: formContent,
@@ -32,10 +28,9 @@ export default function EmailDeletionForm({
       })
 
       const editResult = await api.post('/notes/edits', editToPost, {
-        accessToken,
         version: 2,
       })
-      const noteResult = await api.getNoteById(editResult.note.id, accessToken)
+      const noteResult = await api.getNoteById(editResult.note.id)
 
       setEmailDeletionNotes((emailDeletionNotes) => [
         { ...noteResult, processLogStatus: 'running' },

@@ -266,11 +266,7 @@ const AssignmentRow = ({
 
 const pageSize = 25
 
-export default function V2Assignments({
-  configInvitation,
-  accessToken,
-  preferredEmailInvitationId,
-}) {
+export default function V2Assignments({ configInvitation, preferredEmailInvitationId }) {
   const [allConfigNotes, setAllConfigNotes] = useState([])
   const [assignmentNotes, setAssignmentNotes] = useState([])
   const [totalCount, setTotalCount] = useState(null)
@@ -292,7 +288,7 @@ export default function V2Assignments({
           invitation: `${group}/-/Assignment_Configuration`,
           count: true,
         },
-        { accessToken, version: 2 }
+        { version: 2 }
       )
       setAllConfigNotes(notes || [])
       setTotalCount(count || 0)
@@ -331,7 +327,7 @@ export default function V2Assignments({
 
   const handleRunMatcher = async (id) => {
     try {
-      await api.post('/match', { configNoteId: id }, { accessToken })
+      await api.post('/match', { configNoteId: id })
       promptMessage(
         'Matching started. The status of the assignments will be updated when the matching process is complete'
       )
@@ -343,7 +339,7 @@ export default function V2Assignments({
 
   const handleDeployMatcher = async (id) => {
     try {
-      await api.post('/deploy', { configNoteId: id }, { accessToken })
+      await api.post('/deploy', { configNoteId: id })
       promptMessage('Deployment started.')
     } catch (apiError) {
       promptError(apiError.message)
@@ -352,7 +348,7 @@ export default function V2Assignments({
 
   const handleUndeployMatcher = async (id) => {
     try {
-      await api.post('/undeploy', { configNoteId: id }, { accessToken })
+      await api.post('/undeploy', { configNoteId: id })
       promptMessage('Undeployment started.')
     } catch (apiError) {
       promptError(apiError.message)
@@ -362,7 +358,7 @@ export default function V2Assignments({
   const handleConfigNoteUpdate = async (noteId) => {
     if (!noteId) return
     try {
-      const updatedConfigNote = await api.getNoteById(noteId, accessToken)
+      const updatedConfigNote = await api.getNoteById(noteId)
       setAssignmentNotes((notes) =>
         notes.map((note) => (note.id === noteId ? updatedConfigNote : note))
       )

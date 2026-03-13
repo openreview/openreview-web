@@ -32,7 +32,7 @@ const getReplyFieldByInvitationType = (invitation) => {
 export default function InvitationInfo({ id, query }) {
   const [invitation, setInvitation] = useState(null)
   const [error, setError] = useState(null)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
 
   const renderInvtationReply = () => {
@@ -70,7 +70,7 @@ export default function InvitationInfo({ id, query }) {
 
   const loadInvitation = async () => {
     try {
-      const invitationObj = await api.getInvitationById(id, accessToken, null, null)
+      const invitationObj = await api.getInvitationById(id)
       if (invitationObj) {
         setInvitation({
           ...invitationObj,
@@ -83,7 +83,7 @@ export default function InvitationInfo({ id, query }) {
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        if (!accessToken) {
+        if (!user) {
           router.replace(
             `/login?redirect=/invitation/info?${encodeURIComponent(stringify(query))}}`
           )

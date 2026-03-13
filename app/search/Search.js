@@ -20,7 +20,7 @@ export default function Search({ searchQuery, sourceOptions }) {
   const [offset, setOffset] = useState(0)
   const [endOfResults, setEndOfResults] = useState(false)
   const [error, setError] = useState(null)
-  const { accessToken, isRefreshing } = useUser()
+  const { isRefreshing } = useUser()
 
   const loadSearchResults = async (query) => {
     try {
@@ -39,27 +39,21 @@ export default function Search({ searchQuery, sourceOptions }) {
                 offset,
                 limit,
               },
-              { accessToken, version: 1 }
+              { version: 1 }
             )
           : Promise.resolve({ notes: [] })
 
       const v2ResultsP =
         offset <= (counts.v2 ?? 0)
-          ? api.get(
-              '/notes/search',
-              {
-                term: query.term,
-                type: 'terms',
-                content: query.content || 'all',
-                group: query.group || 'all',
-                source: Object.keys(sourceOptions).includes(query.source)
-                  ? query.source
-                  : 'all',
-                offset,
-                limit,
-              },
-              { accessToken }
-            )
+          ? api.get('/notes/search', {
+              term: query.term,
+              type: 'terms',
+              content: query.content || 'all',
+              group: query.group || 'all',
+              source: Object.keys(sourceOptions).includes(query.source) ? query.source : 'all',
+              offset,
+              limit,
+            })
           : Promise.resolve({ notes: [] })
 
       const [v1Results, v2Results] = await Promise.all([v1ResultsP, v2ResultsP])

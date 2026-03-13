@@ -49,7 +49,6 @@ export default async function page({ searchParams }) {
       maxColumns={Math.max(Number.parseInt(query.maxColumns, 10), -1) || -1}
       showCounter={query.showCounter ? query.showCounter === 'true' : true}
       user={user}
-      accessToken={accessToken}
       banner={banner}
     />
   )

@@ -15,11 +15,8 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
 
   return Object.entries(diff).map(([fieldName, fieldValue]) => {
     if (fieldName.startsWith(prefixToRemove))
-      // eslint-disable-next-line no-param-reassign
       fieldName = fieldName.substring(prefixToRemove.length)
-    // eslint-disable-next-line no-param-reassign
     if (fieldName.endsWith('.value')) fieldName = fieldName.slice(0, -6)
-    // eslint-disable-next-line no-param-reassign
     if (fieldName.endsWith('.readers')) fieldName = `${fieldName.slice(0, -8)} readers`
 
     const prettifiedFieldName = shouldPrettyField ? prettyField(fieldName) : fieldName
@@ -31,7 +28,6 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
         <td>
           {fieldValue.left && (
             <>
-              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
               <strong>{prettifiedFieldName}:</strong> {prettifiedLeftValue}
             </>
           )}
@@ -39,7 +35,6 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
         <td>
           {fieldValue.right && (
             <>
-              {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
               <strong>{prettifiedFieldName}:</strong> {prettifiedRightValue}
             </>
           )}
@@ -49,7 +44,7 @@ const renderDiffSection = (diff, prefixToRemove = null, shouldPrettyField = true
   })
 }
 
-export default function Compare({ query, accessToken }) {
+export default function Compare({ query }) {
   const [references, setReferences] = useState(null)
   const [viewerUrl, setViewerUrl] = useState(null)
   const { id, left, right } = query
@@ -66,7 +61,7 @@ export default function Compare({ query, accessToken }) {
             leftId: left,
             rightId: right,
           },
-          { accessToken, version: 2 }
+          { version: 2 }
         )
         .then((result) => {
           const { leftNote, rightNote } = result
@@ -74,11 +69,7 @@ export default function Compare({ query, accessToken }) {
           setViewerUrl(result.viewerUrl)
         })
         .catch(async (_) => {
-          const editsResponse = await api.get(
-            '/notes/edits',
-            { 'note.id': id, trash: true },
-            { accessToken }
-          )
+          const editsResponse = await api.get('/notes/edits', { 'note.id': id, trash: true })
 
           if (editsResponse.edits?.length <= 1) throw new Error('Reference not found')
           const leftEdit = editsResponse.edits.find((edit) => edit.id === query.left)

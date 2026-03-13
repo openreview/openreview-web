@@ -32,7 +32,7 @@ export default function Footer() {
                   <Link href="/sponsors">Sponsors</Link>
                 </li>
                 <li>
-                  <Link href="https://donate.stripe.com/eVqdR8fP48bK1R61fi0oM00">
+                  <Link href="/donate">
                     <strong>Donate</strong>
                   </Link>
                 </li>
@@ -100,7 +100,7 @@ export default function Footer() {
                   <Link href="/contact">Contact</Link>
                 </li>
                 <li>
-                  <Link href="https://donate.stripe.com/eVqdR8fP48bK1R61fi0oM00">
+                  <Link href="/donate">
                     <strong>Donate</strong>
                   </Link>
                 </li>
@@ -121,13 +121,11 @@ export default function Footer() {
           <div className="row">
             <div className="col-sm-10 col-sm-offset-1">
               <p className="text-center">
-                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                 <a href="/about" target="_blank">
                   OpenReview
                 </a>{' '}
                 is a long-term project to advance science through improved peer review with
                 legal nonprofit status. We gratefully acknowledge the support of the{' '}
-                {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
                 <a href="/sponsors" target="_blank">
                   OpenReview Sponsors
                 </a>

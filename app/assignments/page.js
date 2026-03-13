@@ -16,11 +16,11 @@ export async function generateMetadata({ searchParams }) {
 export default async function page({ searchParams }) {
   const query = await searchParams
   const { group } = query
-  const { token: accessToken, user } = await serverAuth()
+  const { token: accessToken } = await serverAuth()
   if (!accessToken)
     redirect(`/login?redirect=/assignments?${encodeURIComponent(stringify(query))}`)
   if (!group)
     return <ErrorDisplay message="Could not list assignments. Missing parameter group." />
 
-  return <Assignments accessToken={accessToken} />
+  return <Assignments />
 }

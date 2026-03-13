@@ -269,8 +269,7 @@ describe('GroupMembers (customized by invitations)', () => {
           members: { remove: ['~Test_Id1'] },
         }),
         invitation: 'addRemoveMembersInvitaiton',
-      }),
-      expect.anything()
+      })
     )
 
     await userEvent.click(screen.getByText('Select All')) // remove selected
@@ -282,8 +281,7 @@ describe('GroupMembers (customized by invitations)', () => {
           members: { remove: ['test@email.com'] },
         }),
         invitation: 'addRemoveMembersInvitaiton',
-      }),
-      expect.anything()
+      })
     )
 
     await userEvent.type(screen.getByRole('textbox'), '~Test_Id2') // add
@@ -295,8 +293,7 @@ describe('GroupMembers (customized by invitations)', () => {
           members: { add: ['~Test_Id2'] },
         }),
         invitation: 'addRemoveMembersInvitaiton',
-      }),
-      expect.anything()
+      })
     )
   })
 })

@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react'
+import Badge from '../../../../components/Badge'
 import api from '../../../../lib/api-client'
 
-export default function NameDeletionCount({ accessToken }) {
+export default function NameDeletionCount({ children }) {
   const [nameDeletionRequestCount, setNameDeletionRequestCount] = useState(null)
 
   const getNameDeletionCount = async () => {
     try {
-      const response = await api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
-        },
-        { accessToken }
-      )
+      const response = await api.get('/notes', {
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
+      })
       setNameDeletionRequestCount(
         response.notes.filter((p) => p.content.status.value === 'Pending').length
       )
@@ -25,6 +22,9 @@ export default function NameDeletionCount({ accessToken }) {
     getNameDeletionCount()
   }, [])
 
-  if (!nameDeletionRequestCount) return null
-  return <span className="badge">{nameDeletionRequestCount}</span>
+  return (
+    <Badge count={nameDeletionRequestCount} size="small" offset={[0, -5]}>
+      {children}
+    </Badge>
+  )
 }

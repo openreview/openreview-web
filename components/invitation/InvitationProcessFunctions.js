@@ -9,7 +9,6 @@ import DateProcessesEditor from './DateProcessesEditor'
 const InvitationProcessFunctionsV2 = ({
   invitation,
   profileId,
-  accessToken,
   loadInvitation,
   isMetaInvitation,
 }) => (
@@ -42,7 +41,6 @@ const InvitationProcessFunctionsV2 = ({
             key={invitation.id}
             invitation={invitation}
             profileId={profileId}
-            accessToken={accessToken}
             loadInvitation={loadInvitation}
             codeType="preprocess"
             isMetaInvitation={isMetaInvitation}
@@ -55,7 +53,6 @@ const InvitationProcessFunctionsV2 = ({
             key={invitation.id}
             invitation={invitation}
             profileId={profileId}
-            accessToken={accessToken}
             loadInvitation={loadInvitation}
             codeType="process"
             isMetaInvitation={isMetaInvitation}
@@ -68,7 +65,6 @@ const InvitationProcessFunctionsV2 = ({
             key={invitation.id}
             invitation={invitation}
             profileId={profileId}
-            accessToken={accessToken}
             loadInvitation={loadInvitation}
             isMetaInvitation={isMetaInvitation}
           />
@@ -78,7 +74,6 @@ const InvitationProcessFunctionsV2 = ({
             key={invitation.id}
             invitation={invitation}
             profileId={profileId}
-            accessToken={accessToken}
             loadInvitation={loadInvitation}
             isMetaInvitation={isMetaInvitation}
             field="postprocesses"

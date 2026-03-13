@@ -103,14 +103,7 @@ function CopyEditLinkButton({ groupInvitationId, editId }) {
   )
 }
 
-export default function Edit({
-  edit,
-  type,
-  className,
-  showContents,
-  showLog = false,
-  accessToken,
-}) {
+export default function Edit({ edit, type, className, showContents, showLog = false }) {
   const omitFields = [
     'id',
     'content',
@@ -129,13 +122,9 @@ export default function Edit({
 
   const loadEditLog = async () => {
     try {
-      const response = await api.get(
-        '/logs/process',
-        {
-          id: edit.id,
-        },
-        { accessToken }
-      )
+      const response = await api.get('/logs/process', {
+        id: edit.id,
+      })
       const logs = orderBy(response.logs, ['edate'], ['desc'])
       setLastLog(logs?.[0])
     } catch (error) {
