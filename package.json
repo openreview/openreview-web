@@ -7,7 +7,7 @@
     "prod": "npm run build && next start --port $NEXT_PORT",
     "lint": "oxlint --report-unused-disable-directives --quiet",
     "lint:fix": "oxlint --fix --report-unused-disable-directives --quiet",
-    "build": "oxlint --report-unused-disable-directives --quiet && next build",
+    "build": "next build",
     "start": "next start --port $NEXT_PORT",
     "unit-test": "jest",
     "test": "testcafe firefox tests/setup --concurrency 4 && (testcafe firefox:headless tests/e2e_1 & testcafe firefox:headless tests/e2e_2 & testcafe firefox:headless tests/e2e_3)",
@@ -60,6 +60,7 @@
     "react-redux": "^9.1.2",
     "react-select": "^5.8.0",
     "redux": "^5.0.1",
+    "server-only": "^0.0.1",
     "socket.io-client": "^4.8.1",
     "universal-cookie": "^6.1.1"
   },

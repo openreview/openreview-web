@@ -17,6 +17,8 @@ const ProfileLink = ({ id, name, preferredEmailInvitationId }) => {
     }
   }
 
+  if (!id) return <span>{name}</span>
+
   if (id.startsWith('~')) {
     return (
       <a href={`/profile?id=${id}`} target="_blank" rel="noopener noreferrer">
