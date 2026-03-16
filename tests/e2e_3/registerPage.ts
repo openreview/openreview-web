@@ -9,7 +9,6 @@ import {
   strongPassword,
 } from '../utils/api-helper'
 
-
 const fullNameInputSelector = Selector('#first-input')
 const emailAddressInputSelector = Selector('input').withAttribute(
   'placeholder',
@@ -54,9 +53,8 @@ test('create new profile', async (t) => {
     .expect(confirmPasswordInputSelector.exists)
     .ok()
     .expect(
-      Selector('span').withText(
-        /Your email address could not be automatically verified/
-      ).exists
+      Selector('span').withText(/Your email address could not be automatically verified/)
+        .exists
     )
     .ok()
     // type another non institution email
@@ -65,9 +63,8 @@ test('create new profile', async (t) => {
     .typeText(emailAddressInputSelector, 'non@institution.email')
     .click(signupButtonSelector)
     .expect(
-      Selector('span').withText(
-        /Your email address could not be automatically verified/
-      ).exists
+      Selector('span').withText(/Your email address could not be automatically verified/)
+        .exists
     )
     .ok()
     // correct email to be institution email
@@ -132,9 +129,8 @@ test('create another new profile', async (t) => {
     .expect(confirmPasswordInputSelector.exists)
     .ok()
     .expect(
-      Selector('span').withText(
-        /Your email address could not be automatically verified/
-      ).exists
+      Selector('span').withText(/Your email address could not be automatically verified/)
+        .exists
     )
     .ok()
 
@@ -320,9 +316,7 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector)
     .click(nextSectiomButtonSelector)
     .expect(
-      Selector('p').withText(
-        /Your email address could not be automatically verified/
-      ).exists
+      Selector('p').withText(/Your email address could not be automatically verified/).exists
     )
     .ok()
     // add alternate email while registering
@@ -356,9 +350,7 @@ test('update profile', async (t) => {
     .expect(Selector('button').withText('Make Preferred').nth(0).exists)
     .ok()
     .expect(
-      Selector('p').withText(
-        /Your email address could not be automatically verified/
-      ).exists
+      Selector('p').withText(/Your email address could not be automatically verified/).exists
     )
     .notOk()
 
@@ -376,7 +368,8 @@ test('update profile', async (t) => {
     .click(Selector('div.country-dropdown__option').nth(3))
 
     .click(nextSectiomButtonSelector) // last section expertise
-    .expect(Selector('p').withText("last updated September 24, 2024").exists).ok()
+    .expect(Selector('p').withText('last updated September 24, 2024').exists)
+    .ok()
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
@@ -384,7 +377,6 @@ test('update profile', async (t) => {
     .expect(Selector('h4.pronouns').nth(0).exists)
     .notOk()
 })
-
 
 // eslint-disable-next-line no-unused-expressions
 fixture`Activate`
@@ -395,9 +387,7 @@ test('register a profile with an institutional email', async (t) => {
     .click(nextSectiomButtonSelector)
     .click(nextSectiomButtonSelector)
     .expect(
-      Selector('p').withText(
-        /Your email address could not be automatically verified/
-      ).exists
+      Selector('p').withText(/Your email address could not be automatically verified/).exists
     )
     .notOk()
     // add alternate email while registering
@@ -410,9 +400,7 @@ test('register a profile with an institutional email', async (t) => {
     )
     .click(Selector('div.container.emails').find('button.confirm-button'))
     .expect(messageSelector.innerText)
-    .eql(
-      'A confirmation email has been sent to kevin@test.com with confirmation instructions'
-    )
+    .eql('A confirmation email has been sent to kevin@test.com with confirmation instructions')
     .wait(500)
     .click(Selector('button').withText('Verify').nth(0))
     .expect(messageSelector.innerText)
@@ -480,19 +468,18 @@ test('try to activate a profile with invalid token and get an error', async (t) 
     .eql('Activation token is not valid')
 }).skipJsErrors()
 
-fixture`Reset password`.before(
-  async (ctx) => {
-    ctx.superUserToken = await getToken(superUserName, strongPassword)
-    return ctx
-  }
-)
+fixture`Reset password`.before(async (ctx) => {
+  ctx.superUserToken = await getToken(superUserName, strongPassword)
+  return ctx
+})
 
 test('reset password of active profile', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/reset`)
     .wait(1000)
     .typeText(Selector('#email-input'), 'melisa@test.com')
-    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).notOk({ timeout: 5000 })
+    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled'))
+    .notOk({ timeout: 5000 })
     .click(Selector('button').withText('Reset Password'))
     .expect(Selector('div').withAttribute('role', 'alert').exists)
     .ok()

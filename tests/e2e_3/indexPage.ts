@@ -23,11 +23,9 @@ test('show active venues', async (t) => {
     .expect(activeVenues.find('a').withText('ICLR 2021 Conference').exists)
     .ok()
 
-
     // Open for submissions
     .expect(openVenues.find('li').count)
     .eql(1)
-
 
     // All venues
     .expect(allVenues.find('li').count)

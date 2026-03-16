@@ -1,0 +1,16 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "printWidth": 95,
+  "trailingComma": "es5",
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "/node_modules",
+    "/videos",
+    "/.next",
+    "/client/templates.js",
+    "/client/templates",
+    "/public/error-styles.css"
+  ]
+}

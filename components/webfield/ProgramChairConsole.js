@@ -225,11 +225,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       // #region get invited groups
       const invitedGroupsP = await Promise.all(
-        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map(
-          (invitedId) =>
-            invitedId
-              ? api.getGroupById(invitedId, undefined, { select: 'members' })
-              : Promise.resolve(null)
+        [reviewersInvitedId, areaChairsInvitedId, seniorAreaChairsInvitedId].map((invitedId) =>
+          invitedId
+            ? api.getGroupById(invitedId, undefined, { select: 'members' })
+            : Promise.resolve(null)
         )
       )
       // #endregion

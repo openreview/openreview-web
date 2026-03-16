@@ -1134,7 +1134,7 @@ const AreaChairConsole = ({ appContext }) => {
             type: 'authorObj',
           }))
         }
-        
+
         const customStageReviews = customStageInvitations?.reduce((prev, curr) => {
           const customStageReview = note.details.replies.find((p) =>
             p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))

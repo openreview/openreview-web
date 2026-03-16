@@ -1,6 +1,12 @@
 /* globals promptError: false */
 import { useState } from 'react'
-import { forumDate, getNoteAuthorIds, getNoteAuthors, getNotePdfUrl, isValidEmail } from '../../lib/utils'
+import {
+  forumDate,
+  getNoteAuthorIds,
+  getNoteAuthors,
+  getNotePdfUrl,
+  isValidEmail,
+} from '../../lib/utils'
 import Collapse from '../Collapse'
 import Icon from '../Icon'
 import NoteContent, { NoteContentV2 } from '../NoteContent'
