@@ -92,5 +92,7 @@ describe('AreaChairStatusMenuBar', () => {
 
     expect(baseMenuBarProps.tableRowsAll[0].numTotalReplyCount).toEqual(9)
     expect(baseMenuBarProps.tableRowsAll[1].numTotalReplyCount).toEqual(12)
+
+    expect(baseMenuBarProps.uniqueIdentifier).toEqual('areaChairProfileId') // is note.id by default
   })
 })
