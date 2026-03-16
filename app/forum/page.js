@@ -58,7 +58,7 @@ const getForumNote = async (
     const note = await api.getNoteById(
       queryId,
       token,
-      { trash: true, details: 'writable,presentation,invitation' },
+      { trash: true, details: 'writable,presentation' },
       { trash: true, details: 'original,replyCount,writable' },
       remoteIpAddress
     )
