@@ -1,4 +1,4 @@
-/* eslint-disable one-var */
+/* oxlint-disable one-var */
 import '@testing-library/jest-dom'
 import { render, screen, waitFor } from '@testing-library/react'
 import ConsoleTaskList from '../components/webfield/ConsoleTaskList'

@@ -170,7 +170,6 @@ export default function DblpPublicationTable({
                   const existingPublication = publication.existing
                   const existingPublicationOfOtherProfile =
                     publication.existingWithOtherProfile
-                  // eslint-disable-next-line no-nested-ternary
                   const category = existingPublication
                     ? 'existing-publication'
                     : existingPublicationOfOtherProfile
@@ -179,7 +178,6 @@ export default function DblpPublicationTable({
 
                   return (
                     <DblpPublicationRow
-                      // eslint-disable-next-line react/no-array-index-key
                       key={publication.key}
                       title={publication.title}
                       authors={publication.authorNames}

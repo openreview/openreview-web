@@ -146,11 +146,7 @@ const GroupMembers = ({
     isDeleted: false,
     isSelected: false,
   }))
-  const [groupMembers, setGroupMembers] = useReducer(
-    // eslint-disable-next-line no-use-before-define
-    groupMemberReducer,
-    defaultGroupMembers
-  )
+  const [groupMembers, setGroupMembers] = useReducer(groupMemberReducer, defaultGroupMembers)
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
 
   const { user } = useUser()
@@ -195,11 +191,9 @@ const GroupMembers = ({
           action.payload.includes(p.id) ? { ...p, isDeleted: false } : p
         )
       case 'SELECTDESELECTALL':
-        // eslint-disable-next-line no-case-declarations
         const filterdMembers = state.filter((p) =>
           p.id.toLowerCase().includes(searchTerm.trim().toLowerCase())
         )
-        // eslint-disable-next-line no-case-declarations
         const allSelected = filterdMembers
           .filter((p) => !p.isDeleted)
           .every((p) => p.isSelected)
@@ -280,7 +274,6 @@ const GroupMembers = ({
   const deleteMember = async (memberId) => {
     const confirmMessage =
       'You are removing yourself and may lose access to this group. Are you sure you want to continue?'
-    // eslint-disable-next-line no-alert
     if (userIds.includes(memberId) && !window.confirm(confirmMessage)) return
 
     try {
@@ -385,7 +378,6 @@ const GroupMembers = ({
       ? 'You are removing yourself and may lose access to this group if you continue.'
       : ''
     if (
-      // eslint-disable-next-line no-alert
       !window.confirm(
         `Are you sure you want to remove ${membersToRemove.length} members from ${groupName}? ${additionalWarning}`
       )

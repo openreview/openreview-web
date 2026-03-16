@@ -296,7 +296,7 @@ const ConfirmNameModal = ({ fullName, onConfirm, setTurnstileToken }) => {
           I confirm my name is correct
         </label>
       </div>
-      <div className="mt-3 mb-2 text-center" ref={turnstileContainerRef}></div>
+      <div className="mt-3 mb-2 text-center" ref={turnstileContainerRef} />
     </BasicModal>
   )
 }

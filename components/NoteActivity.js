@@ -101,7 +101,7 @@ export default function NoteActivity({ note, showGroup, showActionButtons }) {
           )}
         </div>
 
-        {showActionButtons && details.writable && <div className="activity-actions"></div>}
+        {showActionButtons && details.writable && <div className="activity-actions" />}
       </div>
 
       {!details.isDeleted &&

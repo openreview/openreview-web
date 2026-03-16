@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-expressions */
+/* oxlint-disable no-unused-expressions */
 import { Selector, ClientFunction } from 'testcafe'
 import { strongPassword } from '../utils/api-helper'
 

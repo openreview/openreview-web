@@ -125,8 +125,8 @@ const NoteSummary = ({
             download={`${note.number}.pdf`}
             rel="noreferrer"
           >
-            <span className="glyphicon glyphicon-download-alt" aria-hidden="true"></span>{' '}
-            Download PDF
+            <span className="glyphicon glyphicon-download-alt" aria-hidden="true" /> Download
+            PDF
           </a>
         </div>
       )}

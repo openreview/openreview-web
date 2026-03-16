@@ -130,10 +130,8 @@ const CheckboxWidget = ({
               value={option.value ?? ''}
               checked={
                 isArrayType
-                  ?
-                  (value?.find((p) => p == option.value) ?? false)
-                  :
-                  value == option.value
+                  ? (value?.find((p) => p == option.value) ?? false)
+                  : value == option.value
               }
               disabled={option.optional === false}
               onChange={handleCheckboxClick}

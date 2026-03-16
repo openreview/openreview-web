@@ -20,7 +20,6 @@ export default function LegacyForum({ forumNote, selectedNoteId, selectedInvitat
   useEffect(() => {
     if (isRefreshing) return
 
-    // eslint-disable-next-line global-require
     const runForum = require('../../client/forum')
     runForum(id, selectedNoteId, selectedInvitationId, user)
     // authors resets when clientJsLoading turns false

@@ -60,7 +60,6 @@ function Page() {
     try {
       const profileResult = await api.get('/profiles')
       const { preferredEmail, emailsConfirmed } = profileResult?.profiles?.[0]?.content ?? {}
-      // eslint-disable-next-line no-shadow
       const confirmedEmails = preferredEmail
         ? [preferredEmail, ...emailsConfirmed.filter((email) => email !== preferredEmail)]
         : emailsConfirmed
@@ -74,7 +73,6 @@ function Page() {
         )
       ).then((results) =>
         results.reduce((prev, curr) => {
-          // eslint-disable-next-line no-param-reassign
           prev[curr.email] = curr.count
           return prev
         }, {})

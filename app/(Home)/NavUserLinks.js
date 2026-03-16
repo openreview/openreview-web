@@ -11,7 +11,7 @@ export default async function NavUserLinks() {
     return (
       <ul className="nav navbar-nav navbar-right">
         <li id="user-menu">
-          <Link href="/login">Login</Link>
+          <a href="/login">Login</a>
         </li>
       </ul>
     )
@@ -53,6 +53,9 @@ export default async function NavUserLinks() {
         <ul className="dropdown-menu">
           <li>
             <Link href="/profile">Profile</Link>
+          </li>
+          <li>
+            <Link href="/profile/password-security">Password &amp; Security</Link>
           </li>
           <li className="visible-sm-block">
             <Link href="/notifications" prefetch={false}>
