@@ -3,7 +3,6 @@
 /* globals promptError, typesetMathJax: false */
 /* globals marked, DOMPurify, MathJax, Handlebars, nanoid: false */
 
-// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   var mkDropdown = function (
     placeholder,
@@ -26,7 +25,7 @@ module.exports = (function () {
       placeholder: placeholder,
       class: 'form-control',
       value: value,
-      value_id: valueId, // eslint-disable-line
+      value_id: valueId,
     }
 
     var $dropdown = $('<div>', { class: 'dropdown ' + extraClasses }).append(
@@ -423,7 +422,7 @@ module.exports = (function () {
 
   var mkRemovableItem = function (text, id) {
     return $('<span>', { class: 'removable_item' }).append(
-      $('<span>', { class: 'removable_item_content', text: text, value_id: id }), // eslint-disable-line
+      $('<span>', { class: 'removable_item_content', text: text, value_id: id }),
       $('<span>', { class: 'removable_item_button glyphicon glyphicon-remove-circle' }).click(
         function () {
           $(this)
@@ -1399,7 +1398,6 @@ module.exports = (function () {
               contentMap.authors = authList.join(', ')
             }
 
-            // eslint-disable-next-line no-restricted-syntax, guard-for-in
             for (var k in contentMap) {
               $('.note_content_value[name=' + k + ']').val(contentMap[k])
             }
@@ -2705,7 +2703,7 @@ module.exports = (function () {
             .replace(/^\./g, '') // journal names start with '.'
             .replace(/\..+/g, '') // remove text after dots, ex: uai.org
             .replace(/^-$/g, '') // remove dashes
-            .replace(/_/g, ' ') // replace undescores with spaces
+            .replace(/_/g, ' ') // replace underscores with spaces
 
           // if the letters in the token are all lowercase, replace it with empty string
           var lettersOnly = token.replace(/\d|\W/g, '')
@@ -2744,7 +2742,7 @@ module.exports = (function () {
         }
         return token
           .replace(/^-$/g, '') // remove dashes
-          .replace(/_/g, ' ') // replace undescores with spaces
+          .replace(/_/g, ' ') // replace underscores with spaces
           .replace(/\.\*/g, '') // remove wildcards
           .replace(/^.*[0-9]$/g, '') // remove tokens ending with a digit
           .trim()
@@ -3169,7 +3167,6 @@ module.exports = (function () {
   }
 
   var getReaders = function (widget, invitation, signatures, isEdit = false) {
-    // eslint-disable-next-line no-nested-ternary
     var readers = invitation.edit
       ? isEdit
         ? invitation.edit.readers
@@ -3467,7 +3464,6 @@ module.exports = (function () {
       $cancelButton.click(function () {
         const confirmCancel =
           $noteEditor.data('hasUnsavedData') &&
-          // eslint-disable-next-line no-alert
           !window.confirm(
             'Any unsaved changes will be lost. Are you sure you want to continue?'
           )
@@ -4165,7 +4161,6 @@ module.exports = (function () {
       $cancelButton.click(function () {
         const confirmCancel =
           $noteEditor.data('hasUnsavedData') &&
-          // eslint-disable-next-line no-alert
           !window.confirm(
             'Any unsaved changes will be lost. Are you sure you want to continue?'
           )
@@ -4294,7 +4289,7 @@ module.exports = (function () {
             localStorage.setItem(uniqueKey, $(this).val())
             $noteEditor.data('hasUnsavedData', true)
           } catch (error) {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn(error)
           }
         }, 2000)

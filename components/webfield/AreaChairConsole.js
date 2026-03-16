@@ -1,4 +1,3 @@
-/* eslint-disable max-len */
 /* globals $,promptMessage,promptError,typesetMathJax: false */
 
 import { useContext, useEffect, useState } from 'react'
@@ -399,7 +398,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  *
  * @typedef {Object} AreaChairConsoleConfig
  *
- // eslint-disable-next-line max-len
+ // oxlint-disable-next-line max-len
  * @property {Object} header mandatory but can be empty object
  * @property {string} venueId mandatory
  * @property {Object} reviewerAssignment optional
@@ -861,7 +860,7 @@ const AreaChairConsole = ({ appContext }) => {
     const sacProfileLinks = acConsoleData.sacProfiles.map(
       (sacProfile, index) =>
         `<a href="/profile?id=${sacProfile.id}" target="_blank" rel="noopener noreferrer" >${prettyId(sacProfile.id)}</a>${
-          sacEmails[index] ? `(${sacEmails[index]})` : ''
+          sacEmails[index] ? ` (${sacEmails[index]})` : ''
         }`
     )
     setSacLinkText(

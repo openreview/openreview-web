@@ -17,6 +17,8 @@ const ProfileLink = ({ id, name, preferredEmailInvitationId }) => {
     }
   }
 
+  if (!id) return <span>{name}</span>
+
   if (id.startsWith('~')) {
     return (
       <a href={`/profile?id=${id}`} target="_blank" rel="noopener noreferrer">
@@ -27,7 +29,6 @@ const ProfileLink = ({ id, name, preferredEmailInvitationId }) => {
   if (!isValidEmail(id) || !preferredEmailInvitationId) return <span>{name}</span>
 
   return (
-    // eslint-disable-next-line jsx-a11y/anchor-is-valid
     <a
       role="button"
       onClick={(e) => {

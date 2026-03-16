@@ -98,7 +98,7 @@ const MessageMemberModal = ({
         try {
           localStorage.setItem(`${groupId}|${member}`, Date.now())
         } catch (e) {
-          // eslint-disable-next-line no-console
+          // oxlint-disable-next-line no-console
           console.warn(`Could not save timestamp for ${member}`)
         }
       })
@@ -179,7 +179,6 @@ const MessageMemberModal = ({
           />
           {messageMemberInvitation?.message?.signature && (
             <>
-              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label>Signature</label>
               <Signatures
                 key={`${messageMemberInvitation.id}:${membersToMessage.join(',')}`}

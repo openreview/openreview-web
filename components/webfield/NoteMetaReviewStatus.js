@@ -38,7 +38,6 @@ const IEEECopyrightForm = ({ note, isV2Note }) => {
   return null
 }
 
-// eslint-disable-next-line import/prefer-default-export
 export const AuthorConsoleNoteMetaReviewStatus = ({
   note,
   venueId,
@@ -104,7 +103,6 @@ export const AuthorConsoleNoteMetaReviewStatus = ({
 }
 
 // modified from noteMetaReviewStatus.hbs handlebar template
-// eslint-disable-next-line import/prefer-default-export
 export const AreaChairConsoleNoteMetaReviewStatus = ({
   note,
   metaReviewData,
@@ -323,7 +321,6 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     />
                     <div>{areaChair.title}</div>
                     {preferredEmailInvitationId && (
-                      // eslint-disable-next-line jsx-a11y/anchor-is-valid
                       <a
                         href="#"
                         className="text-muted"
@@ -404,7 +401,6 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                     />
                     <div>{areaChair.title}</div>
                     {preferredEmailInvitationId && (
-                      // eslint-disable-next-line jsx-a11y/anchor-is-valid
                       <a
                         href="#"
                         className="text-muted"
@@ -438,7 +434,6 @@ export const ProgramChairConsolePaperAreaChairProgress = ({
                   />
                   <div>{seniorAreaChair.title}</div>
                   {preferredEmailInvitationId && (
-                    // eslint-disable-next-line jsx-a11y/anchor-is-valid
                     <a
                       href="#"
                       className="text-muted"

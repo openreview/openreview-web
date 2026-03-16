@@ -351,7 +351,6 @@ export default function FilterForm({
 
         <div className="form-group filtered-reply-count">
           <em className="control-label filter-count">
-            {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
             {numReplies - numRepliesHidden} / {inflect(numReplies, 'reply', 'replies', true)}{' '}
             shown
           </em>

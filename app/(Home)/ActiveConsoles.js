@@ -23,6 +23,7 @@ export default async function ActiveConsoles({ activeVenues, openVenues }) {
       return { groupId: venue.id }
     })
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.log('Error in ActiveConsoles', {
       page: 'Home',
       component: 'ActiveConsoles',

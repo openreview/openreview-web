@@ -251,9 +251,7 @@ const AreaChairConsoleMenuBar = ({
           : p.reviewProgressData?.confidenceMin,
     },
     {
-      label: `${prettyField(officialMetaReviewName)} ${prettyField(
-        metaReviewRecommendationName
-      )}`,
+      label: `${prettyField(officialMetaReviewName)} ${prettyField(metaReviewRecommendationName)}`,
       value: `Meta Review ${metaReviewRecommendationName}`,
       getValue: (p) =>
         p.metaReviewData?.[metaReviewRecommendationName] === 'N/A'
@@ -273,7 +271,7 @@ const AreaChairConsoleMenuBar = ({
       ? customStageInvitations
           .map((invitation) =>
             invitation.extraDisplayFields
-              .map((extraDisplayField) => ({
+              ?.map((extraDisplayField) => ({
                 label: `${prettyId(invitation.name)} - ${prettyField(extraDisplayField)}`,
                 value: `${invitation.name} ${extraDisplayField}`,
                 getValue: (p) =>
@@ -294,10 +292,7 @@ const AreaChairConsoleMenuBar = ({
   ]
   const basicSearchFunction = (row, term) => {
     const noteTitle = row.note.content?.title?.value
-    return (
-      row.note.number == term || // eslint-disable-line eqeqeq
-      noteTitle.toLowerCase().includes(term)
-    )
+    return row.note.number == term || noteTitle.toLowerCase().includes(term)
   }
   return (
     <BaseMenuBar

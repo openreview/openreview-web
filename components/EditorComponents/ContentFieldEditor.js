@@ -1,4 +1,3 @@
-/* eslint-disable func-names,object-shorthand */
 import { useContext, useState } from 'react'
 import { get, set } from 'lodash'
 import EditorComponentContext from '../EditorComponentContext'
@@ -537,7 +536,6 @@ const ContentFieldEditor = () => {
 
   const valueWithoutDeletedFields = Object.keys(value ?? {}).reduce((prev, curr) => {
     if (value[curr]?.delete) return prev
-    // eslint-disable-next-line no-param-reassign
     prev[curr] = value[curr]
     return prev
   }, {})

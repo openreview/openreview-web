@@ -147,7 +147,6 @@ const TrackStatus = () => {
             userRegNotes = userRegNotes.concat(registrationNoteMap[username])
           }
         })
-        // eslint-disable-next-line no-param-reassign
         profile.registrationNotes = userRegNotes
       })
       setTrackStatusData({
