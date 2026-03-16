@@ -524,14 +524,19 @@ return officialReviews.length;
 
 /**
  * @name ProgramChairConsoleConfig.areaChairStatusPropertiesAllowed
- * @description Query-search properties override (instead of addition) for AC status
+ * @description Query-search properties override (instead of addition) for AC status, it also support function string
  * @type {Object}
  * @default built-in AC defaults
  * @example
  * {
  *   "areaChairStatusPropertiesAllowed": {
  *     "name": ["areaChairProfile.preferredName"],
- *     "sac": ["seniorAreaChair.seniorAreaChairId"]
+ *     "numTotalReplyCount": `
+            const notesAssigned = row.notes
+            const replyCounts = notesAssigned.map(note => note.replyCount ?? 0)
+            const totalReplyCount = replyCounts.reduce((sum, count) => sum + count, 0)
+            return totalReplyCount
+          `,
  *   }
  * }
  */
