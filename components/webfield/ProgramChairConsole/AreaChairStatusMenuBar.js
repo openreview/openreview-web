@@ -210,11 +210,47 @@ const AreaChairStatusMenuBar = ({
     reviewerName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const propertiesAllowed = areaChairStatusPropertiesAllowed ?? {
-    number: ['number'],
-    name: ['areaChairProfile.preferredName'],
-    [camelCase(seniorAreaChairName)]: ['seniorAreaChair.seniorAreaChairId'],
-  }
+  const propertiesAllowed = areaChairStatusPropertiesAllowed
+    ? Object.fromEntries(
+        Object.entries(areaChairStatusPropertiesAllowed).map(([key, value]) => {
+          if (typeof value === 'string') {
+            return [key, [key]]
+          }
+          return [key, value]
+        })
+      )
+    : {
+        number: ['number'],
+        name: ['areaChairProfile.preferredName'],
+        [camelCase(seniorAreaChairName)]: ['seniorAreaChair.seniorAreaChairId'],
+      }
+
+  const functionExtraProperties = (() => {
+    if (typeof areaChairStatusPropertiesAllowed !== 'object') return {}
+    const result = {}
+    Object.entries(areaChairStatusPropertiesAllowed).forEach(([key, value]) => {
+      if (Array.isArray(value)) return
+      try {
+        result[key] = Function('row', value)
+      } catch (error) {
+        // oxlint-disable-next-line no-console
+        console.error(`Error parsing function for extra property ${key}: ${error}`)
+      }
+    })
+    return result
+  })()
+
+  const tableRowsAllWithFilterProperties =
+    Object.keys(functionExtraProperties).length > 0
+      ? tableRowsAll.map((row) => {
+          const extraProperties = {}
+          for (const [key, value] of Object.entries(functionExtraProperties)) {
+            extraProperties[key] = value(row)
+          }
+          return { ...row, ...extraProperties }
+        })
+      : tableRowsAll
+
   const messageAreaChairOptions = [
     ...(bidEnabled
       ? [
@@ -352,7 +388,7 @@ const AreaChairStatusMenuBar = ({
 
   return (
     <BaseMenuBar
-      tableRowsAll={tableRowsAll}
+      tableRowsAll={tableRowsAllWithFilterProperties}
       tableRows={tableRows}
       selectedIds={selectedAreaChairIds}
       setSelectedIds={setSelectedAreaChairIds}
@@ -373,6 +409,7 @@ const AreaChairStatusMenuBar = ({
       messageModal={(props) => <MessageACSACModal {...props} />}
       querySearchInfoModal={(props) => <QuerySearchInfoModal {...props} />}
       extraClasses="ac-status-menu"
+      uniqueIdentifier="areaChairProfileId"
     />
   )
 }
