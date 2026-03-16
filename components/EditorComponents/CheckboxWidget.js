@@ -19,11 +19,11 @@ const CheckboxWidget = ({
   const { field, onChange, value, clearError, note } = isEditor
     ? editorComponentContext
     : {
-        field: propsField,
-        onChange: propsOnChange,
-        value: propsValue,
-        clearError: propsClearError,
-      }
+      field: propsField,
+      onChange: propsOnChange,
+      value: propsValue,
+      clearError: propsClearError,
+    }
   const fieldName = Object.keys(field ?? {})[0]
   const fieldType = field?.[fieldName]?.value?.param?.type
   const isArrayType = propsIsArrayType ?? fieldType?.endsWith('[]')
@@ -44,8 +44,8 @@ const CheckboxWidget = ({
     if (isArrayType) {
       const updatedValues = isChecked
         ? sortBy([...(value ?? []), optionValue], (p) =>
-            checkboxOptions.findIndex((q) => q.value === p)
-          )
+          checkboxOptions.findIndex((q) => q.value === p)
+        )
         : value?.filter((p) => p !== optionValue)
       onChange({ fieldName, value: updatedValues?.length ? updatedValues : undefined })
       return
@@ -130,10 +130,10 @@ const CheckboxWidget = ({
               value={option.value ?? ''}
               checked={
                 isArrayType
-                  ? // eslint-disable-next-line eqeqeq
-                    (value?.find((p) => p == option.value) ?? false)
-                  : // eslint-disable-next-line eqeqeq
-                    value == option.value
+                  ?
+                  (value?.find((p) => p == option.value) ?? false)
+                  :
+                  value == option.value
               }
               disabled={option.optional === false}
               onChange={handleCheckboxClick}

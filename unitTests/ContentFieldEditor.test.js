@@ -171,7 +171,7 @@ describe('ContentFieldEditor', () => {
         }),
       })
     )
-    // eslint-disable-next-line max-len
+
     expect(Object.keys(mockedFormProps.mock.calls[0][0].fields)).toHaveLength(22) // 22 fields defined for a field (removed hidden)
   })
 

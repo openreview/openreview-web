@@ -14,7 +14,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
     .click(loginButton)
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Messages`.page`http://localhost:${process.env.NEXT_PORT}/messages`
 
 test('guest user should be redirected to login page', async (t) => {
