@@ -29,7 +29,11 @@ const TagRow = ({ tag, membershipIds, domain }) => {
       <td>
         {tag.signature && (
           <a
-            href={tag.signature.startsWith('~') ? `/profile?id=${tag.signature}` : `/group?id=${tag.signature}`}
+            href={
+              tag.signature.startsWith('~')
+                ? `/profile?id=${tag.signature}`
+                : `/group?id=${tag.signature}`
+            }
             target="_blank"
             rel="noopener noreferrer"
           >
@@ -68,7 +72,11 @@ const TagsPage = ({ tagsOfPage, domain }) => {
     try {
       const groupMemberCallsP = profileIds.map((profileId) =>
         api
-          .get('/groups', { member: profileId, select: 'id,domain', ...(domain && { domain }) })
+          .get('/groups', {
+            member: profileId,
+            select: 'id,domain',
+            ...(domain && { domain }),
+          })
           .then((result) => {
             const memberGroups = result.groups || []
             const filtered = memberGroups.filter((p) => p.domain !== process.env.SUPER_USER)
@@ -114,7 +122,6 @@ const TagsPage = ({ tagsOfPage, domain }) => {
  * @property {string} tagInvitation optional
  * @property {string} title optional
  * @property {string} instructions optional
- * @property {string} domain optional (URL param)
  * @property {string} parentInvitations optional comma-separated list (URL param)
  */
 
@@ -140,17 +147,10 @@ const TagsPage = ({ tagsOfPage, domain }) => {
  * @example "some **instructions**"
  */
 
-/**
- * @name ProfileTagsViewerConfig.domain
- * @description This is used to filter the group membership of tagged profile. By default it is group.domain so that member of the venue is shown. If the component is used in a group webfield outside the venue, this property should be set to the venue domain.
- * @type {string}
- * @default domain of the group
- */
 // #endregion
 
 const ProfileTagsViewer = () => {
   const {
-    entity: group,
     tagInvitation = `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`,
     title = `Tags For ${prettyInvitationId(tagInvitation)}`,
     instructions,
@@ -168,8 +168,8 @@ const ProfileTagsViewer = () => {
   const loadTags = async () => {
     try {
       const tagsResult = await api.get('/tags', { invitation: tagInvitation })
-      const rawTags = (tagsResult.tags || []).filter((tag) =>
-        !domain || tag.readers?.includes(domain)
+      const rawTags = (tagsResult.tags || []).filter(
+        (tag) => !domain || tag.readers?.includes(domain)
       )
       let tagsMap = []
       rawTags.forEach((tag) => {

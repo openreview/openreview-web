@@ -16,6 +16,11 @@ jest.mock('../components/webfield/BasicHeader', () => (props) => {
   basicHeaderProps(props)
   return <span>basic header</span>
 })
+jest.mock('next/navigation', () => ({
+  useSearchParams: () => ({
+    get: () => 'some domain',
+  }),
+}))
 
 beforeEach(() => {
   basicHeaderProps = jest.fn()
@@ -25,7 +30,14 @@ describe('ProfileTagsViewer', () => {
   test('pass default title and instruction to basic header', async () => {
     api.get = jest.fn(() =>
       Promise.resolve({
-        tags: [{ profile: '~Some_User1', label: 'some label', cdate: 'some cdate' }],
+        tags: [
+          {
+            profile: '~Some_User1',
+            label: 'some label',
+            cdate: 'some cdate',
+            readers: ['some domain'],
+          },
+        ],
       })
     )
     const providerProps = {
@@ -52,7 +64,14 @@ describe('ProfileTagsViewer', () => {
   test('allow title to be overwritten', async () => {
     api.get = jest.fn(() =>
       Promise.resolve({
-        tags: [{ profile: '~Some_User1', label: 'some label', cdate: 'some cdate' }],
+        tags: [
+          {
+            profile: '~Some_User1',
+            label: 'some label',
+            cdate: 'some cdate',
+            readers: ['some domain'],
+          },
+        ],
       })
     )
     const providerProps = {
@@ -106,9 +125,9 @@ describe('ProfileTagsViewer', () => {
         case '/tags':
           return Promise.resolve({
             tags: [
-              { profile: '~Some_User1', label: 'some label one', cdate: new Date() },
-              { profile: '~Some_User2', label: 'some label two', cdate: new Date() },
-              { profile: '~Some_User3', label: 'some label three', cdate: new Date() },
+              { profile: '~Some_User1', label: 'some label one', cdate: new Date(), readers: ['some domain'] },
+              { profile: '~Some_User2', label: 'some label two', cdate: new Date(), readers: ['some domain'] },
+              { profile: '~Some_User3', label: 'some label three', cdate: new Date(), readers: ['some domain'] },
             ],
           })
         case '/groups':
@@ -166,8 +185,8 @@ describe('ProfileTagsViewer', () => {
         case '/tags':
           return Promise.resolve({
             tags: [
-              { profile: '~Some_User1', label: 'block', cdate: new Date() },
-              { profile: '~Some_User1', label: 'unblock', cdate: new Date() },
+              { profile: '~Some_User1', label: 'block', cdate: new Date(), readers: ['some domain'] },
+              { profile: '~Some_User1', label: 'unblock', cdate: new Date(), readers: ['some domain'] },
             ],
           })
         case '/groups':
@@ -193,52 +212,6 @@ describe('ProfileTagsViewer', () => {
     })
   })
 
-  test('allow domain to be differnt from entity domain', async () => {
-    api.get = jest.fn((path) => {
-      switch (path) {
-        case '/tags':
-          return Promise.resolve({
-            tags: [{ profile: '~Some_User1', label: 'some label one', cdate: new Date() }],
-          })
-        case '/groups':
-          return Promise.resolve({
-            groups: [
-              { id: 'some group', domain: 'some domain' },
-              { id: 'some other group', domain: 'some different domain' },
-            ],
-          })
-        default:
-          break
-      }
-    })
-    const providerProps = {
-      value: {
-        entity: {
-          id: 'some group id',
-          domain: 'some domain',
-        },
-        title: undefined,
-        instructions: undefined,
-        domain: 'some different domain',
-      },
-    }
-    renderWithWebFieldContext(<ProfileTagsViewer />, providerProps)
-
-    await waitFor(() => {
-      expect(screen.getByRole('link', { name: '~Some_User1' })).toBeInTheDocument()
-      expect(screen.getByText('some label one')).toBeInTheDocument()
-
-      expect(api.get).toHaveBeenCalledWith('/groups', {
-        domain: 'some different domain',
-        member: '~Some_User1',
-        select: 'id,domain',
-      })
-
-      expect(screen.queryByRole('link', { name: 'some group' })).not.toBeInTheDocument()
-      expect(screen.getByRole('link', { name: 'some other group' })).toBeInTheDocument()
-    })
-  })
-
   test('show tags and groups (>10 results)', async () => {
     const tagIndex = [...Array(15).keys()].map((p) => p + 1)
     api.get = jest.fn((path, param) => {
@@ -249,6 +222,7 @@ describe('ProfileTagsViewer', () => {
               profile: `~Some_User${index}`,
               label: `some label ${index}`,
               cdate: new Date(),
+              readers: ['some domain'],
             })),
           })
         case '/groups':
