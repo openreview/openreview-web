@@ -188,9 +188,9 @@ const BiddingStatsRow = ({
     const recommendationInvitation = pcConsoleData.invitations?.find(
       (p) => p.id === `${reviewersId}/-/${recommendationName}`
     )
-    const taskCompletionCount = recommendationInvitation?.taskCompletionCount
-      ? parseInt(recommendationInvitation.taskCompletionCount, 10)
-      : 0
+    const completionCount =
+      recommendationInvitation?.taskCompletionCount ?? recommentationInvitation?.minReplies
+    const taskCompletionCount = completionCount ? parseInt(completionCount, 10) : 0
     const recommendationComplete = Object.values(
       pcConsoleData.acRecommendationsCount ?? {}
     )?.reduce(
