@@ -58,7 +58,7 @@ function Page() {
 
   const getMessages = async () => {
     try {
-      const profileResult = await api.get('/profiles', { id: user.profile.id })
+      const profileResult = await api.get('/profiles', { id: user.profile?.id })
       const { preferredEmail, emailsConfirmed } = profileResult?.profiles?.[0]?.content ?? {}
       const confirmedEmails = preferredEmail
         ? [preferredEmail, ...emailsConfirmed.filter((email) => email !== preferredEmail)]

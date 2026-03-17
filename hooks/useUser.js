@@ -6,9 +6,9 @@ export default function useUser(getFullProfile = false) {
   const [user, setUser] = useState(null)
   const [isRefreshing, setIsRefshing] = useState(true)
 
-  const getProfile = async () => {
+  const getProfile = async (userProfileId) => {
     try {
-      const profileResult = await api.get('/profiles')
+      const profileResult = await api.get('/profiles', { id: userProfileId })
       return profileResult?.profiles?.[0]
     } catch (_) {
       return null
@@ -18,7 +18,7 @@ export default function useUser(getFullProfile = false) {
   const fetchData = async () => {
     const { user: userFromCookie } = await clientAuth()
     if (userFromCookie?.id && getFullProfile) {
-      const fullProfile = await getProfile()
+      const fullProfile = await getProfile(userFromCookie.profile?.id)
       if (fullProfile) {
         const preferedNameObj =
           fullProfile.content.names?.find((p) => p.preferred) ?? fullProfile.content.names?.[0]
