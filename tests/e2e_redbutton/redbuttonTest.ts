@@ -1,5 +1,13 @@
 import { Selector, ClientFunction, Role } from 'testcafe'
-import { hasTaskUser, hasNoTaskUser, strongPassword } from '../utils/api-helper'
+import {
+  hasTaskUser,
+  hasNoTaskUser,
+  strongPassword,
+  superUserName,
+  conferenceSubmissionInvitationId,
+  getToken,
+  getNotes,
+} from '../utils/api-helper'
 
 const pageHeader = Selector('div.title-container').find('h1')
 const emailInput = Selector('#email-input')
@@ -10,6 +18,15 @@ const getPageUrl = ClientFunction(() => window.location.href.toString())
 // oxlint-disable-next-line no-unused-expressions
 fixture`Smoke tests with venue shutdown`
   .page`http://localhost:${process.env.NEXT_PORT}`
+  .before(async (ctx) => {
+    const superUserToken = await getToken(superUserName, strongPassword)
+    const notes = await getNotes(
+      { invitation: conferenceSubmissionInvitationId },
+      superUserToken,
+      2
+    )
+    ctx.forumId = notes[0].id
+  })
 
 test('home page loads', async (t) => {
   await t
@@ -59,8 +76,8 @@ test('view other user profile by id', async (t) => {
     .navigateTo(
       `http://localhost:${process.env.NEXT_PORT}/profile?id=${hasNoTaskUser.tildeId}`
     )
-    .expect(pageHeader.exists)
-    .ok({ timeout: 10000 })
+    .expect(pageHeader.innerText)
+    .eql(hasNoTaskUser.fullname, undefined, { timeout: 10000 })
     .expect(Selector('h1').withText('Error').exists)
     .notOk()
 })
@@ -77,4 +94,16 @@ test('messages page loads for logged-in user', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/messages`)
     .expect(Selector('form.filter-controls').exists)
     .ok({ timeout: 10000 })
+})
+
+test('forum page loads', async (t) => {
+  const { forumId } = t.fixtureCtx
+  await t
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/forum?id=${forumId}`)
+    .expect(Selector('.forum-container').exists)
+    .ok({ timeout: 10000 })
+    .expect(Selector('.forum-title h2').exists)
+    .ok()
+    .expect(Selector('h1').withText('Error').exists)
+    .notOk()
 })
