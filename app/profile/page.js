@@ -44,10 +44,14 @@ export default async function page({ searchParams }) {
 
   let profileResult
   try {
-    profileResult = await api.get('/profiles', isProfileOwner ? {} : id ? { id } : { email }, {
-      accessToken: token,
-      remoteIpAddress,
-    })
+    profileResult = await api.get(
+      '/profiles',
+      isProfileOwner ? { id: user.profile.id } : id ? { id } : { email },
+      {
+        accessToken: token,
+        remoteIpAddress,
+      }
+    )
   } catch (error) {
     return <ErrorDisplay message="Profile not found" />
   }
