@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import '@testing-library/jest-dom'
 import { renderWithWebFieldContext } from './util'
-import TagsViewer from '../components/webfield/TagsViewer'
+import ProfileTagsViewer from '../components/webfield/ProfileTagsViewer'
 import api from '../lib/api-client'
 
 let basicHeaderProps
@@ -21,7 +21,7 @@ beforeEach(() => {
   basicHeaderProps = jest.fn()
 })
 
-describe('TagsViewer', () => {
+describe('ProfileTagsViewer', () => {
   test('pass default title and instruction to basic header', async () => {
     api.get = jest.fn(() =>
       Promise.resolve({
@@ -38,7 +38,7 @@ describe('TagsViewer', () => {
         instructions: 'some instructions',
       },
     }
-    renderWithWebFieldContext(<TagsViewer />, providerProps)
+    renderWithWebFieldContext(<ProfileTagsViewer />, providerProps)
 
     await waitFor(() => {
       expect(screen.getByText('basic header')).toBeInTheDocument()
@@ -65,7 +65,7 @@ describe('TagsViewer', () => {
         instructions: undefined,
       },
     }
-    renderWithWebFieldContext(<TagsViewer />, providerProps)
+    renderWithWebFieldContext(<ProfileTagsViewer />, providerProps)
 
     await waitFor(() => {
       expect(screen.getByText('basic header')).toBeInTheDocument()
@@ -92,7 +92,7 @@ describe('TagsViewer', () => {
         instructions: undefined,
       },
     }
-    renderWithWebFieldContext(<TagsViewer />, providerProps)
+    renderWithWebFieldContext(<ProfileTagsViewer />, providerProps)
 
     await waitFor(() => {
       expect(screen.queryByText('basic header')).not.toBeInTheDocument()
@@ -129,7 +129,7 @@ describe('TagsViewer', () => {
         instructions: undefined,
       },
     }
-    renderWithWebFieldContext(<TagsViewer />, providerProps)
+    renderWithWebFieldContext(<ProfileTagsViewer />, providerProps)
 
     await waitFor(() => {
       expect(screen.getByRole('link', { name: '~Some_User1' })).toBeInTheDocument()
@@ -186,7 +186,7 @@ describe('TagsViewer', () => {
         instructions: undefined,
       },
     }
-    renderWithWebFieldContext(<TagsViewer />, providerProps)
+    renderWithWebFieldContext(<ProfileTagsViewer />, providerProps)
 
     await waitFor(() => {
       expect(screen.getByText('No tags found')).toBeInTheDocument()
@@ -222,7 +222,7 @@ describe('TagsViewer', () => {
         domain: 'some different domain',
       },
     }
-    renderWithWebFieldContext(<TagsViewer />, providerProps)
+    renderWithWebFieldContext(<ProfileTagsViewer />, providerProps)
 
     await waitFor(() => {
       expect(screen.getByRole('link', { name: '~Some_User1' })).toBeInTheDocument()
@@ -285,7 +285,7 @@ describe('TagsViewer', () => {
         instructions: undefined,
       },
     }
-    renderWithWebFieldContext(<TagsViewer />, providerProps)
+    renderWithWebFieldContext(<ProfileTagsViewer />, providerProps)
 
     await waitFor(() => {
       expect(screen.getByRole('link', { name: '~Some_User1' })).toBeInTheDocument()

@@ -2,6 +2,7 @@
 /* globals promptError: false */
 
 import { useContext, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import useUser from '../../hooks/useUser'
 import Table from '../Table'
@@ -9,7 +10,7 @@ import api from '../../lib/api-client'
 import LoadingSpinner from '../LoadingSpinner'
 import ErrorDisplay from '../ErrorDisplay'
 import BasicHeader from './BasicHeader'
-import { prettyId, prettyInvitationId } from '../../lib/utils'
+import { prettyId, prettyInvitationId, formatDateTime } from '../../lib/utils'
 import PaginationLinks from '../PaginationLinks'
 import ProfileLink from './ProfileLink'
 
@@ -23,6 +24,19 @@ const TagRow = ({ tag, membershipIds, domain }) => {
         <ProfileLink id={tag.profileId} />
       </td>
       <td>{tag.label}</td>
+      <td>{tag.weight}</td>
+      <td>{formatDateTime(tag.cdate)}</td>
+      <td>
+        {tag.signature && (
+          <a
+            href={tag.signature.startsWith('~') ? `/profile?id=${tag.signature}` : `/group?id=${tag.signature}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {tag.signature}
+          </a>
+        )}
+      </td>
       <td>
         {/* eslint-disable-next-line no-nested-ternary */}
         {membershipIds ? (
@@ -37,7 +51,7 @@ const TagRow = ({ tag, membershipIds, domain }) => {
               ))}
             </>
           ) : (
-            <span>No member for {prettyId(domain)}</span>
+            <span>No member{domain ? ` for ${prettyId(domain)}` : ''}</span>
           )
         ) : (
           <span>loading...</span>
@@ -54,11 +68,11 @@ const TagsPage = ({ tagsOfPage, domain }) => {
     try {
       const groupMemberCallsP = profileIds.map((profileId) =>
         api
-          .get('/groups', { member: profileId, select: 'id,domain', domain })
+          .get('/groups', { member: profileId, select: 'id,domain', ...(domain && { domain }) })
           .then((result) => {
             const memberGroups = result.groups || []
-            const memberGroupsOfDomain = memberGroups.filter((p) => p.domain === domain)
-            return memberGroupsOfDomain
+            const filtered = memberGroups.filter((p) => p.domain !== process.env.SUPER_USER)
+            return domain ? filtered.filter((p) => p.domain === domain) : filtered
           })
       )
       const groupMembersResults = await Promise.all(groupMemberCallsP)
@@ -93,25 +107,25 @@ const TagsPage = ({ tagsOfPage, domain }) => {
 }
 
 // #region config docs
-/** TagsViewer config doc
+/** ProfileTagsViewer config doc
  *
- * @typedef {Object} TagsViewerConfig
+ * @typedef {Object} ProfileTagsViewerConfig
  *
  * @property {string} tagInvitation optional
  * @property {string} title optional
  * @property {string} instructions optional
- * @property {string} domain optional
+ * @property {string} domain optional (URL param)
+ * @property {string} parentInvitations optional comma-separated list (URL param)
  */
 
 /**
- * @name TagsViewerConfig.tagInvitation
- * @description The invitation id to get tags. By default it shows the blocked profiles.
+ * @name ProfileTagsViewerConfig.tagInvitation
+ * @description The invitation id to get tags.
  * @type {string}
- * @default `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`
  */
 
 /**
- * @name TagsViewerConfig.title
+ * @name ProfileTagsViewerConfig.title
  * @description title of the component/page.
  * @type {string}
  * @default `Tags For ${prettyInvitationId(tagInvitation)}`
@@ -119,7 +133,7 @@ const TagsPage = ({ tagsOfPage, domain }) => {
  */
 
 /**
- * @name TagsViewerConfig.instructions
+ * @name ProfileTagsViewerConfig.instructions
  * @description Markdown string rendered under the header title.
  * @type {string}
  * @default no default value
@@ -127,21 +141,22 @@ const TagsPage = ({ tagsOfPage, domain }) => {
  */
 
 /**
- * @name TagsViewerConfig.domain
+ * @name ProfileTagsViewerConfig.domain
  * @description This is used to filter the group membership of tagged profile. By default it is group.domain so that member of the venue is shown. If the component is used in a group webfield outside the venue, this property should be set to the venue domain.
  * @type {string}
  * @default domain of the group
  */
 // #endregion
 
-const TagsViewer = () => {
+const ProfileTagsViewer = () => {
   const {
     entity: group,
     tagInvitation = `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`,
     title = `Tags For ${prettyInvitationId(tagInvitation)}`,
     instructions,
-    domain = group.domain,
   } = useContext(WebFieldContext)
+  const query = useSearchParams()
+  const domain = query.get('domain')
   const { user, isRefreshing } = useUser()
   const [allTags, setAllTags] = useState(null)
   const [currentPage, setCurrentPage] = useState(1)
@@ -153,15 +168,17 @@ const TagsViewer = () => {
   const loadTags = async () => {
     try {
       const tagsResult = await api.get('/tags', { invitation: tagInvitation })
-      const rawTags = tagsResult.tags || []
+      const rawTags = (tagsResult.tags || []).filter((tag) =>
+        !domain || tag.readers?.includes(domain)
+      )
       let tagsMap = []
       rawTags.forEach((tag) => {
-        const { profile: profileId, label, cdate } = tag
+        const { profile: profileId, label, weight, cdate, signature } = tag
         if (tagsMap.find((t) => t.profileId === profileId)) {
           // this one is a unblock, so remove from map
           tagsMap = tagsMap.filter((t) => t.profileId !== profileId)
         } else {
-          tagsMap.push({ profileId, label, cdate })
+          tagsMap.push({ profileId, label, weight, cdate, signature })
         }
       })
       setAllTags(tagsMap)
@@ -183,17 +200,12 @@ const TagsViewer = () => {
       <Table
         className="console-table table-striped"
         headings={[
-          { id: 'profileId', content: 'Profile ID', width: '20%' },
-          {
-            id: 'label',
-            content: 'Label',
-            width: '20%',
-          },
-          {
-            id: 'memberships',
-            content: 'Memberships',
-            width: 'auto',
-          },
+          { id: 'profileId', content: 'Profile ID', width: '15%' },
+          { id: 'label', content: 'Label', width: '15%' },
+          { id: 'weight', content: 'Weight', width: '10%' },
+          { id: 'cdate', content: 'Date', width: '15%' },
+          { id: 'signature', content: 'Signature', width: '15%' },
+          { id: 'memberships', content: 'Memberships', width: '30%' },
         ]}
       >
         <TagsPage tagsOfPage={tagsToDisplay} domain={domain} />
@@ -208,4 +220,4 @@ const TagsViewer = () => {
   )
 }
 
-export default TagsViewer
+export default ProfileTagsViewer
