@@ -5,6 +5,12 @@ import { renderWithWebFieldContext } from './util'
 import ProfileTagsViewer from '../components/webfield/ProfileTagsViewer'
 import api from '../lib/api-client'
 
+Object.defineProperty(window, 'matchMedia', {
+  value: jest.fn((query) => ({
+    matches: false,
+  })),
+})
+
 let basicHeaderProps
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -36,6 +42,7 @@ describe('ProfileTagsViewer', () => {
             label: 'some label',
             cdate: 'some cdate',
             readers: ['some domain'],
+            signature: 'Support Group',
           },
         ],
       })
@@ -70,6 +77,7 @@ describe('ProfileTagsViewer', () => {
             label: 'some label',
             cdate: 'some cdate',
             readers: ['some domain'],
+            signature: 'Support Group',
           },
         ],
       })
@@ -125,9 +133,27 @@ describe('ProfileTagsViewer', () => {
         case '/tags':
           return Promise.resolve({
             tags: [
-              { profile: '~Some_User1', label: 'some label one', cdate: new Date(), readers: ['some domain'] },
-              { profile: '~Some_User2', label: 'some label two', cdate: new Date(), readers: ['some domain'] },
-              { profile: '~Some_User3', label: 'some label three', cdate: new Date(), readers: ['some domain'] },
+              {
+                profile: '~Some_User1',
+                label: 'some label one',
+                cdate: new Date(),
+                readers: ['some domain'],
+                signature: 'Support Group',
+              },
+              {
+                profile: '~Some_User2',
+                label: 'some label two',
+                cdate: new Date(),
+                readers: ['some domain'],
+                signature: '~Support_User1',
+              },
+              {
+                profile: '~Some_User3',
+                label: 'some label three',
+                cdate: new Date(),
+                readers: ['some domain'],
+                signature: 'Support Group',
+              },
             ],
           })
         case '/groups':
@@ -153,8 +179,10 @@ describe('ProfileTagsViewer', () => {
     await waitFor(() => {
       expect(screen.getByRole('link', { name: '~Some_User1' })).toBeInTheDocument()
       expect(screen.getByText('some label one')).toBeInTheDocument()
+      expect(screen.getAllByRole('link', { name: 'Support Group' })).toHaveLength(2)
       expect(screen.getByRole('link', { name: '~Some_User2' })).toBeInTheDocument()
       expect(screen.getByText('some label two')).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: '~Support_User1' })).toBeInTheDocument()
       expect(screen.getByRole('link', { name: '~Some_User3' })).toBeInTheDocument()
       expect(screen.getByText('some label three')).toBeInTheDocument()
 
@@ -185,8 +213,20 @@ describe('ProfileTagsViewer', () => {
         case '/tags':
           return Promise.resolve({
             tags: [
-              { profile: '~Some_User1', label: 'block', cdate: new Date(), readers: ['some domain'] },
-              { profile: '~Some_User1', label: 'unblock', cdate: new Date(), readers: ['some domain'] },
+              {
+                profile: '~Some_User1',
+                label: 'block',
+                cdate: new Date(),
+                readers: ['some domain'],
+                signature: 'Support Group',
+              },
+              {
+                profile: '~Some_User1',
+                label: 'unblock',
+                cdate: new Date(),
+                readers: ['some domain'],
+                signature: 'Support Group',
+              },
             ],
           })
         case '/groups':
@@ -223,6 +263,7 @@ describe('ProfileTagsViewer', () => {
               label: `some label ${index}`,
               cdate: new Date(),
               readers: ['some domain'],
+              signature: 'Support Group',
             })),
           })
         case '/groups':
@@ -284,7 +325,7 @@ describe('ProfileTagsViewer', () => {
     })
 
     await waitFor(() => {
-      userEvent.click(screen.getByRole('button', { name: '2' })) //go to page 2
+      userEvent.click(screen.getByTitle('2')) //go to page 2
       expect(screen.queryByRole('link', { name: '~Some_User1' })).not.toBeInTheDocument()
       expect(screen.queryByText('some label 1')).not.toBeInTheDocument()
       expect(

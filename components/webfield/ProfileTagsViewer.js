@@ -1,67 +1,93 @@
-/* eslint-disable max-len */
-/* globals promptError: false */
-
 import { useContext, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import useUser from '../../hooks/useUser'
-import Table from '../Table'
 import api from '../../lib/api-client'
 import LoadingSpinner from '../LoadingSpinner'
 import ErrorDisplay from '../ErrorDisplay'
 import BasicHeader from './BasicHeader'
-import { prettyId, prettyInvitationId, formatDateTime } from '../../lib/utils'
-import PaginationLinks from '../PaginationLinks'
+import { prettyId, prettyInvitationId } from '../../lib/utils'
 import ProfileLink from './ProfileLink'
+import { Col, Flex, Pagination, Row, Space, Tooltip } from 'antd'
+import dayjs from 'dayjs'
 
-const pageSize = 10
+const ellipsisStyle = {
+  display: 'inline-block',
+  maxWidth: '100%',
+  overflow: 'hidden',
+  whiteSpace: 'nowrap',
+  textOverflow: 'ellipsis',
+  verticalAlign: 'bottom',
+}
 
-// eslint-disable-next-line arrow-body-style
-const TagRow = ({ tag, membershipIds, domain }) => {
+const MembershipsList = ({ membershipIds, domain }) => {
+  const maxVisibleMembers = 3
+  const [expanded, setExpanded] = useState(false)
+
+  if (membershipIds.length === 0) {
+    return <span>No member{domain ? ` for ${prettyId(domain)}` : ''}</span>
+  }
+
+  const visibleIds = expanded ? membershipIds : membershipIds.slice(0, maxVisibleMembers)
+  const hiddenCount = membershipIds.length - maxVisibleMembers
+
   return (
-    <tr>
-      <td>
-        <ProfileLink id={tag.profileId} />
-      </td>
-      <td>{tag.label}</td>
-      <td>{tag.weight}</td>
-      <td>{formatDateTime(tag.cdate)}</td>
-      <td>
-        {tag.signature && (
-          <a
-            href={
-              tag.signature.startsWith('~')
-                ? `/profile?id=${tag.signature}`
-                : `/group?id=${tag.signature}`
-            }
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            {tag.signature}
+    <Space vertical size={0}>
+      {visibleIds.map((id) => (
+        <div key={id}>
+          <a href={`/group?id=${id}`} target="_blank" rel="noopener noreferrer">
+            {prettyId(id)}
           </a>
-        )}
-      </td>
-      <td>
-        {/* eslint-disable-next-line no-nested-ternary */}
-        {membershipIds ? (
-          membershipIds?.length ? (
-            <>
-              {membershipIds.map((id, index) => (
-                <div key={index}>
-                  <a href={`/group?id=${id}`} target="_blank" rel="noopener noreferrer">
-                    {id}
-                  </a>
-                </div>
-              ))}
-            </>
-          ) : (
-            <span>No member{domain ? ` for ${prettyId(domain)}` : ''}</span>
-          )
-        ) : (
-          <span>loading...</span>
-        )}
-      </td>
-    </tr>
+        </div>
+      ))}
+      {!expanded && hiddenCount > 0 && (
+        <a onClick={() => setExpanded(true)} style={{ cursor: 'pointer' }}>
+          View all ({hiddenCount} more)
+        </a>
+      )}
+    </Space>
+  )
+}
+
+const TagRow = ({ tag, membershipIds, domain }) => {
+  const { profileId, label, weight, cdate, signature } = tag
+  return (
+    <Row style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: 8 }}>
+      <Col xs={24} md={3}>
+        <Tooltip title={profileId}>
+          <span style={ellipsisStyle}>
+            <ProfileLink id={profileId} />
+          </span>
+        </Tooltip>
+      </Col>
+      <Col xs={24} md={3}>
+        <Tooltip title={label}>
+          <span style={ellipsisStyle}>{label}</span>
+        </Tooltip>
+      </Col>
+      <Col xs={24} md={2}>
+        {weight}
+      </Col>
+      <Col xs={24} md={3}>
+        {dayjs(cdate).format('YY-MM-DD HH:mm')}
+      </Col>
+      <Col xs={24} md={4}>
+        <Tooltip title={signature}>
+          <span style={ellipsisStyle}>
+            {signature.startsWith('~') ? (
+              <ProfileLink id={signature} />
+            ) : (
+              <a href={`/group?id=${signature}`} target="_blank" rel="noopener noreferrer">
+                {signature}
+              </a>
+            )}
+          </span>
+        </Tooltip>
+      </Col>
+      <Col xs={24} md={9} style={{ minWidth: 0 }}>
+        <MembershipsList membershipIds={membershipIds} domain={domain} />
+      </Col>
+    </Row>
   )
 }
 
@@ -100,17 +126,18 @@ const TagsPage = ({ tagsOfPage, domain }) => {
     const profileIds = tagsOfPage.map((tag) => tag.profileId)
     loadGroupMembers(profileIds)
   }, [tagsOfPage])
+
   return (
-    <>
+    <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
       {tagsOfPage.map((tag) => (
         <TagRow
           key={tag.profileId}
           tag={tag}
-          membershipIds={profileIdMembershipMap.get(tag.profileId)}
+          membershipIds={profileIdMembershipMap.get(tag.profileId) ?? []}
           domain={domain}
         />
       ))}
-    </>
+    </Flex>
   )
 }
 
@@ -159,9 +186,10 @@ const ProfileTagsViewer = () => {
   const domain = query.get('domain')
   const { user, isRefreshing } = useUser()
   const [allTags, setAllTags] = useState(null)
-  const [currentPage, setCurrentPage] = useState(1)
+  const [pageNumber, setPageNumber] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
   const tagsToDisplay = allTags?.length
-    ? allTags.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+    ? allTags.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
     : []
   const count = allTags?.length
 
@@ -178,7 +206,13 @@ const ProfileTagsViewer = () => {
           // this one is a unblock, so remove from map
           tagsMap = tagsMap.filter((t) => t.profileId !== profileId)
         } else {
-          tagsMap.push({ profileId, label, weight, cdate, signature })
+          tagsMap.push({
+            profileId,
+            label,
+            weight,
+            cdate,
+            signature,
+          })
         }
       })
       setAllTags(tagsMap)
@@ -194,28 +228,50 @@ const ProfileTagsViewer = () => {
 
   if (!allTags) return <LoadingSpinner />
   if (!allTags.length) return <ErrorDisplay message="No tags found" withLayout={false} />
+
   return (
     <>
       <BasicHeader title={title} instructions={instructions} />
-      <Table
-        className="console-table table-striped"
-        headings={[
-          { id: 'profileId', content: 'Profile ID', width: '15%' },
-          { id: 'label', content: 'Label', width: '15%' },
-          { id: 'weight', content: 'Weight', width: '10%' },
-          { id: 'cdate', content: 'Date', width: '15%' },
-          { id: 'signature', content: 'Signature', width: '15%' },
-          { id: 'memberships', content: 'Memberships', width: '30%' },
-        ]}
-      >
+      <Flex vertical>
+        <Row style={{ fontWeight: 'bold', marginBottom: 8, width: '100%' }} gutter={15}>
+          <Col xs={0} md={3}>
+            Profile ID
+          </Col>
+          <Col xs={0} md={3}>
+            Label
+          </Col>
+          <Col xs={0} md={2}>
+            Weight
+          </Col>
+          <Col xs={0} md={3}>
+            Date
+          </Col>
+          <Col xs={0} md={4}>
+            Signature
+          </Col>
+          <Col xs={0} md={9}>
+            Memberships
+          </Col>
+        </Row>
         <TagsPage tagsOfPage={tagsToDisplay} domain={domain} />
-      </Table>
-      <PaginationLinks
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        itemsPerPage={pageSize}
-        totalCount={count}
-      />
+        <Pagination
+          align="center"
+          current={pageNumber}
+          pageSize={pageSize}
+          total={count}
+          onChange={(page, size) => {
+            if (size !== pageSize) {
+              setPageSize(size)
+              setPageNumber(1)
+            } else {
+              setPageNumber(page)
+            }
+          }}
+          hideOnSinglePage
+          showSizeChanger
+          pageSizeOptions={[15, 25, 50, 100]}
+        />
+      </Flex>
     </>
   )
 }
