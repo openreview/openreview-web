@@ -44,7 +44,7 @@ export default async function page({ searchParams }) {
 
   let profileQuery
   if (isProfileOwner) {
-    profileQuery = { id: user.profile?.id }
+    profileQuery = { id: user.profile.id }
   } else if (id) {
     profileQuery = { id }
   } else {

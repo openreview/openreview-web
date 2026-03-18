@@ -16,7 +16,7 @@ export default function Page() {
 
   const loadProfile = async () => {
     try {
-      const { profiles } = await api.get('/profiles', { id: user.profile?.id })
+      const { profiles } = await api.get('/profiles', { id: user.profile.id })
       if (profiles?.length > 0) {
         const formattedProfile = formatProfileData(profiles[0], { useLinkObjectFormat: true })
         setProfile(formattedProfile)

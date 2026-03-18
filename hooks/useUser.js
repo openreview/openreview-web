@@ -4,7 +4,7 @@ import api from '../lib/api-client'
 
 export default function useUser(getFullProfile = false) {
   const [user, setUser] = useState(null)
-  const [isRefreshing, setIsRefshing] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(true)
 
   const getProfile = async (userProfileId) => {
     try {
@@ -17,6 +17,11 @@ export default function useUser(getFullProfile = false) {
 
   const fetchData = async () => {
     const { user: userFromCookie } = await clientAuth()
+    if (!userFromCookie?.profile?.id) {
+      setUser({})
+      setIsRefreshing(false)
+      return
+    }
     if (userFromCookie?.id && getFullProfile) {
       const fullProfile = await getProfile(userFromCookie.profile?.id)
       if (fullProfile) {
@@ -31,12 +36,12 @@ export default function useUser(getFullProfile = false) {
               fullProfile.content.preferredEmail ?? fullProfile.content.emails?.[0],
           },
         })
-        setIsRefshing(false)
+        setIsRefreshing(false)
         return
       }
     }
     setUser(userFromCookie)
-    setIsRefshing(false)
+    setIsRefreshing(false)
   }
 
   useEffect(() => {

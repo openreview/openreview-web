@@ -114,7 +114,7 @@ export default function Page() {
 
   const getPreferredEmail = async () => {
     try {
-      const profileResult = await api.get('/profiles', { id: user.profile?.id })
+      const profileResult = await api.get('/profiles', { id: user.profile.id })
       const email = profileResult?.profiles?.[0]?.content?.preferredEmail
       if (email) {
         setPreferredEmail(email)
