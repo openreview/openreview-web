@@ -324,8 +324,9 @@ describe('ProfileTagsViewer', () => {
       ).not.toBeInTheDocument()
     })
 
+    await userEvent.click(screen.getByTitle('2')) //go to page 2
+
     await waitFor(() => {
-      userEvent.click(screen.getByTitle('2')) //go to page 2
       expect(screen.queryByRole('link', { name: '~Some_User1' })).not.toBeInTheDocument()
       expect(screen.queryByText('some label 1')).not.toBeInTheDocument()
       expect(
