@@ -64,10 +64,9 @@ test('own profile shows correct user', async (t) => {
     .wait(1000)
     .click(Selector('a.dropdown-toggle'))
     .click(Selector('a').withText('Profile'))
-    .expect(pageHeader.innerText)
-    .eql(hasTaskUser.fullname, undefined, { timeout: 10000 })
-    .expect(Selector('#edit-banner').find('a').innerText)
-    .eql('Edit Profile')
+    .click(Selector('#edit-banner').find('a'))
+    .expect(Selector('input.full-name').value)
+    .eql(hasTaskUser.fullname)
 })
 
 test('view other user profile by id', async (t) => {
