@@ -280,6 +280,9 @@ describe('ProfileTagsViewer', () => {
               groups: [
                 { id: 'some group user fifteen is in', domain: 'some domain' },
                 { id: 'some other group user fifteen is in', domain: 'some domain' },
+                { id: 'third group user fifteen is in', domain: 'some domain' },
+                { id: 'fourth group user fifteen is in', domain: 'some domain' },
+                { id: 'fifteenth group user fifteen is in', domain: 'some domain' },
               ],
             })
           }
@@ -335,12 +338,31 @@ describe('ProfileTagsViewer', () => {
 
       expect(screen.getByRole('link', { name: '~Some_User15' })).toBeInTheDocument()
       expect(screen.getByText('some label 15')).toBeInTheDocument()
+
+      // first 3 groups visible, last 2 hidden behind "View all"
       expect(
         screen.getByRole('link', { name: 'some group user fifteen is in' })
       ).toBeInTheDocument()
       expect(
         screen.getByRole('link', { name: 'some other group user fifteen is in' })
       ).toBeInTheDocument()
+      expect(
+        screen.getByRole('link', { name: 'third group user fifteen is in' })
+      ).toBeInTheDocument()
+      expect(screen.getByText('View all (2 more)')).toBeInTheDocument()
+    })
+
+    // click "View all" to expand all memberships
+    await userEvent.click(screen.getByText('View all (2 more)'))
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('link', { name: 'fourth group user fifteen is in' })
+      ).toBeInTheDocument()
+      expect(
+        screen.getByRole('link', { name: 'fifteenth group user fifteen is in' })
+      ).toBeInTheDocument()
+      expect(screen.queryByText('View all (2 more)')).not.toBeInTheDocument()
     })
   })
 })
