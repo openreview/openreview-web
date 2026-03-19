@@ -16,6 +16,10 @@ export default function AppInit() {
   const { notificationHolder, promptFunctions } = usePrompt()
 
   useEffect(() => {
+    Object.assign(global, promptFunctions)
+  }, [promptFunctions])
+
+  useEffect(() => {
     // Load required vendor libraries
     window.jQuery = require('jquery')
     window.$ = window.jQuery
@@ -42,8 +46,6 @@ export default function AppInit() {
     require('../client/templates')
     require('../client/template-helpers')
     require('../client/globals')
-
-    Object.assign(global, promptFunctions)
 
     // Setup marked options and renderer overwrite
     window.view.setupMarked()
