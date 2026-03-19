@@ -18,7 +18,7 @@ export default function useUser(getFullProfile = false) {
   const fetchData = async () => {
     const { user: userFromCookie } = await clientAuth()
     if (!userFromCookie?.profile?.id) {
-      setUser({})
+      setUser(null)
       setIsRefreshing(false)
       return
     }
