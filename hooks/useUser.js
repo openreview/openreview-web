@@ -22,8 +22,8 @@ export default function useUser(getFullProfile = false) {
       setIsRefreshing(false)
       return
     }
-    if (userFromCookie?.id && getFullProfile) {
-      const fullProfile = await getProfile(userFromCookie.profile?.id)
+    if (getFullProfile) {
+      const fullProfile = await getProfile(userFromCookie.profile.id)
       if (fullProfile) {
         const preferedNameObj =
           fullProfile.content.names?.find((p) => p.preferred) ?? fullProfile.content.names?.[0]
@@ -31,7 +31,7 @@ export default function useUser(getFullProfile = false) {
           profile: {
             id: fullProfile.id,
             preferredId: preferedNameObj?.username ?? fullProfile.id,
-            preferredName: preferedNameObj?.fullname ?? userFromCookie.profile.fullName,
+            preferredName: preferedNameObj?.fullname ?? userFromCookie.profile.fullname,
             preferredEmail:
               fullProfile.content.preferredEmail ?? fullProfile.content.emails?.[0],
           },
