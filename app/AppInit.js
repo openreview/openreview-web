@@ -1,15 +1,15 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { marked } from 'marked'
 import DOMPurify from 'isomorphic-dompurify'
+import { marked } from 'marked'
 import { nanoid } from 'nanoid'
+import { useEffect, useState } from 'react'
+import BibtexModal from '../components/BibtexModal'
+import usePrompt from '../hooks/usePrompt'
 import mathjaxConfig from '../lib/mathjax-config'
 import MathjaxScript from './MathjaxScript'
-import TurnstileScript from './TurnstileScript'
-import usePrompt from '../hooks/usePrompt'
-import BibtexModal from '../components/BibtexModal'
 import StripeScript from './StripeScript'
+import TurnstileScript from './TurnstileScript'
 
 export default function AppInit() {
   const [libarysLoaded, setLibrariesLoaded] = useState(false)

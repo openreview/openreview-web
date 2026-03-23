@@ -1,5 +1,5 @@
-import { ConfigProvider } from 'antd'
 import { AntdRegistry } from '@ant-design/nextjs-registry'
+import { ConfigProvider } from 'antd'
 
 const primaryColor = '#3e6775'
 const backgroundWhite = '#fffdfa'
