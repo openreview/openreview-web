@@ -61,6 +61,7 @@ export default class EdgeBrowser extends React.Component {
     this.userId = props.userInfo.userId
 
     this.availableSignaturesInvitationMap = []
+    this.browseEdgesCache = new Map()
   }
 
   componentDidMount() {
@@ -406,6 +407,7 @@ export default class EdgeBrowser extends React.Component {
       availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
       version: this.version,
       traverseGroup: this.state.traverseGroup,
+      browseEdgesCache: this.browseEdgesCache,
     }
 
     return (
