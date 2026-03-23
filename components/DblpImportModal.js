@@ -1,9 +1,9 @@
 /* globals $,clearMessage,promptError: false */
 
-import { useState, useRef, useEffect } from 'react'
 import { nanoid } from 'nanoid'
-import LoadingSpinner from './LoadingSpinner'
-import DblpPublicationTable from './DblpPublicationTable'
+import { useState, useRef, useEffect } from 'react'
+import { useDispatch } from 'react-redux'
+import { setBannerContent } from '../bannerSlice'
 import {
   getDblpPublicationsFromXmlUrl,
   getAllPapersByGroupId,
@@ -11,6 +11,8 @@ import {
   getAllPapersImportedByOtherProfiles,
 } from '../lib/profiles'
 import { deburrString, getNameString, inflect } from '../lib/utils'
+import DblpPublicationTable from './DblpPublicationTable'
+import LoadingSpinner from './LoadingSpinner'
 
 const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   if (!dblpNames?.length) return <p>{message}</p>
@@ -62,6 +64,24 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
   const publicationsImportedByOtherProfiles = useRef([])
   const modalEl = useRef(null)
   const dblpNames = useRef(null)
+  const dispatch = useDispatch()
+  const setESErrorBanner = (searchUnavailable) => {
+    dispatch(
+      setBannerContent(
+        searchUnavailable
+          ? {
+              type: 'error',
+              value:
+                'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+            }
+          : { type: null, value: null }
+      )
+    )
+    if (searchUnavailable)
+      promptError(
+        'OpenReview is experiencing degraded performance in search functionality. Please try again later.'
+      )
+  }
 
   const maxNumberofPublicationsToImport = 500
 
@@ -127,7 +147,8 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           venue: p.venue,
           year: p.year,
         })),
-        profileNames
+        profileNames,
+        setESErrorBanner
       )
       const { numExisting, numAssociatedWithOtherProfile, noPubsToImport } =
         getExistingFromDblpPubs(allDblpPublications)
