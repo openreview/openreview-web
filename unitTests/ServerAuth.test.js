@@ -29,12 +29,15 @@ describe('serverAuth', () => {
       get: cookieGet,
     }))
     jwtDecode.mockImplementation(() => ({
-      user: { id: '~Test_User1' },
+      user: { id: '~Test_User1', profile: { id: '~Test_User1' } },
       exp: Math.floor(Date.now() / 1000) + 60,
       iss: 'openreview-1234',
     }))
 
-    const expectedResult = { token: accessTokenInCookie, user: { id: '~Test_User1' } }
+    const expectedResult = {
+      token: accessTokenInCookie,
+      user: { id: '~Test_User1', profile: { id: '~Test_User1' } },
+    }
     const actualResult = await serverAuth()
 
     expect(cookieGet).toHaveBeenCalledWith(process.env.ACCESS_TOKEN_NAME)
