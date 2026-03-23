@@ -133,7 +133,7 @@ describe('Donation Page', () => {
     // fixed amount
     await userEvent.click(screen.getByText('$100'))
     await userEvent.click(screen.getByText('Make a Donation of $100 through Stripe'))
-    expect(api.get).toHaveBeenCalledWith('/profiles')
+    expect(api.get).toHaveBeenCalledWith('/profiles', { id: '~Test_User1' })
     expect(api.post).toHaveBeenCalledWith(expect.anything(), {
       amount: 100,
       mode: 'payment',

@@ -42,16 +42,21 @@ export default async function page({ searchParams }) {
     email === '' ||
     (!id && !email)
 
+  let profileQuery
+  if (isProfileOwner) {
+    profileQuery = { id: user.profile.id }
+  } else if (id) {
+    profileQuery = { id }
+  } else {
+    profileQuery = { email }
+  }
+
   let profileResult
   try {
-    profileResult = await api.get(
-      '/profiles',
-      isProfileOwner ? { id: user.profile.id } : id ? { id } : { email },
-      {
-        accessToken: token,
-        remoteIpAddress,
-      }
-    )
+    profileResult = await api.get('/profiles', profileQuery, {
+      accessToken: token,
+      remoteIpAddress,
+    })
   } catch (error) {
     return <ErrorDisplay message="Profile not found" />
   }
