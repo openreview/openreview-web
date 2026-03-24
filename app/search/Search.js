@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
 import { truncate } from 'lodash'
-import NoteList from '../../components/NoteList'
-import api from '../../lib/api-client'
-import useUser from '../../hooks/useUser'
-import LoadingSpinner from '../../components/LoadingSpinner'
+import { useEffect, useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { setBannerContent } from '../../bannerSlice'
 import ErrorAlert from '../../components/ErrorAlert'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import NoteList from '../../components/NoteList'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
 
 const displayOptions = {
   pdfLink: true,
@@ -21,6 +23,7 @@ export default function Search({ searchQuery, sourceOptions }) {
   const [endOfResults, setEndOfResults] = useState(false)
   const [error, setError] = useState(null)
   const { isRefreshing } = useUser()
+  const dispatch = useDispatch()
 
   const loadSearchResults = async (query) => {
     try {
@@ -57,6 +60,19 @@ export default function Search({ searchQuery, sourceOptions }) {
           : Promise.resolve({ notes: [] })
 
       const [v1Results, v2Results] = await Promise.all([v1ResultsP, v2ResultsP])
+      const searchUnavailable = v1Results.searchUnavailable || v2Results.searchUnavailable
+      dispatch(
+        setBannerContent(
+          searchUnavailable
+            ? {
+                type: 'error',
+                value:
+                  'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+              }
+            : { type: null, value: null }
+        )
+      )
+
       if (!v1Results?.notes?.length && !v2Results?.notes?.length) {
         if (offset === 0) {
           // initial load with no results
