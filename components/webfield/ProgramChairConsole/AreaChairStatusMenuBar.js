@@ -200,6 +200,7 @@ const AreaChairStatusMenuBar = ({
     enableQuerySearch,
     acEmailFuncs,
     areaChairStatusExportColumns: exportColumnsConfig,
+    areaChairStatusSortOptions: sortOptionsConfig,
     filterOperators: filterOperatorsConfig,
     areaChairStatusPropertiesAllowed,
     seniorAreaChairName = 'Senior_Area_Chairs',
@@ -344,6 +345,7 @@ const AreaChairStatusMenuBar = ({
       getValue: (p) => p.numCompletedMetaReviews,
       initialDirection: 'desc',
     },
+    ...(sortOptionsConfig ?? []),
   ]
   const basicSearchFunction = (row, term) =>
     (

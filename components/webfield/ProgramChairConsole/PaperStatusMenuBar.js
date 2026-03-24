@@ -24,6 +24,7 @@ const PaperStatusMenuBar = ({
     areaChairsId,
     seniorAreaChairsId,
     paperStatusExportColumns: exportColumnsConfig,
+    paperStatusSortOptions: sortOptionsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: extraPropertiesAllowed,
     customStageInvitations = [],
@@ -489,6 +490,7 @@ const PaperStatusMenuBar = ({
           },
         ]
       : []),
+    ...(sortOptionsConfig ?? []),
   ]
 
   const basicSearchFunction = (row, term) =>

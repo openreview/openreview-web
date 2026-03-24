@@ -11,7 +11,10 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
   shortPhrase,
   enableQuerySearch,
 }) => {
-  const { submissionName } = useContext(WebFieldContext)
+  const {
+    submissionName,
+    rejectedWithdrawnPapersSortOptions: sortOptionsConfig,
+  } = useContext(WebFieldContext)
   const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = {
     number: ['number'],
@@ -54,6 +57,7 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
       value: 'Reason',
       getValue: (p) => p.reason,
     },
+    ...(sortOptionsConfig ?? []),
   ]
 
   const basicSearchFunction = (row, term) =>

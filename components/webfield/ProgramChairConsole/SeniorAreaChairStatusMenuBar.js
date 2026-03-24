@@ -17,6 +17,7 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
     enableQuerySearch,
     sacEmailFuncs,
     areaChairStatusExportColumns: exportColumnsConfig,
+    seniorAreaChairStatusSortOptions: sortOptionsConfig,
     filterOperators: filterOperatorsConfig,
     sacStatuspropertiesAllowed: propertiesAllowedConfig,
     seniorAreaChairName = 'Senior_Area_Chairs',
@@ -121,6 +122,7 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
       getValue: (p) => p.numCompletedMetaReviews,
       initialDirection: 'desc',
     },
+    ...(sortOptionsConfig ?? []),
   ]
   const basicSearchFunction = (row, term) =>
     (row.sacProfile?.preferredName.toLowerCase() ?? row.sacProfileId.toLowerCase()).includes(
@@ -157,7 +159,10 @@ const SeniorAreaChairStatusMenuBarForACAssignment = ({
   tableRows,
   setSeniorAreaChairStatusTabData,
 }) => {
-  const { seniorAreaChairName = 'Senior_Area_Chairs' } = useContext(WebFieldContext)
+  const {
+    seniorAreaChairName = 'Senior_Area_Chairs',
+    seniorAreaChairStatusSortOptions: sortOptionsConfig,
+  } = useContext(WebFieldContext)
   const sortOptions = [
     {
       label: prettyField(seniorAreaChairName),
@@ -169,6 +174,7 @@ const SeniorAreaChairStatusMenuBarForACAssignment = ({
       value: 'Senior Area Chair Name',
       getValue: (p) => p.sacProfile?.preferredName ?? p.sacProfileId,
     },
+    ...(sortOptionsConfig ?? []),
   ]
   const basicSearchFunction = (row, term) =>
     (row.sacProfile?.preferredName.toLowerCase() ?? row.sacProfileId.toLowerCase()).includes(

@@ -1,3 +1,5 @@
+import { useContext } from 'react'
+import WebFieldContext from '../WebFieldContext'
 import BaseMenuBar from './BaseMenuBar'
 import QuerySearchInfoModal from './QuerySearchInfoModal'
 
@@ -8,6 +10,7 @@ const ReviewerConsoleMenuBar = ({
   setReviewerConsoleData,
   submissionName,
 }) => {
+  const { sortOptions: sortOptionsConfig } = useContext(WebFieldContext)
   const filterOperators = ['!=', '>=', '<=', '>', '<', '==', '=']
   const propertiesAllowed = {
     number: ['note.number'],
@@ -34,6 +37,7 @@ const ReviewerConsoleMenuBar = ({
       value: 'Venue',
       getValue: (p) => p.note?.content?.venue?.value,
     },
+    ...(sortOptionsConfig ?? []),
   ]
 
   const basicSearchFunction = (row, term) =>

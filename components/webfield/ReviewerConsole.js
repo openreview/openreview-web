@@ -381,6 +381,7 @@ const ReviewerConsoleTabs = ({
  * @property {string|number} reviewLoad mandatory
  * @property {boolean} hasPaperRanking mandatory
  * @property {string[]} reviewDisplayFields optional
+ * @property {Object[]} sortOptions optional
  */
 
 /**
@@ -516,6 +517,23 @@ const ReviewerConsoleTabs = ({
  * @default no default value
  * @example
  * { "hasPaperRanking": false }
+ */
+
+/**
+ * @name ReviewerConsoleConfig.sortOptions
+ * @description Custom sort options to be added to the reviewer console sorting dropdown. Each object contains: label: the value to be shown in dropdown options, value: a value used as id of the dropdown option, getValue: a string function to calculate the order. getValue function has row data as input param
+ * @type {object[]}
+ * @default no default value
+ * @example <caption>Following config add "Forum Id" in sorting dropdown</caption>
+ * {
+ *  "sortOptions": [
+ *    {
+ *      label:'Forum Id',
+ *      value:'forum id',
+ *      getValue:"return row.note?.forum"
+ *    }
+ *  ]
+ * }
  */
 
 /**

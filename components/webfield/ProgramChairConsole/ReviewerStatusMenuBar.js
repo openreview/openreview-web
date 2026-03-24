@@ -154,8 +154,13 @@ const ReviewerStatusMenuBar = ({
   messageParentGroup,
   messageSignature,
 }) => {
-  const { reviewerEmailFuncs, officialReviewName, reviewerName, submissionName } =
-    useContext(WebFieldContext)
+  const {
+    reviewerEmailFuncs,
+    reviewerStatusSortOptions: sortOptionsConfig,
+    officialReviewName,
+    reviewerName,
+    submissionName,
+  } = useContext(WebFieldContext)
   const messageAreaChairOptions = [
     ...(bidEnabled
       ? [
@@ -260,6 +265,7 @@ const ReviewerStatusMenuBar = ({
       value: 'Papers with Completed Reviews',
       getValue: (p) => p.numOfPapersWhichCompletedReviews,
     },
+    ...(sortOptionsConfig ?? []),
   ]
 
   const basicSearchFunction = (row, term) =>

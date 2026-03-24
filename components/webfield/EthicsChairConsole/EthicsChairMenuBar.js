@@ -9,6 +9,7 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
   const {
     shortPhrase,
     paperStatusExportColumns: exportColumnsConfig,
+    paperStatusSortOptions: sortOptionsConfig,
     filterOperators: filterOperatorsConfig,
     propertiesAllowed: propertiesAllowedConfig,
     ethicsMetaReviewName,
@@ -76,6 +77,7 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
           },
         ]
       : []),
+    ...(sortOptionsConfig ?? []),
   ]
   const basicSearchFunction = (row, term) =>
     row.note.number == term || row.note.content?.title?.value?.toLowerCase()?.includes(term)
