@@ -194,6 +194,12 @@ nav.navbar {
   line-height: 1.5rem;
   border-bottom: 1px solid #d0d0d0;
 
+  &.banner-error {
+    color: #613400;
+    background-color: #fffbe6;
+    border-bottom-color: constants.$backgroundGray;
+  }
+
   .row > div {
     overflow: hidden;
 

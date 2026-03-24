@@ -1,10 +1,12 @@
-import userEvent from '@testing-library/user-event'
 import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
+import { setBannerContent } from '../bannerSlice'
 import BidConsole from '../components/webfield/BidConsole'
+import api from '../lib/api-client'
 import { renderWithWebFieldContext } from './util'
 import '@testing-library/jest-dom'
-import api from '../lib/api-client'
 
+let dispatch
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({
   user: {
@@ -20,6 +22,10 @@ jest.mock('next/navigation', () => ({
     get: () => jest.fn(),
   }),
   useRouter: jest.fn(),
+}))
+
+jest.mock('react-redux', () => ({
+  useDispatch: () => dispatch,
 }))
 
 let bidInvitation
@@ -44,6 +50,7 @@ beforeEach(() => {
       },
     },
   }
+  dispatch = jest.fn()
 })
 
 describe('BidConsole', () => {
@@ -261,6 +268,61 @@ describe('BidConsole', () => {
       expect(
         screen.queryByPlaceholderText('Search by paper title and metadata')
       ).not.toBeInTheDocument()
+    })
+  })
+
+  test('show es down banner when es fail', async () => {
+    const providerProps = {
+      value: {
+        header: {
+          title: 'Program Committee Bidding Console',
+          instructions: '** some instructions **',
+        },
+        venueId: 'AAAI.org/2025/Conference',
+        submissionVenueId: 'AAAI.org/2025/Conference/Submission',
+        entity: bidInvitation,
+        scoreIds: [],
+        conflictInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Conflict',
+        subjectAreasName: undefined,
+        subjectAreas: ['Subject Area One', 'Subject Area Two'],
+      },
+    }
+
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/edges':
+          return Promise.resolve({ edges: [] })
+        case '/notes':
+          return Promise.resolve({
+            notes: [],
+            count: 0,
+          })
+        case '/notes/search':
+          return Promise.resolve({
+            notes: [],
+            count: 0,
+            searchUnavailable: true,
+          })
+        default:
+          return null
+      }
+    })
+
+    renderWithWebFieldContext(
+      <BidConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      userEvent.click(screen.getByRole('combobox'))
+      userEvent.click(screen.getByRole('option', { name: 'Subject Area One' }))
+      expect(dispatch).toHaveBeenCalledWith(
+        setBannerContent({
+          type: 'error',
+          value:
+            'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+        })
+      )
     })
   })
 })
