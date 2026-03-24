@@ -22,7 +22,7 @@ const confirmPasswordInputSelector = Selector('input').withAttribute(
 )
 const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
-const messageSelector = Selector('.rc-notification-notice-content').nth(-1)
+const messageSelector = Selector('.ant-notification-notice-content').nth(-1)
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
 
