@@ -773,7 +773,7 @@ const orcidMock = RequestMock()
     { 'access-control-allow-origin': '*', 'content-type': 'application/json' }
   )
 // #region long repeated selectors
-const errorMessageSelector = Selector('.rc-notification-notice-content', {
+const errorMessageSelector = Selector('.ant-notification-notice-content', {
   visibilityCheck: true,
 }).nth(-1)
 const editFullNameInputSelector = Selector('input:not([readonly]).full-name')
@@ -809,7 +809,7 @@ const firstHistoryEndInput = Selector('div.history')
   .find('input')
   .withAttribute('placeholder', 'end year')
   .nth(0)
-const messageSelector = Selector('.rc-notification-notice-content').nth(-1)
+const messageSelector = Selector('.ant-notification-notice-content').nth(-1)
 const step0Names = Selector('div[step="0"]').find('div[role="button"]')
 const step2Emails = Selector('div[step="2"]').find('div[role="button"]')
 const step3Links = Selector('div[step="3"]').find('div[role="button"]')
@@ -1417,7 +1417,7 @@ test('profile should be auto merged', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('a').withText('Merge Profiles').exists)
     .notOk()
-    .expect(Selector('.rc-notification-notice-content').nth(-1).innerText)
+    .expect(Selector('.ant-notification-notice-content').nth(-1).innerText)
     .contains(`A confirmation email has been sent to ${userF.email}`)
 
     // enter code to merge profile
@@ -1592,7 +1592,7 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .typeText(editEmailInputSelector, 'x@x.com', { replace: true })
     .click(Selector('button').withText('Confirm').filterVisible())
-    .expect(Selector('.rc-notification-notice-content').nth(-1).innerText)
+    .expect(Selector('.ant-notification-notice-content').nth(-1).innerText)
     .contains('A confirmation email has been sent to x@x.com')
     // text box to enter code should be displayed
     .expect(Selector('button').withText('Verify').nth(0).visible)

@@ -36,7 +36,6 @@ describe('NoteSummary', () => {
       'Profile status is unknown'
     )
 
-    screen.debug()
     expect(screen.getByText('Active Author').nextSibling).toHaveClass('glyphicon-ok-sign')
     expect(screen.getByText('Active Author').nextSibling).toHaveAttribute(
       'title',

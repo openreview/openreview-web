@@ -97,10 +97,10 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
 const SubmissionsStatsRow = ({ pcConsoleData }) => {
   const submissionByStatus = pcConsoleData.notes
     ? {
-      activeSubmissionsCount: pcConsoleData.notes.length,
-      deskRejectedNotesCount: pcConsoleData.deskRejectedNotesCount,
-      withdrawnNotesCount: pcConsoleData.withdrawnNotesCount,
-    }
+        activeSubmissionsCount: pcConsoleData.notes.length,
+        deskRejectedNotesCount: pcConsoleData.deskRejectedNotesCount,
+        withdrawnNotesCount: pcConsoleData.withdrawnNotesCount,
+      }
     : null
 
   return (
@@ -544,10 +544,11 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
         />
         <StatContainer
           title={`${submissionName} Progress`}
-          hint={`% of papers that have received ${paperReviewsCompleteThreshold
+          hint={`% of papers that have received ${
+            paperReviewsCompleteThreshold
               ? `at least ${inflect(paperReviewsCompleteThreshold, 'review', 'reviews', true)}`
               : `reviews from all assigned ${prettyField(reviewerName).toLowerCase()}`
-            }`}
+          }`}
           value={
             pcConsoleData.notes ? (
               renderStat(
@@ -959,11 +960,11 @@ const DescriptionTimelineOtherConfigRow = ({
     { id: submissionId, displayName: `${pluralizeString(submissionName)}` },
     ...(bidName
       ? [
-        {
-          id: `${reviewersId}/-/${bidName}`,
-          displayName: `${prettyField(reviewerName)} Bidding`,
-        },
-      ]
+          {
+            id: `${reviewersId}/-/${bidName}`,
+            displayName: `${prettyField(reviewerName)} Bidding`,
+          },
+        ]
       : []),
     {
       id: `${reviewersId}/-/${recruitmentName}`,
@@ -971,35 +972,35 @@ const DescriptionTimelineOtherConfigRow = ({
     },
     ...(seniorAreaChairsId
       ? [
-        ...(bidName
-          ? [
-            {
-              id: `${seniorAreaChairsId}/-/${bidName}`,
-              displayName: `${prettyField(seniorAreaChairName)} Bidding`,
-            },
-          ]
-          : []),
-        {
-          id: `${seniorAreaChairsId}/-/${recruitmentName}`,
-          displayName: `${prettyField(seniorAreaChairName)} Recruitment`,
-        },
-      ]
+          ...(bidName
+            ? [
+                {
+                  id: `${seniorAreaChairsId}/-/${bidName}`,
+                  displayName: `${prettyField(seniorAreaChairName)} Bidding`,
+                },
+              ]
+            : []),
+          {
+            id: `${seniorAreaChairsId}/-/${recruitmentName}`,
+            displayName: `${prettyField(seniorAreaChairName)} Recruitment`,
+          },
+        ]
       : []),
     ...(areaChairsId
       ? [
-        ...(bidName
-          ? [
-            {
-              id: `${areaChairsId}/-/${bidName}`,
-              displayName: `${prettyField(areaChairName)} Bidding`,
-            },
-          ]
-          : []),
-        {
-          id: `${areaChairsId}/-/${recruitmentName}`,
-          displayName: `${prettyField(areaChairName)} Recruitment`,
-        },
-      ]
+          ...(bidName
+            ? [
+                {
+                  id: `${areaChairsId}/-/${bidName}`,
+                  displayName: `${prettyField(areaChairName)} Bidding`,
+                },
+              ]
+            : []),
+          {
+            id: `${areaChairsId}/-/${recruitmentName}`,
+            displayName: `${prettyField(areaChairName)} Recruitment`,
+          },
+        ]
       : []),
     { id: `${venueId}/-/${officialReviewName}`, displayName: 'Reviewing' },
     { id: `${venueId}/-/${commentName}`, displayName: 'Commenting' },
@@ -1007,9 +1008,9 @@ const DescriptionTimelineOtherConfigRow = ({
     { id: `${venueId}/-/${decisionName}`, displayName: 'Decisions' },
     ...(customStageInvitations?.length > 0
       ? customStageInvitations.map((p) => ({
-        id: `${venueId}/-/${p.name}`,
-        displayName: prettyId(p.name),
-      }))
+          id: `${venueId}/-/${p.name}`,
+          displayName: prettyId(p.name),
+        }))
       : []),
   ].flatMap((p) => {
     const invitation = invitations?.find((q) => q.id === p.id)
@@ -1065,9 +1066,10 @@ const DescriptionTimelineOtherConfigRow = ({
                 <br />
                 {requestFormContent?.['Open Reviewing Policy']}
                 <br />
-                {`Paper matching uses ${requestFormContent?.submission_reviewer_assignment ??
+                {`Paper matching uses ${
+                  requestFormContent?.submission_reviewer_assignment ??
                   requestFormContent?.['Paper Matching']?.join(', ')
-                  }`}
+                }`}
                 {requestFormContent?.['Other Important Information'] && (
                   <>
                     <br />

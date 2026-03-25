@@ -927,7 +927,11 @@ export default function Forum({
           }
 
           // Track details of new notes for chat notifications
-          if (isNewNote && expandedInvitations?.some((pattern) => invId.match(pattern)) && !note.ddate) {
+          if (
+            isNewNote &&
+            expandedInvitations?.some((pattern) => invId.match(pattern)) &&
+            !note.ddate
+          ) {
             if (!newMessageAuthor) {
               newMessageAuthor = prettyId(sigId, true)
               newMessage = truncate(note.content.message?.value || note.content.title?.value, {
@@ -1024,25 +1028,27 @@ export default function Forum({
             />
           )}
 
-          {filterOptions && numRepliesHidden < Object.keys(replyNoteMap).length && layout === 'default' && (
-            <FilterForm
-              forumId={id}
-              selectedFilters={selectedFilters}
-              setSelectedFilters={(newFilters) => {
-                setSelectedFilters(newFilters)
-                setMaxLength(250)
-              }}
-              filterOptions={filterOptions}
-              sort={sort}
-              setSort={setSort}
-              nesting={nesting}
-              setNesting={setNesting}
-              defaultCollapseLevel={defaultCollapseLevel}
-              setDefaultCollapseLevel={setDefaultCollapseLevel}
-              numReplies={replyNoteCount.current}
-              numRepliesHidden={numRepliesHidden}
-            />
-          )}
+          {filterOptions &&
+            numRepliesHidden < Object.keys(replyNoteMap).length &&
+            layout === 'default' && (
+              <FilterForm
+                forumId={id}
+                selectedFilters={selectedFilters}
+                setSelectedFilters={(newFilters) => {
+                  setSelectedFilters(newFilters)
+                  setMaxLength(250)
+                }}
+                filterOptions={filterOptions}
+                sort={sort}
+                setSort={setSort}
+                nesting={nesting}
+                setNesting={setNesting}
+                defaultCollapseLevel={defaultCollapseLevel}
+                setDefaultCollapseLevel={setDefaultCollapseLevel}
+                numReplies={replyNoteCount.current}
+                numRepliesHidden={numRepliesHidden}
+              />
+            )}
           {filterOptions && layout === 'chat' && (
             <ChatFilterForm
               forumId={id}
