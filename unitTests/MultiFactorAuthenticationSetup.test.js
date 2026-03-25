@@ -62,7 +62,7 @@ describe('MultiFactorAuthenticationSetup', () => {
           'Multi-Factor Authentication is currently disabled. Please configure below.'
         )
       ).not.toBeInTheDocument()
-      screen.debug()
+
       expect(screen.getByText('totp card')).toBeInTheDocument()
       expect(screen.getByText('passkey card')).toBeInTheDocument()
       expect(screen.getByText('email otp card')).toBeInTheDocument()

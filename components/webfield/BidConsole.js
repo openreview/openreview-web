@@ -1,21 +1,23 @@
 /* globals typesetMathJax,promptError: false */
 
-import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
 import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
 import { useSearchParams } from 'next/navigation'
+import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { setBannerContent } from '../../bannerSlice'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
+import Dropdown from '../Dropdown'
+import ErrorDisplay from '../ErrorDisplay'
+import Icon from '../Icon'
+import LoadingSpinner from '../LoadingSpinner'
+import NoteListWithBidWidget from '../NoteListWithBidWidget'
+import PaginationLinks from '../PaginationLinks'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
-import useUser from '../../hooks/useUser'
-import api from '../../lib/api-client'
-import Icon from '../Icon'
-import Dropdown from '../Dropdown'
-import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
-import LoadingSpinner from '../LoadingSpinner'
-import PaginationLinks from '../PaginationLinks'
-import ErrorDisplay from '../ErrorDisplay'
-import NoteListWithBidWidget from '../NoteListWithBidWidget'
 
 const getDdate = (existingBidToDelete) => {
   if (existingBidToDelete) return Date.now()
@@ -52,6 +54,7 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions, use
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
   const [showPagination, setShowPagination] = useState(true)
   const [showBidScore, setShowBidScore] = useState(true)
+  const dispatch = useDispatch()
 
   const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const subjectAreaOptions = subjectAreas?.length
@@ -181,6 +184,17 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions, use
         offset: 0,
         venueid: submissionVenueId,
       })
+      dispatch(
+        setBannerContent(
+          result.searchUnavailable
+            ? {
+                type: 'error',
+                value:
+                  'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+              }
+            : { type: null, value: null }
+        )
+      )
       setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
     } catch (error) {
       promptError(error.message)
@@ -244,6 +258,17 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions, use
           offset: 0,
           venueid: submissionVenueId,
         })
+        dispatch(
+          setBannerContent(
+            result.searchUnavailable
+              ? {
+                  type: 'error',
+                  value:
+                    'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+                }
+              : { type: null, value: null }
+          )
+        )
         setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
       }
     } catch (error) {
