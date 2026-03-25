@@ -30,7 +30,7 @@ export default async function serverAuth() {
   const token = cookie.get(process.env.ACCESS_TOKEN_NAME)
 
   const payload = getTokenPayload(token?.value)
-  if (!payload) {
+  if (!payload || !payload.user?.profile?.id) {
     return {}
   }
 

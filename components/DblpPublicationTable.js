@@ -239,7 +239,7 @@ const DblpPublicationRow = ({
       const editToPost = view2.constructEdit({
         formData: {
           email: user.profile.preferredEmail,
-          left: user.id,
+          left: user.profile.id,
           right: otherProfileId,
           comment: 'DBLP import',
           status: 'Pending',
