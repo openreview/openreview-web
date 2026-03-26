@@ -182,20 +182,20 @@ export const NoteV2 = ({ note, options }) => {
         options.customMetaInfo(note)
       ) : (
         <ul className="note-meta-info list-inline">
-          <li>
-            {options.clientRenderingOnly ? (
-              <ClientForumDate note={note} />
-            ) : (
-              forumDate(
+          {options.clientRenderingOnly ? (
+            <ClientForumDate note={note} />
+          ) : (
+            <li>
+              {forumDate(
                 note.cdate,
                 note.tcdate,
                 note.mdate,
                 note.tmdate,
                 note.content?.year?.value,
                 note.pdate
-              )
-            )}
-          </li>
+              )}
+            </li>
+          )}
           <li>
             {note.note || !note.content?.venue?.value // note.note indicates this is an edit
               ? prettyId(note.invitations[0])

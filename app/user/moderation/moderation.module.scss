@@ -1,0 +1,26 @@
+.actionbuttoncontent {
+  font-weight: normal;
+}
+
+.truncatedtext {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profilenamelink {
+  @extend .truncatedtext;
+  display: block;
+}
+
+.searchinput {
+  flex: 5 1 200px;
+}
+
+.statefilter {
+  flex: 2 1 150px;
+}
+
+.clickabletag {
+  cursor: pointer;
+}

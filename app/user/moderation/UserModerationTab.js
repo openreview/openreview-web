@@ -1,8 +1,19 @@
-/* globals promptMessage,promptError,view2,$: false */
-import { useEffect, useReducer, useRef, useState } from 'react'
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  DeleteOutlined,
+  PlusOutlined,
+  StopOutlined,
+  UndoOutlined,
+} from '@ant-design/icons'
+import { Button, Col, Flex, Input, Modal, Pagination, Row, Select, Space, Tag } from 'antd'
 import dayjs from 'dayjs'
 import { cloneDeep, uniqBy } from 'lodash'
+import { useEffect, useReducer, useState } from 'react'
+import LoadingSpinner from '../../../components/LoadingSpinner'
+import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 import api from '../../../lib/api-client'
+import { formatProfileData } from '../../../lib/profiles'
 import {
   formatDateTime,
   getProfileStateLabelClass,
@@ -10,17 +21,20 @@ import {
   inflect,
   prettyId,
 } from '../../../lib/utils'
-import Dropdown from '../../../components/Dropdown'
-import { formatProfileData } from '../../../lib/profiles'
-import Icon from '../../../components/Icon'
-import LoadingSpinner from '../../../components/LoadingSpinner'
-import PaginationLinks from '../../../components/PaginationLinks'
-import BasicModal from '../../../components/BasicModal'
-import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 
-export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
+import styles from './moderation.module.scss'
+
+const ActionButton = (props) => (
+  <Button type="primary" classNames={{ content: styles.actionbuttoncontent }} {...props} />
+)
+
+export const RejectionModal = ({
+  profileToReject,
+  setProfileToReject,
+  rejectUser,
+  signedNotes,
+}) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
-  const selectRef = useRef(null)
 
   const currentInstitutionName = profileToReject?.content?.history?.find(
     (p) => !p.end || p.end >= new Date().getFullYear()
@@ -33,73 +47,65 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
   }
 
   return (
-    <BasicModal
-      id={id}
-      primaryButtonDisabled={!rejectionMessage}
-      onPrimaryButtonClick={() => {
+    <Modal
+      title={`Reason for rejecting ${prettyId(profileToReject?.id)}`}
+      open={profileToReject}
+      okText="Submit"
+      closable={true}
+      destroyOnHidden={true}
+      onCancel={() => {
+        setRejectionMessage('')
+        setProfileToReject(null)
+      }}
+      onOk={() => {
+        setRejectionMessage('')
         rejectUser(rejectionMessage, profileToReject.id)
       }}
-      onClose={() => {
-        selectRef.current.clearValue()
+      width={{
+        xs: '90%',
+        sm: '50%',
       }}
     >
-      <>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
+      <Flex vertical gap="small" align="flex-start">
+        <Select
+          allowClear
+          style={{ width: '100%' }}
+          placeholder="Choose a common reject reason..."
+          options={rejectionReasons}
+          onChange={(value) => {
+            const rejectOption = rejectionReasons.find((r) => r.value === value)
+            setRejectionMessage(rejectOption?.rejectionText || '')
           }}
-        >
-          <div className="form-group form-rejection">
-            <label htmlFor="message" className="mb-1">
-              Reason for rejecting {prettyId(profileToReject?.id)}:
-            </label>
-
-            <Dropdown
-              name="rejection-reason"
-              instanceId="rejection-reason"
-              placeholder="Choose a common reject reason..."
-              options={rejectionReasons}
-              onChange={(p) => {
-                setRejectionMessage(p?.rejectionText || '')
-              }}
-              selectRef={selectRef}
-              isClearable
-            />
-
-            <div>
-              <button
-                className="btn btn-xs mr-2"
-                onClick={() =>
-                  updateMessageForPastRejectProfile(
-                    "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
-                  )
-                }
-              >
-                Add Invalid Info Warning
-              </button>
-              <button
-                className="btn btn-xs"
-                onClick={() =>
-                  updateMessageForPastRejectProfile(
-                    'If invalid info is submitted again, your email will be blocked.'
-                  )
-                }
-              >
-                Add Last Notice Warning
-              </button>
-            </div>
-
-            <textarea
-              name="message"
-              className="form-control mt-2"
-              rows="10"
-              value={rejectionMessage}
-              onChange={(e) => {
-                setRejectionMessage(e.target.value)
-              }}
-            />
-          </div>
-        </form>
+        />
+        <Space wrap>
+          <Button
+            type="primary"
+            onClick={() =>
+              updateMessageForPastRejectProfile(
+                "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
+              )
+            }
+          >
+            Add Invalid Info Warning
+          </Button>
+          <Button
+            type="primary"
+            onClick={() =>
+              updateMessageForPastRejectProfile(
+                'If invalid info is submitted again, your email will be blocked.'
+              )
+            }
+          >
+            Add Last Notice Warning
+          </Button>
+        </Space>
+        <Input.TextArea
+          autoSize={{ minRows: 5 }}
+          value={rejectionMessage}
+          onChange={(e) => {
+            setRejectionMessage(e.target.value)
+          }}
+        />
         {signedNotes.length > 0 && (
           <>
             <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
@@ -123,12 +129,17 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
             ))}
           </>
         )}
-      </>
-    </BasicModal>
+      </Flex>
+    </Modal>
   )
 }
 
-const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload }) => {
+const BlockModal = ({
+  profileToBlockUnblock,
+  setProfileToBlockUnblock,
+  signedNotes,
+  reload,
+}) => {
   const [blockTag, setBlockTag] = useState('')
   const actionIsBlock = profileToBlockUnblock?.state !== 'Blocked'
 
@@ -149,7 +160,6 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload }) => {
         decision: actionIsBlock ? 'block' : 'unblock',
       })
       setBlockTag('')
-      $(`#${id}`).modal('hide')
     } catch (error) {
       promptError(error.message)
     }
@@ -159,28 +169,33 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload }) => {
   useEffect(() => {}, [profileToBlockUnblock])
 
   return (
-    <BasicModal
-      id={id}
-      primaryButtonText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
-      onPrimaryButtonClick={() => {
+    <Modal
+      title={`You are about to ${actionIsBlock ? 'block' : 'unblock'} ${
+        profileToBlockUnblock?.content?.names?.[0]?.fullname
+      }.`}
+      open={profileToBlockUnblock}
+      okText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
+      destroyOnHidden={true}
+      onCancel={() => {
+        setBlockTag('')
+        setProfileToBlockUnblock(null)
+      }}
+      onOk={() => {
+        setBlockTag('')
+        setProfileToBlockUnblock(null)
         blockUnblockUser(profileToBlockUnblock)
       }}
-      primaryButtonDisabled={!blockTag.trim()}
+      width={{
+        xs: '90%',
+        sm: '50%',
+      }}
     >
-      <>
-        <h4>{`You are about to ${actionIsBlock ? 'block' : 'unblock'} ${
-          profileToBlockUnblock?.content?.names?.[0]?.fullname
-        }.`}</h4>
-        <div>
-          <input
-            id="tag-input"
-            type="text"
-            className="form-control mb-2"
-            value={blockTag}
-            placeholder="a tag to be added to this profile such as block/unblock reason"
-            onChange={(e) => setBlockTag(e.target.value)}
-          />
-        </div>
+      <Flex vertical gap="small" align="flex-start">
+        <Input
+          placeholder="a tag to be added to this profile such as block/unblock reason"
+          value={blockTag}
+          onChange={(e) => setBlockTag(e.target.value)}
+        />
         {actionIsBlock && signedNotes.length > 0 && (
           <>
             <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
@@ -204,8 +219,8 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload }) => {
             ))}
           </>
         )}
-      </>
-    </BasicModal>
+      </Flex>
+    </Modal>
   )
 }
 
@@ -225,15 +240,9 @@ const UserModerationQueue = ({
   const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
-  const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 15)
+  const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 10)
   const [profileToPreview, setProfileToPreview] = useState(null)
-  const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
-  const rejectModalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
-  const blockModalId = `${onlyModeration ? 'new' : ''}-user-block-modal`
-  const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
-    label: `${p} items`,
-    value: p,
-  }))
+  const [searchTerm, setSearchTerm] = useState('')
   const [profileStateOption, setProfileStateOption] = useState('All')
   const profileStateOptions = [
     'All',
@@ -280,22 +289,12 @@ const UserModerationQueue = ({
     }
   }
 
-  const filterProfiles = (e) => {
-    e.preventDefault()
-
-    const formData = new FormData(e.target)
-    const newFilters = {}
-    formData.forEach((value, name) => {
-      if (name === 'id' && value.includes('@')) {
-        newFilters.email = value.trim()
-      } else {
-        newFilters[name] = value.trim()
-      }
-    })
+  const filterProfiles = () => {
+    const cleanSearchTerm = searchTerm.trim()
 
     setPageNumber(1)
     if (profileStateOption !== 'All') setProfileStateOption('All')
-    setFilters(newFilters)
+    setFilters({ term: cleanSearchTerm })
   }
 
   const acceptUser = async (profileId) => {
@@ -343,15 +342,12 @@ const UserModerationQueue = ({
       setSignedNotes(signedAuthoredNotes)
     }
     setProfileToReject(profile)
-
-    $(`#${rejectModalId}`).modal('show')
   }
 
   const showBlockUnblockModal = async (profile) => {
     const signedAuthoredNotes = await getSignedAuthoredNotesCount(profile.id)
     setSignedNotes(signedAuthoredNotes)
     setProfileToBlockUnblock(profile)
-    $(`#${blockModalId}`).modal('show')
   }
 
   const rejectUser = async (rejectionMessage, id) => {
@@ -361,7 +357,6 @@ const UserModerationQueue = ({
         decision: 'reject',
         reason: rejectionMessage,
       })
-      $(`#${rejectModalId}`).modal('hide')
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -436,7 +431,6 @@ const UserModerationQueue = ({
       setProfileToPreview(
         formatProfileData(cloneDeep(nextProfile), { includePastStates: true })
       )
-      setLastPreviewedProfileId(nextProfile.id)
     }
   }
 
@@ -444,65 +438,78 @@ const UserModerationQueue = ({
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
 
-  useEffect(() => {
-    if (profileToPreview) $('#profile-preview').modal('show')
-  }, [profileToPreview])
-
   return (
-    <div className="profiles-list">
+    <div>
       <h4>
         {title} ({totalCount})
       </h4>
       {showSortButton && profiles && profiles.length !== 0 && (
-        <button className="btn btn-xs sort-button" onClick={() => setDescOrder((p) => !p)}>{`${
+        <Button type="primary" size="small" onClick={() => setDescOrder((p) => !p)}>{`${
           descOrder ? 'Sort: Most Recently Modified' : 'Sort: Least Recently Modified'
-        }`}</button>
+        }`}</Button>
       )}
 
       {!onlyModeration && (
-        <form className="filter-form well mt-3" onSubmit={filterProfiles}>
-          <input type="text" name="term" className="form-control input-sm" />
-          <Dropdown
-            className="dropdown-select dropdown-profile-state dropdown-sm"
+        <Flex
+          justify="space-start"
+          align="center"
+          gap="middle"
+          wrap
+          style={{ marginBottom: '0.5rem' }}
+        >
+          <Input
+            type="text"
+            className={styles.searchinput}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onPressEnter={filterProfiles}
+          />
+          <Select
+            className={styles.statefilter}
             options={profileStateOptions}
+            value={profileStateOption}
             placeholder="Select profile state"
-            value={profileStateOptions.find((option) => option.value === profileStateOption)}
             onChange={(e) => {
               setPageNumber(1)
-              setProfileStateOption(e.value)
+              setProfileStateOption(e)
             }}
           />
-          <button type="submit" className="btn btn-xs">
+          <Button type="primary" className="btn btn-xs" onClick={filterProfiles}>
             Search
-          </button>
-        </form>
+          </Button>
+        </Flex>
       )}
 
       {profiles ? (
-        <ul className="list-unstyled list-paginated">
+        <Flex vertical gap="small" style={{ marginBottom: '1.5rem' }}>
           {profiles.map((profile) => {
             const name = profile.content.names[0]
             const state =
               profile.ddate && profile.state !== 'Merged' ? 'Deleted' : profile.state
             return (
-              <li
-                key={profile.id}
-                className={`${profile.state === 'Blocked' ? 'blocked' : ''}${
-                  profile.ddate ? ' deleted' : ''
-                }`}
-              >
-                <span className="col-name">
+              <Row key={profile.id} align="middle" gutter={[15, 15]}>
+                <Col xs={24} sm={12} md={6} lg={3} xl={3}>
                   <a
                     href={`/profile?id=${profile.id}`}
                     target="_blank"
                     rel="noreferrer"
                     title={profile.id}
+                    className={styles.profilenamelink}
                   >
                     {name.fullname}
                   </a>
-                </span>
-                <span className="col-email text-muted">{profile.content.preferredEmail}</span>
-                <span className="col-created">
+                </Col>
+                <Col
+                  xs={24}
+                  sm={12}
+                  md={6}
+                  lg={4}
+                  xl={4}
+                  className={styles.truncatedtext}
+                >
+                  {profile.content.preferredEmail}
+                </Col>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                   {profile.tcdate !== profile.tmdate && (
                     <>
                       <span>
@@ -536,167 +543,145 @@ const UserModerationQueue = ({
                       hour12: false,
                     })}
                   </span>
-                </span>
-                <span className="col-status">
-                  <span className={`label label-${profile.password ? 'success' : 'danger'}`}>
-                    password
-                  </span>{' '}
-                  <span
-                    className={`${getProfileStateLabelClass(state)}${
-                      profile.id === lastPreviewedProfileId ? ' last-previewed' : ''
-                    }`}
-                    onClick={() => {
-                      setProfileToPreview(
-                        formatProfileData(cloneDeep(profile), { includePastStates: true })
-                      )
-                    }}
-                  >
-                    {state}
-                  </span>
-                </span>
-                <span className="col-actions">
-                  {onlyModeration ? (
-                    <>
-                      <button
-                        type="button"
-                        className="btn btn-xs"
+                </Col>
+                <Col xs={24} sm={12} md={6} lg={5} xl={5}>
+                  <Space>
+                    <Tag color={profile.password ? 'success' : 'error'} variant="solid">
+                      password
+                    </Tag>
+                    <Tag
+                      color={getProfileStateLabelClass(state)}
+                      variant="solid"
+                      onClick={() =>
+                        setProfileToPreview(formatProfileData(cloneDeep(profile)))
+                      }
+                      className={styles.clickabletag}
+                    >
+                      {state}
+                    </Tag>
+                  </Space>
+                </Col>
+
+                {onlyModeration ? (
+                  <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                    <Space.Compact>
+                      <ActionButton
+                        icon={<CheckCircleOutlined />}
                         disabled={idsLoading.includes(profile.id)}
                         onClick={() => acceptUser(profile.id)}
                       >
-                        <Icon name="ok-circle" /> Accept
-                      </button>{' '}
-                      <button
-                        type="button"
-                        className="btn btn-xs"
+                        Accept
+                      </ActionButton>
+                      <ActionButton
+                        icon={<CloseCircleOutlined />}
                         onClick={() => showRejectionModal(profile)}
                       >
-                        <Icon name="remove-circle" /> Reject
-                      </button>{' '}
-                      <button
-                        type="button"
-                        className="btn btn-xs btn-block-profile"
+                        Reject
+                      </ActionButton>
+                      <ActionButton
+                        icon={<StopOutlined />}
                         onClick={() => showBlockUnblockModal(profile)}
                       >
-                        <Icon name="ban-circle" />
-                        {'   '}
                         Block
-                      </button>
-                    </>
-                  ) : (
-                    <>
+                      </ActionButton>
+                    </Space.Compact>
+                  </Col>
+                ) : (
+                  <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                    <Space.Compact>
                       {(profile.state === 'Needs Moderation' ||
                         profile.state === 'Rejected') && (
-                        <button
-                          type="button"
-                          className="btn btn-xs"
+                        <ActionButton
+                          icon={<CheckCircleOutlined />}
                           onClick={() => acceptUser(profile.id)}
                         >
-                          <Icon name="ok-circle" /> Accept
-                        </button>
-                      )}{' '}
+                          Accept
+                        </ActionButton>
+                      )}
                       {!(
                         profile.state === 'Blocked' ||
                         profile.state === 'Limited' ||
                         profile.state === 'Rejected' ||
                         profile.ddate
                       ) && (
-                        <button
-                          type="button"
-                          className="btn btn-xs"
+                        <ActionButton
+                          icon={<CheckCircleOutlined />}
                           onClick={() => showRejectionModal(profile)}
                         >
-                          <Icon name="remove-circle" /> Reject
-                        </button>
+                          Reject
+                        </ActionButton>
                       )}
                       {profile.state === 'Limited' && profile.content.yearOfBirth && (
-                        <button
-                          type="button"
-                          className="btn btn-xs"
+                        <ActionButton
+                          icon={<PlusOutlined />}
                           onClick={() => addSDNException(profile.id)}
                         >
-                          <Icon name="plus" /> Exception
-                        </button>
-                      )}{' '}
+                          Exception
+                        </ActionButton>
+                      )}
                       {!profile.ddate && (
-                        <button
-                          type="button"
-                          className="btn btn-xs btn-block-profile"
+                        <ActionButton
+                          icon={
+                            profile.state === 'Blocked' ? <UndoOutlined /> : <StopOutlined />
+                          }
                           onClick={() => showBlockUnblockModal(profile)}
                         >
-                          <Icon
-                            name={`${profile.state === 'Blocked' ? 'refresh' : 'ban-circle'}`}
-                          />{' '}
                           {`${profile.state === 'Blocked' ? 'Unblock' : 'Block'}`}
-                        </button>
-                      )}{' '}
+                        </ActionButton>
+                      )}
                       {state !== 'Merged' && profile.state !== 'Needs Moderation' && (
-                        <button
-                          type="button"
-                          className="btn btn-xs"
+                        <ActionButton
+                          icon={profile.ddate ? <UndoOutlined /> : <DeleteOutlined />}
                           onClick={() => deleteRestoreUser(profile)}
                           title={
                             profile.ddate ? 'restore this profile' : 'delete this profile'
                           }
-                        >
-                          <Icon name={profile.ddate ? 'refresh' : 'trash'} />
-                        </button>
+                        />
                       )}
-                    </>
-                  )}
-                </span>
-              </li>
+                    </Space.Compact>
+                  </Col>
+                )}
+              </Row>
             )
           })}
           {profiles.length === 0 && (
-            <li>
-              <p className="empty-message">{`${
-                onlyModeration
-                  ? 'No profiles pending moderation.'
-                  : 'No matching profile found'
-              }`}</p>
-            </li>
+            <p className="empty-message">{`${
+              onlyModeration ? 'No profiles pending moderation.' : 'No matching profile found'
+            }`}</p>
           )}
-        </ul>
+        </Flex>
       ) : (
         <LoadingSpinner inline />
       )}
-      <div className="pagination-container-with-control">
-        <PaginationLinks
-          currentPage={pageNumber}
-          itemsPerPage={pageSize}
-          totalCount={totalCount}
-          setCurrentPage={setPageNumber}
-          options={{ noScroll: true }}
-        />
-        {totalCount > pageSize && (
-          <Dropdown
-            className="dropdown-select dropdown-pagesize"
-            options={pageSizeOptions}
-            value={pageSizeOptions.find((p) => p.value === pageSize)}
-            onChange={(e) => {
-              setPageNumber(1)
-              setPageSize(e.value)
-            }}
-          />
-        )}
-      </div>
+      <Pagination
+        align="center"
+        current={pageNumber}
+        pageSize={pageSize}
+        total={totalCount}
+        onChange={(page, size) => {
+          setPageNumber(page)
+        }}
+        onShowSizeChange={(current, size) => {
+          setPageSize(size)
+        }}
+        hideOnSinglePage
+      />
 
       <RejectionModal
-        id={rejectModalId}
         profileToReject={profileToReject}
+        setProfileToReject={setProfileToReject}
         rejectUser={rejectUser}
         signedNotes={signedNotes}
       />
       <BlockModal
-        id={blockModalId}
         profileToBlockUnblock={profileToBlockUnblock}
+        setProfileToBlockUnblock={setProfileToBlockUnblock}
         signedNotes={signedNotes}
         reload={reload}
       />
       <ProfilePreviewModal
         profileToPreview={profileToPreview}
         setProfileToPreview={setProfileToPreview}
-        setLastPreviewedProfileId={setLastPreviewedProfileId}
         contentToShow={[
           'names',
           'emails',
@@ -705,12 +690,11 @@ const UserModerationQueue = ({
           'relations',
           'expertise',
           'publications',
-          'pastStates',
+          'messages',
           'tags',
         ]}
         showNextProfile={showNextProfile}
         acceptUser={acceptUser}
-        setProfileToReject={setProfileToReject}
         rejectUser={rejectUser}
       />
     </div>
@@ -720,8 +704,6 @@ const UserModerationQueue = ({
 export default function UserModerationTab() {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
-
-  const moderationDisabled = configNote?.content?.moderate?.value === 'No'
 
   const getModerationStatus = async () => {
     try {
@@ -744,25 +726,6 @@ export default function UserModerationTab() {
   useEffect(() => {
     getModerationStatus()
   }, [])
-
-  const enableDisableModeration = async () => {
-    const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
-    if (!result) return
-
-    try {
-      await api.post(
-        '/notes/edits',
-        view2.constructEdit({
-          formData: { moderate: moderationDisabled ? 'Yes' : 'No' },
-          invitationObj: configNote.details.invitation,
-          noteObj: configNote,
-        })
-      )
-      getModerationStatus()
-    } catch (error) {
-      promptError(error.message)
-    }
-  }
 
   const updateTermStamp = async () => {
     const currentTimeStamp = dayjs().valueOf()
@@ -792,42 +755,29 @@ export default function UserModerationTab() {
   return (
     <>
       {configNote && (
-        <div className="moderation-status">
-          <h4>Moderation Status:</h4>
-
-          <select
-            className="form-control input-sm"
-            value={moderationDisabled ? 'disabled' : 'enabled'}
-            onChange={enableDisableModeration}
-          >
-            <option value="enabled">Enabled</option>
-            <option value="disabled">Disabled</option>
-          </select>
-
-          <span className="terms-timestamp">
+        <Flex gap="large" align="center">
+          <span>
             {`Terms Timestamp is ${configNote?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
-          <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
+          <Button onClick={updateTermStamp} size="small" type="primary">
             Update Terms Stamp
-          </button>
-        </div>
+          </Button>
+        </Flex>
       )}
 
-      <div className="moderation-container">
-        <UserModerationQueue
-          title="Recently Created Profiles"
-          onlyModeration={false}
-          reload={reload}
-          shouldReload={shouldReload}
-        />
+      <UserModerationQueue
+        title="Recently Created Profiles"
+        onlyModeration={false}
+        reload={reload}
+        shouldReload={shouldReload}
+      />
 
-        <UserModerationQueue
-          title="New Profiles Pending Moderation"
-          reload={reload}
-          shouldReload={shouldReload}
-          showSortButton
-        />
-      </div>
+      <UserModerationQueue
+        title="New Profiles Pending Moderation"
+        reload={reload}
+        shouldReload={shouldReload}
+        showSortButton
+      />
     </>
   )
 }
