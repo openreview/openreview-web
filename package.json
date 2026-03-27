@@ -10,7 +10,7 @@
     "build": "next build",
     "start": "next start --port $NEXT_PORT",
     "unit-test": "jest",
-    "test": "testcafe firefox tests/setup --concurrency 4 && (testcafe firefox:headless tests/e2e_1 & testcafe firefox:headless tests/e2e_2 & testcafe firefox:headless tests/e2e_3)",
+    "test": "testcafe firefox tests/setup --concurrency 4 && (testcafe firefox:headless tests/e2e_1 & testcafe firefox:headless tests/e2e_2 & testcafe firefox:headless tests/e2e_3) && testcafe firefox tests/setup_redbutton_venue && testcafe firefox:headless tests/e2e_redbutton",
     "doc": "jsdoc2md 'components/webfield/*Console.js' > webfieldconfig.md",
     "test-setup": "testcafe firefox tests/setup --concurrency 4",
     "templates": "handlebars client/templates/ -n 'window.Handlebars.templates' -f client/templates.js -e 'hbs'",
