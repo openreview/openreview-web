@@ -1,7 +1,6 @@
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
-  DeleteOutlined,
   PlusOutlined,
   StopOutlined,
   UndoOutlined,
@@ -10,6 +9,7 @@ import { Button, Col, Flex, Input, Modal, Pagination, Row, Select, Space, Tag } 
 import dayjs from 'dayjs'
 import { cloneDeep, uniqBy } from 'lodash'
 import { useEffect, useReducer, useState } from 'react'
+import Icon from '../../../components/Icon'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 import api from '../../../lib/api-client'
@@ -633,7 +633,7 @@ const UserModerationQueue = ({
                       )}
                       {state !== 'Merged' && profile.state !== 'Needs Moderation' && (
                         <ActionButton
-                          icon={profile.ddate ? <UndoOutlined /> : <DeleteOutlined />}
+                          icon={profile.ddate ? <UndoOutlined /> : <Icon name="trash" />}
                           onClick={() => deleteRestoreUser(profile)}
                         >
                           {profile.ddate ? 'Restore' : 'Delete'}
