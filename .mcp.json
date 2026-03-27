@@ -2,11 +2,11 @@
   "mcpServers": {
     "chrome-devtools": {
       "command": "npx",
-      "args": ["chrome-devtools-mcp@latest"]
+      "args": ["chrome-devtools-mcp@0.20.3"]
     },
     "antd": {
       "command": "npx",
-      "args": ["@ant-design/cli", "mcp"]
+      "args": ["@ant-design/cli@6.3.4", "mcp"]
     }
   }
 }
