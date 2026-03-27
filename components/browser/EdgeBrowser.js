@@ -126,6 +126,10 @@ export default class EdgeBrowser extends React.Component {
       if (startInv.type === 'note') {
         startRequestParams.invitation = startInv.query.invitation
       }
+      if (startInv.type === 'profile') {
+        startRequestParams.select =
+          'id,content.names,content.preferredEmail,content.emailsConfirmed,content.history,content.expertise'
+      }
       startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, {
         version: this.version,
       })
