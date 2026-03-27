@@ -40,7 +40,7 @@
     "dayjs": "^1.11.10",
     "eslint4b-prebuilt": "^6.7.2",
     "framer-motion": "^12.18.1",
-    "handlebars": "^4.7.8",
+    "handlebars": "^4.7.9",
     "isomorphic-dompurify": "^2.21.0",
     "jquery": "^2.2.4",
     "jwt-decode": "^4.0.0",
