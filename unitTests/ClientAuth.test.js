@@ -10,14 +10,14 @@ beforeEach(() => {
 
 describe('clientAuth', () => {
   test('return payload when cookie has access token and it is valid', async () => {
-    const userTokenInCookie = { id: '~Test_User1' }
+    const userTokenInCookie = { id: 'test@mail.com', profile: { id: '~Test_User1' } }
     const cookieGet = jest.fn(() => userTokenInCookie)
     global.fetch = jest.fn()
     Cookies.mockImplementation(() => ({
       get: cookieGet,
     }))
 
-    const expectedResult = { user: { id: '~Test_User1' } }
+    const expectedResult = { user: { id: 'test@mail.com', profile: { id: '~Test_User1' } } }
     const actualResult = await clientAuth()
 
     expect(cookieGet).toHaveBeenCalledWith(process.env.USER_TOKEN_NAME)
@@ -35,12 +35,12 @@ describe('clientAuth', () => {
         json: () =>
           Promise.resolve({
             token: 'new access token', // returned for cookie setting in middleware only, not for client auth to consume
-            user: { id: '~Test_User1' },
+            user: { id: 'test@mail.com', profile: { id: '~Test_User1' } },
           }),
       })
     )
 
-    const expectedResult = { user: { id: '~Test_User1' } }
+    const expectedResult = { user: { id: 'test@mail.com', profile: { id: '~Test_User1' } } }
     const actualResult = await clientAuth()
 
     expect(cookieGet).toHaveBeenCalledWith(process.env.USER_TOKEN_NAME)

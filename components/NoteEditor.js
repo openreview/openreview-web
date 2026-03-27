@@ -470,7 +470,7 @@ const NoteEditor = ({
     }
 
     if (writerDescription?.param?.regex === '~.*') {
-      return [user.profile?.id]
+      return [user.profile.id]
     }
 
     return noteEditorData.editSignatureInputValues

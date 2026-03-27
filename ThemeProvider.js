@@ -1,5 +1,5 @@
-import { ConfigProvider } from 'antd'
 import { AntdRegistry } from '@ant-design/nextjs-registry'
+import { ConfigProvider } from 'antd'
 
 const primaryColor = '#3e6775'
 const backgroundWhite = '#fffdfa'
@@ -11,7 +11,8 @@ const theme = {
   token: {
     borderRadius: 2,
     colorLink: primaryColor,
-    fontFamily: "'Noto Sans', sans-serif",
+    fontFamily: 'Noto Sans, sans-serif',
+    motion: false,
   },
   components: {
     Tabs: {
@@ -26,6 +27,7 @@ const theme = {
       colorPrimary: primaryColor,
       colorPrimaryHover: '#4f7a8a',
       colorPrimaryActive: '#2e4f5a',
+      fontWeight: 700,
     },
     Select: {
       colorBorder: primaryColor,
@@ -64,6 +66,12 @@ const theme = {
     Alert: {
       colorInfoBg: backgroundGray,
       colorText: subtleGray,
+    },
+    Notification: {
+      colorErrorBg: '#f2dede',
+      colorSuccessBg: '#dff0d8',
+      colorInfoBg: '#dff0d8',
+      width: '80vw',
     },
   },
 }

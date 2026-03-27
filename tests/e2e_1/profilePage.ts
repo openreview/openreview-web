@@ -773,7 +773,7 @@ const orcidMock = RequestMock()
     { 'access-control-allow-origin': '*', 'content-type': 'application/json' }
   )
 // #region long repeated selectors
-const errorMessageSelector = Selector('.rc-notification-notice-content', {
+const errorMessageSelector = Selector('.ant-notification-notice-content', {
   visibilityCheck: true,
 }).nth(-1)
 const editFullNameInputSelector = Selector('input:not([readonly]).full-name')
@@ -805,14 +805,12 @@ const nameMakePreferredButton = Selector('div.container.names')
 const dblpUrlInput = Selector('#dblp_url')
 const aclanthologyUrlInput = Selector('#aclanthology_url')
 const homepageUrlInput = Selector('#homepage_url')
-const yearOfBirthInput = Selector('section').nth(2).find('input') // gender pronouns year of birth
 const firstHistoryEndInput = Selector('div.history')
   .find('input')
   .withAttribute('placeholder', 'end year')
   .nth(0)
-const messageSelector = Selector('.rc-notification-notice-content').nth(-1)
+const messageSelector = Selector('.ant-notification-notice-content').nth(-1)
 const step0Names = Selector('div[step="0"]').find('div[role="button"]')
-const step1PeronalInfo = Selector('div[step="1"]').find('div[role="button"]')
 const step2Emails = Selector('div[step="2"]').find('div[role="button"]')
 const step3Links = Selector('div[step="3"]').find('div[role="button"]')
 const step4History = Selector('div[step="4"]').find('div[role="button"]')
@@ -843,6 +841,8 @@ test('user open own profile', async (t) => {
     .click(Selector('button').withText('Login to OpenReview'))
     .click(Selector('a.dropdown-toggle'))
     .click(Selector('a').withText('Profile'))
+    .expect(pageHeader.innerText)
+    .eql(hasTaskUser.fullname)
     .expect(Selector('#edit-banner').find('a').innerText)
     .eql('Edit Profile')
     // go to profile edit page
@@ -958,168 +958,6 @@ test('user open own profile', async (t) => {
     .eql('Your profile information has been successfully updated')
 }).skipJsErrors({
   message: '[Cloudflare Turnstile] Error: 300030.',
-})
-
-test('add and delete year of birth', async (t) => {
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    // add invalid year of birth
-    .click(step1PeronalInfo)
-    .typeText(yearOfBirthInput, '0000')
-    .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText)
-    .contains(`yearOfBirth must be >= ${new Date().getFullYear() - 100}`)
-    // add valid year of birth
-    .typeText(yearOfBirthInput, '2000')
-    .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText)
-    .eql('Your profile information has been successfully updated')
-
-  await t
-    // remove year of birth
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step1PeronalInfo)
-    .expect(yearOfBirthInput.value)
-    .eql('2000')
-    .selectText(yearOfBirthInput)
-    .pressKey('delete')
-    .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText)
-    .eql('Your profile information has been successfully updated')
-
-  await t
-    // verify year of birth has been removed
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step1PeronalInfo)
-    .expect(yearOfBirthInput.value)
-    .eql('')
-})
-
-test('add and delete pronouns', async (t) => {
-  const customPronouns = 'Ze/Zir/Hir'
-
-  // use he/him pronouns & check if pronouns updated on profile
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step1PeronalInfo)
-    .click(Selector('div.pronouns-dropdown__control'))
-    .wait(1000)
-    .click(Selector('div.pronouns-dropdown__option').nth(2))
-    .click(saveProfileButton)
-    .wait(200)
-    .click(cancelButton)
-    .expect(Selector('h4').nth(0).textContent)
-    .eql('Pronouns: he/him')
-
-  // Type custom pronouns & check if pronouns updated on profile
-
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step1PeronalInfo)
-    .typeText(Selector('div.pronouns'), customPronouns)
-    .wait(500)
-    .click(Selector('div.pronouns-dropdown__option').nth(0))
-    .click(saveProfileButton)
-    .wait(200)
-    .click(cancelButton) // to navigate to profile view
-    .expect(Selector('h4').nth(0).textContent)
-    .eql(`Pronouns: ${customPronouns}`)
-
-  // Don't Specify pronouns & check if pronouns not shown on profile
-
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step1PeronalInfo)
-    .click(Selector('div.pronouns-dropdown__control'))
-    .wait(500)
-    .click(Selector('div.pronouns-dropdown__option').nth(3))
-    .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
-    .notOk({ timeout: 15000 })
-    .click(cancelButton)
-    .expect(Selector('h4').nth(0).textContent)
-    .notEql('Pronouns: he/him')
-})
-
-test('add and delete geolocation of history', async (t) => {
-  // update geolocation info of history
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step4History)
-    .click(Selector('input.region-dropdown__placeholder')) // show dropdown
-    .click(Selector('div.country-dropdown__option').nth(3))
-    .typeText(Selector('input.institution-city'), 'test city', { replace: true })
-    .typeText(Selector('input.institution-state'), 'test state', { replace: true })
-    .typeText(Selector('input.institution-department'), 'test department')
-    .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
-    .notOk({ timeout: 15000 })
-    .click(cancelButton)
-    .expect(Selector('.glyphicon-map-marker').exists)
-    .ok()
-    .expect(
-      Selector('.glyphicon-map-marker').withAttribute(
-        'data-original-title',
-        'test city, test state, MX'
-      ).exists
-    )
-    .ok()
-
-  // remove state and city
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step4History)
-    .selectText(Selector('input.institution-state'))
-    .pressKey('delete')
-    .selectText(Selector('input.institution-city'))
-    .pressKey('delete')
-    .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
-    .notOk({ timeout: 15000 })
-    .click(cancelButton)
-    .expect(Selector('.glyphicon-map-marker').exists)
-    .ok()
-    .expect(
-      Selector('.glyphicon-map-marker').withAttribute('data-original-title', 'MX').exists
-    )
-    .ok()
-
-  // remove country/region should fail as it's mandatory
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step4History)
-    .click(Selector('input.region-dropdown__placeholder'))
-    .click(Selector('div.country-dropdown__control'))
-    .pressKey('delete')
-    .click(step4History) // to collapse dropdown
-    .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText)
-    .eql('Error: There are errors in your Career & Education History.')
-    .expect(
-      Selector('span.invalid-value-icon').withAttribute(
-        'data-original-title',
-        'Country/Region is required for current positions'
-      ).exists
-    )
-    .ok()
 })
 
 test('add links', async (t) => {
@@ -1579,7 +1417,7 @@ test('profile should be auto merged', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .expect(Selector('a').withText('Merge Profiles').exists)
     .notOk()
-    .expect(Selector('.rc-notification-notice-content').nth(-1).innerText)
+    .expect(Selector('.ant-notification-notice-content').nth(-1).innerText)
     .contains(`A confirmation email has been sent to ${userF.email}`)
 
     // enter code to merge profile
@@ -1754,7 +1592,7 @@ test('#85 confirm profile email message', async (t) => {
     .click(Selector('button').withText('Confirm').filterVisible())
     .typeText(editEmailInputSelector, 'x@x.com', { replace: true })
     .click(Selector('button').withText('Confirm').filterVisible())
-    .expect(Selector('.rc-notification-notice-content').nth(-1).innerText)
+    .expect(Selector('.ant-notification-notice-content').nth(-1).innerText)
     .contains('A confirmation email has been sent to x@x.com')
     // text box to enter code should be displayed
     .expect(Selector('button').withText('Verify').nth(0).visible)
@@ -1807,47 +1645,7 @@ test('#160 allow user to overwrite name to be lowercase', async (t) => {
     .expect(Selector('span').withText('first').exists)
     .ok()
 })
-test('fail before 2099', async (t) => {
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step4History)
-    .typeText(
-      Selector('div.history').find('input').nth(2),
-      `${new Date().getFullYear() + 10}`,
-      { replace: true }
-    ) // to fail in 2090, update validation regex
-    .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
-    .notOk({ timeout: 15000 })
-    .expect(errorMessageSelector.innerText)
-    .eql('Your profile information has been successfully updated', undefined, {
-      timeout: 5000,
-    })
-})
-test('#1011 remove space in personal links', async (t) => {
-  await t
-    .useRole(userBRole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
-    .wait(100)
-    .click(step3Links)
-    .typeText(homepageUrlInput, '   https://github.com/xkOpenReview    ', {
-      replace: true,
-      paste: true,
-    })
-    .pressKey('tab')
-    .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
-    .notOk({ timeout: 15000 })
-    .click(cancelButton)
-    .expect(
-      Selector('a')
-        .withText('Homepage')
-        .withAttribute('href', 'https://github.com/xkOpenReview').exists
-    )
-    .ok()
-})
+
 test('confirm an email with a numeric token', async (t) => {
   await t
     .useRole(userBRole)

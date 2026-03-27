@@ -18,6 +18,7 @@ import {
 import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import { filterCollections, getEdgeValue } from '../../lib/webfield-utils'
+import debounce from 'lodash/debounce'
 
 export default function Column(props) {
   const {
@@ -72,7 +73,10 @@ export default function Column(props) {
   const [numItemsToRender, setNumItemsToRender] = useState(100)
   const [columnSort, setColumnSort] = useState('default')
   const [hideQuotaReached, setHideQuotaReached] = useState(false)
-  const [search, setSearch] = useState({ term: '' })
+  const [searchTerm, setSearchTerm] = useState('')
+  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
+
+  const delaySearch = useRef(debounce((term) => setSearchTerm(term), 400)).current
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
   const showHideQuotaReachedCheckbox =
@@ -890,14 +894,14 @@ export default function Column(props) {
       return
     }
     // Reset column to show original items and no search heading
-    if (!search.term && !hideQuotaReached) {
+    if (!searchTerm && !hideQuotaReached) {
       setFilteredItems(sortItems(filterQuotaReachedItems(items)))
       setItemsHeading(null)
       return
     }
 
     // Show all entities when filter by quota reached without searching
-    if (!search.term && hideQuotaReached && parentId) {
+    if (!searchTerm && hideQuotaReached && parentId) {
       const allItems = [...items]
       Object.values(globalEntityMap).forEach((item) => {
         if (allItems.find((p) => p.id === item.id)) return
@@ -917,14 +921,14 @@ export default function Column(props) {
       setFilteredItems(sortItems(filterQuotaReachedItems(allItems)))
       return
     }
-    if (search.term.length < 2) {
+    if (searchTerm.length < 2) {
       return
     }
 
     // Build search regex. \b represents a word boundary, so matches in the
     // middle of a word don't count. Includes special case for searching by
     // paper number so only the exact paper is matched.
-    const escapedTerm = _.escapeRegExp(search.term)
+    const escapedTerm = _.escapeRegExp(searchTerm)
     let [preModifier, postModifier] = ['\\b', '']
     if (escapedTerm.startsWith('#')) {
       ;[preModifier, postModifier] = ['^', '\\b']
@@ -959,12 +963,12 @@ export default function Column(props) {
 
     setFilteredItems(sortItems(filterQuotaReachedItems(matchingItems)))
     setItemsHeading('Search Results')
-  }, [items, search, columnSort, hideQuotaReached])
+  }, [items, searchTerm, columnSort, hideQuotaReached])
 
   useEffect(() => {
     setNumItemsToRender(100)
     colBodyEl.current.scrollTop = 0
-  }, [search, columnSort, hideQuotaReached])
+  }, [searchTerm, columnSort, hideQuotaReached])
 
   useEffect(() => {
     populateColumnItems()
@@ -1118,8 +1122,11 @@ export default function Column(props) {
               type="text"
               className="form-control input-sm"
               placeholder={getPlaceholderText()}
-              value={search.term}
-              onChange={(e) => setSearch({ term: e.target.value })}
+              value={immediateSearchTerm}
+              onChange={(e) => {
+                setImmediateSearchTerm(e.target.value)
+                delaySearch(e.target.value)
+              }}
               autoComplete="off"
               autoCorrect="off"
               aria-label={getPlaceholderText()}
