@@ -2,7 +2,7 @@ import { Col, Flex, Pagination, Popover, Row, Space, Tag, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useMemo, useState } from 'react'
-import { prettyId } from '../../../../lib/utils'
+import { getBootstrap337LabelColor, prettyId } from '../../../../lib/utils'
 import Markdown from '../../../../components/EditorComponents/Markdown'
 
 dayjs.extend(relativeTime)
@@ -66,12 +66,12 @@ const VenueRequestList = ({ newRequestNotes }) => {
                       }
                       title={`Posted ${dayjs(latestComment.cdate).fromNow()}`}
                     >
-                      <Tag color="warning" variant="solid">
+                      <Tag color={getBootstrap337LabelColor('warning')} variant="solid">
                         {prettyId(latestComment.signatures[0])}
                       </Tag>
                     </Popover>
                   ) : (
-                    <Tag color="success" variant="solid">
+                    <Tag color={getBootstrap337LabelColor('success')} variant="solid">
                       No comment
                     </Tag>
                   )}

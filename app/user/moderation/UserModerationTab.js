@@ -16,6 +16,7 @@ import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
 import {
   formatDateTime,
+  getBootstrap337LabelColor,
   getProfileStateLabelClass,
   getRejectionReasons,
   inflect,
@@ -25,7 +26,12 @@ import {
 import styles from './moderation.module.scss'
 
 const ActionButton = (props) => (
-  <Button type="primary" classNames={{ content: styles.actionbuttoncontent }} {...props} />
+  <Button
+    type="primary"
+    size="small"
+    classNames={{ root: styles.actionbutton, content: styles.actionbuttoncontent }}
+    {...props}
+  />
 )
 
 export const RejectionModal = ({
@@ -51,6 +57,7 @@ export const RejectionModal = ({
       title={`Reason for rejecting ${prettyId(profileToReject?.id)}`}
       open={profileToReject}
       okText="Submit"
+      okButtonProps={{ disabled: !rejectionMessage.trim() }}
       closable={true}
       destroyOnHidden={true}
       onCancel={() => {
@@ -166,8 +173,6 @@ const BlockModal = ({
     reload()
   }
 
-  useEffect(() => {}, [profileToBlockUnblock])
-
   return (
     <Modal
       title={`You are about to ${actionIsBlock ? 'block' : 'unblock'} ${
@@ -175,6 +180,7 @@ const BlockModal = ({
       }.`}
       open={profileToBlockUnblock}
       okText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
+      okButtonProps={{ disabled: !blockTag.trim() }}
       destroyOnHidden={true}
       onCancel={() => {
         setBlockTag('')
@@ -499,14 +505,7 @@ const UserModerationQueue = ({
                     {name.fullname}
                   </a>
                 </Col>
-                <Col
-                  xs={24}
-                  sm={12}
-                  md={6}
-                  lg={4}
-                  xl={4}
-                  className={styles.truncatedtext}
-                >
+                <Col xs={24} sm={12} md={6} lg={4} xl={4} className={styles.truncatedtext}>
                   {profile.content.preferredEmail}
                 </Col>
                 <Col xs={24} sm={12} md={6} lg={6} xl={6}>
@@ -546,11 +545,14 @@ const UserModerationQueue = ({
                 </Col>
                 <Col xs={24} sm={12} md={6} lg={5} xl={5}>
                   <Space>
-                    <Tag color={profile.password ? 'success' : 'error'} variant="solid">
+                    <Tag
+                      color={getBootstrap337LabelColor(profile.password ? 'success' : 'error')}
+                      variant="solid"
+                    >
                       password
                     </Tag>
                     <Tag
-                      color={getProfileStateLabelClass(state)}
+                      color={getBootstrap337LabelColor(getProfileStateLabelClass(state))}
                       variant="solid"
                       onClick={() =>
                         setProfileToPreview(formatProfileData(cloneDeep(profile)))
@@ -564,7 +566,7 @@ const UserModerationQueue = ({
 
                 {onlyModeration ? (
                   <Col xs={24} sm={12} md={6} lg={6} xl={6}>
-                    <Space.Compact>
+                    <Flex wrap gap="small">
                       <ActionButton
                         icon={<CheckCircleOutlined />}
                         disabled={idsLoading.includes(profile.id)}
@@ -584,11 +586,11 @@ const UserModerationQueue = ({
                       >
                         Block
                       </ActionButton>
-                    </Space.Compact>
+                    </Flex>
                   </Col>
                 ) : (
                   <Col xs={24} sm={12} md={6} lg={6} xl={6}>
-                    <Space.Compact>
+                    <Flex wrap gap="small">
                       {(profile.state === 'Needs Moderation' ||
                         profile.state === 'Rejected') && (
                         <ActionButton
@@ -605,7 +607,7 @@ const UserModerationQueue = ({
                         profile.ddate
                       ) && (
                         <ActionButton
-                          icon={<CheckCircleOutlined />}
+                          icon={<CloseCircleOutlined />}
                           onClick={() => showRejectionModal(profile)}
                         >
                           Reject
@@ -633,12 +635,11 @@ const UserModerationQueue = ({
                         <ActionButton
                           icon={profile.ddate ? <UndoOutlined /> : <DeleteOutlined />}
                           onClick={() => deleteRestoreUser(profile)}
-                          title={
-                            profile.ddate ? 'restore this profile' : 'delete this profile'
-                          }
-                        />
+                        >
+                          {profile.ddate ? 'Restore' : 'Delete'}
+                        </ActionButton>
                       )}
-                    </Space.Compact>
+                    </Flex>
                   </Col>
                 )}
               </Row>

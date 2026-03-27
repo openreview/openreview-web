@@ -28,6 +28,8 @@ const theme = {
       colorPrimaryHover: '#4f7a8a',
       colorPrimaryActive: '#2e4f5a',
       fontWeight: 700,
+      borderRadius: 3,
+      borderRadiusSM: 3,
     },
     Select: {
       colorBorder: primaryColor,
