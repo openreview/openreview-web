@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { getTokenPayload } from './lib/clientAuth'
+import { getTokenPayload } from './app/auth'
 
-// eslint-disable-next-line import/prefer-default-export
 export async function middleware(request) {
   const response = NextResponse.next()
   const accessToken = request.cookies.get(process.env.ACCESS_TOKEN_NAME)
@@ -32,11 +31,13 @@ export async function middleware(request) {
 
     const data = await tokenRefreshResponse.json()
     if (!data.token) {
+      // oxlint-disable-next-line no-console
       console.error('middleware.js refresh token failed', data)
       return response
     }
     const decodedToken = getTokenPayload(data.token)
     if (!decodedToken) {
+      // oxlint-disable-next-line no-console
       console.error('middleware.js refresh token failed', data)
       return response
     }

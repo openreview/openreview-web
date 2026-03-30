@@ -14,7 +14,7 @@ const CodeEditor = dynamic(() => import('../CodeEditor'), {
   loading: () => <LoadingSpinner inline />,
 })
 
-export default function GroupContent({ group, accessToken, profileId, reloadGroup }) {
+export default function GroupContent({ group, profileId, reloadGroup }) {
   const [showEditor, setShowEditor] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [modifiedContent, setModifiedContent] = useState(null)
@@ -35,8 +35,8 @@ export default function GroupContent({ group, accessToken, profileId, reloadGrou
         signatures: [profileId],
         invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
       }
-      await api.post('/groups/edits', requestBody, { accessToken })
-      promptMessage(`Content object for ${group.id} has been updated`, { scrollToTop: false })
+      await api.post('/groups/edits', requestBody)
+      promptMessage(`Content object for ${group.id} has been updated`)
       reloadGroup()
     } catch (error) {
       let { message } = error

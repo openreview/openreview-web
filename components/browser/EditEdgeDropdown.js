@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-/* eslint-disable react/destructuring-assignment */
 /* globals $: false */
 
 import { getTooltipTitle } from '../../lib/edge-utils'
@@ -35,6 +33,7 @@ export default function EditEdgeDropdown(props) {
               props.editEdgeTemplate?.defaultLabel}
           </span>
           <span className="caret" />
+          <span className="sr-only">Toggle dropdown menu</span>
         </button>
         <ul className="dropdown-menu">
           {props.options &&
@@ -67,6 +66,7 @@ export default function EditEdgeDropdown(props) {
           }}
         >
           <span className="glyphicon glyphicon-trash" />
+          <span className="sr-only">Delete edge</span>
         </a>
       )}
     </div>

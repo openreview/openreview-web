@@ -17,16 +17,16 @@ import api from '../../../lib/api-client'
 export default function GroupRevisions({ id, query }) {
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
-  const { accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
 
   const loadGroup = async () => {
     try {
-      const { groups } = await api.get('/groups', { id }, { accessToken })
+      const { groups } = await api.get('/groups', { id })
       if (groups?.length > 0) {
         if (groups[0].details?.writable) {
           setGroup(groups[0])
-        } else if (!accessToken) {
+        } else if (!user) {
           router.replace(
             `/login?redirect=/group/revisions?${encodeURIComponent(stringify(query))}`
           )
@@ -39,7 +39,7 @@ export default function GroupRevisions({ id, query }) {
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        if (!accessToken) {
+        if (!user) {
           router.replace(`/login?redirect=${encodeURIComponent(stringify(query))}`)
         } else {
           setError("You don't have permission to read this group")
@@ -71,12 +71,7 @@ export default function GroupRevisions({ id, query }) {
         <div id="header">
           <h1>{prettyId(group.id)} Group Edit History</h1>
         </div>
-        <EditHistory
-          group={group}
-          accessToken={accessToken}
-          setError={setError}
-          editId={query.editId}
-        />
+        <EditHistory group={group} setError={setError} editId={query.editId} />
       </div>
     </CommonLayout>
   )

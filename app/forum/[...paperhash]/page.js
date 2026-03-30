@@ -1,4 +1,3 @@
-/* eslint-disable no-underscore-dangle */
 import { headers } from 'next/headers'
 import { pickBy, truncate } from 'lodash'
 import api from '../../../lib/api-client'
@@ -57,7 +56,6 @@ export async function generateMetadata({ params }) {
     // #region Metadata
     const metaData = {}
     const content = Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-      // eslint-disable-next-line no-param-reassign
       translatedContent[key] = forumNote.content[key].value
       return translatedContent
     }, {})
@@ -124,6 +122,10 @@ export async function generateMetadata({ params }) {
       if (issn) {
         metaData.other.citation_issn = issn
       }
+      const doiExternalId = forumNote.externalIds?.find((id) => id.startsWith('doi:'))
+      if (doiExternalId) {
+        metaData.other.citation_doi = doiExternalId.slice(4)
+      }
     }
     // #endregion
     return metaData
@@ -153,7 +155,6 @@ export default async function page({ params, searchParams }) {
   if (errorMessage) return <ErrorDisplay message={errorMessage} />
 
   const content = Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
-    // eslint-disable-next-line no-param-reassign
     translatedContent[key] = forumNote.content[key].value
     return translatedContent
   }, {})

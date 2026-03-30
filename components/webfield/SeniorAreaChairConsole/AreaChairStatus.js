@@ -8,11 +8,11 @@ import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import AreaChairStatusMenuBar from '../ProgramChairConsole/AreaChairStatusMenuBar'
-import { getProfileLink } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
 import { pluralizeString, prettyField, getRoleHashFragment } from '../../../lib/utils'
 import api from '../../../lib/api-client'
 import SelectAllCheckBox from '../SelectAllCheckbox'
+import ProfileLink from '../ProfileLink'
 
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName, title } = rowData.areaChairProfile ?? {}
@@ -22,7 +22,7 @@ const CommitteeSummary = ({ rowData }) => {
 
   const getACEmail = async () => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.', { scrollToTop: false })
+      promptError('Email is not available.')
       return
     }
     try {
@@ -33,9 +33,9 @@ const CommitteeSummary = ({ rowData }) => {
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
 
@@ -44,17 +44,14 @@ const CommitteeSummary = ({ rowData }) => {
       {preferredName ? (
         <div className="ac-sac-info">
           <h4>
-            <a
-              href={getProfileLink(id ?? rowData.areaChairProfileId)}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {preferredName}
-            </a>
+            <ProfileLink
+              id={id ?? rowData.areaChairProfileId}
+              name={preferredName}
+              preferredEmailInvitationId={preferredEmailInvitationId}
+            />
           </h4>
           <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
-            // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
               className="copy-email-link"
@@ -82,7 +79,7 @@ const CommitteeSummary = ({ rowData }) => {
 
 // modified based on notesAreaChairProgress.hbs
 const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
-  const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
+  const numCompletedReviews = rowData.numCompletedReviews // oxlint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   const { submissionName, officialReviewName } = useContext(WebFieldContext)
 
@@ -137,7 +134,7 @@ const NoteAreaChairStatus = ({
   submissionName,
   officialMetaReviewName,
 }) => {
-  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
+  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // oxlint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   const { metaReviewRecommendationName = 'recommendation' } = useContext(WebFieldContext)
 
@@ -268,7 +265,7 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
     const allNoteNumbers = sacConsoleData.notes.map((p) => p.note.number)
     sacConsoleData.areaChairGroups.forEach((acGroup) => {
       acGroup.members.forEach((member) => {
-        const noteNumber = acGroup.noteNumber // eslint-disable-line prefer-destructuring
+        const noteNumber = acGroup.noteNumber // oxlint-disable-line prefer-destructuring
         if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
         const reviewMetaReviewInfo =
           sacConsoleData.notes.find((p) => p.noteNumber === noteNumber) ?? {}

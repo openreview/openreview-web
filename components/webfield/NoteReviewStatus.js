@@ -2,12 +2,11 @@
 
 // modified from noteReviewStatus.hbs handlebar template
 import Link from 'next/link'
-import React, { useContext, useState } from 'react'
+import { useContext, useState } from 'react'
 import upperFirst from 'lodash/upperFirst'
 import copy from 'copy-to-clipboard'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import dayjs from 'dayjs'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
 import Collapse from '../Collapse'
@@ -16,7 +15,7 @@ import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
 import { pluralizeString, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
-import { getProfileLink } from '../../lib/webfield-utils'
+import ProfileLink from './ProfileLink'
 
 dayjs.extend(relativeTime)
 
@@ -73,7 +72,6 @@ const AcPcConsoleReviewerActivityModal = ({
   submissionName,
   reviewerName,
 }) => {
-  const { accessToken } = useUser()
   const [error, setError] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [activityNotes, setActivityNotes] = useState(null)
@@ -81,16 +79,12 @@ const AcPcConsoleReviewerActivityModal = ({
   const loadReviewerActivity = async () => {
     setIsLoading(true)
     try {
-      const result = await api.get(
-        '/notes',
-        {
-          signature: reviewer.reviewerProfileId,
-          transitiveMembers: true,
-          invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
-          domain: venueId,
-        },
-        { accessToken }
-      )
+      const result = await api.get('/notes', {
+        signature: reviewer.reviewerProfileId,
+        transitiveMembers: true,
+        invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
+        domain: venueId,
+      })
       setActivityNotes(result.notes)
     } catch (apiError) {
       setError(apiError)
@@ -149,32 +143,25 @@ Click on the link below to go to the ${prettyField(
     ).toLowerCase()} page:\n\n{{submit_review_link}}
   \n\nThank you,\n${shortPhrase}`)
   const [error, setError] = useState(null)
-  const { accessToken } = useUser()
 
   const sendReminder = async () => {
     try {
       const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
-      await api.post(
-        '/messages',
-        {
-          invitation:
-            messageSubmissionReviewersInvitationId &&
-            messageSubmissionReviewersInvitationId.replace('{number}', note.number),
-          signature: messageSubmissionReviewersInvitationId && messageSignature,
-          groups: [reviewer.anonymizedGroup],
-          subject,
-          message: message.replaceAll('{{submit_review_link}}', forumUrl),
-          parentGroup: `${venueId}/${submissionName}${note.number}/${reviewerName}`,
-          replyTo: emailReplyTo,
-        },
-        { accessToken }
-      )
+      await api.post('/messages', {
+        invitation:
+          messageSubmissionReviewersInvitationId &&
+          messageSubmissionReviewersInvitationId.replace('{number}', note.number),
+        signature: messageSubmissionReviewersInvitationId && messageSignature,
+        groups: [reviewer.anonymizedGroup],
+        subject,
+        message: message.replaceAll('{{submit_review_link}}', forumUrl),
+        parentGroup: `${venueId}/${submissionName}${note.number}/${reviewerName}`,
+        replyTo: emailReplyTo,
+      })
       localStorage.setItem(`${forumUrl}|${reviewer.reviewerProfileId}`, Date.now())
       setUpdateLastSent((p) => !p)
       $(`#reviewer-reminder-${reviewer.anonymousId}`).modal('hide')
-      promptMessage(`A reminder email has been sent to ${reviewer.preferredName}`, {
-        scrollToTop: false,
-      })
+      promptMessage(`A reminder email has been sent to ${reviewer.preferredName}`)
     } catch (apiError) {
       setError(apiError.message)
     }
@@ -260,7 +247,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   }
   const getReviewerEmail = async () => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.', { scrollToTop: false })
+      promptError('Email is not available.')
       return
     }
     try {
@@ -271,9 +258,9 @@ export const AcPcConsoleReviewerStatusRow = ({
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${reviewer.preferredName} <${email}>`)
-      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
   return (
@@ -281,16 +268,13 @@ export const AcPcConsoleReviewerStatusRow = ({
       <strong className="assigned-reviewer-id">{reviewer.anonymousId}</strong>
       <div className="assigned-reviewer-action">
         <span>
-          <a
-            href={getProfileLink(reviewer.reviewerProfileId)}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {reviewer.preferredName}
-          </a>
+          <ProfileLink
+            id={reviewer.reviewerProfileId}
+            name={reviewer.preferredName}
+            preferredEmailInvitationId={preferredEmailInvitationId}
+          />
           <div>{reviewer.profile?.title}</div>
           {preferredEmailInvitationId && (
-            // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
               className="text-muted"
@@ -352,7 +336,6 @@ export const AcPcConsoleReviewerStatusRow = ({
               submissionName={submissionName}
               messageSignature={messageSignature}
             />
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
               href="#"
               className="send-reminder-link"
@@ -373,7 +356,6 @@ export const AcPcConsoleReviewerStatusRow = ({
         )}
         {completedReview && showActivity && (
           <>
-            {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
             <a
               href="#"
               className="show-activity-modal"

@@ -239,4 +239,36 @@ describe('AreaChairConsoleMenuBar', () => {
       baseMenuBarProps.sortOptions.find((p) => p.label === 'Average Rating Display Name')
     ).toBeTruthy()
   })
+
+  test('add customStageInvitations to sort options', () => {
+    const props = {
+      reviewerName: 'Reviewers',
+      officialReviewName: 'Official_Review',
+      officialMetaReviewName: 'Official_Meta_Review',
+      submissionName: 'Submission',
+      reviewRatingName: 'rating',
+      metaReviewRecommendationName: 'recommendation',
+      areaChairName: 'Senior_Program_Committee',
+      customStageInvitations: [
+        {
+          name: 'Meta_Review_Confirmation',
+          displayField: 'some_field',
+          extraDisplayFields: ['extra_field_one', 'extra_field_two'],
+        },
+      ],
+    }
+    render(<AreaChairConsoleMenuBar {...props} />)
+
+    expect(baseMenuBarProps.sortOptions.find((p) => p.label === 'Some Field')).toBeTruthy() // display field
+    expect(
+      baseMenuBarProps.sortOptions.find(
+        (p) => p.label === 'Meta Review Confirmation - Extra Field One'
+      )
+    ).toBeTruthy()
+    expect(
+      baseMenuBarProps.sortOptions.find(
+        (p) => p.label === 'Meta Review Confirmation - Extra Field Two'
+      )
+    ).toBeTruthy()
+  })
 })

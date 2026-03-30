@@ -9,10 +9,11 @@ import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
-import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
+import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 import { getNoteContentValues } from '../../../lib/forum-utils'
 import api from '../../../lib/api-client'
 import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
+import ProfileLink from '../ProfileLink'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.areaChairProfile ?? {}
@@ -27,7 +28,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     recommendationName,
     preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
+  const completedBids = rowData.completedBids // oxlint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
@@ -46,7 +47,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
 
   const getACSACEmail = async (name, profileId) => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.', { scrollToTop: false })
+      promptError('Email is not available.')
       return
     }
     try {
@@ -57,9 +58,9 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${name} <${email}>`)
-      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
 
@@ -69,17 +70,14 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
         {preferredName ? (
           <div className="ac-sac-info">
             <h4>
-              <a
-                href={getProfileLink(id ?? rowData.areaChairProfileId)}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {preferredName}
-              </a>
+              <ProfileLink
+                id={id ?? rowData.areaChairProfileId}
+                name={preferredName}
+                preferredEmailInvitationId={preferredEmailInvitationId}
+              />
             </h4>
             <div className="profile-title">{title}</div>
             {preferredEmailInvitationId && (
-              // eslint-disable-next-line jsx-a11y/anchor-is-valid
               <a
                 href="#"
                 className="copy-email-link"
@@ -93,7 +91,13 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
             )}
           </div>
         ) : (
-          <h4>{rowData.areaChairProfileId}</h4>
+          <h4>
+            <ProfileLink
+              id={rowData.areaChairProfileId}
+              name={rowData.areaChairProfileId}
+              preferredEmailInvitationId={preferredEmailInvitationId}
+            />
+          </h4>
         )}
         <p>
           {bidEnabled && (
@@ -135,17 +139,14 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
           {sacProfile?.preferredName && (
             <div className="ac-sac-info">
               <h4>
-                <a
-                  href={getProfileLink(sacProfile?.id ?? seniorAreaChairId)}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {sacProfile.preferredName}
-                </a>
+                <ProfileLink
+                  id={sacProfile?.id ?? seniorAreaChairId}
+                  name={sacProfile.preferredName}
+                  preferredEmailInvitationId={preferredEmailInvitationId}
+                />
               </h4>
               <div className="profile-title">{sacProfile.title}</div>
               {preferredEmailInvitationId && (
-                // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
                   className="copy-email-link"
@@ -188,7 +189,7 @@ const NoteAreaChairProgress = ({
   officialReviewName,
   submissionName,
 }) => {
-  const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
+  const numCompletedReviews = rowData.numCompletedReviews // oxlint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="reviewer-progress">
@@ -239,7 +240,7 @@ const NoteAreaChairStatus = ({
   officialMetaReviewName,
   submissionName,
 }) => {
-  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
+  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // oxlint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="areachair-progress">
@@ -386,7 +387,7 @@ const AreaChairStatus = ({
         pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
           // const members = acGroup.members
           acGroup.members.forEach((member) => {
-            const noteNumber = acGroup.noteNumber // eslint-disable-line prefer-destructuring
+            const noteNumber = acGroup.noteNumber // oxlint-disable-line prefer-destructuring
             if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
             const reviewMetaReviewInfo =
               pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}

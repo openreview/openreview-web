@@ -33,32 +33,6 @@ footer {
     }
   }
 
-  &.sponsor {
-    padding-top: 12px;
-    padding-bottom: 12px;
-    background-color: constants.$darkBlue;
-
-    p {
-      color: constants.$subtleGray;
-    }
-    a {
-      color: constants.$subtleGray;
-      text-decoration: underline;
-
-      &:hover {
-        color: constants.$sandyBrown;
-      }
-    }
-
-    @media #{constants.$phone-only} {
-      min-height: 59px;
-
-      p {
-        font-size: 9px;
-      }
-    }
-  }
-
   p {
     color: constants.$subtleGray;
     font-size: 0.75rem;
@@ -71,6 +45,34 @@ footer {
 
     li > a {
       line-height: 1.5rem;
+    }
+  }
+}
+
+.sponsor {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background-color: constants.$darkBlue;
+
+  p {
+    color: #a3a3a3;
+    font-size: 0.75rem;
+    margin-bottom: 0;
+  }
+  a {
+    color: #a3a3a3;
+    text-decoration: underline;
+
+    &:hover {
+      color: constants.$sandyBrown;
+    }
+  }
+
+  @media #{constants.$phone-only} {
+    min-height: 59px;
+
+    p {
+      font-size: 9px;
     }
   }
 }

@@ -9,12 +9,7 @@ import SpinnerButton from '../SpinnerButton'
 import api from '../../lib/api-client'
 import { prettyField } from '../../lib/utils'
 
-export default function GroupContentScripts({
-  group,
-  profileId,
-  accessToken,
-  reloadGroup,
-}) {
+export default function GroupContentScripts({ group, profileId, reloadGroup }) {
   const contentScripts = Object.keys(group.content ?? {}).filter(
     (key) => key.endsWith('_script') && typeof group.content[key].value === 'string'
   )
@@ -40,7 +35,6 @@ export default function GroupContentScripts({
                 group={group}
                 fieldName={fieldName}
                 profileId={profileId}
-                accessToken={accessToken}
                 reloadGroup={reloadGroup}
               />
             </TabPanel>
@@ -51,7 +45,7 @@ export default function GroupContentScripts({
   )
 }
 
-function GroupCodeEditor({ group, fieldName, profileId, accessToken, reloadGroup }) {
+function GroupCodeEditor({ group, fieldName, profileId, reloadGroup }) {
   const [code, setCode] = useState(group.content[fieldName].value || '')
   const [isSaving, setIsSaving] = useState(false)
 
@@ -63,7 +57,7 @@ function GroupCodeEditor({ group, fieldName, profileId, accessToken, reloadGroup
           id: group.id,
           content: {
             ...group.content,
-            [fieldName]: { value: code }
+            [fieldName]: { value: code },
           },
         },
         readers: [profileId],
@@ -71,8 +65,8 @@ function GroupCodeEditor({ group, fieldName, profileId, accessToken, reloadGroup
         signatures: [profileId],
         invitation: group.domain ? `${group.domain}/-/Edit` : group.invitations[0],
       }
-      await api.post('/groups/edits', requestBody, { accessToken })
-      promptMessage(`Content object for ${group.id} has been updated`, { scrollToTop: false })
+      await api.post('/groups/edits', requestBody)
+      promptMessage(`Content object for ${group.id} has been updated`)
       reloadGroup()
     } catch (error) {
       promptError(error.message)
@@ -82,11 +76,7 @@ function GroupCodeEditor({ group, fieldName, profileId, accessToken, reloadGroup
 
   return (
     <div>
-      <CodeEditor
-        code={code}
-        onChange={setCode}
-        isText
-      />
+      <CodeEditor code={code} onChange={setCode} isText />
 
       <div className="mt-3">
         <SpinnerButton

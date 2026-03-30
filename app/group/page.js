@@ -51,6 +51,7 @@ export default async function page({ searchParams }) {
       return <ErrorDisplay message={`The Group ${id} was not found`} />
     }
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.log('Error in getGroups', {
       page: 'group',
       apiError: error,
@@ -120,7 +121,7 @@ return {
   }
 
   try {
-    const componentObj = await parseComponentCode(group, domainGroup, user, query, accessToken)
+    const componentObj = await parseComponentCode(group, domainGroup, user, query)
     return <ComponentGroup componentObj={componentObj} editBanner={editBanner} />
   } catch (error) {
     return <ErrorDisplay message={error.message} />

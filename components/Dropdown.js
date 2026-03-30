@@ -12,8 +12,9 @@ const createCustomTheme = (height) => (theme) => ({
   colors: {
     ...theme.colors,
     neutral0: '#fffaf4',
+    neutral50: '#737373',
     primary25: '#ddd',
-    primary: '#4d8093',
+    primary: '#3e6775',
   },
   spacing: {
     baseUnit: 2,
@@ -57,14 +58,7 @@ export const NoteEditorReadersDropdown = ({
 const CustomOption = ({ children, ...props }) => {
   const { onMouseMove, onMouseOver, ...rest } = props.innerProps
   const newProps = { ...props, innerProps: rest }
-  return (
-    <components.Option
-      // eslint-disable-next-line react/jsx-props-no-spreading
-      {...newProps}
-    >
-      {children}
-    </components.Option>
-  )
+  return <components.Option {...newProps}>{children}</components.Option>
 }
 
 const CustomMenuList = ({ children }) => (
@@ -79,12 +73,10 @@ const CustomMenuList = ({ children }) => (
 )
 
 export const CreatableDropdown = (props) => {
-  // eslint-disable-next-line react/destructuring-assignment
   const customTheme = createCustomTheme(props.height)
   const dropdownRef = useRef(null)
   const [isClientRendering, setIsClientRendering] = useState(false)
   let customComponents = {}
-  // eslint-disable-next-line react/destructuring-assignment
   if (props.hideArrow) {
     customComponents = {
       ...customComponents,
@@ -92,23 +84,19 @@ export const CreatableDropdown = (props) => {
       IndicatorSeparator: () => null,
     }
   }
-  // eslint-disable-next-line react/destructuring-assignment
   if (props.disableMouseMove) {
     customComponents = {
       ...customComponents,
       Option: CustomOption,
     }
   }
-  // eslint-disable-next-line react/destructuring-assignment
   if (props.virtualList) {
     customComponents = {
       ...customComponents,
       MenuList: CustomMenuList,
     }
   }
-  // eslint-disable-next-line react/destructuring-assignment
   if (props.hideArrow) {
-    // eslint-disable-next-line no-param-reassign
     props = {
       ...props,
       components: customComponents,
@@ -137,7 +125,7 @@ export const CreatableDropdown = (props) => {
         }),
       }}
       formatCreateLabel={(value) => value}
-      // eslint-disable-next-line react/jsx-props-no-spreading
+      aria-label={props.placeholder || 'Select option'}
       {...props}
     />
   )
@@ -155,7 +143,6 @@ export default function Dropdown(props) {
   const filterOption = createFilter(props.filterOption ?? defaultFilterOption)
 
   if (props.hideArrow) {
-    // eslint-disable-next-line no-param-reassign
     props = {
       ...props,
       components: {
@@ -177,7 +164,7 @@ export default function Dropdown(props) {
         }),
       }}
       ref={props.selectRef}
-      // eslint-disable-next-line react/jsx-props-no-spreading
+      aria-label={props.placeholder || 'Select option'}
       {...props}
       filterOption={filterOption}
     />

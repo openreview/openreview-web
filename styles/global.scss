@@ -115,6 +115,9 @@ hr {
     margin-bottom: 0.625rem;
   }
 }
+.text-muted {
+  color: #757575;
+}
 
 // Spacing utils
 .mt-0 {
@@ -592,7 +595,6 @@ header {
 }
 
 // Flash message
-#flash-message-container,
 #edit-banner {
   padding: 12px 0;
   margin: 0;
@@ -618,21 +620,10 @@ header {
     padding-right: 5px;
   }
 
-  &.alert-success {
-    a {
-      color: constants.$mediumBlue;
-      text-decoration: underline;
-    }
-  }
   &.alert-warning {
+    color: #846539;
     background-color: constants.$sandyBrown;
     border-color: constants.$backgroundGray;
-  }
-  &.fixed-overlay {
-    position: fixed;
-    top: 51px; // height of navbar
-    width: 100%;
-    z-index: 1030;
   }
 }
 #edit-banner {
@@ -927,6 +918,11 @@ header {
   }
   .alert-danger {
     margin-bottom: 1rem;
+  }
+  .message-member-signature {
+    .dropdown-select {
+      display: block;
+    }
   }
 }
 

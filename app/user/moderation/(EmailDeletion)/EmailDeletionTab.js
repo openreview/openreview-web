@@ -11,27 +11,26 @@ import LoadingSpinner from '../../../../components/LoadingSpinner'
 const emailRemovalInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Email_Removal`
 const pageSize = 25
 
-export default function EmailDeletionTab({ accessToken }) {
+export default function EmailDeletionTab() {
   const [emailDeletionNotes, setEmailDeletionNotes] = useState(null)
   const [emailDeletionNotesToShow, setEmailDeletionNotesToShow] = useState(null)
   const [page, setPage] = useState(1)
 
   const loadEmailDeletionNotes = async () => {
     try {
-      const notesResultP = api.getAll(
-        '/notes',
-        { invitation: emailRemovalInvitationId, sort: 'tcdate' },
-        { accessToken }
-      )
+      const notesResultP = api.getAll('/notes', {
+        invitation: emailRemovalInvitationId,
+        sort: 'tcdate',
+      })
       const editResultsP = api.getAll(
         '/notes/edits',
         { invitation: emailRemovalInvitationId },
-        { accessToken, resultsKey: 'edits' }
+        { resultsKey: 'edits' }
       )
       const processLogsP = api.getAll(
         '/logs/process',
         { invitation: emailRemovalInvitationId },
-        { accessToken, resultsKey: 'logs' }
+        { resultsKey: 'logs' }
       )
       const [notes, edits, processLogs] = await Promise.all([
         notesResultP,
@@ -76,7 +75,6 @@ export default function EmailDeletionTab({ accessToken }) {
         <>
           <EmailDeletionForm
             emailRemovalInvitationId={emailRemovalInvitationId}
-            accessToken={accessToken}
             setEmailDeletionNotes={setEmailDeletionNotes}
           />
           <div className="email-deletion-list">

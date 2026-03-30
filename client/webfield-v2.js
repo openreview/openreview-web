@@ -14,11 +14,7 @@
 
 const copy = require('copy-to-clipboard')
 
-// eslint-disable-next-line wrap-iife
 module.exports = (function () {
-  // Save authentication token as a private var
-  var token
-
   // AJAX Functions
   var get = function (url, queryObj, options) {
     var defaults = {
@@ -27,7 +23,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_V2_URL || ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -37,7 +32,7 @@ module.exports = (function () {
       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
       url: baseUrl + url,
       data: queryObj,
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -51,7 +46,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_V2_URL || ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -62,7 +56,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -76,7 +70,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_V2_URL || ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -87,7 +80,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -101,7 +94,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_V2_URL || ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -112,7 +104,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -160,9 +152,7 @@ module.exports = (function () {
         var remainingRequests = offsetList.map(function (n) {
           return get(url, Object.assign({}, queryObj, { offset: n }))
         })
-        // eslint-disable-next-line prefer-spread
         return $.when.apply($, remainingRequests).then(function () {
-          // eslint-disable-next-line prefer-rest-params
           var rest = _.compact(_.flatMap(arguments, resultsKey))
           return initialResults.concat(rest)
         })
@@ -232,9 +222,9 @@ module.exports = (function () {
   }
 
   var jqErrorCallback = function (jqXhr, textStatus, errorThrown) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus)
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2))
 
     var errorText = Webfield.getErrorFromJqXhr(jqXhr, textStatus)
@@ -256,10 +246,6 @@ module.exports = (function () {
     }
 
     return errorText
-  }
-
-  var setToken = function (newAccessToken) {
-    token = newAccessToken
   }
 
   var getInvitation = function (invitationId) {
@@ -726,9 +712,7 @@ module.exports = (function () {
           }
 
           $('#message-reviewers-modal').modal('hide')
-          promptMessage('A reminder email has been sent to ' + view.prettyId(userId), {
-            overlay: true,
-          })
+          promptMessage('A reminder email has been sent to ' + view.prettyId(userId))
           postReviewerEmails(postData)
           $link.after(' (Last sent: ' + new Date().toLocaleDateString() + ')')
 
@@ -758,7 +742,7 @@ module.exports = (function () {
         var name = $link.data('userName')
 
         if (!options.preferredEmailsInvitationId) {
-          promptError('Email is not available.', { scrollToTop: false })
+          promptError('Email is not available.')
           return
         }
 
@@ -767,14 +751,14 @@ module.exports = (function () {
             var email = result.edges?.[0]?.tail
 
             if (!email) {
-              promptError('Email is not available.', { scrollToTop: false })
+              promptError('Email is not available.')
               return
             }
             copy(`${name} <${email}>`)
-            promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+            promptMessage(`${email} copied to clipboard`)
           },
           function () {
-            promptError('Email is not available.', { scrollToTop: false })
+            promptError('Email is not available.')
           }
         )
         return false
@@ -800,7 +784,7 @@ module.exports = (function () {
             try {
               localStorage.setItem(postData.forumUrl + '|' + userId, Date.now())
             } catch (error) {
-              // eslint-disable-next-line no-console
+              // oxlint-disable-next-line no-console
               console.warn(`Could not set timestamp for ${userId}`)
             }
           }
@@ -1126,16 +1110,14 @@ module.exports = (function () {
 
     var renderTaskItem = function (inv) {
       return (
-        '<li class="note ' +
-        (inv.complete ? 'completed' : '') +
-        '">' +
-        '<h4><a href="/forum?id=' +
-        inv.forumId +
-        (inv.complete ? '' : '&invitationId=' + inv.id) +
-        (options.referrer ? '&referrer=' + options.referrer : '') +
-        '" target="_blank">' +
+        '<li class="note"' +
+        (inv.complete
+          ? ' style="opacity: 0.93; background-color: #eee; padding: 0.25rem 0.5rem;"'
+          : '') +
+        '>' +
+        '<h4 style="color: #333;">' +
         view.prettyInvitationId(inv.id) +
-        '</a></h4>' +
+        '</h4>' +
         (options.showEditLink ? '<a href="/invitation/edit?id=' + inv.id + '">Edit</a>' : '') +
         (inv.startDateStr
           ? '<p class="mb-1"><span class="duedate">Start: ' + inv.startDateStr + '</span></p>'
@@ -1190,59 +1172,6 @@ module.exports = (function () {
     $('.tabs-container a[href="#' + container + '"]')
       .parent()
       .show()
-  }
-
-  var sendFile = function (url, data, contentType, fieldName) {
-    var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : ''
-    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
-    return $.ajax({
-      url: baseUrl + url,
-      type: 'put',
-      cache: false,
-      dataType: 'json',
-      processData: false,
-      contentType: contentType || false,
-      data: data,
-      headers: Object.assign(defaultHeaders, authHeaders),
-      xhrFields: {
-        withCredentials: true,
-      },
-    }).fail(function (jqXhr, textStatus, errorThrown) {
-      // eslint-disable-next-line no-console
-      console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus)
-      // eslint-disable-next-line no-console
-      console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2))
-      if (fieldName) {
-        $('input.form-control.note_content_value_input.note_' + fieldName).val('')
-      }
-    })
-  }
-
-  var sendFileChunk = function (data, $progressBar) {
-    var baseUrl = window.OR_API_V2_URL ? window.OR_API_V2_URL : ''
-    var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
-    return $.ajax({
-      url: baseUrl + '/attachment/chunk',
-      type: 'put',
-      contentType: false,
-      processData: false,
-      data: data,
-      headers: Object.assign(defaultHeaders, authHeaders),
-      xhrFields: {
-        withCredentials: true,
-      },
-      success: function (result) {
-        if (!result.url) {
-          var progress = `${(
-            (Object.values(result).filter((p) => p === 'completed').length * 100) /
-            Object.values(result).length
-          ).toFixed(0)}%`
-          $progressBar.find('.progress-bar').css('width', progress).text(progress)
-        }
-      },
-    })
   }
 
   var searchSubmissions = function (term, options) {
@@ -1513,7 +1442,7 @@ module.exports = (function () {
   var renderInvitationButton = function (container, invitationId, options) {
     var defaults = {
       onNoteCreated: function () {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn('onNoteCreated option is required')
       },
     }
@@ -1648,7 +1577,6 @@ module.exports = (function () {
     }
 
     // Wrap in IIFE to prevent memory leaks
-    // eslint-disable-next-line wrap-iife
     ;(function () {
       var submissionListHtml = Handlebars.templates['components/submissions']({
         heading: options.heading,
@@ -2148,7 +2076,7 @@ module.exports = (function () {
         .off('click', 'ul.pagination > li > a')
         .on('click', 'ul.pagination > li > a', function () {
           if (!_.isFunction(options.onPageClick)) {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn('Missing required onPageClick callback')
             return false
           }
@@ -2346,9 +2274,6 @@ module.exports = (function () {
     put: put,
     delete: xhrDelete,
     getAll: getAll,
-    sendFile: sendFile,
-    sendFileChunk: sendFileChunk,
-    setToken: setToken,
     getErrorFromJqXhr: Webfield.getErrorFromJqXhr,
 
     api: {
@@ -2363,7 +2288,6 @@ module.exports = (function () {
       getGroupsByNumber: getGroupsByNumber,
       getAssignedInvitations: getAssignedInvitations,
       getGroup: getGroup,
-      sendFile: sendFile,
     },
 
     ui: {

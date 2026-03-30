@@ -125,12 +125,11 @@ const EmailsSection = ({
     if (action.reset) return action.data
     return state
   }
-  // eslint-disable-next-line max-len
   const [emails, setEmails] = useReducer(
     emailsReducer,
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
   )
-  const { accessToken } = useUser()
+
   const [hasInstitutionEmail, setHasInstitutionEmail] = useState(true)
 
   const handleAddEmail = () => {
@@ -170,9 +169,9 @@ const EmailsSection = ({
       const linkData = { alternate: newEmail, username: profileId }
       try {
         if (isNewProfile) {
-          await api.post(`/user/confirm/${tokenParam}`, linkData, { accessToken })
+          await api.post(`/user/confirm/${tokenParam}`, linkData)
         } else {
-          await api.post('/user/confirm', linkData, { accessToken })
+          await api.post('/user/confirm', linkData)
         }
         setEmails({ setVerifyVisible: true, data: { key, visibleValue: true } })
         return promptMessage(
@@ -194,9 +193,9 @@ const EmailsSection = ({
     let verifyResult
     try {
       if (isNewProfile) {
-        await api.put(`/activatelink/${tokenParam}`, payload, { accessToken })
+        await api.put(`/activatelink/${tokenParam}`, payload)
       } else {
-        verifyResult = await api.put('/activatelink', payload, { accessToken })
+        verifyResult = await api.put('/activatelink', payload)
       }
       if (verifyResult?.id) {
         const updatedProfile = await loadProfile()
@@ -238,9 +237,11 @@ const EmailsSection = ({
         <div className="activation-message">
           <Icon name="warning-sign" />
           <p>
-            Your profile does not contain any company/institution email and it can take up to 2
-            weeks for your profile to be activated. If you would like to activate your profile,
-            please add an email issued by employing or educational institution.
+            Please note: Your email address could not be automatically verified.
+            <br /> Accounts that cannot be automatically verified may take up to 2 weeks to be
+            activated. To expedite the process, we recommend using an email address from a
+            recognized institution, or completing your profile information as thoroughly as
+            possible to help us verify your affiliation.
           </p>
         </div>
       )}
@@ -248,8 +249,8 @@ const EmailsSection = ({
         {emails.map((emailObj) => (
           <div className="row d-flex" key={emailObj.key}>
             <div className="col-md-4 emails__value">
-              {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
               <input
+                aria-label="email"
                 type="email"
                 autoFocus
                 value={emailObj.email}
@@ -266,6 +267,7 @@ const EmailsSection = ({
               emailObj.isValid && (
                 <div className="col-md-2 emails__value">
                   <input
+                    aria-label="Enter Verification Token"
                     type="text"
                     onChange={(e) =>
                       handleVerificationTokenUpdate(emailObj.key, e.target.value)

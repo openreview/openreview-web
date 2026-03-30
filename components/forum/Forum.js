@@ -90,7 +90,7 @@ export default function Forum({
   query,
   editInvitationIdToHide,
 }) {
-  const { isRefreshing, accessToken } = useUser()
+  const { user, isRefreshing } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
   const [replyNoteMap, setReplyNoteMap] = useState(null)
   const [parentMap, setParentMap] = useState(null)
@@ -174,11 +174,7 @@ export default function Forum({
       ? { type: 'tag', details: 'writable' }
       : { type: 'note', details: 'repliedNotes,writable' }
     return api
-      .get(
-        '/invitations',
-        { replyForum: forumId, expired: true, domain, ...extraParams },
-        { accessToken }
-      )
+      .get('/invitations', { replyForum: forumId, expired: true, domain, ...extraParams })
       .then(({ invitations }) => {
         if (!invitations?.length) return []
         return invitations.flatMap((inv) => {
@@ -201,16 +197,12 @@ export default function Forum({
   const getNotesByForumId = (forumId) => {
     if (!forumId) return Promise.resolve([])
 
-    return api.getAll(
-      '/notes',
-      {
-        forum: forumId,
-        trash: true,
-        details: 'writable,signatures,invitation,presentation,tags',
-        domain,
-      },
-      { accessToken }
-    )
+    return api.getAll('/notes', {
+      forum: forumId,
+      trash: true,
+      details: 'writable,signatures,invitation,presentation,tags',
+      domain,
+    })
   }
 
   const loadNotesAndInvitations = async () => {
@@ -293,25 +285,21 @@ export default function Forum({
 
   const loadNewReplies = useCallback(async () => {
     try {
-      const { notes } = await api.get(
-        '/notes',
-        {
-          forum: id,
-          mintmdate: latestMdate,
-          sort: 'tmdate:asc',
-          details: 'writable',
-          trash: true,
-          domain,
-        },
-        { accessToken }
-      )
+      const { notes } = await api.get('/notes', {
+        forum: id,
+        mintmdate: latestMdate,
+        sort: 'tmdate:asc',
+        details: 'writable',
+        trash: true,
+        domain,
+      })
       return notes?.length > 0 ? notes : []
     } catch (error) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('Error loading new replies: ', error.message)
       return []
     }
-  }, [latestMdate, id, accessToken])
+  }, [latestMdate, id, user])
 
   const loadNewTags = useCallback(async () => {
     const invitation = parentNote.tagInvitations?.find((inv) =>
@@ -320,26 +308,25 @@ export default function Forum({
     if (!invitation) return []
 
     try {
-      const { tags } = await api.get(
-        '/tags',
-        { invitation: invitation.id, mintmdate: latestMdate, trash: true },
-        { accessToken }
-      )
+      const { tags } = await api.get('/tags', {
+        invitation: invitation.id,
+        mintmdate: latestMdate,
+        trash: true,
+      })
       return tags?.length > 0 ? tags.sort((a, b) => a.tmdate - b.tmdate) : []
     } catch (error) {
       return []
     }
-  }, [latestMdate, parentNote, accessToken])
+  }, [latestMdate, parentNote, user])
 
   const loadNewSignatureGroups = async (newSigIds) => {
     if (newSigIds.size === 0) return []
 
     try {
-      const { groups } = await api.get(
-        `/groups`,
-        { ids: Array.from(newSigIds), select: 'id,members,readers' },
-        { accessToken }
-      )
+      const { groups } = await api.get(`/groups`, {
+        ids: Array.from(newSigIds),
+        select: 'id,members,readers',
+      })
       return groups?.length > 0 ? groups : []
     } catch (error) {
       return []
@@ -575,8 +562,6 @@ export default function Forum({
   }
 
   const renderReplies = () => {
-    if (!orderedReplies) return null
-
     const replies =
       layout === 'chat' || cutoffIndex.current >= orderedReplies.length
         ? orderedReplies
@@ -649,8 +634,8 @@ export default function Forum({
 
       const primaryInvitationId = tab.expandedInvitations?.[0]
       if (primaryInvitationId) {
-        const primaryInvitation = parentNote.replyInvitations.find(
-          (inv) => inv.id === primaryInvitationId
+        const primaryInvitation = parentNote.replyInvitations?.find((inv) =>
+          inv.id.match(primaryInvitationId)
         )
         if (
           !primaryInvitation ||
@@ -702,7 +687,6 @@ export default function Forum({
 
     window.onhashchange = handleRouteChange
 
-    // eslint-disable-next-line consistent-return
     return () => {
       window.onhashchange = null
     }
@@ -789,8 +773,8 @@ export default function Forum({
     // Special case for chat layout: make sure all participants in the chat can read all the notes
     let chatReaders = null
     if (expandedInvitations?.length > 0) {
-      const primaryInv = parentNote.replyInvitations.find(
-        (inv) => inv.id === expandedInvitations[0]
+      const primaryInv = parentNote.replyInvitations.find((inv) =>
+        inv.id.match(expandedInvitations[0])
       )
       chatReaders = primaryInv ? primaryInv.edit.note.readers : null
     }
@@ -928,15 +912,11 @@ export default function Forum({
         newReplies.forEach((note) => {
           const invId = note.invitations[0]
           const sigId = note.signatures[0]
-          // eslint-disable-next-line no-param-reassign
           note.details.invitation = invitationMapRef.current[invId]?.[0]
-          // eslint-disable-next-line no-param-reassign
           note.details.presentation = invitationMapRef.current[invId]?.[1]
-          // eslint-disable-next-line no-param-reassign
           note.details.signatures = signaturesMapRef.current[sigId]
             ? [signaturesMapRef.current[sigId]]
             : []
-          // eslint-disable-next-line no-param-reassign
           note.details.tags = groupedTags[note.id]
 
           const isNewNote = updateNote(note)
@@ -947,7 +927,11 @@ export default function Forum({
           }
 
           // Track details of new notes for chat notifications
-          if (isNewNote && expandedInvitations?.includes(invId) && !note.ddate) {
+          if (
+            isNewNote &&
+            expandedInvitations?.some((pattern) => invId.match(pattern)) &&
+            !note.ddate
+          ) {
             if (!newMessageAuthor) {
               newMessageAuthor = prettyId(sigId, true)
               newMessage = truncate(note.content.message?.value || note.content.title?.value, {
@@ -1033,7 +1017,7 @@ export default function Forum({
         deleteOrRestoreNote={deleteOrRestoreNote}
       />
 
-      {repliesLoaded && orderedReplies.length > 0 && (
+      {repliesLoaded && (
         <div className="filters-container mt-4">
           {replyForumViews && (
             <FilterTabs
@@ -1044,25 +1028,27 @@ export default function Forum({
             />
           )}
 
-          {filterOptions && layout === 'default' && (
-            <FilterForm
-              forumId={id}
-              selectedFilters={selectedFilters}
-              setSelectedFilters={(newFilters) => {
-                setSelectedFilters(newFilters)
-                setMaxLength(250)
-              }}
-              filterOptions={filterOptions}
-              sort={sort}
-              setSort={setSort}
-              nesting={nesting}
-              setNesting={setNesting}
-              defaultCollapseLevel={defaultCollapseLevel}
-              setDefaultCollapseLevel={setDefaultCollapseLevel}
-              numReplies={replyNoteCount.current}
-              numRepliesHidden={numRepliesHidden}
-            />
-          )}
+          {filterOptions &&
+            numRepliesHidden < Object.keys(replyNoteMap).length &&
+            layout === 'default' && (
+              <FilterForm
+                forumId={id}
+                selectedFilters={selectedFilters}
+                setSelectedFilters={(newFilters) => {
+                  setSelectedFilters(newFilters)
+                  setMaxLength(250)
+                }}
+                filterOptions={filterOptions}
+                sort={sort}
+                setSort={setSort}
+                nesting={nesting}
+                setNesting={setNesting}
+                defaultCollapseLevel={defaultCollapseLevel}
+                setDefaultCollapseLevel={setDefaultCollapseLevel}
+                numReplies={replyNoteCount.current}
+                numRepliesHidden={numRepliesHidden}
+              />
+            )}
           {filterOptions && layout === 'chat' && (
             <ChatFilterForm
               forumId={id}
@@ -1181,8 +1167,8 @@ export default function Forum({
         <div className="chat-invitations-container">
           {expandedInvitations ? (
             expandedInvitations.map((invitationId) => {
-              const invitation = parentNote.replyInvitations.find(
-                (inv) => inv.id === invitationId
+              const invitation = parentNote.replyInvitations.find((inv) =>
+                inv.id.match(invitationId)
               )
               if (!invitation) {
                 return (
@@ -1250,7 +1236,6 @@ export default function Forum({
           note={confirmDeleteModalData.note}
           invitation={confirmDeleteModalData.invitation}
           updateNote={confirmDeleteModalData.updateNote}
-          accessToken={accessToken}
           onClose={() => {
             $('#confirm-delete-modal').modal('hide')
             setConfirmDeleteModalData(null)

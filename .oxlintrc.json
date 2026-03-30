@@ -1,0 +1,32 @@
+{
+  "env": {
+    "builtin": true
+  },
+  "ignorePatterns": ["client/templates.js", "unitTests"],
+  "plugins": ["react"],
+  "rules": {
+    "consistent-return": "warn",
+    "eqeqeq": "warn",
+    "max-len": [
+      "error",
+      {
+        "code": 120,
+        "ignoreStrings": true,
+        "ignoreTemplateLiterals": true,
+        "ignoreRegExpLiterals": true
+      }
+    ],
+    "no-console": "error",
+    "no-else-return": "warn",
+    "no-nested-ternary": "warn",
+    "no-param-reassign": "warn",
+    "no-shadow": "warn",
+    "no-unused-expressions": "warn",
+    "no-unused-vars": "warn",
+    "no-var": "warn",
+    "prefer-destructuring": ["warn", { "object": true, "array": false }],
+    "semi": ["error", "never"],
+    "react/rules-of-hooks": "error",
+    "react/self-closing-comp": "error"
+  }
+}

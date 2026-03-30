@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react'
+import Badge from '../../../../components/Badge'
 import api from '../../../../lib/api-client'
 
-export default function ProfileMergeCount({ accessToken }) {
+export default function ProfileMergeCount({ children }) {
   const [profileMergeRequestCount, setProfileMergeRequestCount] = useState(null)
 
   const getNameDeletionCount = async () => {
     try {
-      const response = await api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Merge`,
-        },
-        { accessToken }
-      )
+      const response = await api.get('/notes', {
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Merge`,
+      })
       setProfileMergeRequestCount(
         response.notes.filter((p) => p.content.status.value === 'Pending').length
       )
@@ -25,6 +22,9 @@ export default function ProfileMergeCount({ accessToken }) {
     getNameDeletionCount()
   }, [])
 
-  if (!profileMergeRequestCount) return null
-  return <span className="badge">{profileMergeRequestCount}</span>
+  return (
+    <Badge count={profileMergeRequestCount} size="small" offset={[0, -5]}>
+      {children}
+    </Badge>
+  )
 }

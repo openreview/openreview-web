@@ -1,13 +1,11 @@
 /* globals promptError: false */
 
 import { useState } from 'react'
-import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import SpinnerButton from './SpinnerButton'
 
 const DownloadPDFButton = ({ records, fileName, text = 'Download PDFs' }) => {
   const [isLoading, setIsLoading] = useState(false)
-  const { accessToken } = useUser()
 
   const handleDownloadPDFClick = async () => {
     setIsLoading(true)
@@ -21,7 +19,7 @@ const DownloadPDFButton = ({ records, fileName, text = 'Download PDFs' }) => {
       const zipBlob = await api.get(
         '/attachment',
         { [ids.length === 1 ? 'id' : 'ids']: ids, name: 'pdf' },
-        { accessToken, contentType: 'blob' }
+        { contentType: 'blob' }
       )
       const url = window.URL || window.webkitURL
       const link = document.createElement('a')

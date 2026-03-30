@@ -14,45 +14,49 @@ const uniqueIdentifier = 'id'
 describe('webfield-utils', () => {
   test('return field name in getErrorFieldName', () => {
     let errorPath = 'note/content/pdf'
-    let resultExpected = 'pdf'
+    let resultExpected = { fieldName: 'pdf' }
 
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/content/title/value'
-    resultExpected = 'title'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'title' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/content/authorids/value/0'
-    resultExpected = 'authorids'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'authorids' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'signatures' // edit signatures
-    resultExpected = 'editSignatureInputValues'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'editSignatureInputValues' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/signatures' // note signatures
-    resultExpected = 'noteSignatureInputValues'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'noteSignatureInputValues' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'readers' // edit readers
-    resultExpected = 'editReaderValues'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'editReaderValues' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/readers' // note readers
-    resultExpected = 'noteReaderValues'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'noteReaderValues' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/license' // note license
-    resultExpected = 'noteLicenseValue'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'noteLicenseValue' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'content/author_id/value' // edit content
-    resultExpected = 'content.author_id'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'content.author_id' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'content/author_index/value/0'
-    resultExpected = 'content.author_index'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'content.author_index' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
+
+    errorPath = 'note/content/authors/value/4/institutions' // object authors
+    resultExpected = { fieldName: 'authors', index: 4 }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
   })
 
   test('return whether the error invalidValue is {delete:true} in isNonDeletableError', () => {

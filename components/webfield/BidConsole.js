@@ -1,21 +1,23 @@
 /* globals typesetMathJax,promptError: false */
 
-import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
 import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
 import { useSearchParams } from 'next/navigation'
+import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { setBannerContent } from '../../bannerSlice'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
+import Dropdown from '../Dropdown'
+import ErrorDisplay from '../ErrorDisplay'
+import Icon from '../Icon'
+import LoadingSpinner from '../LoadingSpinner'
+import NoteListWithBidWidget from '../NoteListWithBidWidget'
+import PaginationLinks from '../PaginationLinks'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
-import useUser from '../../hooks/useUser'
-import api from '../../lib/api-client'
-import Icon from '../Icon'
-import Dropdown from '../Dropdown'
-import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
-import LoadingSpinner from '../LoadingSpinner'
-import PaginationLinks from '../PaginationLinks'
-import ErrorDisplay from '../ErrorDisplay'
-import NoteListWithBidWidget from '../NoteListWithBidWidget'
 
 const getDdate = (existingBidToDelete) => {
   if (existingBidToDelete) return Date.now()
@@ -32,14 +34,7 @@ const getBidObjectToPost = (id, updatedOption, invitation, note, userId, ddate) 
   ddate,
 })
 
-const AllSubmissionsTab = ({
-  bidEdges,
-  setBidEdges,
-  conflictIds,
-  bidOptions,
-  user,
-  accessToken,
-}) => {
+const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions, user }) => {
   const {
     entity: invitation,
     scoreIds,
@@ -59,6 +54,7 @@ const AllSubmissionsTab = ({
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
   const [showPagination, setShowPagination] = useState(true)
   const [showBidScore, setShowBidScore] = useState(true)
+  const dispatch = useDispatch()
 
   const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const subjectAreaOptions = subjectAreas?.length
@@ -123,16 +119,12 @@ const AllSubmissionsTab = ({
   const getNotesSortedByAffinity = async (score = searchState.selectedScore, limit = 50) => {
     setIsLoading(true)
     const getNotesBySubmissionInvitationP = async () => {
-      const result = await api.get(
-        '/notes',
-        {
-          'content.venueid': submissionVenueId,
-          offset: (pageNumber - 1) * pageSize,
-          limit,
-          domain: invitation.domain,
-        },
-        { accessToken }
-      )
+      const result = await api.get('/notes', {
+        'content.venueid': submissionVenueId,
+        offset: (pageNumber - 1) * pageSize,
+        limit,
+        domain: invitation.domain,
+      })
       return {
         ...result,
         notes: result.notes.filter((p) => !conflictIds.includes(p.id)),
@@ -141,27 +133,19 @@ const AllSubmissionsTab = ({
 
     try {
       if (score) {
-        const edgesResult = await api.get(
-          '/edges',
-          {
-            invitation: score,
-            tail: user.profile.id,
-            sort: 'weight:desc',
-            offset: (pageNumber - 1) * pageSize,
-            limit,
-            domain: invitation.domain,
-          },
-          { accessToken }
-        )
+        const edgesResult = await api.get('/edges', {
+          invitation: score,
+          tail: user.profile.id,
+          sort: 'weight:desc',
+          offset: (pageNumber - 1) * pageSize,
+          limit,
+          domain: invitation.domain,
+        })
         if (edgesResult.count) {
           setTotalCount(edgesResult.count)
           setScoreEdges(edgesResult.edges)
           const noteIds = edgesResult.edges.map((p) => p.head)
-          const notesResult = await api.post(
-            '/notes/search',
-            { ids: noteIds },
-            { accessToken }
-          )
+          const notesResult = await api.post('/notes/search', { ids: noteIds })
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             const isActiveSubmission =
@@ -191,18 +175,25 @@ const AllSubmissionsTab = ({
   const getNotesBySearchTerm = async (term) => {
     setIsLoading(true)
     try {
-      const result = await api.get(
-        '/notes/search',
-        {
-          term,
-          type: 'terms',
-          content: 'all',
-          source: 'forum',
-          limit: 200,
-          offset: 0,
-          venueid: submissionVenueId,
-        },
-        { accessToken }
+      const result = await api.get('/notes/search', {
+        term,
+        type: 'terms',
+        content: 'all',
+        source: 'forum',
+        limit: 200,
+        offset: 0,
+        venueid: submissionVenueId,
+      })
+      dispatch(
+        setBannerContent(
+          result.searchUnavailable
+            ? {
+                type: 'error',
+                value:
+                  'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+              }
+            : { type: null, value: null }
+        )
       )
       setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
     } catch (error) {
@@ -221,8 +212,7 @@ const AllSubmissionsTab = ({
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
-        { accessToken }
+        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate)
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -247,15 +237,11 @@ const AllSubmissionsTab = ({
     try {
       if (subjectAreasName) {
         const notesResult = await api
-          .get(
-            '/notes',
-            {
-              'content.venueid': submissionVenueId,
-              domain: invitation.domain,
-              stream: true,
-            },
-            { accessToken }
-          )
+          .get('/notes', {
+            'content.venueid': submissionVenueId,
+            domain: invitation.domain,
+            stream: true,
+          })
           .then((result) => result.notes)
         setNotes(
           notesResult.filter(
@@ -263,18 +249,25 @@ const AllSubmissionsTab = ({
           )
         )
       } else {
-        const result = await api.get(
-          '/notes/search',
-          {
-            term: subjectAreaSelected,
-            type: 'terms',
-            content: 'subject_areas',
-            source: 'forum',
-            limit: 200,
-            offset: 0,
-            venueid: submissionVenueId,
-          },
-          { accessToken }
+        const result = await api.get('/notes/search', {
+          term: subjectAreaSelected,
+          type: 'terms',
+          content: 'subject_areas',
+          source: 'forum',
+          limit: 200,
+          offset: 0,
+          venueid: submissionVenueId,
+        })
+        dispatch(
+          setBannerContent(
+            result.searchUnavailable
+              ? {
+                  type: 'error',
+                  value:
+                    'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+                }
+              : { type: null, value: null }
+          )
         )
         setNotes(result.notes.filter((p) => !conflictIds.includes(p.id)).slice(0, 100))
       }
@@ -441,7 +434,6 @@ const NoBidTab = ({
   setBidEdges,
   conflictIds,
   user,
-  accessToken,
 }) => {
   const [notes, setNotes] = useState([])
   const [scoreEdges, setScoreEdges] = useState([])
@@ -453,15 +445,11 @@ const NoBidTab = ({
     setIsLoading(true)
 
     const getNotesBySubmissionInvitation = async () => {
-      const result = await api.get(
-        '/notes',
-        {
-          'content.venueid': submissionVenueId,
-          limit: 1000,
-          domain: invitation.domain,
-        },
-        { accessToken }
-      )
+      const result = await api.get('/notes', {
+        'content.venueid': submissionVenueId,
+        limit: 1000,
+        domain: invitation.domain,
+      })
       return {
         ...result,
         notes: result.notes.filter(
@@ -472,24 +460,16 @@ const NoBidTab = ({
 
     try {
       if (selectedScore) {
-        const edgesResult = await api.get(
-          '/edges',
-          {
-            invitation: selectedScore,
-            tail: user.profile.id,
-            sort: 'weight:desc',
-            domain: invitation.domain,
-          },
-          { accessToken }
-        )
+        const edgesResult = await api.get('/edges', {
+          invitation: selectedScore,
+          tail: user.profile.id,
+          sort: 'weight:desc',
+          domain: invitation.domain,
+        })
         if (edgesResult.count) {
           setScoreEdges(edgesResult.edges)
           const noteIds = edgesResult.edges.map((p) => p.head)
-          const notesResult = await api.post(
-            '/notes/search',
-            { ids: noteIds },
-            { accessToken }
-          )
+          const notesResult = await api.post('/notes/search', { ids: noteIds })
           const filteredNotes = noteIds.flatMap((noteId) => {
             const matchingNote = notesResult.notes.find((p) => p.id === noteId)
             const isActiveSubmission =
@@ -530,19 +510,18 @@ const NoBidTab = ({
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
-        { accessToken }
+        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate)
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
         updatedBidEdges = bidEdges.filter((p) => p.id !== existingBidToDelete.id)
         setBidEdges(updatedBidEdges)
-        setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
+        setNotes((notes) => notes.filter((p) => p.id !== note.id))
         return
       }
 
       setBidEdges([...bidEdges.filter((p) => p.id !== existingBidToUpdate?.id), result])
-      setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
+      setNotes((notes) => notes.filter((p) => p.id !== note.id))
     } catch (error) {
       promptError(error.message)
       setBidUpdateStatus((status) => !status)
@@ -574,15 +553,7 @@ const NoBidTab = ({
   )
 }
 
-const BidOptionTab = ({
-  bidOptions,
-  bidOption,
-  bidEdges,
-  invitation,
-  setBidEdges,
-  user,
-  accessToken,
-}) => {
+const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges, user }) => {
   const [notes, setNotes] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const noteIds = bidEdges.filter((p) => p.label === bidOption).map((q) => q.head)
@@ -595,13 +566,9 @@ const BidOptionTab = ({
       return
     }
     try {
-      const noteSearchResults = await api.post(
-        '/notes/search',
-        {
-          ids: noteIds,
-        },
-        { accessToken }
-      )
+      const noteSearchResults = await api.post('/notes/search', {
+        ids: noteIds,
+      })
       setNotes(noteSearchResults.notes)
     } catch (error) {
       promptError(error.message)
@@ -619,19 +586,18 @@ const BidOptionTab = ({
     try {
       const result = await api.post(
         '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
-        { accessToken }
+        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate)
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
         updatedBidEdges = bidEdges.filter((p) => p.id !== existingBidToDelete.id)
         setBidEdges(updatedBidEdges)
-        setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
+        setNotes((notes) => notes.filter((p) => p.id !== note.id))
         return
       }
 
       setBidEdges([...bidEdges.filter((p) => p.id !== existingBidToUpdate?.id), result])
-      setNotes((notes) => notes.filter((p) => p.id !== note.id)) // eslint-disable-line no-shadow
+      setNotes((notes) => notes.filter((p) => p.id !== note.id))
     } catch (error) {
       promptError(error.message)
       setBidUpdateStatus((status) => !status)
@@ -699,34 +665,26 @@ const BidConsole = ({ appContext }) => {
   const [bidEdges, setBidEdges] = useState([])
   const [conflictIds, setConflictIds] = useState([])
   const { setBannerContent } = appContext ?? {}
-  const { accessToken, user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const query = useSearchParams()
 
   const getBidAndConflictEdges = async () => {
     try {
       const bidEdgeResultsP = api
-        .get(
-          '/edges',
-          {
-            invitation: invitation.id,
-            tail: user.profile.id,
-            domain: invitation.domain,
-            stream: true,
-          },
-          { accessToken }
-        )
+        .get('/edges', {
+          invitation: invitation.id,
+          tail: user.profile.id,
+          domain: invitation.domain,
+          stream: true,
+        })
         .then((result) => result.edges)
       const conflictEdgeResultsP = api
-        .get(
-          '/edges',
-          {
-            invitation: conflictInvitationId,
-            tail: user.profile.id,
-            domain: invitation.domain,
-            stream: true,
-          },
-          { accessToken }
-        )
+        .get('/edges', {
+          invitation: conflictInvitationId,
+          tail: user.profile.id,
+          domain: invitation.domain,
+          stream: true,
+        })
         .then((result) => result.edges)
       const results = await Promise.all([bidEdgeResultsP, conflictEdgeResultsP])
       setBidEdges(results[0])
@@ -763,7 +721,6 @@ const BidConsole = ({ appContext }) => {
             conflictIds={conflictIds}
             bidOptions={bidOptions}
             user={user}
-            accessToken={accessToken}
           />
         </TabPanel>
       )
@@ -779,7 +736,6 @@ const BidConsole = ({ appContext }) => {
             setBidEdges={setBidEdges}
             conflictIds={conflictIds}
             user={user}
-            accessToken={accessToken}
           />
         </TabPanel>
       )
@@ -793,7 +749,6 @@ const BidConsole = ({ appContext }) => {
           invitation={invitation}
           setBidEdges={setBidEdges}
           user={user}
-          accessToken={accessToken}
         />
       </TabPanel>
     )

@@ -27,7 +27,7 @@ export default function Page() {
         return
       }
 
-      setProfile(formatProfileData(apiRes.profile, true))
+      setProfile(formatProfileData(apiRes.profile, { useLinkObjectFormat: true }))
     } catch (apiError) {
       setError(apiError.message)
     }
@@ -41,9 +41,7 @@ export default function Page() {
         content: newProfileData,
       })
       if (token) {
-        promptMessage('Your OpenReview profile has been successfully created', {
-          scrollToTop: false,
-        })
+        promptMessage('Your OpenReview profile has been successfully created')
         router.replace('/')
         router.refresh()
       } else {
@@ -79,7 +77,6 @@ export default function Page() {
   return (
     <CommonLayout banner={null}>
       <div className={styles.activate}>
-        <header></header>
         <h1>Complete Registration</h1>
         <h5>
           {' '}

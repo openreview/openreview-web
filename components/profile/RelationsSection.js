@@ -45,7 +45,7 @@ const CustomProfileSearchForm = ({
       type="text"
       className={`search-input ${error ? styles.invalidValue : ''}`}
       value={searchTerm ?? ''}
-      placeholder="Search relation by name or email"
+      placeholder="Search relation by name or OpenReview profile ID"
       onChange={(e) => {
         setSearchTerm(e.target.value)
         setProfileSearchResults(null)
@@ -58,13 +58,7 @@ const CustomProfileSearchForm = ({
           setPageNumber(null)
         }
       }}
-      onBlur={() => {
-        if (searchTerm?.trim()) {
-          setShowCustomAuthorForm(false)
-          searchProfiles(searchTerm, 1)
-          setPageNumber(null)
-        }
-      }}
+      aria-label="Search relation by name or OpenReview profile ID"
     />
 
     <SearchButton
@@ -102,7 +96,6 @@ const RelationRow = ({
     return selectedValues.join(',')
   }
 
-  // eslint-disable-next-line no-shadow
   const renderRelationName = (relation) => {
     if (relation.name) {
       if (relation.username) {
@@ -163,7 +156,6 @@ const RelationRow = ({
           pageSize={10}
           pageListLength={12}
           field={{ relation: '' }}
-          searchInputPlaceHolder="Search relation by name or email"
           error={profileRelation?.find((q) => q.key === relation.key)?.valid === false}
           onChange={(username, name, email, profile) => {
             if (username) {
@@ -208,7 +200,6 @@ const RelationRow = ({
             defaultValue={
               relation.relation ? { value: relation.relation, label: relation.relation } : null
             }
-            // eslint-disable-next-line max-len
             onChange={(e) => {
               setRelation({
                 type: relationType,
@@ -235,6 +226,7 @@ const RelationRow = ({
             onClick={() => setRelationClicked(true)}
             onFocus={() => setRelationClicked(true)}
             onChange={() => {}}
+            aria-label="Relation"
           />
         )}
       </div>
@@ -257,6 +249,7 @@ const RelationRow = ({
               data: { value: e.target.value, key: relation.key },
             })
           }
+          aria-label="Start Year"
         />
       </div>
       <div className="col-md-1 relation__value">
@@ -272,6 +265,7 @@ const RelationRow = ({
           onChange={(e) =>
             setRelation({ type: endType, data: { value: e.target.value, key: relation.key } })
           }
+          aria-label="End Year"
         />
       </div>
       <div className="col-md-1 relation__value additional-width-col">

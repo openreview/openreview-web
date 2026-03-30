@@ -28,7 +28,7 @@ import {
 } from '../../../lib/assignment-stats-utils'
 import api from '../../../lib/api-client'
 
-export default function V1Stats({ configNote, accessToken }) {
+export default function V1Stats({ configNote }) {
   const [assignmentConfigNote, setAssignmentConfigNote] = useState(configNote)
   const [values, setValues] = useState({})
   const [matchLists, setMatchLists] = useState(null)
@@ -75,7 +75,7 @@ export default function V1Stats({ configNote, accessToken }) {
         invitation: noteContent.assignment_invitation,
         'content.title': noteContent.title,
       },
-      { accessToken, resultsKey: 'notes' }
+      { resultsKey: 'notes' }
     )
     const assignmentMap = notes.flatMap((note) =>
       note.content.assignedGroups.map((group) => {
@@ -113,12 +113,12 @@ export default function V1Stats({ configNote, accessToken }) {
           localFilterContentFields[filterElements[0]] = filterElements[1]
         }
       })
-      papersP = api.getAll('/notes', getNotesArgs, { accessToken, version: 1 })
+      papersP = api.getAll('/notes', getNotesArgs, { version: 1 })
     } else {
-      papersP = api.get('/groups', { id: paperInvitationElements[0] }, { accessToken })
+      papersP = api.get('/groups', { id: paperInvitationElements[0] })
     }
 
-    const usersP = api.get('/groups', { id: noteContent.match_group }, { accessToken })
+    const usersP = api.get('/groups', { id: noteContent.match_group })
 
     const queryParams =
       noteContent.status === 'Deployed' && noteContent.deployed_assignment_invitation
@@ -134,7 +134,6 @@ export default function V1Stats({ configNote, accessToken }) {
             select: 'tail,weight',
           }
     const assignmentsP = api.getAll('/edges', queryParams, {
-      accessToken,
       resultsKey: 'groupedEdges',
     })
 
@@ -145,7 +144,7 @@ export default function V1Stats({ configNote, accessToken }) {
       ? api.getAll(
           '/edges',
           { invitation: bidInvitation, groupBy: 'head', select: 'tail,label' },
-          { accessToken, resultsKey: 'groupedEdges' }
+          { resultsKey: 'groupedEdges' }
         )
       : Promise.resolve([])
 
@@ -156,7 +155,7 @@ export default function V1Stats({ configNote, accessToken }) {
       ? api.getAll(
           '/edges',
           { invitation: recommendationInvitation, groupBy: 'head', select: 'tail,weight' },
-          { accessToken, resultsKey: 'groupedEdges' }
+          { resultsKey: 'groupedEdges' }
         )
       : Promise.resolve([])
 

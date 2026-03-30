@@ -1,5 +1,13 @@
 import { useEffect, useRef } from 'react'
+import { Tabs as ATabs } from 'antd'
 import Icon from './Icon'
+
+const ORStyles = {
+  item: {
+    fontWeight: 'bold',
+    color: '#3e6775',
+  },
+}
 
 export function Tabs({ children, className }) {
   return <div className={`tabs-container ${className || ''}`}>{children}</div>
@@ -40,14 +48,7 @@ export function Tab({ id, headingCount, icon, onClick, active, hidden, disabled,
 
   return (
     <li role="presentation" className={disabled ? 'disabled' : null}>
-      <a
-        href={`#${id}`}
-        aria-controls={id}
-        role="tab"
-        data-toggle="tab"
-        ref={tabEl}
-        onClick={handleClick}
-      >
+      <a href={`#${id}`} role="tab" data-toggle="tab" ref={tabEl} onClick={handleClick}>
         {children}
         {Number.isInteger(headingCount) && <span className="badge">{headingCount}</span>}
         {icon && <Icon name={icon} />}
@@ -66,4 +67,8 @@ export function TabPanel({ id, className, children }) {
       {children}
     </div>
   )
+}
+
+export function AntdTabs({ items, ...props }) {
+  return <ATabs {...props} items={items} styles={ORStyles} />
 }

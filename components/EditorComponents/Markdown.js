@@ -24,7 +24,7 @@ const Markdown = ({ text, disableMathjaxFormula = false }) => {
       MathJax.startup.promise
         .then(() => MathJax.typesetPromise([containerEl.current]))
         .catch(() => {
-          // eslint-disable-next-line no-console
+          // oxlint-disable-next-line no-console
           console.warn('Could not typeset TeX content')
         })
     }

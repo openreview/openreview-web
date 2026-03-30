@@ -21,7 +21,7 @@ const idSelector = '//atom:feed/atom:entry/atom:id/text()'
 
 const ArxivForum = ({ id }) => {
   const router = useRouter()
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const [arxivNote, setArvixNote] = useState(null)
   const [error, setError] = useState(null)
 
@@ -75,35 +75,31 @@ const ArxivForum = ({ id }) => {
       const mdate = dayjs(xpathSelect(mdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const rawXml = xpathSelect(entrySelector, xmlDoc, true)[0].outerHTML
 
-      const notePostResult = await api.post(
-        '/notes/edits',
-        {
-          invitation: `${process.env.SUPER_USER}/Public_Article/arXiv.org/-/Record`,
-          signatures: [user.profile.id],
-          content: {
-            xml: {
-              value: rawXml,
-            },
-          },
-          note: {
-            id: latestExistingVersionNote?.id,
-            content: {
-              title: {
-                value: title,
-              },
-              authors: {
-                value: authorNames,
-              },
-            },
-            pdate,
-            mdate,
-            externalId: `arxiv:${arxivIdWithLatestVersion}`,
+      const notePostResult = await api.post('/notes/edits', {
+        invitation: `${process.env.SUPER_USER}/Public_Article/arXiv.org/-/Record`,
+        signatures: [user.profile.id],
+        content: {
+          xml: {
+            value: rawXml,
           },
         },
-        { accessToken }
-      )
+        note: {
+          id: latestExistingVersionNote?.id,
+          content: {
+            title: {
+              value: title,
+            },
+            authors: {
+              value: authorNames,
+            },
+          },
+          pdate,
+          mdate,
+          externalId: `arxiv:${arxivIdWithLatestVersion}`,
+        },
+      })
       const noteId = notePostResult.note.id
-      const noteResult = await api.getNoteById(noteId, accessToken, null, {
+      const noteResult = await api.getNoteById(noteId, null, null, {
         trash: true,
         details: 'writable,presentation',
       })
@@ -115,7 +111,7 @@ const ArxivForum = ({ id }) => {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!accessToken) router.replace(`/login?redirect=/forum?arxivid=${id}`)
+    if (!user) router.replace(`/login?redirect=/forum?arxivid=${id}`)
     loadArvixNote()
   }, [id, isRefreshing])
 

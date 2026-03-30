@@ -17,8 +17,8 @@ export default function FilterTabs({
         // (which by convention is the first item in the expandedInvitations array)
         const primaryInvitationId = view.expandedInvitations?.[0]
         if (primaryInvitationId) {
-          const primaryInvitation = replyInvitations.find(
-            (inv) => inv.id === primaryInvitationId
+          const primaryInvitation = replyInvitations.find((inv) =>
+            inv.id.match(primaryInvitationId)
           )
           if (
             !primaryInvitation ||
@@ -34,7 +34,6 @@ export default function FilterTabs({
           <li
             key={view.id}
             data-id={view.id}
-            role="presentation"
             className={view.id === currentHash ? 'active' : null}
           >
             <Link

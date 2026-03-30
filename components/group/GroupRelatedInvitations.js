@@ -14,7 +14,7 @@ const RelatedInvitationRow = ({ item }) => (
   </Link>
 )
 
-const GroupRelatedInvitations = ({ group, accessToken }) => {
+const GroupRelatedInvitations = ({ group }) => {
   const groupId = group.id
   const isV1Group = !group.domain
   const submissionName = group.details?.domain?.content?.submission_name?.value
@@ -40,7 +40,6 @@ const GroupRelatedInvitations = ({ group, accessToken }) => {
         }
 
     const result = await api.get('/invitations', queryParam, {
-      accessToken,
       ...(isV1Group && { version: 1 }),
     })
 
@@ -53,7 +52,7 @@ const GroupRelatedInvitations = ({ group, accessToken }) => {
     }
   }
 
-  const loadItems = useCallback(loadRelatedInvitations, [groupId, accessToken])
+  const loadItems = useCallback(loadRelatedInvitations, [groupId])
 
   return (
     <EditorSection

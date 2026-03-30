@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 import { prettyList } from '../../lib/utils'
+import ServiceRoles from '../../app/profile/ServiceRoles'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -179,6 +180,7 @@ const ProfileExpertise = ({ expertise }) => (
 const BasicProfileView = ({
   profile,
   publicProfile,
+  serviceRoles,
   showLinkText = false,
   moderation = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
@@ -277,6 +279,11 @@ const BasicProfileView = ({
           ) : (
             <p className="empty-message">No areas of expertise listed</p>
           )}
+        </ProfileViewSection>
+      )}
+      {serviceRoles?.length > 0 && (
+        <ProfileViewSection name="serviceRoles" title="Service Roles">
+          <ServiceRoles serviceRoles={serviceRoles} />
         </ProfileViewSection>
       )}
     </>

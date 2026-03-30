@@ -155,34 +155,31 @@ const addMissingReaders = (
         }
       }
     } else {
-      const acIndex = signatureId.indexOf(anonAreaChairName)
+      if (readersDefinedInInvitation?.includes(signatureId)) {
+        return [...new Set([...readersSelected, signatureId])]
+      }
+
       const secondaryAcIndex = signatureId.indexOf(secondaryAreaChairName)
+      if (secondaryAcIndex > 0) {
+        const secondaryACsGroup = signatureId
+          .slice(0, secondaryAcIndex)
+          .concat(`Secondary_${areaChairName}`)
+        return [...new Set([...readersSelected, secondaryACsGroup])]
+      }
 
-      const acGroupId =
-        acIndex >= 0 ? signatureId.slice(0, acIndex).concat(areaChairName) : signatureId
-      const secondaryAcGroupId =
-        secondaryAcIndex >= 0
-          ? signatureId.slice(0, secondaryAcIndex).concat(areaChairName)
-          : signatureId
+      const acIndex = signatureId.indexOf(anonAreaChairName)
+      if (acIndex > 0) {
+        const acsGroup = signatureId.slice(0, acIndex).concat(areaChairName)
+        return [...new Set([...readersSelected, acsGroup])]
+      }
 
-      const groupToAdd = [acGroupId, secondaryAcGroupId].filter((p) =>
-        readersDefinedInInvitation?.includes(p)
-      )
-
-      return groupToAdd.length
-        ? [...new Set([...readersSelected, ...groupToAdd])]
-        : readersSelected
+      return readersSelected
     }
   }
   return readersSelected
 }
 
-export const getNoteReaderValues = async (
-  roleNames,
-  invitation,
-  noteEditorData,
-  accessToken
-) => {
+export const getNoteReaderValues = async (roleNames, invitation, noteEditorData) => {
   if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
     return undefined
   }
@@ -201,7 +198,7 @@ export const getNoteReaderValues = async (
         if (p.value) return p.value
         if (p.inGroup) {
           try {
-            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            const result = await api.get('/groups', { id: p.inGroup })
             return result.groups[0]?.members
           } catch (error) {
             return []
@@ -219,12 +216,7 @@ export const getNoteReaderValues = async (
   )
 }
 
-export const getEditReaderValues = async (
-  roleNames,
-  invitation,
-  noteEditorData,
-  accessToken
-) => {
+export const getEditReaderValues = async (roleNames, invitation, noteEditorData) => {
   if (Array.isArray(invitation.edit.readers)) return undefined
 
   const invitationEditReaderValues =
@@ -234,7 +226,7 @@ export const getEditReaderValues = async (
         if (p.value) return p.value
         if (p.inGroup) {
           try {
-            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            const result = await api.get('/groups', { id: p.inGroup })
             return result.groups[0]?.members
           } catch (error) {
             return []
@@ -265,7 +257,7 @@ const NoteEditor = ({
   customValidator,
   className,
 }) => {
-  const { user, isRefreshing, accessToken } = useUser()
+  const { user, isRefreshing } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
     noteReaders: false,
@@ -278,7 +270,6 @@ const NoteEditor = ({
   const [errors, setErrors] = useState([])
   const { noteEditorPreview } = useContext(WebFieldContext) ?? {}
   if (noteEditorPreview)
-    // eslint-disable-next-line no-param-reassign
     customValidator = () => ({
       isValid: false,
       errorMessage: 'This is a note editor preview',
@@ -286,9 +277,7 @@ const NoteEditor = ({
   const useCheckboxWidget = true
 
   const displayError =
-    typeof setErrorAlertMessage === 'function'
-      ? setErrorAlertMessage
-      : (p) => promptError(p, { scrollToTop: false })
+    typeof setErrorAlertMessage === 'function' ? setErrorAlertMessage : (p) => promptError(p)
 
   const saveDraft = useCallback(
     throttle((fieldName, value) => {
@@ -486,7 +475,7 @@ const NoteEditor = ({
     }
 
     if (writerDescription?.param?.regex === '~.*') {
-      return [user.profile?.id]
+      return [user.profile.id]
     }
 
     return noteEditorData.editSignatureInputValues
@@ -499,11 +488,10 @@ const NoteEditor = ({
       details: { invitation, writable: true },
     }
     try {
-      const result = await api.get(
-        '/notes',
-        { id: noteCreated.id, details: 'invitation,presentation,writable' },
-        { accessToken }
-      )
+      const result = await api.get('/notes', {
+        id: noteCreated.id,
+        details: 'invitation,presentation,writable',
+      })
       return result.notes?.[0] ? result.notes[0] : constructedNote
     } catch (error) {
       if (error.name === 'ForbiddenError') return constructedNote
@@ -531,9 +519,9 @@ const NoteEditor = ({
           noteOrEdit = note
           label = 'note'
         }
-        const latestNoteOrEdit = (
-          await api.get(apiPath, { id: noteOrEdit.id }, { accessToken })
-        )?.[`${label}s`]?.[0]
+        const latestNoteOrEdit = (await api.get(apiPath, { id: noteOrEdit.id }))?.[
+          `${label}s`
+        ]?.[0]
 
         if (latestNoteOrEdit?.tmdate && latestNoteOrEdit.tmdate !== noteOrEdit.tmdate) {
           throw new Error(
@@ -545,7 +533,7 @@ const NoteEditor = ({
       const domainGroup =
         !invitation.domain || invitation.domain === process.env.SUPER_USER
           ? {}
-          : await api.get('/groups', { id: invitation.domain }, { accessToken })
+          : await api.get('/groups', { id: invitation.domain })
       const {
         reviewers_name: { value: reviewerName } = {},
         reviewers_anon_name: { value: anonReviewerName } = {},
@@ -568,18 +556,8 @@ const NoteEditor = ({
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
-        noteReaderValues: await getNoteReaderValues(
-          roleNames,
-          invitation,
-          noteEditorData,
-          accessToken
-        ),
-        editReaderValues: await getEditReaderValues(
-          roleNames,
-          invitation,
-          noteEditorData,
-          accessToken
-        ),
+        noteReaderValues: await getNoteReaderValues(roleNames, invitation, noteEditorData),
+        editReaderValues: await getEditReaderValues(roleNames, invitation, noteEditorData),
         editWriterValues: getEditWriterValues(),
         ...(replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,
@@ -608,7 +586,7 @@ const NoteEditor = ({
             invitationObj: invitation,
             noteObj: note,
           })
-      const result = await api.post('/notes/edits', editToPost, { accessToken })
+      const result = await api.post('/notes/edits', editToPost)
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })
@@ -619,12 +597,16 @@ const NoteEditor = ({
       if (error.errors) {
         setErrors(
           error.errors.map((p) => {
-            const fieldName = getErrorFieldName(p.details.path)
+            const { fieldName, index } = getErrorFieldName(p.details.path)
             const fieldNameInError =
               fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
             if (isNonDeletableError(p.details.invalidValue))
-              return { fieldName, message: `${fieldNameInError} is not deletable` }
-            return { fieldName, message: p.message.replace(fieldName, fieldNameInError) }
+              return { fieldName, message: `${fieldNameInError} is not deletable`, index }
+            return {
+              fieldName,
+              message: p.message.replace(fieldName, fieldNameInError),
+              index,
+            }
           })
         )
         const hasOnlyMissingFieldsError = error.errors.every(
@@ -636,7 +618,7 @@ const NoteEditor = ({
             : 'Some info submitted are invalid.'
         )
       } else if (error.details?.path) {
-        const fieldName = getErrorFieldName(error.details.path)
+        const { fieldName, index } = getErrorFieldName(error.details.path)
         const fieldNameInError =
           fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
         const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
@@ -646,6 +628,7 @@ const NoteEditor = ({
           {
             fieldName,
             message: prettyErrorMessage,
+            index,
           },
         ])
         displayError(prettyErrorMessage)

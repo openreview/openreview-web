@@ -13,7 +13,7 @@ export default function ActivityList({
   invitation,
   pageSize,
   shouldReload,
-  accessToken,
+  user,
 }) {
   const [activityNotes, setActivityNotes] = useState(null)
   const [error, setError] = useState(null)
@@ -21,16 +21,12 @@ export default function ActivityList({
   useEffect(() => {
     const loadActivityNotes = () =>
       api
-        .get(
-          '/notes',
-          {
-            invitation: invitation || `${venueId}/.*`,
-            details: 'forumContent,invitation,writable',
-            sort: 'tmdate:desc',
-            limit: pageSize || 50,
-          },
-          { accessToken }
-        )
+        .get('/notes', {
+          invitation: invitation || `${venueId}/.*`,
+          details: 'forumContent,invitation,writable',
+          sort: 'tmdate:desc',
+          limit: pageSize || 50,
+        })
         .then(({ notes }) => {
           setActivityNotes(notes?.length > 0 ? notes : [])
         })
@@ -50,7 +46,7 @@ export default function ActivityList({
             sort: 'tmdate:desc',
             limit: pageSize || 25,
           },
-          { accessToken, version: apiVersion }
+          { version: apiVersion }
         )
         .then(({ edits }) => {
           setActivityNotes(
@@ -69,7 +65,7 @@ export default function ActivityList({
     } else {
       loadActivityEdits()
     }
-  }, [accessToken, shouldReload])
+  }, [user, shouldReload])
 
   useEffect(() => {
     if (!activityNotes) return

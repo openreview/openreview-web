@@ -47,7 +47,7 @@ const ChatReply = ({
   const [needsRerender, setNeedsRerender] = useState(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState(false)
   const [showReactionPicker, setShowReactionPicker] = useState(false)
-  const { accessToken } = useUser()
+  const { user } = useUser()
 
   const isChatNote = Object.keys(note.content).length === 1 && note.content.message
   const presentation = note.details?.presentation
@@ -81,7 +81,7 @@ const ChatReply = ({
   }
 
   const deleteNote = (deleteSignatures) => {
-    if (loading || !accessToken) return
+    if (loading || !user) return
 
     setLoading(true)
     const now = Date.now()
@@ -96,13 +96,13 @@ const ChatReply = ({
       },
     }
     api
-      .post('/notes/edits', noteEdit, { accessToken })
+      .post('/notes/edits', noteEdit)
       .then((res) => {
         updateNote({ ...note, ddate: now })
         setLoading(false)
       })
       .catch((err) => {
-        promptError(err.message, { scrollToTop: false })
+        promptError(err.message)
         setLoading(false)
       })
 
@@ -110,7 +110,7 @@ const ChatReply = ({
   }
 
   const addOrRemoveTag = (tagValue, existingTags) => {
-    if (loading || !accessToken || !reactionInvitation || !signature) return
+    if (loading || !user || !reactionInvitation || !signature) return
 
     setLoading(true)
     setShowReactionPicker(false)
@@ -128,7 +128,7 @@ const ChatReply = ({
       ...(existingTagId && { id: existingTagId, ddate: Date.now() }),
     }
     api
-      .post('/tags', tagData, { accessToken })
+      .post('/tags', tagData)
       .then((tagRes) => {
         const tooltipEl = document.querySelector(`#__next div.tooltip.in`)
         if (tooltipEl) tooltipEl.remove()
@@ -138,7 +138,7 @@ const ChatReply = ({
         setLoading(false)
       })
       .catch((err) => {
-        promptError(err.message, { scrollToTop: false })
+        promptError(err.message)
         setLoading(false)
       })
   }
@@ -149,7 +149,7 @@ const ChatReply = ({
     copy(
       `${window.location.origin}${window.location.pathname}?id=${note.forum}&noteId=${note.id}${window.location.hash}`
     )
-    promptMessage('Reply URL copied to clipboard', { scrollToTop: false })
+    promptMessage('Reply URL copied to clipboard')
   }
 
   useEffect(() => {
@@ -158,7 +158,7 @@ const ChatReply = ({
         try {
           MathJax.typesetPromise()
         } catch (error) {
-          // eslint-disable-next-line no-console
+          // oxlint-disable-next-line no-console
           console.warn('Could not format math notation')
         }
       }, 0)
@@ -293,7 +293,7 @@ const ChatReply = ({
               }}
             >
               <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
-                <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.022-.015c.02.013.021.015.021.015v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213c-.16.166-.338.316-.53.445-.63.418-1.37.638-2.127.629-.946 0-1.652-.308-2.126-.63a3.331 3.331 0 0 1-.715-.657l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM5 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5.25 2.25.592.416a97.71 97.71 0 0 0-.592-.416Z"></path>
+                <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.022-.015c.02.013.021.015.021.015v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213c-.16.166-.338.316-.53.445-.63.418-1.37.638-2.127.629-.946 0-1.652-.308-2.126-.63a3.331 3.331 0 0 1-.715-.657l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM5 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5.25 2.25.592.416a97.71 97.71 0 0 0-.592-.416Z" />
               </svg>{' '}
               Add Reaction
             </button>
@@ -484,7 +484,7 @@ function ReactionButtons({
             }}
           >
             <svg viewBox="0 0 16 16" version="1.1" aria-hidden="true">
-              <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.022-.015c.02.013.021.015.021.015v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213c-.16.166-.338.316-.53.445-.63.418-1.37.638-2.127.629-.946 0-1.652-.308-2.126-.63a3.331 3.331 0 0 1-.715-.657l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM5 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5.25 2.25.592.416a97.71 97.71 0 0 0-.592-.416Z"></path>
+              <path d="M8 0a8 8 0 1 1 0 16A8 8 0 0 1 8 0ZM1.5 8a6.5 6.5 0 1 0 13 0 6.5 6.5 0 0 0-13 0Zm3.82 1.636a.75.75 0 0 1 1.038.175l.007.009c.103.118.22.222.35.31.264.178.683.37 1.285.37.602 0 1.02-.192 1.285-.371.13-.088.247-.192.35-.31l.007-.008a.75.75 0 0 1 1.222.87l-.022-.015c.02.013.021.015.021.015v.001l-.001.002-.002.003-.005.007-.014.019a2.066 2.066 0 0 1-.184.213c-.16.166-.338.316-.53.445-.63.418-1.37.638-2.127.629-.946 0-1.652-.308-2.126-.63a3.331 3.331 0 0 1-.715-.657l-.014-.02-.005-.006-.002-.003v-.002h-.001l.613-.432-.614.43a.75.75 0 0 1 .183-1.044ZM12 7a1 1 0 1 1-2 0 1 1 0 0 1 2 0ZM5 8a1 1 0 1 1 0-2 1 1 0 0 1 0 2Zm5.25 2.25.592.416a97.71 97.71 0 0 0-.592-.416Z" />
             </svg>{' '}
             +
           </button>

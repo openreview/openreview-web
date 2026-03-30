@@ -18,7 +18,6 @@ import Markdown from '../EditorComponents/Markdown'
 import Icon from '../Icon'
 import InvitationEditor from '../group/InvitationEditor'
 import api from '../../lib/api-client'
-import useUser from '../../hooks/useUser'
 import InvitationReply, { InvitationReplyV2 } from './InvitationReply'
 import CodeEditor from '../CodeEditor'
 import EditorSection from '../EditorSection'
@@ -89,7 +88,6 @@ const invitationTabsConfig = (invitation) => {
 const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
   const [editInvitationInvitations, setEditInvitationInvitations] = useState([])
   const [activeInvitationInvitation, setActivateInvitationInvitation] = useState(null)
-  const { accessToken } = useUser()
   const isV1Invitation = invitation.apiVersion !== 2
   const isActivated = dayjs(invitation.cdate).isSameOrBefore(dayjs())
 
@@ -151,7 +149,6 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
           />
         )
       case 'contentProcessFunctions':
-        // eslint-disable-next-line no-case-declarations
         const contentScripts = Object.keys(invitation.content ?? {}).filter(
           (key) => key.endsWith('_script') && typeof invitation.content[key].value === 'string'
         )
@@ -233,11 +230,10 @@ const InvitationWithInvitation = ({ invitation, reloadInvitation }) => {
 
   const getInvitationsByReplyInvitation = async () => {
     try {
-      const result = await api.get(
-        '/invitations',
-        { 'edit.invitation.id': invitation.id, details: 'writable' },
-        { accessToken }
-      )
+      const result = await api.get('/invitations', {
+        'edit.invitation.id': invitation.id,
+        details: 'writable',
+      })
       const writableInvitations = (result.invitations ?? []).filter((p) => p.details?.writable)
       setEditInvitationInvitations(writableInvitations)
     } catch (error) {

@@ -20,6 +20,10 @@
     border: 0.25rem solid transparent;
     background-clip: padding-box;
 
+    &.invalidValue {
+      border: 2px solid constants.$orRed;
+    }
+
     .dragHandle {
       opacity: 0.3;
       color: constants.$mediumBlue;

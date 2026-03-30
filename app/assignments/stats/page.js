@@ -53,6 +53,7 @@ export default async function page({ searchParams }) {
     /* empty */
   }
   if (!note) {
+    // oxlint-disable-next-line no-console
     console.log('Error in getNoteById', {
       page: 'assignments/stats',
       user: user?.id,
@@ -74,7 +75,7 @@ export default async function page({ searchParams }) {
     return (
       <CommonLayout banner={<Banner>{banner}</Banner>}>
         <div className={styles.stats}>
-          <V1Stats configNote={note} accessToken={accessToken} />
+          <V1Stats configNote={note} />
         </div>
       </CommonLayout>
     )
@@ -85,7 +86,7 @@ export default async function page({ searchParams }) {
     <CommonLayout banner={<Banner>{banner}</Banner>}>
       <div className={styles.stats}>
         <Suspense fallback={<LoadingSpinner />}>
-          <Stats configNote={note} accessToken={accessToken} />
+          <Stats configNote={note} />
         </Suspense>
       </div>
     </CommonLayout>

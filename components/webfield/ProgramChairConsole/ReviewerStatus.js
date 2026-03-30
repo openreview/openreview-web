@@ -3,7 +3,6 @@ import { sortBy } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import Link from 'next/link'
-import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import {
   getProfileName,
@@ -12,7 +11,7 @@ import {
   prettyField,
   getRoleHashFragment,
 } from '../../../lib/utils'
-import { buildEdgeBrowserUrl, getProfileLink } from '../../../lib/webfield-utils'
+import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -20,6 +19,7 @@ import WebFieldContext from '../../WebFieldContext'
 import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 import { NoteContentV2 } from '../../NoteContent'
 import { formatProfileContent } from '../../../lib/edge-utils'
+import ProfileLink from '../ProfileLink'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -34,7 +34,7 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   )
   const getReviewerEmail = async (name, profileId) => {
     if (!preferredEmailInvitationId) {
-      promptError('Email is not available.', { scrollToTop: false })
+      promptError('Email is not available.')
       return
     }
     try {
@@ -45,9 +45,9 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       const email = result.edges?.[0]?.tail
       if (!email) throw new Error('Email is not available.')
       copy(`${name} <${email}>`)
-      promptMessage(`${email} copied to clipboard`, { scrollToTop: false })
+      promptMessage(`${email} copied to clipboard`)
     } catch (error) {
-      promptError(error.message, { scrollToTop: false })
+      promptError(error.message)
     }
   }
   return (
@@ -55,13 +55,14 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
       {preferredName ? (
         <div className="reviewer-info">
           <h4>
-            <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
-              {preferredName}
-            </a>
+            <ProfileLink
+              id={id ?? reviewerProfileId}
+              name={preferredName}
+              preferredEmailInvitationId={preferredEmailInvitationId}
+            />
           </h4>
           <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
-            // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
               className="copy-email-link"
@@ -76,9 +77,11 @@ const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
         </div>
       ) : (
         <h4>
-          <a href={getProfileLink(id ?? reviewerProfileId)} target="_blank" rel="noreferrer">
-            {reviewerProfileId}
-          </a>
+          <ProfileLink
+            id={reviewerProfileId}
+            name={reviewerProfileId}
+            preferredEmailInvitationId={preferredEmailInvitationId}
+          />
         </h4>
       )}
       <div>
@@ -307,7 +310,6 @@ const ReviewerStatusTab = ({
     officialReviewName,
     submissionName,
   } = useContext(WebFieldContext)
-  const { accessToken } = useUser()
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(pcConsoleData.reviewers?.length ?? 0)
   const pageSize = 25
@@ -331,35 +333,18 @@ const ReviewerStatusTab = ({
           (reviewerProfileId) => !pcConsoleData.allProfilesMap.get(reviewerProfileId)
         )
         const ids = reviewerWithoutAssignmentIds.filter((p) => p.startsWith('~'))
-        const emails = reviewerWithoutAssignmentIds.filter((p) => p.match(/.+@.+/))
         const getProfilesByIdsP = ids.length
-          ? api.post(
-              '/profiles/search',
-              {
-                ids,
-              },
-              { accessToken }
-            )
+          ? api.post('/profiles/search', {
+              ids,
+            })
           : Promise.resolve([])
-        const getProfilesByEmailsP = emails.length
-          ? api.post(
-              '/profiles/search',
-              {
-                emails,
-              },
-              { accessToken }
-            )
-          : Promise.resolve([])
-        const reviewerProfileResults = await Promise.all([
-          getProfilesByIdsP,
-          getProfilesByEmailsP,
-        ])
-        const reviewerProfilesWithoutAssignment = (reviewerProfileResults[0].profiles ?? [])
-          .concat(reviewerProfileResults[1].profiles ?? [])
-          .map((profile) => ({
+        const reviewerProfileResults = await getProfilesByIdsP
+        const reviewerProfilesWithoutAssignment = (reviewerProfileResults.profiles ?? []).map(
+          (profile) => ({
             ...profile,
             preferredName: getProfileName(profile),
-          }))
+          })
+        )
         const reviewerProfileWithoutAssignmentMap = new Map()
         reviewerProfilesWithoutAssignment.forEach((profile) => {
           const usernames = profile.content.names.flatMap((p) => p.username ?? [])
@@ -373,9 +358,7 @@ const ReviewerStatusTab = ({
               userRegNotes = userRegNotes.concat(pcConsoleData.registrationNoteMap[username])
             }
           })
-          // eslint-disable-next-line no-param-reassign
           profile.registrationNotes = userRegNotes
-          // eslint-disable-next-line no-param-reassign
           profile.title = formatProfileContent(profile.content).title
 
           usernames.concat(profile.email ?? []).forEach((key) => {
@@ -388,7 +371,7 @@ const ReviewerStatusTab = ({
         const allNoteNumbers = pcConsoleData.notes.map((p) => p.number)
         pcConsoleData.paperGroups.reviewerGroups.forEach((reviewerGroup) => {
           reviewerGroup.members.forEach((member) => {
-            const noteNumber = reviewerGroup.noteNumber // eslint-disable-line prefer-destructuring
+            const noteNumber = reviewerGroup.noteNumber // oxlint-disable-line prefer-destructuring
             if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
             const reviewMetaReviewInfo =
               pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}
