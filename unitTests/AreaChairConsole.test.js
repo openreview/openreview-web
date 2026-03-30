@@ -1,9 +1,9 @@
 import { screen, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
+import AreaChairConsole from '../components/webfield/AreaChairConsole'
 import api from '../lib/api-client'
 import { reRenderWithWebFieldContext, renderWithWebFieldContext } from './util'
-import AreaChairConsole from '../components/webfield/AreaChairConsole'
+import '@testing-library/jest-dom'
 
 let useUserReturnValue
 let noteSummaryProps
@@ -274,7 +274,7 @@ describe('AreaChairConsole', () => {
             id: '~Senior_AC1',
             content: {
               names: [{ username: '~Senior_AC1' }],
-              emails: ['senior@AC.one'],
+              emailsConfirmed: ['senior@AC.one'],
             },
           },
         ],
@@ -372,14 +372,14 @@ describe('AreaChairConsole', () => {
             id: '~Senior_AC1',
             content: {
               names: [{ username: '~Senior_AC1' }],
-              emails: ['senior@AC.one'],
+              emailsConfirmed: ['senior@AC.one'],
             },
           },
           {
             id: '~Senior_AC2',
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@AC.two'],
+              emailsConfirmed: ['senior@AC.two'],
             },
             email: 'senior@AC.two',
           },
@@ -763,37 +763,37 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperFive_Reviewer1', fullname: 'PaperFive Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperFive_Reviewer2', fullname: 'PaperFive Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~Senior_AC1' }],
-              emails: ['senior@AC.one'],
+              emailsConfirmed: ['senior@AC.one'],
             },
           },
           {
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@AC.two'],
+              emailsConfirmed: ['senior@AC.two'],
             },
           },
         ],
@@ -989,13 +989,13 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
         ],
@@ -1293,39 +1293,39 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperFive_Reviewer1', fullname: 'PaperFive Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperFive_Reviewer2', fullname: 'PaperFive Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             id: '~Senior_AC1',
             content: {
               names: [{ username: '~Senior_AC1' }],
-              emails: ['senior@AC.one'],
+              emailsConfirmed: ['senior@AC.one'],
             },
           },
           {
             id: '~Senior_AC2',
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@AC.two'],
+              emailsConfirmed: ['senior@AC.two'],
             },
           },
         ],
@@ -1844,13 +1844,13 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
         ],
