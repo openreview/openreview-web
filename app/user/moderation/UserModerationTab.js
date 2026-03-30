@@ -150,7 +150,7 @@ const BlockModal = ({
   const [blockTag, setBlockTag] = useState('')
   const actionIsBlock = profileToBlockUnblock?.state !== 'Blocked'
 
-  const blockUnblockUser = async (profile) => {
+  const blockUser = async (profile) => {
     if (!profile) return
 
     try {
@@ -164,9 +164,41 @@ const BlockModal = ({
 
       await api.post('/profile/moderate', {
         id: profile.id,
-        decision: actionIsBlock ? 'block' : 'unblock',
+        decision: 'block',
       })
       setBlockTag('')
+    } catch (error) {
+      promptError(error.message)
+    }
+    reload()
+  }
+
+  const unblockUser = async (profile) => {
+    if (!profile) return
+    try {
+      const blockTagResult = await api.get('/tags', {
+        profile: profileToBlockUnblock.id,
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`,
+      })
+
+      const existingBlockTag = blockTagResult?.tags?.[0]
+
+      if (existingBlockTag) {
+        await api.post('/tags', {
+          id: existingBlockTag.id,
+          ddate: Date.now(),
+          profile: existingBlockTag.profile,
+          label: existingBlockTag.label,
+          readers: existingBlockTag.readers,
+          signature: existingBlockTag.signature,
+          invitation: existingBlockTag.invitation,
+        })
+      }
+
+      await api.post('/profile/moderate', {
+        id: profile.id,
+        decision: 'unblock',
+      })
     } catch (error) {
       promptError(error.message)
     }
@@ -180,16 +212,19 @@ const BlockModal = ({
       }.`}
       open={profileToBlockUnblock}
       okText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
-      okButtonProps={{ disabled: !blockTag.trim() }}
+      okButtonProps={{ disabled: actionIsBlock && !blockTag.trim() }}
       destroyOnHidden={true}
       onCancel={() => {
         setBlockTag('')
         setProfileToBlockUnblock(null)
       }}
-      onOk={() => {
-        setBlockTag('')
+      onOk={async () => {
+        if (actionIsBlock) {
+          await blockUser(profileToBlockUnblock)
+        } else {
+          await unblockUser(profileToBlockUnblock)
+        }
         setProfileToBlockUnblock(null)
-        blockUnblockUser(profileToBlockUnblock)
       }}
       width={{
         xs: '90%',
@@ -197,11 +232,13 @@ const BlockModal = ({
       }}
     >
       <Flex vertical gap="small" align="flex-start">
-        <Input
-          placeholder="a tag to be added to this profile such as block/unblock reason"
-          value={blockTag}
-          onChange={(e) => setBlockTag(e.target.value)}
-        />
+        {actionIsBlock && (
+          <Input
+            placeholder="a tag to be added to this profile such as block reason"
+            value={blockTag}
+            onChange={(e) => setBlockTag(e.target.value)}
+          />
+        )}
         {actionIsBlock && signedNotes.length > 0 && (
           <>
             <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
