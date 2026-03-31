@@ -1,24 +1,23 @@
 'use client'
 
-/* globals promptMessage,promptError,view2: false */
-import { useRef } from 'react'
+import { Button, Col, Input, Row } from 'antd'
+import { useState } from 'react'
 import api from '../../../../lib/api-client'
 
 export default function EmailDeletionForm({
   emailRemovalInvitationId,
   setEmailDeletionNotes,
 }) {
-  const emailDeletionFormRef = useRef(null)
+  const [email, setEmail] = useState('')
+  const [profileId, setProfileId] = useState('')
+  const [comment, setComment] = useState('')
 
-  const handleEmailDeletionRequest = async (e) => {
-    e.preventDefault()
-
-    const formData = new FormData(emailDeletionFormRef.current)
-    const formContent = {}
-    formData.forEach((value, name) => {
-      const cleanValue = value.trim()
-      formContent[name] = cleanValue?.length ? cleanValue : undefined
-    })
+  const handleEmailDeletionRequest = async () => {
+    const formContent = {
+      email: email.trim() || undefined,
+      profile_id: profileId.trim() || undefined,
+      comment: comment.trim() || undefined,
+    }
     try {
       const emailRemovalInvitation = await api.getInvitationById(emailRemovalInvitationId)
 
@@ -36,39 +35,54 @@ export default function EmailDeletionForm({
         { ...noteResult, processLogStatus: 'running' },
         ...emailDeletionNotes,
       ])
+
+      setEmail('')
+      setProfileId('')
+      setComment('')
     } catch (error) {
       promptError(error.message)
     }
   }
 
   return (
-    <form
-      className="well mt-3"
-      ref={emailDeletionFormRef}
-      onSubmit={handleEmailDeletionRequest}
+    <Row
+      gutter={[8, 8]}
+      align="middle"
+      style={{
+        backgroundColor: '#efece3',
+        padding: '0.5rem',
+        marginBottom: '0.75rem',
+      }}
     >
-      <input
-        type="text"
-        name="email"
-        className="form-control input-sm"
-        placeholder="Email to delete"
-      />
-      <input
-        type="text"
-        name="profile_id"
-        className="form-control input-sm"
-        placeholder="Profile ID the email is associated with"
-      />
-      <input
-        type="text"
-        name="comment"
-        className="form-control input-sm comment"
-        placeholder="Moderator comment"
-      />
-
-      <button type="submit" className="btn btn-xs">
-        Submit
-      </button>
-    </form>
+      <Col xs={24} md={6}>
+        <Input
+          placeholder="Email to delete"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onPressEnter={handleEmailDeletionRequest}
+        />
+      </Col>
+      <Col xs={24} md={6}>
+        <Input
+          placeholder="Profile ID the email is associated with"
+          value={profileId}
+          onChange={(e) => setProfileId(e.target.value)}
+          onPressEnter={handleEmailDeletionRequest}
+        />
+      </Col>
+      <Col xs={24} md={10}>
+        <Input
+          placeholder="Moderator comment"
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          onPressEnter={handleEmailDeletionRequest}
+        />
+      </Col>
+      <Col xs={24} md={2}>
+        <Button type="primary" onClick={handleEmailDeletionRequest}>
+          Submit
+        </Button>
+      </Col>
+    </Row>
   )
 }

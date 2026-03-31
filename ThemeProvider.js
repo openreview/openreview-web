@@ -41,6 +41,7 @@ const theme = {
       colorBorder: primaryColor,
       hoverBorderColor: '#4f7a8a',
       activeBorderColor: '#3e6775',
+      colorBgContainer: '#fffaf4',
       lineWidth: 2,
     },
     Layout: {

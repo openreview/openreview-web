@@ -1,20 +1,25 @@
 /* globals promptError: false */
 
-import { useEffect, useState } from 'react'
-import api from '../../../../lib/api-client'
-import Table from '../../../../components/Table'
-import PaginationLinks from '../../../../components/PaginationLinks'
-import { formatDateTime } from '../../../../lib/utils'
-import EmailDeletionForm from './EmailDeletionForm'
+import { Col, Flex, Pagination, Row, Tag } from 'antd'
+import { useEffect, useMemo, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
+import api from '../../../../lib/api-client'
+import { formatDateTime, getBootstrap337LabelColor } from '../../../../lib/utils'
+import EmailDeletionForm from './EmailDeletionForm'
+
+import styles from './emailDeletion.module.scss'
 
 const emailRemovalInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Email_Removal`
 const pageSize = 25
 
 export default function EmailDeletionTab() {
   const [emailDeletionNotes, setEmailDeletionNotes] = useState(null)
-  const [emailDeletionNotesToShow, setEmailDeletionNotesToShow] = useState(null)
   const [page, setPage] = useState(1)
+
+  const emailDeletionNotesToShow = useMemo(() => {
+    if (!emailDeletionNotes) return null
+    return emailDeletionNotes.slice((page - 1) * pageSize, page * pageSize)
+  }, [emailDeletionNotes, page])
 
   const loadEmailDeletionNotes = async () => {
     try {
@@ -57,13 +62,6 @@ export default function EmailDeletionTab() {
   }
 
   useEffect(() => {
-    if (!emailDeletionNotes) return
-    setEmailDeletionNotesToShow(
-      emailDeletionNotes.slice((page - 1) * pageSize, page * pageSize)
-    )
-  }, [emailDeletionNotes, page])
-
-  useEffect(() => {
     loadEmailDeletionNotes()
   }, [])
 
@@ -71,66 +69,84 @@ export default function EmailDeletionTab() {
 
   return (
     <>
-      <div className="email-deletion-container">
-        <>
-          <EmailDeletionForm
-            emailRemovalInvitationId={emailRemovalInvitationId}
-            setEmailDeletionNotes={setEmailDeletionNotes}
-          />
-          <div className="email-deletion-list">
-            <Table
-              headings={[
-                { content: 'Status', width: '5%' },
-                { content: 'Email', width: '25%' },
-                { content: 'Profile Id', width: '25%' },
-                { content: 'Comment', width: '25%' },
-                { content: 'Date' },
-              ]}
-            />
+      <EmailDeletionForm
+        emailRemovalInvitationId={emailRemovalInvitationId}
+        setEmailDeletionNotes={setEmailDeletionNotes}
+      />
 
-            {emailDeletionNotesToShow.map((note) => (
-              <div className="email-deletion-row" key={note.id}>
-                <span className="col-status">
-                  <a href={note.processLogUrl} target="_blank" rel="noreferrer">
-                    <span
-                      className={`label label-${
-                        note.processLogStatus === 'ok' ? 'success' : 'default'
-                      }`}
-                    >
-                      {note.processLogStatus}
-                    </span>
-                  </a>
-                </span>
-                <span className="col-email">
-                  <span>{note.content.email.value}</span>
-                </span>
-                <span className="col-profile">
-                  <a
-                    href={`/profile?id=${note.content.profile_id.value}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    {note.content.profile_id.value}
-                  </a>
-                </span>
-                <span className="col-comment">{note.content.comment.value}</span>
-                <span className="col-created">{formatDateTime(note.tcdate)}</span>
-              </div>
-            ))}
-            {emailDeletionNotes.length === 0 ? (
-              <p className="empty-message">No email deletion requests.</p>
-            ) : (
-              <PaginationLinks
-                currentPage={page}
-                itemsPerPage={pageSize}
-                totalCount={emailDeletionNotes.length}
-                options={{ useShallowRouting: true }}
-                setCurrentPage={setPage}
-              />
-            )}
-          </div>
-        </>
-      </div>
+      <Row
+        align="middle"
+        gutter={[8, 0]}
+        className={styles.columnheaders}
+        style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+      >
+        <Col xs={6} sm={4} md={3} lg={2}>
+          Status
+        </Col>
+        <Col xs={18} sm={8} md={5} lg={6}>
+          Email
+        </Col>
+        <Col xs={12} sm={8} md={6} lg={6}>
+          Profile Id
+        </Col>
+        <Col xs={12} sm={8} md={6} lg={6}>
+          Comment
+        </Col>
+        <Col xs={12} sm={8} md={4} lg={4}>
+          Date
+        </Col>
+      </Row>
+
+      <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
+        {emailDeletionNotesToShow.map((note) => (
+          <Row key={note.id} align="middle" gutter={[8, 8]}>
+            <Col xs={6} sm={4} md={3} lg={2}>
+              <a href={note.processLogUrl} target="_blank" rel="noreferrer">
+                <Tag
+                  color={getBootstrap337LabelColor(
+                    note.processLogStatus === 'ok' ? 'success' : 'default'
+                  )}
+                  variant="solid"
+                >
+                  {note.processLogStatus}
+                </Tag>
+              </a>
+            </Col>
+            <Col xs={18} sm={8} md={5} lg={6} className={styles.truncatedtext}>
+              {note.content.email.value}
+            </Col>
+            <Col xs={12} sm={8} md={6} lg={6} className={styles.truncatedtext}>
+              <a
+                href={`/profile?id=${note.content.profile_id.value}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                {note.content.profile_id.value}
+              </a>
+            </Col>
+            <Col xs={12} sm={8} md={6} lg={6} className={styles.truncatedtext}>
+              {note.content.comment.value}
+            </Col>
+            <Col xs={12} sm={8} md={4} lg={4}>
+              {formatDateTime(note.tcdate)}
+            </Col>
+          </Row>
+        ))}
+      </Flex>
+
+      {emailDeletionNotes.length === 0 ? (
+        <p>No email deletion requests.</p>
+      ) : (
+        <Pagination
+          align="center"
+          current={page}
+          pageSize={pageSize}
+          total={emailDeletionNotes.length}
+          onChange={(newPage) => setPage(newPage)}
+          showSizeChanger={false}
+          hideOnSinglePage
+        />
+      )}
     </>
   )
 }
