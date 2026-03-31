@@ -21,7 +21,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run lint
-        run: npx --yes oxlint@latest --report-unused-disable-directives --quiet
+        run: npx --yes oxlint@1.51.0 --report-unused-disable-directives --quiet
 
   build:
     runs-on: ubuntu-latest
