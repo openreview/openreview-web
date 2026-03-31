@@ -1,18 +1,12 @@
 /* globals $,promptMessage,promptError,typesetMathJax: false */
 
-import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { camelCase, chunk, orderBy } from 'lodash'
 import Link from 'next/link'
-import WebFieldContext from '../WebFieldContext'
-import BasicHeader from './BasicHeader'
-import Table from '../Table'
-import ErrorDisplay from '../ErrorDisplay'
-import NoteSummary from './NoteSummary'
-import { AcPcConsoleNoteReviewStatus, LatestReplies } from './NoteReviewStatus'
-import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
+import { useSearchParams } from 'next/navigation'
+import { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import { formatProfileContent } from '../../lib/edge-utils'
 import {
   getNumberFromGroup,
   getIndentifierFromGroup,
@@ -25,11 +19,17 @@ import {
   getSingularRoleName,
   getRoleHashFragment,
 } from '../../lib/utils'
-import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
+import ErrorDisplay from '../ErrorDisplay'
 import LoadingSpinner from '../LoadingSpinner'
-import ConsoleTaskList from './ConsoleTaskList'
-import { formatProfileContent } from '../../lib/edge-utils'
+import Table from '../Table'
+import WebFieldContext from '../WebFieldContext'
+import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
+import BasicHeader from './BasicHeader'
 import ConsoleTabs from './ConsoleTabs'
+import ConsoleTaskList from './ConsoleTaskList'
+import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from './NoteReviewStatus'
+import NoteSummary from './NoteSummary'
 import SelectAllCheckBox from './SelectAllCheckbox'
 
 const AssignedPaperRow = ({
@@ -398,7 +398,6 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  *
  * @typedef {Object} AreaChairConsoleConfig
  *
- // oxlint-disable-next-line max-len
  * @property {Object} header mandatory but can be empty object
  * @property {string} venueId mandatory
  * @property {Object} reviewerAssignment optional
