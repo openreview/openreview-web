@@ -1,0 +1,20 @@
+.truncatedtext {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statustag {
+  min-width: 68px !important;
+  text-align: center !important;
+}
+
+.actionbuttoncontent {
+  font-weight: normal;
+}
+
+.columnheaders {
+  @media (max-width: 575px) {
+    display: none !important;
+  }
+}
