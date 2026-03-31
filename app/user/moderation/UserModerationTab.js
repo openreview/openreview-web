@@ -1,8 +1,15 @@
-/* globals promptMessage,promptError,view2,$: false */
-import { useEffect, useReducer, useRef, useState } from 'react'
 import dayjs from 'dayjs'
 import { cloneDeep, uniqBy } from 'lodash'
+/* globals promptMessage,promptError,view2,$: false */
+import { useEffect, useReducer, useRef, useState } from 'react'
+import BasicModal from '../../../components/BasicModal'
+import Dropdown from '../../../components/Dropdown'
+import Icon from '../../../components/Icon'
+import LoadingSpinner from '../../../components/LoadingSpinner'
+import PaginationLinks from '../../../components/PaginationLinks'
+import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 import api from '../../../lib/api-client'
+import { formatProfileData } from '../../../lib/profiles'
 import {
   formatDateTime,
   getProfileStateLabelClass,
@@ -10,13 +17,6 @@ import {
   inflect,
   prettyId,
 } from '../../../lib/utils'
-import Dropdown from '../../../components/Dropdown'
-import { formatProfileData } from '../../../lib/profiles'
-import Icon from '../../../components/Icon'
-import LoadingSpinner from '../../../components/LoadingSpinner'
-import PaginationLinks from '../../../components/PaginationLinks'
-import BasicModal from '../../../components/BasicModal'
-import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 
 export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
@@ -481,7 +481,7 @@ const UserModerationQueue = ({
       {profiles ? (
         <ul className="list-unstyled list-paginated">
           {profiles.map((profile) => {
-            const name = profile.content.names[0]
+            const name = profile.content.names?.[0]
             const state =
               profile.ddate && profile.state !== 'Merged' ? 'Deleted' : profile.state
             return (
@@ -498,7 +498,7 @@ const UserModerationQueue = ({
                     rel="noreferrer"
                     title={profile.id}
                   >
-                    {name.fullname}
+                    {name?.fullname}
                   </a>
                 </span>
                 <span className="col-email text-muted">{profile.content.preferredEmail}</span>
