@@ -1,13 +1,12 @@
-/* globals promptError: false */
-import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import groupBy from 'lodash/groupBy'
-import { camelCase } from 'lodash'
 import dayjs from 'dayjs'
+import { camelCase } from 'lodash'
+import groupBy from 'lodash/groupBy'
+import { useSearchParams } from 'next/navigation'
+import { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import WebFieldContext from '../WebFieldContext'
-import BasicHeader from './BasicHeader'
+import { clearCache, getCache, setCache } from '../../lib/console-cache'
+import { formatProfileContent } from '../../lib/edge-utils'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
@@ -21,25 +20,24 @@ import {
   getRoleHashFragment,
   formatDateTime,
 } from '../../lib/utils'
-import Overview from './ProgramChairConsole/Overview'
-import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
-import PaperStatus from './ProgramChairConsole/PaperStatus'
-import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
-import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
 import ErrorDisplay from '../ErrorDisplay'
-import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
-import { formatProfileContent } from '../../lib/edge-utils'
-import ConsoleTabs from './ConsoleTabs'
-import { clearCache, getCache, setCache } from '../../lib/console-cache'
-import SpinnerButton from '../SpinnerButton'
 import LoadingSpinner from '../LoadingSpinner'
+import SpinnerButton from '../SpinnerButton'
+import WebFieldContext from '../WebFieldContext'
+import BasicHeader from './BasicHeader'
+import ConsoleTabs from './ConsoleTabs'
+import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
+import Overview from './ProgramChairConsole/Overview'
+import PaperStatus from './ProgramChairConsole/PaperStatus'
+import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
+import ReviewerStatusTab from './ProgramChairConsole/ReviewerStatus'
+import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
 
 // #region config docs
 /** Program Chair Console config doc
  *
  * @typedef {Object} ProgramChairConsoleConfig
  *
- // oxlint-disable-next-line max-len
  * @property {Object} header mandatory but can be empty object
  * @property {Object} entity mandatory
  * @property {string} venueId mandatory
