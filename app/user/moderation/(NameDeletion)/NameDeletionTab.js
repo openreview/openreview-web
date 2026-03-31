@@ -213,7 +213,9 @@ export default function NameDeletionTab() {
                 trigger={tooltipTrigger}
                 styles={tooltipStyles}
               >
-                <span className={styles.truncatedtext}>{note.content.usernames.value.join(', ')}</span>
+                <span className={styles.truncatedtext}>
+                  {note.content.usernames.value.join(', ')}
+                </span>
               </Tooltip>
             </Col>
             <Col xs={12} sm={8} md={5} lg={5}>
@@ -242,6 +244,7 @@ export default function NameDeletionTab() {
                     Accept
                   </Button>
                   <Button
+                    type="primary"
                     size="small"
                     icon={<CloseCircleOutlined />}
                     classNames={{ content: styles.actionbuttoncontent }}

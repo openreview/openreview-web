@@ -11,7 +11,6 @@ const pageSize = 25
 const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
 
 export default function InstitutionTab() {
-  const [allInstitutions, setAllInstitutions] = useState(null)
   const [institutions, setInstitutions] = useState(null)
   const [page, setPage] = useState(1)
   const [countryOptions, setCountryOptions] = useState([])
@@ -24,12 +23,10 @@ export default function InstitutionTab() {
     return institutions.slice(pageSize * (page - 1), pageSize * page)
   }, [institutions, page])
 
-  const loadInstitutionsDomains = async (noCache) => {
+  const loadInstitutionsDomains = async () => {
     try {
-      const result = await api.get(
-        `/settings/institutiondomains${noCache ? '?cache=false' : ''}`
-      )
-      setAllInstitutions(result)
+      const result = await api.get(`/settings/institutionDomains?cache=false`)
+
       return result
     } catch (error) {
       promptError(error.message)
@@ -51,20 +48,15 @@ export default function InstitutionTab() {
     }
   }
 
-  const searchInstitution = async () => {
-    let domains = allInstitutions
-    if (!domains) {
-      domains = await loadInstitutionsDomains(true)
-    }
-    if (!domains) return
-
-    const term = searchTerm.trim()
+  const loadAndFilterInstitutions = async (termOverride) => {
+    const cleanTerm = (termOverride ?? searchTerm)?.trim()?.toLowerCase()
     setPage(1)
-    if (!term.length) {
+    const domains = await loadInstitutionsDomains()
+    if (!cleanTerm.length) {
       setInstitutions(domains)
-      return
+    } else {
+      setInstitutions(domains.filter((p) => p.toLowerCase().includes(cleanTerm)))
     }
-    setInstitutions(domains.filter((p) => p.toLowerCase().includes(term.toLowerCase())))
   }
 
   const openAddModal = async () => {
@@ -129,8 +121,8 @@ export default function InstitutionTab() {
       promptMessage(`${institutionId} ${isEditMode ? 'saved' : 'added'}.`)
       setIsEditMode(null)
       setModalData({})
-      await loadInstitutionsDomains(true)
-      if (institutions) searchInstitution()
+      await loadInstitutionsDomains()
+      if (institutions) loadAndFilterInstitutions()
     } catch (error) {
       promptError(error.message)
     }
@@ -142,8 +134,8 @@ export default function InstitutionTab() {
     try {
       await api.delete(`/settings/institutions/${institutionId}`)
       promptMessage(`${institutionId} is deleted.`)
-      await loadInstitutionsDomains(true)
-      if (institutions) searchInstitution()
+      await loadInstitutionsDomains()
+      if (institutions) loadAndFilterInstitutions()
     } catch (error) {
       promptError(error.message)
     }
@@ -160,17 +152,16 @@ export default function InstitutionTab() {
             onChange={(e) => {
               const value = e.target.value ?? ''
               setSearchTerm(value)
-              if (!value && allInstitutions) {
-                setPage(1)
-                setInstitutions(allInstitutions)
+              if (!value) {
+                loadAndFilterInstitutions('')
               }
             }}
-            onPressEnter={searchInstitution}
+            onPressEnter={() => loadAndFilterInstitutions()}
           />
         </Col>
         <Col>
           <Space>
-            <Button type="primary" onClick={searchInstitution}>
+            <Button type="primary" onClick={() => loadAndFilterInstitutions()}>
               Search
             </Button>
             <Button type="primary" icon={<PlusOutlined />} onClick={openAddModal}>

@@ -252,6 +252,7 @@ export default function ProfileMergeTab() {
                     Done
                   </Button>
                   <Button
+                    type="primary"
                     size="small"
                     icon={<CloseCircleOutlined />}
                     classNames={{ content: styles.actionbuttoncontent }}
@@ -261,6 +262,7 @@ export default function ProfileMergeTab() {
                     Reject
                   </Button>
                   <Button
+                    type="primary"
                     size="small"
                     classNames={{ content: styles.actionbuttoncontent }}
                     disabled={idsLoading.includes(note.id)}
