@@ -8,6 +8,7 @@ import { formatDateTime, getBootstrap337LabelColor, prettyId } from '../../../..
 import styles from './profileMerge.module.scss'
 
 const pageSize = 25
+const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
 const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
 const profileMergeDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge_Decision`
 
@@ -299,7 +300,7 @@ export default function ProfileMergeTab() {
           setRejectionComment('')
         }}
         onOk={() => acceptRejectProfileMergeNote(noteToReject, 'Rejected', rejectionComment)}
-        width="50%"
+        width={modalWidth}
       >
         <Input.TextArea
           rows={5}

@@ -10,6 +10,7 @@ import styles from './nameDeletion.module.scss'
 
 const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
 const pageSize = 25
+const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
 const tooltipTrigger = ['hover', 'click']
 const tooltipStyles = { root: { maxWidth: '500px', wordBreak: 'break-word' } }
 
@@ -200,7 +201,7 @@ export default function NameDeletionTab() {
                 {prettyId(note.signatures[0])}
               </a>
             </Col>
-            <Col xs={12} sm={8} md={4} lg={4} className={styles.truncatedtext}>
+            <Col xs={12} sm={8} md={4} lg={4}>
               <Tooltip
                 title={
                   <>
@@ -212,16 +213,16 @@ export default function NameDeletionTab() {
                 trigger={tooltipTrigger}
                 styles={tooltipStyles}
               >
-                <span>{note.content.usernames.value.join(', ')}</span>
+                <span className={styles.truncatedtext}>{note.content.usernames.value.join(', ')}</span>
               </Tooltip>
             </Col>
-            <Col xs={12} sm={8} md={5} lg={5} className={styles.truncatedtext}>
+            <Col xs={12} sm={8} md={5} lg={5}>
               <Tooltip
                 title={<Markdown text={note.content.comment.value} />}
                 trigger={tooltipTrigger}
                 styles={tooltipStyles}
               >
-                <span>{note.content.comment.value}</span>
+                <span className={styles.truncatedtext}>{note.content.comment.value}</span>
               </Tooltip>
             </Col>
             <Col xs={12} sm={8} md={4} lg={4}>
@@ -281,7 +282,7 @@ export default function NameDeletionTab() {
           setRejectionComment('')
         }}
         onOk={() => acceptRejectNameDeletionNote(noteToReject, 'Rejected', rejectionComment)}
-        width="50%"
+        width={modalWidth}
       >
         <Input.TextArea
           rows={5}
