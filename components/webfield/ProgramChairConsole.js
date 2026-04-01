@@ -263,23 +263,12 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #region get ac recommendation count
       const getAcRecommendationsP =
         recommendationName && areaChairsId
-          ? api
-              .get('/edges', {
-                invitation: `${reviewersId}/-/${recommendationName}`,
-                groupBy: 'id',
-                select: 'signatures',
-                domain: venueId,
-              })
-              .then((result) =>
-                result.groupedEdges.reduce((profileMap, edge) => {
-                  const acId = edge.values[0].signatures[0]
-                  if (!profileMap[acId]) {
-                    profileMap[acId] = 0
-                  }
-                  profileMap[acId] += 1
-                  return profileMap
-                }, {})
-              )
+          ? api.get('/edges', {
+              invitation: `${reviewersId}/-/${recommendationName}`,
+              groupBy: 'id',
+              select: 'signatures',
+              domain: venueId,
+            })
           : Promise.resolve([])
       // #endregion
 
@@ -356,7 +345,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           }),
         })
       })
-      const acRecommendationsCount = results[2]
+      const acRecommendationsEdgeResults = results[2]
       const bidCountResults = results[3]
       const perPaperGroupResults = results[4]
       const invitedGroupsResult = results[6]
@@ -366,6 +355,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const anonReviewerGroups = {}
       const areaChairGroups = []
       const anonAreaChairGroups = {}
+      const anonAreaChairIdMap = new Map()
       const secondaryAreaChairGroups = []
       const secondaryAnonAreaChairGroups = {}
       const seniorAreaChairGroups = []
@@ -427,7 +417,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         }
         if (p.id.includes(`/${anonAreaChairName}`)) {
           if (anonAreaChairGroups[number] === undefined) anonAreaChairGroups[number] = {}
-          if (p.members.length) anonAreaChairGroups[number][p.id] = p.members[0]
+          if (p.members.length) {
+            anonAreaChairGroups[number][p.id] = p.members[0]
+            anonAreaChairIdMap.set(p.id, p.members[0])
+          }
           for (let anonACIndex = 0; anonACIndex < p.members.length; anonACIndex += 1) {
             const member = p.members[anonACIndex]
             allGroupMembers.add(member)
@@ -663,6 +656,24 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           }))
         }
       })
+
+      // map reviewer recommendation to ac id to calculate recommendation progress correctly
+      const acRecommendationsCount = acRecommendationsEdgeResults.groupedEdges.reduce(
+        (profileMap, edge) => {
+          const recommendationSignature = edge.values[0].signatures[0]
+          let acId = recommendationSignature
+          if (recommendationSignature.startsWith(venueId)) {
+            // recommendation signed with anon id
+            acId = anonAreaChairIdMap.get(recommendationSignature)
+          }
+          if (!profileMap[acId]) {
+            profileMap[acId] = 0 // eslint-disable-line no-param-reassign
+          }
+          profileMap[acId] += 1 // eslint-disable-line no-param-reassign
+          return profileMap
+        },
+        {}
+      )
 
       const consoleData = {
         invitations: invitationResults,
