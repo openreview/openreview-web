@@ -1,14 +1,9 @@
+import { chunk } from 'lodash'
+import { useSearchParams } from 'next/navigation'
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import { chunk } from 'lodash'
-import api from '../../lib/api-client'
-import Table from '../Table'
-import WebFieldContext from '../WebFieldContext'
-import BasicHeader from './BasicHeader'
-import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
-import NoteSummary from './NoteSummary'
 import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
 import {
   getNumberFromGroup,
   pluralizeString,
@@ -20,11 +15,16 @@ import {
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import ErrorDisplay from '../ErrorDisplay'
-import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
-import ConsoleTaskList from './ConsoleTaskList'
+import Table from '../Table'
+import WebFieldContext from '../WebFieldContext'
+import BasicHeader from './BasicHeader'
 import ConsoleTabs from './ConsoleTabs'
+import ConsoleTaskList from './ConsoleTaskList'
+import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
+import NoteSummary from './NoteSummary'
 import ProfileLink from './ProfileLink'
+import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 
 const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
@@ -366,7 +366,6 @@ const ReviewerConsoleTabs = ({
  *
  * @typedef {Object} ReviewerConsoleConfig
  *
- // oxlint-disable-next-line max-len
  * @property {Object} header mandatory but can be empty object
  * @property {string} venueId mandatory
  * @property {string} reviewerName mandatory

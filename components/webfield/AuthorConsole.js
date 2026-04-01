@@ -1,17 +1,11 @@
 /* globals $, typesetMathJax, promptError: false */
 
-import { useContext, useEffect, useState } from 'react'
-import Link from 'next/link'
 import sum from 'lodash/sum'
 import upperFirst from 'lodash/upperFirst'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import WebFieldContext from '../WebFieldContext'
-import BasicHeader from './BasicHeader'
-import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
-import Table from '../Table'
-import { AuthorConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
-import ErrorDisplay from '../ErrorDisplay'
-import NoteSummary from './NoteSummary'
+import { useContext, useEffect, useState } from 'react'
+import useBreakpoint from '../../hooks/useBreakPoint'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import {
@@ -22,8 +16,14 @@ import {
   pluralizeString,
   getNoteAuthorIds,
 } from '../../lib/utils'
-import useBreakpoint from '../../hooks/useBreakPoint'
+import ErrorDisplay from '../ErrorDisplay'
+import Table from '../Table'
+import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
+import WebFieldContext from '../WebFieldContext'
+import BasicHeader from './BasicHeader'
 import ConsoleTaskList from './ConsoleTaskList'
+import { AuthorConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
+import NoteSummary from './NoteSummary'
 
 const ReviewSummary = ({
   note,
@@ -300,7 +300,6 @@ const AuthorConsoleTasks = () => {
  *
  * @typedef {Object} AuthorConsoleConfig
  *
- // oxlint-disable-next-line max-len
  * @property {Object} header mandatory but can be empty object
  * @property {1|2} apiVersion mandatory
  * @property {string} venueId mandatory
