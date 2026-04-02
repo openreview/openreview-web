@@ -79,9 +79,11 @@ const MessageReviewersModal = ({
         break
       case 'allAuthors':
         roleName = 'Authors'
+        messageInvitation = `${venueId}/-/Edit`
         break
       case 'allSACs':
         roleName = seniorAreaChairName
+        messageInvitation = `${venueId}/-/Edit`
         break
       default:
         roleName = reviewerName
