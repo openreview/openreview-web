@@ -110,10 +110,8 @@ const MessageReviewersModal = ({
               const groupIds = allRecipients.get(rowData?.number)
               if (!groupIds?.length) return Promise.resolve()
               return api.post('/messages', {
-                ...(messageInvitation && {
-                  invitation: messageInvitation.replace('{number}', rowData.number),
-                }),
-                signature: messageInvitation && rowData.messageSignature,
+                invitation: messageInvitation.replace('{number}', rowData.number),
+                signature: rowData.messageSignature,
                 groups: groupIds,
                 subject,
                 message: getMessage(rowData),
