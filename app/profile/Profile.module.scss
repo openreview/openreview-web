@@ -9,7 +9,11 @@
   }
 }
 
-.aside {
+.publicationsSection {
+  @media (max-width: constants.$sm-max) {
+    margin-top: 1.5rem;
+  }
+
   @media (min-width: 992px) {
     border-left: 1px solid constants.$borderGray;
     padding-left: 15px;

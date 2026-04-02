@@ -2,8 +2,10 @@ import { Col, Flex, Pagination, Popover, Row, Space, Tag, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useMemo, useState } from 'react'
-import { getBootstrap337LabelColor, prettyId } from '../../../../lib/utils'
 import Markdown from '../../../../components/EditorComponents/Markdown'
+import { prettyId } from '../../../../lib/utils'
+
+import { getBootstrap337LabelColor } from '../../../../lib/legacy-bootstrap-styles'
 
 dayjs.extend(relativeTime)
 

@@ -1,4 +1,4 @@
-import { EnvironmentOutlined, EyeInvisibleOutlined } from '@ant-design/icons'
+import { EnvironmentFilled } from '@ant-design/icons'
 import { Col, Flex, Row, Space, Tooltip } from 'antd'
 import copy from 'copy-to-clipboard'
 import { nanoid } from 'nanoid'
@@ -7,6 +7,11 @@ import ServiceRoles from '../../app/profile/ServiceRoles'
 import { prettyList } from '../../lib/utils'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
+
+import {
+  colors,
+  profile as profileStyles,
+} from '../../lib/legacy-bootstrap-styles'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -19,11 +24,11 @@ const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children 
   }
 
   const editBadge = itemMeta.signatures && (
-    <Icon
-      name="info-sign"
-      extraClasses="edit-badge"
-      tooltip={`Edited by ${prettyList(itemMeta.signatures)}`}
-    />
+    <Tooltip title={`Edited by ${prettyList(itemMeta.signatures)}`}>
+      <span style={profileStyles.editBadge}>
+        <Icon name="info-sign" />
+      </span>
+    </Tooltip>
   )
   return (
     <div className={`${className}${itemMeta.confirmed ? ' edit-confirmed' : ''}`}>
@@ -35,7 +40,7 @@ const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children 
 const ProfileName = ({ name }) => (
   <ProfileItem itemMeta={name.meta}>
     <span>{name.fullname}</span>{' '}
-    {name.preferred && <small style={{ color: '#8c1b13' }}>(Preferred)</small>}
+    {name.preferred && <small style={{ color: colors.orRed }}>(Preferred)</small>}
   </ProfileItem>
 )
 
@@ -46,9 +51,9 @@ const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
   return (
     <ProfileItem itemMeta={email.meta}>
       <span {...(allowCopyEmail && { onClick: copyEmailToClipboard })}>{email.email}</span>{' '}
-      {email.confirmed && <small style={{ color: '#8c1b13' }}>(Confirmed)</small>}
+      {email.confirmed && <small style={{ color: colors.orRed }}>(Confirmed)</small>}
       {!publicProfile && email.preferred && (
-        <small style={{ color: '#8c1b13' }}>(Preferred)</small>
+        <small style={{ color: colors.orRed }}>(Preferred)</small>
       )}
       {allowCopyEmail && email.confirmed && (
         <>
@@ -79,17 +84,17 @@ const ProfileLink = ({ link, showLinkText }) => {
 
   return (
     <ProfileItem itemMeta={link.meta}>
-      <a href={linkUrlWithProtocol} target="_blank" rel="noopener noreferrer">
+      <a
+        href={linkUrlWithProtocol}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{ fontWeight: '700' }}
+      >
         {link.name}
       </a>
       {showLinkText && (
         <span
-          style={{
-            marginLeft: '0.25rem',
-            overflowX: 'hidden',
-            textOverflow: 'ellipsis',
-            display: 'inline',
-          }}
+          style={profileStyles.linkText}
         >{`(${linkUrlWithProtocol})`}</span>
       )}
     </ProfileItem>
@@ -101,7 +106,7 @@ const ProfileHistory = ({ history }) => (
     <Col xs={24} sm={6}>
       <strong>{history.position}</strong>
     </Col>
-    <Col xs={24} sm={12}>
+    <Col xs={24} sm={14}>
       {history.institution.department && (
         <span>
           {history.institution.department}
@@ -111,13 +116,12 @@ const ProfileHistory = ({ history }) => (
       <span>
         {history.institution.name}
         {history.institution.domain && (
-          <small style={{ color: '#8c1b13' }}>{` (${history.institution.domain})`}</small>
+          <small style={{ color: colors.orRed }}>{` (${history.institution.domain})`}</small>
         )}
         {(history.institution.city ||
           history.institution.stateProvince ||
           history.institution.country) && (
           <>
-            {' '}
             <Tooltip
               title={[
                 history.institution.city,
@@ -127,13 +131,15 @@ const ProfileHistory = ({ history }) => (
                 .filter(Boolean)
                 .join(', ')}
             >
-              <EnvironmentOutlined />
+              <EnvironmentFilled
+                style={profileStyles.geolocationIcon}
+              />
             </Tooltip>
           </>
         )}
       </span>
     </Col>
-    <Col xs={24} sm={6}>
+    <Col xs={24} sm={4}>
       <em>
         {history.start}
         {history.start && <span> &ndash; </span>}
@@ -148,7 +154,7 @@ const ProfileRelation = ({ relation }) => (
     <Col xs={12} sm={6}>
       <strong>{relation.relation}</strong>
     </Col>
-    <Col xs={12} sm={12}>
+    <Col xs={12} sm={14}>
       {relation.username ? (
         <Link
           href={`/profile?id=${relation.username}`}
@@ -160,11 +166,11 @@ const ProfileRelation = ({ relation }) => (
       ) : (
         <Space>
           {relation.name}
-          <small style={{ color: '#8c1b13' }}>{relation.email}</small>
+          <small style={{ color: colors.orRed }}>{relation.email}</small>
         </Space>
       )}
     </Col>
-    <Col xs={12} sm={6}>
+    <Col xs={12} sm={4}>
       <Space>
         <em>
           {relation.start}
@@ -173,7 +179,9 @@ const ProfileRelation = ({ relation }) => (
         </em>
         {relation.readers && !relation.readers.includes('everyone') && (
           <Tooltip title="Privately revealed to you">
-            <EyeInvisibleOutlined />
+            <span style={profileStyles.relationVisibleIcon}>
+              <Icon name="eye-close" />
+            </span>
           </Tooltip>
         )}
       </Space>
@@ -183,12 +191,12 @@ const ProfileRelation = ({ relation }) => (
 
 const ProfileExpertise = ({ expertise }) => (
   <Row align="top" gutter={[15, 15]}>
-    <Col xs={12} sm={18}>
-      <Space wrap separator=",">
+    <Col xs={12} sm={20}>
+      <Space wrap separator={<span>{`,\u00a0`}</span>} size={0}>
         {expertise.keywords.map((p) => p)}
       </Space>
     </Col>
-    <Col xs={12} sm={6}>
+    <Col xs={12} sm={4}>
       <em>
         {expertise.start}
         {expertise.start && <span> &ndash; </span>}
@@ -213,10 +221,10 @@ const BasicProfileView = ({
   ]
 
   return (
-    <Flex vertical gap="small">
+    <Flex vertical gap="large">
       {contentToShow.includes('names') && (
         <ProfileViewSection title="Names">
-          <Space separator="," wrap={true}>
+          <Space separator={<span>{`,\u00a0`}</span>} wrap={true} size={0}>
             {sortedNames.map((name, i) => (
               <ProfileName key={name.username || name.fullname} name={name} />
             ))}
@@ -226,7 +234,7 @@ const BasicProfileView = ({
 
       {contentToShow.includes('emails') && (
         <ProfileViewSection title="Emails">
-          <Space separator="," wrap={true}>
+          <Space separator={<span>{`,\u00a0`}</span>} wrap={true} size={0}>
             {profile.emails
               .filter((email) => !email.hidden)
               .map((email, i) => (
@@ -243,11 +251,13 @@ const BasicProfileView = ({
 
       {contentToShow.includes('links') && (
         <ProfileViewSection title="Personal Links">
-          <Space wrap={true} orientation={showLinkText ? 'vertical' : 'horizontal'}>
+          <Row gutter={[{ xs: 8, sm: 8, md: 16, lg: 40 }, 10]} wrap={true}>
             {profile.links.map((link) => (
-              <ProfileLink key={link.name} link={link} showLinkText={showLinkText} />
+              <Col key={link.name}>
+                <ProfileLink link={link} showLinkText={showLinkText} />
+              </Col>
             ))}
-          </Space>
+          </Row>
         </ProfileViewSection>
       )}
 

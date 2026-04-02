@@ -141,6 +141,7 @@ const ProfilePreviewModal = ({
         xs: '90%',
         sm: '70%',
       }}
+      maskTransitionName=""
     >
       <Flex vertical gap="small">
         {error && <ErrorAlert error={error} />}
@@ -237,7 +238,7 @@ const ProfilePreviewModal = ({
                 Skip
               </Button>
 
-              <Space.Compact>
+              <Flex wrap gap="small">
                 <Button
                   type="primary"
                   onClick={() => {
@@ -264,7 +265,7 @@ const ProfilePreviewModal = ({
                 >
                   Reject
                 </Button>
-              </Space.Compact>
+              </Flex>
             </Flex>
           )}
           {isRejecting && (

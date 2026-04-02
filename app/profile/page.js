@@ -1,17 +1,17 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { stringify } from 'query-string'
-import { headers } from 'next/headers'
 import { orderBy } from 'lodash'
-import serverAuth, { isSuperUser } from '../auth'
-import api from '../../lib/api-client'
-import ErrorDisplay from '../../components/ErrorDisplay'
-import Profile from './Profile'
-import { formatProfileData } from '../../lib/profiles'
-import CommonLayout from '../CommonLayout'
+import { headers } from 'next/headers'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { stringify } from 'query-string'
 import EditBanner from '../../components/EditBanner'
-import PreferredIdUpdater from './PreferredIdUpdater'
+import ErrorDisplay from '../../components/ErrorDisplay'
+import api from '../../lib/api-client'
+import { formatProfileData } from '../../lib/profiles'
 import { prettyId } from '../../lib/utils'
+import serverAuth, { isSuperUser } from '../auth'
+import CommonLayout from '../CommonLayout'
+import PreferredIdUpdater from './PreferredIdUpdater'
+import Profile from './Profile'
 
 export const dynamic = 'force-dynamic'
 
@@ -85,7 +85,7 @@ export default async function page({ searchParams }) {
       )
 
       serviceRoles = orderBy(
-        serviceRolesResult.tags?.filter((p) => p.parentInvitations?.endsWith('_Role')),
+        serviceRolesResult.tags, //?.filter((p) => p.parentInvitations?.endsWith('_Role')),
         ['cdate'],
         ['desc']
       )

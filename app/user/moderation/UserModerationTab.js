@@ -14,22 +14,21 @@ import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
-import {
-  formatDateTime,
-  getBootstrap337LabelColor,
-  getProfileStateLabelClass,
-  getRejectionReasons,
-  inflect,
-  prettyId,
-} from '../../../lib/utils'
+import { formatDateTime, getRejectionReasons, inflect, prettyId } from '../../../lib/utils'
 
 import styles from './moderation.module.scss'
+import {
+  colors,
+  getBootstrap337LabelColor,
+  getProfileStateLabelClass,
+  moderation as legacyStyles,
+} from '../../../lib/legacy-bootstrap-styles'
 
 const ActionButton = (props) => (
   <Button
     type="primary"
     size="small"
-    classNames={{ root: styles.actionbutton, content: styles.actionbuttoncontent }}
+    styles={{ root: legacyStyles.actionButton }}
     {...props}
   />
 )
@@ -482,15 +481,22 @@ const UserModerationQueue = ({
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
 
   return (
-    <div>
-      <h4>
-        {title} ({totalCount})
-      </h4>
-      {showSortButton && profiles && profiles.length !== 0 && (
-        <Button type="primary" size="small" onClick={() => setDescOrder((p) => !p)}>{`${
-          descOrder ? 'Sort: Most Recently Modified' : 'Sort: Least Recently Modified'
-        }`}</Button>
-      )}
+    <div style={{ marginBottom: '1.75rem' }}>
+      <Flex align="center">
+        <h4 style={{ marginRight: '1rem' }}>
+          {title} ({totalCount})
+        </h4>
+        {showSortButton && profiles && profiles.length !== 0 && (
+          <Button
+            type="primary"
+            size="small"
+            styles={{ root: legacyStyles.actionButton }}
+            onClick={() => setDescOrder((p) => !p)}
+          >{`${
+            descOrder ? 'Sort: Most Recently Modified' : 'Sort: Least Recently Modified'
+          }`}</Button>
+        )}
+      </Flex>
 
       {!onlyModeration && (
         <Flex
@@ -498,7 +504,7 @@ const UserModerationQueue = ({
           align="center"
           gap="middle"
           wrap
-          style={{ marginBottom: '0.5rem' }}
+          style={legacyStyles.filterForm}
         >
           <Input
             type="text"
@@ -517,7 +523,11 @@ const UserModerationQueue = ({
               setProfileStateOption(e)
             }}
           />
-          <Button type="primary" className="btn btn-xs" onClick={filterProfiles}>
+          <Button
+            type="primary"
+            styles={{ root: legacyStyles.actionButton }}
+            onClick={filterProfiles}
+          >
             Search
           </Button>
         </Flex>
@@ -542,7 +552,15 @@ const UserModerationQueue = ({
                     {name.fullname}
                   </a>
                 </Col>
-                <Col xs={24} sm={12} md={6} lg={4} xl={4} className={styles.truncatedtext}>
+                <Col
+                  xs={24}
+                  sm={12}
+                  md={6}
+                  lg={4}
+                  xl={4}
+                  className={styles.truncatedtext}
+                  style={{ color: colors.textMuted }}
+                >
                   {profile.content.preferredEmail}
                 </Col>
                 <Col xs={24} sm={12} md={6} lg={6} xl={6}>
@@ -585,6 +603,7 @@ const UserModerationQueue = ({
                     <Tag
                       color={getBootstrap337LabelColor(profile.password ? 'success' : 'error')}
                       variant="solid"
+                      styles={{ root: legacyStyles.statusTag }}
                     >
                       password
                     </Tag>
@@ -594,7 +613,7 @@ const UserModerationQueue = ({
                       onClick={() =>
                         setProfileToPreview(formatProfileData(cloneDeep(profile)))
                       }
-                      className={styles.clickabletag}
+                      styles={{ root: { ...legacyStyles.statusTag, cursor: 'pointer' } }}
                     >
                       {state}
                     </Tag>
@@ -669,11 +688,14 @@ const UserModerationQueue = ({
                         </ActionButton>
                       )}
                       {state !== 'Merged' && profile.state !== 'Needs Moderation' && (
-                        <ActionButton
-                          icon={profile.ddate ? <UndoOutlined /> : <Icon name="trash" />}
-                          onClick={() => deleteRestoreUser(profile)}
-                        >
-                          {profile.ddate ? 'Restore' : 'Delete'}
+                        <ActionButton onClick={() => deleteRestoreUser(profile)}>
+                          {profile.ddate ? (
+                            <UndoOutlined />
+                          ) : (
+                            <span style={{ top: '0px' }}>
+                              <Icon name="trash" />
+                            </span>
+                          )}
                         </ActionButton>
                       )}
                     </Flex>
@@ -699,6 +721,7 @@ const UserModerationQueue = ({
         onChange={(page, size) => {
           setPageNumber(page)
         }}
+        showSizeChanger
         onShowSizeChange={(current, size) => {
           setPageSize(size)
         }}
@@ -797,7 +820,12 @@ export default function UserModerationTab() {
           <span>
             {`Terms Timestamp is ${configNote?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
-          <Button onClick={updateTermStamp} size="small" type="primary">
+          <Button
+            onClick={updateTermStamp}
+            size="small"
+            type="primary"
+            styles={{ root: legacyStyles.updateTermStampButton }}
+          >
             Update Terms Stamp
           </Button>
         </Flex>

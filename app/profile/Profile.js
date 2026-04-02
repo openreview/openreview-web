@@ -1,6 +1,6 @@
-import { CalendarOutlined } from '@ant-design/icons'
 import { Col, Flex, Row, Space } from 'antd'
 import { upperFirst } from 'lodash'
+import Icon from '../../components/Icon'
 import BasicProfileView from '../../components/profile/BasicProfileView'
 import ProfilePublications from '../../components/profile/ProfilePublications'
 import ProfileViewSection from '../../components/profile/ProfileViewSection'
@@ -10,6 +10,7 @@ import serverAuth from '../auth'
 import CoAuthorsList from './CoAuthorsList'
 
 import styles from './Profile.module.scss'
+import { colors } from '../../lib/legacy-bootstrap-styles'
 
 export default async function Profile({
   profile,
@@ -34,7 +35,7 @@ export default async function Profile({
               key={index}
               style={{
                 fontSize: '1.375rem',
-                color: '#616161',
+                color: colors.subtleGray,
                 lineHeight: 'normal',
                 marginTop: index > 0 ? '0.25rem' : 0,
               }}
@@ -92,18 +93,18 @@ export default async function Profile({
         <h4 className={styles.pronouns}>Pronouns: {profile.pronouns}</h4>
       )}
       {getCurrentInstitutionInfo()}
-      <Space>
-        <CalendarOutlined /> Joined{profile.joined}
+      <Space style={{ fontSize: '1rem', color: colors.subtleGray, marginBottom: '1rem' }}>
+        <Icon name="calendar" /> Joined{profile.joined}
       </Space>
       <Row>
-        <Col xs={24} lg={17} style={{ paddingRight: '15px' }}>
+        <Col xs={24} lg={16} style={{ paddingRight: '15px' }}>
           <BasicProfileView
             profile={profile}
             publicProfile={publicProfile}
             serviceRoles={serviceRoles}
           />
         </Col>
-        <Col xs={24} lg={7} className={styles.aside}>
+        <Col xs={24} lg={8} className={styles.publicationsSection}>
           <Flex vertical>
             <ProfileViewSection title="Publications">
               <div className={styles.publicationsList}>

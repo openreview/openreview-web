@@ -12,7 +12,6 @@ const theme = {
     borderRadius: 2,
     colorLink: primaryColor,
     fontFamily: 'Noto Sans, sans-serif',
-    motion: false,
   },
   components: {
     Tabs: {
@@ -35,6 +34,7 @@ const theme = {
       colorBorder: primaryColor,
       hoverBorderColor: '#4f7a8a',
       activeBorderColor: '#2e4f5a',
+      colorBgContainer: '#fffaf4',
       lineWidth: 2,
       optionSelectedBg: primaryColor,
       optionSelectedColor: backgroundWhite,
@@ -43,6 +43,7 @@ const theme = {
       colorBorder: primaryColor,
       hoverBorderColor: '#4f7a8a',
       activeBorderColor: '#3e6775',
+      colorBgContainer: '#fffaf4',
       lineWidth: 2,
     },
     Layout: {

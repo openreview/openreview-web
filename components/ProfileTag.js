@@ -4,7 +4,7 @@ import { getTagDispayText } from '../lib/utils'
 import styles from '../styles/components/ProfileTag.module.scss'
 import Icon from './Icon'
 
-const ProfileTag = ({ tag, onDelete, showProfileId }) => {
+const ProfileTag = ({ tag, onDelete, showProfileId, borderless }) => {
   const { label, invitation, parentInvitations, readers, signature } = tag
   const deletable = invitation.startsWith(`${process.env.SUPER_USER}/Support`)
   const isPrivateTag = !readers.includes('everyone')
@@ -34,7 +34,7 @@ const ProfileTag = ({ tag, onDelete, showProfileId }) => {
 
   return (
     <div
-      className={`${styles.profileTagContainer} ${getColorClass()} ${deletable ? styles.deletable : ''} ${tagLink ? styles.withTagLink : ''}`}
+      className={`${styles.profileTagContainer} ${getColorClass()} ${deletable ? styles.deletable : ''} ${tagLink ? styles.withTagLink : ''} ${borderless ? styles.borderless : ''}`}
     >
       <span onClick={handleTagClick}>{getTagDispayText(tag, showProfileId)}</span>
       {isPrivateTag && (

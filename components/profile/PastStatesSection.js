@@ -1,8 +1,10 @@
 /* globals promptError: false */
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
-import { formatDateTime, getProfileStateLabelClass } from '../../lib/utils'
+import { formatDateTime } from '../../lib/utils'
+
 import styles from '../../styles/components/PastStatesSection.module.scss'
+import { getProfileStateLabelClass } from '../../lib/legacy-bootstrap-styles'
 
 const PastStatesSection = ({ email, pastStates }) => {
   const [messages, setMessages] = useState([])
