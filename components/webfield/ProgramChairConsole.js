@@ -1478,7 +1478,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       })
 
       // map reviewer recommendation to ac id to calculate recommendation progress correctly
-      const acRecommendationsCount = acRecommendationsEdgeResults.groupedEdges.reduce(
+      const acRecommendationsCount = acRecommendationsEdgeResults.groupedEdges?.reduce(
         (profileMap, edge) => {
           const recommendationSignature = edge.values[0].signatures[0]
           let acId = recommendationSignature
