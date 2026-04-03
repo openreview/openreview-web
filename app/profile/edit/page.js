@@ -1,15 +1,17 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 /* globals promptMessage,promptError: false */
 import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfileEditor from '../../../components/profile/ProfileEditor'
+import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
-import useUser from '../../../hooks/useUser'
+import { getNoteAuthorIds } from '../../../lib/utils'
 import LimitedStateAlert from './LimitedStateAlert'
+
 import styles from './Edit.module.scss'
-import LoadingSpinner from '../../../components/LoadingSpinner'
 
 export default function Page() {
   const [profile, setProfile] = useState(null)
@@ -23,10 +25,10 @@ export default function Page() {
     let authorIds
     let invitation
     if (note.invitations) {
-      authorIds = note.content.authorids?.value
+      authorIds = getNoteAuthorIds(note, true)
       invitation = note.invitations[0]
     } else {
-      authorIds = note.content.authorids
+      authorIds = getNoteAuthorIds(note, false)
       // oxlint-disable-next-line prefer-destructuring
       invitation = note.invitation
     }
@@ -38,6 +40,7 @@ export default function Page() {
         'OpenReview.net/Archive/-/Direct_Upload_Revision',
       'DBLP.org/-/Record': 'DBLP.org/-/Author_Coreference',
       [`${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`]: `${process.env.SUPER_USER}/Public_Article/-/Author_Removal`,
+      [`${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`]: `${process.env.SUPER_USER}/Public_Article/-/Author_Removal`,
     }
     if (!authorIds) {
       throw new Error(`Note ${noteId} is missing author ids`)

@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import Note, { NoteV2 } from './Note'
-import { NoteAuthorsV2 } from './NoteAuthors'
+import { getImportSourceIcon } from '../lib/profiles'
 import {
   buildNoteTitle,
   buildNoteUrl,
@@ -10,8 +9,9 @@ import {
 } from '../lib/utils'
 import ClientForumDate from './ClientForumDate'
 import Icon from './Icon'
+import Note, { NoteV2 } from './Note'
+import { NoteAuthorsV2 } from './NoteAuthors'
 import NoteReaders from './NoteReaders'
-import { getImportSourceIcon } from '../lib/profiles'
 
 const MultiSourceNote = ({ notes, displayOptions }) => {
   const [noteToShow, setNoteToShow] = useState(notes[0])
@@ -103,8 +103,8 @@ const SourceGroupedNoteList = ({ notes, displayOptions }) => {
       return prev
     }
     const title = curr.content.title.value
-    const authors = curr.content.authors.value.join(',')
-    const key = `${title}|${authors}`
+    const authorNames = getNoteAuthors(curr, true).join(',')
+    const key = `${title}|${authorNames}`
 
     if (!prev[key]) {
       prev[key] = []
