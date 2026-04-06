@@ -1,13 +1,14 @@
+import { Noto_Sans } from 'next/font/google'
+import StoreProvider from '../storeProvider'
+import ThemeProvider from '../ThemeProvider'
+import Nav from './(Home)/Nav'
+import AppInit from './AppInit'
+import GoogleAnalyticsScript from './GoogleAnalyticsScript'
 import '../lib/logger'
+
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
 import '../styles/components.scss'
-import { Noto_Sans } from 'next/font/google'
-import AppInit from './AppInit'
-import StoreProvider from '../storeProvider'
-import Nav from './(Home)/Nav'
-import GoogleAnalyticsScript from './GoogleAnalyticsScript'
-import ThemeProvider from '../ThemeProvider'
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
@@ -37,7 +38,7 @@ export default function RootLayout({ children }) {
       </head>
       <StoreProvider>
         <ThemeProvider>
-          <body className={notoSans.className}>
+          <body className={notoSans.className} style={{ overflowY: 'scroll', width: '100%' }}>
             <div id="__next">
               <Nav />
               <AppInit />
