@@ -85,7 +85,7 @@ export default async function page({ searchParams }) {
       )
 
       serviceRoles = orderBy(
-        serviceRolesResult.tags, //?.filter((p) => p.parentInvitations?.endsWith('_Role')),
+        serviceRolesResult.tags?.filter((p) => p.parentInvitations?.endsWith('_Role')),
         ['cdate'],
         ['desc']
       )
