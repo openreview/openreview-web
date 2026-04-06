@@ -46,8 +46,6 @@
   color: white;
 }
 
-:global(.service-roles-container) {
-  .serviceRole {
-    border: none;
-  }
+.borderless {
+  border: none;
 }

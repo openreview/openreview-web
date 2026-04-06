@@ -9,7 +9,7 @@ import {
   getNotes,
 } from '../utils/api-helper'
 
-const pageHeader = Selector('div.title-container').find('h1')
+const pageHeader = Selector('h1').nth(0)
 const emailInput = Selector('#email-input')
 const passwordInput = Selector('#password-input')
 const loginButton = Selector('button').withText('Login to OpenReview')
