@@ -1,13 +1,13 @@
 /* globals promptError,promptMessage: false */
 
+import copy from 'copy-to-clipboard'
 // modified from noteMetaReviewStatus.hbs handlebar template
 import React, { useContext, useEffect, useState } from 'react'
-import copy from 'copy-to-clipboard'
-import WebFieldContext from '../WebFieldContext'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { inflect, pluralizeString, prettyField } from '../../lib/utils'
 import { getNoteContentValues } from '../../lib/forum-utils'
+import { inflect, pluralizeString, prettyField } from '../../lib/utils'
+import WebFieldContext from '../WebFieldContext'
 import ProfileLink from './ProfileLink'
 
 const IEEECopyrightForm = ({ note, isV2Note }) => {
@@ -15,13 +15,14 @@ const IEEECopyrightForm = ({ note, isV2Note }) => {
     useContext(WebFieldContext)
   const { user, isRefreshing } = useUser(true)
   const noteContent = isV2Note ? getNoteContentValues(note.content) : note.content
+  const noteAuthors = getNoteAuthors(note, isV2Note)
 
   if (showIEEECopyright && IEEEPublicationTitle && IEEEArtSourceCode && !isRefreshing) {
     return (
       <form action="https://ecopyright.ieee.org/ECTT/IntroPage.jsp" method="post">
         <input type="hidden" name="PubTitle" value={IEEEPublicationTitle} />
         <input type="hidden" name="ArtTitle" value={noteContent.title} />
-        <input type="hidden" name="AuthName" value={noteContent.authors.join(' and ')} />
+        <input type="hidden" name="AuthName" value={noteAuthors.join(' and ')} />
         <input type="hidden" name="ArtId" value={note.id} />
         <input type="hidden" name="ArtSource" value={IEEEArtSourceCode} />
         <input type="hidden" name="AuthEmail" value={user.profile.preferredEmail} />

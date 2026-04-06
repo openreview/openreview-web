@@ -2,15 +2,8 @@
 /* globals promptError: false */
 
 import React, { useContext } from 'react'
-import EdgeBrowserContext from './EdgeBrowserContext'
-import EditEdgeDropdown from './EditEdgeDropdown'
-import EditEdgeToggle from './EditEdgeToggle'
-import NoteAuthors from './NoteAuthors'
-import NoteContent from './NoteContent'
-import ScoresList from './ScoresList'
-import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-
 import {
   getInterpolatedValues,
   getSignatures,
@@ -18,7 +11,13 @@ import {
   isInGroupInvite,
   isNotInGroupInvite,
 } from '../../lib/edge-utils'
-import useUser from '../../hooks/useUser'
+import EdgeBrowserContext from './EdgeBrowserContext'
+import EditEdgeDropdown from './EditEdgeDropdown'
+import EditEdgeToggle from './EditEdgeToggle'
+import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
+import NoteAuthors from './NoteAuthors'
+import NoteContent from './NoteContent'
+import ScoresList from './ScoresList'
 
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
@@ -53,8 +52,8 @@ export default function NoteEntity(props) {
   let { authors, authorids } = content
 
   if (!authorids) {
-    authors = authors.map((p) => p.fullname)
     authorids = authors.map((p) => p.username)
+    authors = authors.map((p) => p.fullname)
   }
   // Event handlers
   const handleClick = (e) => {

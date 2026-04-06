@@ -1,8 +1,8 @@
 import { useContext } from 'react'
+import { getNoteAuthors, pluralizeString } from '../../../lib/utils'
+import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
-import WebFieldContext from '../../WebFieldContext'
-import { pluralizeString } from '../../../lib/utils'
 
 const DeskrejectedWithdrawnPapersMenuBar = ({
   tableRowsAll,
@@ -37,7 +37,10 @@ const DeskrejectedWithdrawnPapersMenuBar = ({
     },
     {
       header: 'authors',
-      getValue: (p) => p.note?.content?.authors?.value?.join('|') ?? 'N/A',
+      getValue: (p) => {
+        const authors = getNoteAuthors(p.note, true)
+        return authors ? authors.join('|') : 'N/A'
+      },
     },
     { header: 'reason', getValue: (p) => p.reason },
   ]

@@ -148,10 +148,8 @@ Click on the link below to go to the ${prettyField(
     try {
       const forumUrl = `https://openreview.net/forum?id=${note.forum}&noteId=${note.id}&invitationId=${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
       await api.post('/messages', {
-        invitation:
-          messageSubmissionReviewersInvitationId &&
-          messageSubmissionReviewersInvitationId.replace('{number}', note.number),
-        signature: messageSubmissionReviewersInvitationId && messageSignature,
+        invitation: messageSubmissionReviewersInvitationId.replace('{number}', note.number),
+        signature: messageSignature,
         groups: [reviewer.anonymizedGroup],
         subject,
         message: message.replaceAll('{{submit_review_link}}', forumUrl),
