@@ -1,21 +1,21 @@
-/* globals promptError, promptMessage, $: false */
-import { useState, useContext, useEffect, useReducer } from 'react'
+import { get } from 'lodash'
+import kebabCase from 'lodash/kebabCase'
+import uniq from 'lodash/uniq'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import uniq from 'lodash/uniq'
-import kebabCase from 'lodash/kebabCase'
-import { get } from 'lodash'
-import WebFieldContext from '../WebFieldContext'
-import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
-import VenueHeader from './VenueHeader'
-import SubmissionButton from './SubmissionButton'
-import SubmissionsList from './SubmissionsList'
-import ActivityList from './ActivityList'
-import Markdown from '../EditorComponents/Markdown'
-import ErrorDisplay from '../ErrorDisplay'
+/* globals promptError, promptMessage, $: false */
+import { useState, useContext, useEffect, useReducer } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import Markdown from '../EditorComponents/Markdown'
+import ErrorDisplay from '../ErrorDisplay'
 import LoadingSpinner from '../LoadingSpinner'
+import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
+import WebFieldContext from '../WebFieldContext'
+import ActivityList from './ActivityList'
+import SubmissionButton from './SubmissionButton'
+import SubmissionsList from './SubmissionsList'
+import VenueHeader from './VenueHeader'
 
 function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload, user }) {
   const [userConsoles, setUserConsoles] = useState(null)
@@ -208,6 +208,7 @@ export default function VenueHomepage({ appContext }) {
             markTabLoaded()
           }}
           filterNotes={filterFn}
+          skipDomain={tabConfig.options.skipDomain}
         />
       )
     }
