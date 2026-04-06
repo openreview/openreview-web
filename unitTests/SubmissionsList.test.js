@@ -10,7 +10,7 @@ jest.mock('react-redux', () => ({
 }))
 
 beforeEach(() => {
-  api.get = jest.fn()
+  api.get = jest.fn(() => Promise.resolve({ notes: [], count: 0 }))
 })
 
 describe('SubmissionsList', () => {
@@ -43,7 +43,7 @@ describe('SubmissionsList', () => {
   })
 
   // when domain is passed, pc can't see deployed venues as api will filter out member by domain
-  test('not to pass domain to notes call when it is v1 api and skipDomain is set to true', async () => {
+  test('not to pass domain to notes call when it is v2 api and skipDomain is set to true', async () => {
     render(<SubmissionsList venueId="testVenue" apiVersion={2} skipDomain />)
 
     await waitFor(() => {
