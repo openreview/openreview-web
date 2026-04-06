@@ -3,7 +3,6 @@ import kebabCase from 'lodash/kebabCase'
 import uniq from 'lodash/uniq'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-/* globals promptError, promptMessage, $: false */
 import { useState, useContext, useEffect, useReducer } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'

@@ -28,7 +28,7 @@ describe('SubmissionsList', () => {
     })
   })
 
-  test('pass domain to notes call when it is v1 api and skipDomain is not set', async () => {
+  test('pass domain to notes call when it is v2 api and skipDomain is not set', async () => {
     render(<SubmissionsList venueId="testVenue" apiVersion={2} />)
 
     await waitFor(() => {
