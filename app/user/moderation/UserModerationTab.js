@@ -611,7 +611,9 @@ const UserModerationQueue = ({
                       color={getBootstrap337LabelColor(getProfileStateLabelClass(state))}
                       variant="solid"
                       onClick={() =>
-                        setProfileToPreview(formatProfileData(cloneDeep(profile)))
+                        setProfileToPreview(
+                          formatProfileData(cloneDeep(profile), { includePastStates: true })
+                        )
                       }
                       styles={{ root: { ...legacyStyles.statusTag, cursor: 'pointer' } }}
                     >

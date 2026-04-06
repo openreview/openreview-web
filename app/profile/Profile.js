@@ -81,6 +81,7 @@ export default async function Profile({
         },
       })
     }
+    return {}
   }
   const { publications, count, coAuthors } = await loadPublications()
 
