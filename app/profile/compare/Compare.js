@@ -1,13 +1,14 @@
 'use client'
 
-/* globals promptError: false */
-import React, { useEffect, useState } from 'react'
 import { isEmpty } from 'lodash'
 import { nanoid } from 'nanoid'
-import SpinnerButton from '../../../components/SpinnerButton'
-import { getProfileStateLabelClass, prettyField } from '../../../lib/utils'
+import React, { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import SpinnerButton from '../../../components/SpinnerButton'
 import api from '../../../lib/api-client'
+import { prettyField } from '../../../lib/utils'
+
+import { getProfileStateLabelClass } from '../../../lib/legacy-bootstrap-styles'
 
 // #region components used by Compare (in renderField method)
 const Names = ({ names, highlightValue }) => (
