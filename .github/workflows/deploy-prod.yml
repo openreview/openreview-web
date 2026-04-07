@@ -56,7 +56,7 @@ jobs:
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20BUILD%20ALREADY%20EXISTS:%20${build_id}&format=text"
           else
             echo "Building OpenReview web application..."
-            npm install
+            npm ci
             npm run build
             echo "compressing build."
 
