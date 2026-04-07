@@ -25,7 +25,7 @@ jobs:
       TAG: ${{ github.event.inputs.tag }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
