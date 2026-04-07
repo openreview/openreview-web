@@ -110,6 +110,20 @@ const ProfilePreviewModal = ({
   }
 
   useEffect(() => {
+    if (!profileToPreview || !needsModeration) return undefined
+    const handleKeyDown = (e) => {
+      const tag = document.activeElement?.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select') return
+      if (e.key === 'ArrowDown') {
+        e.preventDefault()
+        showNextProfile(profileToPreview.id)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [profileToPreview, needsModeration])
+
+  useEffect(() => {
     setRejectionMessage('')
     setIsRejecting(false)
     setTags([])
@@ -142,6 +156,7 @@ const ProfilePreviewModal = ({
         sm: '70%',
       }}
       maskTransitionName=""
+      styles={{ wrapper: { overscrollBehavior: 'contain' } }}
     >
       <Flex vertical gap="small">
         {error && <ErrorAlert error={error} />}
@@ -198,6 +213,7 @@ const ProfilePreviewModal = ({
             <Flex>
               <Select
                 options={tagInvitationOptions}
+                getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 value={tagInvitation}
                 onChange={(e) => setTagInvitation(e)}
               />
@@ -221,6 +237,7 @@ const ProfilePreviewModal = ({
                         { label: 'potential spam', value: 'potential spam' },
                       ]
                 }
+                getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 onChange={(values) => {
                   addTag(values[0])
                 }}
@@ -275,6 +292,7 @@ const ProfilePreviewModal = ({
                 style={{ width: '100%' }}
                 placeholder="Choose a common reject reason..."
                 options={rejectionReasons}
+                getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 onChange={(value) => {
                   const rejectOption = rejectionReasons.find((r) => r.value === value)
                   setRejectionMessage(rejectOption?.rejectionText || '')
