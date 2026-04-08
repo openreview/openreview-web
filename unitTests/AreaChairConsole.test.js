@@ -866,10 +866,10 @@ describe('AreaChairConsole', () => {
         expect.objectContaining({
           rowData: expect.objectContaining({
             reviewProgressData: expect.objectContaining({
-              confidenceAvg: paper1AvgConfidence.toFixed(2),
+              confidenceAvg: Number(paper1AvgConfidence.toFixed(2)),
               ratings: {
                 rating: {
-                  ratingAvg: '5.00',
+                  ratingAvg: 5,
                   ratingMax: 10,
                   ratingMin: 0,
                 },
@@ -1067,10 +1067,10 @@ describe('AreaChairConsole', () => {
         expect.objectContaining({
           rowData: expect.objectContaining({
             reviewProgressData: expect.objectContaining({
-              confidenceAvg: '5.00',
+              confidenceAvg: 5,
               ratings: {
                 rating: {
-                  ratingAvg: '5.00',
+                  ratingAvg: 5,
                   ratingMax: 5,
                   ratingMin: 5,
                 },
