@@ -187,6 +187,39 @@ describe('filterCollections', () => {
     expect(result.filteredRows).toEqual([{ id: 1 }])
   })
 
+  test('filter numeric ratingAvg with >= operator (regression: avg must be a number, not a toFixed string)', () => {
+    // Reproduces a PC console bug where ratingAvg was produced with .toFixed(2),
+    // returning a string. evaluateOperator then refused >=/<=/>/< on two strings,
+    // so `+ ratingAvg >= 5` filtered out everything while `+ ratingMax >= 5` worked.
+    const collections = [
+      { id: 1, reviewProgressData: { ratings: { rating: { ratingAvg: 4.5, ratingMax: 5 } } } },
+      { id: 2, reviewProgressData: { ratings: { rating: { ratingAvg: 5.0, ratingMax: 6 } } } },
+      { id: 3, reviewProgressData: { ratings: { rating: { ratingAvg: 6.33, ratingMax: 7 } } } },
+    ]
+    const propertiesAllowed = {
+      ratingAvg: ['reviewProgressData.ratings.rating.ratingAvg'],
+      ratingMax: ['reviewProgressData.ratings.rating.ratingMax'],
+    }
+
+    const avgResult = filterCollections(
+      collections,
+      'ratingAvg>=5',
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(avgResult.filteredRows.map((r) => r.id)).toEqual([2, 3])
+
+    const maxResult = filterCollections(
+      collections,
+      'ratingMax>=5',
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(maxResult.filteredRows.map((r) => r.id)).toEqual([1, 2, 3])
+  })
+
   test('filter collection with complex query unnested property', () => {
     const collections = [
       { id: 1 },

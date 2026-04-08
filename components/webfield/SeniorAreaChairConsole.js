@@ -411,10 +411,12 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 const ratingValues = officialReviews.map((p) => p[ratingDisplayName])
                 const validRatingValues = ratingValues.filter((p) => p !== null)
                 const ratingAvg = validRatingValues.length
-                  ? (
-                      validRatingValues.reduce((sum, curr) => sum + curr, 0) /
-                      validRatingValues.length
-                    ).toFixed(2)
+                  ? Number(
+                      (
+                        validRatingValues.reduce((sum, curr) => sum + curr, 0) /
+                        validRatingValues.length
+                      ).toFixed(2)
+                    )
                   : 'N/A'
                 const ratingMin = validRatingValues.length
                   ? Math.min(...validRatingValues)
@@ -430,9 +432,11 @@ const SeniorAreaChairConsole = ({ appContext }) => {
           const confidences = officialReviews.map((p) => p?.confidence)
           const validConfidences = confidences.filter((p) => p !== null)
           const confidenceAvg = validConfidences.length
-            ? (
-                validConfidences.reduce((sum, curr) => sum + curr, 0) / validConfidences.length
-              ).toFixed(2)
+            ? Number(
+                (
+                  validConfidences.reduce((sum, curr) => sum + curr, 0) / validConfidences.length
+                ).toFixed(2)
+              )
             : 'N/A'
           const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
           const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'
