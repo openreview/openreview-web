@@ -26,6 +26,7 @@ export default function SubmissionsList({
   enableSearch,
   useCredentials,
   paperDisplayOptions,
+  skipDomain = false,
 }) {
   const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
   const dispatch = useDispatch()
@@ -35,7 +36,13 @@ export default function SubmissionsList({
     async (limit, offset) => {
       const { notes, count } = await api.get(
         '/notes',
-        { details, ...query, limit, offset, domain: apiVersion === 1 ? undefined : venueId },
+        {
+          details,
+          ...query,
+          limit,
+          offset,
+          domain: apiVersion === 1 || skipDomain ? undefined : venueId,
+        },
         { version: apiVersion, useCredentials: useCredentials ?? true }
       )
       if (typeof updateCount === 'function') {
