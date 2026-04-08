@@ -632,8 +632,8 @@ describe('AreaChairConsole', () => {
                   {
                     content: {
                       review: { value: 'some review for paper5 from reviewer1' },
-                      rating: { value: 0 },
-                      confidence: { value: 0 },
+                      rating: { value: 1 },
+                      confidence: { value: 1 },
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission5/-/First_Round_Review'],
                     signatures: [
@@ -644,8 +644,8 @@ describe('AreaChairConsole', () => {
                   {
                     content: {
                       review: { value: 'some review for paper5 from reviewer2' },
-                      rating: { value: 0 },
-                      confidence: { value: 0 },
+                      rating: { value: -1 },
+                      confidence: { value: -1 },
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission5/-/First_Round_Review'],
                     signatures: [
@@ -1162,8 +1162,8 @@ describe('AreaChairConsole', () => {
                   {
                     content: {
                       review: { value: 'some review for paper5 from reviewer1' },
-                      rating: { value: 0 },
-                      confidence: { value: 0 },
+                      rating: { value: 1 },
+                      confidence: { value: 1 },
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission5/-/First_Round_Review'],
                     signatures: [
@@ -1174,8 +1174,8 @@ describe('AreaChairConsole', () => {
                   {
                     content: {
                       review: { value: 'some review for paper5 from reviewer2' },
-                      rating: { value: 0 },
-                      confidence: { value: 0 },
+                      rating: { value: -1 },
+                      confidence: { value: -1 },
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission5/-/First_Round_Review'],
                     signatures: [
@@ -1410,6 +1410,26 @@ describe('AreaChairConsole', () => {
           ),
         })
       )
+      // Paper 5: reviewer ratings/confidences are 1 and -1 → average is exactly 0
+      // (numeric, not 'N/A'). Regression guard for the .toFixed-string filter bug
+      // and for any future truthiness check that would hide a 0 average.
+      expect(noteReviewStatusProps).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          rowData: expect.objectContaining({
+            note: expect.objectContaining({ id: 'note5Id' }),
+            reviewProgressData: expect.objectContaining({
+              confidenceAvg: 0,
+              ratings: {
+                rating: {
+                  ratingAvg: 0,
+                  ratingMax: 1,
+                  ratingMin: -1,
+                },
+              },
+            }),
+          }),
+        })
+      )
     })
 
     const tasksTab = screen.getByRole('tab', {
@@ -1501,8 +1521,8 @@ describe('AreaChairConsole', () => {
                   {
                     content: {
                       review: { value: 'some review for paper5 from reviewer1' },
-                      rating: { value: 0 },
-                      confidence: { value: 0 },
+                      rating: { value: 1 },
+                      confidence: { value: 1 },
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission5/-/First_Round_Review'],
                     signatures: [
@@ -1513,8 +1533,8 @@ describe('AreaChairConsole', () => {
                   {
                     content: {
                       review: { value: 'some review for paper5 from reviewer2' },
-                      rating: { value: 0 },
-                      confidence: { value: 0 },
+                      rating: { value: -1 },
+                      confidence: { value: -1 },
                     },
                     invitations: ['AAAI.org/2025/Conference/Submission5/-/First_Round_Review'],
                     signatures: [

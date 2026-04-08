@@ -220,6 +220,51 @@ describe('filterCollections', () => {
     expect(maxResult.filteredRows.map((r) => r.id)).toEqual([1, 2, 3])
   })
 
+  test('filter numeric ratingAvg when the average is exactly 0 (e.g. ratings 1, 0, -1)', () => {
+    // Mirrors what the consoles produce via Math.round((sum / n) * 100) / 100
+    // for ratings [1, 0, -1] → ratingAvg === 0 (Number, not 'N/A').
+    const ratingValues = [1, 0, -1]
+    const ratingAvg =
+      Math.round((ratingValues.reduce((a, b) => a + b, 0) / ratingValues.length) * 100) / 100
+    expect(ratingAvg).toBe(0)
+
+    const collections = [
+      { id: 1, reviewProgressData: { ratings: { rating: { ratingAvg } } } },
+      { id: 2, reviewProgressData: { ratings: { rating: { ratingAvg: 1.5 } } } },
+      { id: 3, reviewProgressData: { ratings: { rating: { ratingAvg: -2 } } } },
+    ]
+    const propertiesAllowed = {
+      ratingAvg: ['reviewProgressData.ratings.rating.ratingAvg'],
+    }
+
+    const gte = filterCollections(
+      collections,
+      'ratingAvg>=0',
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(gte.filteredRows.map((r) => r.id)).toEqual([1, 2])
+
+    const lte = filterCollections(
+      collections,
+      'ratingAvg<=0',
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(lte.filteredRows.map((r) => r.id)).toEqual([1, 3])
+
+    const eq = filterCollections(
+      collections,
+      'ratingAvg==0',
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(eq.filteredRows.map((r) => r.id)).toEqual([1])
+  })
+
   test('filter collection with complex query unnested property', () => {
     const collections = [
       { id: 1 },
