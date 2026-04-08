@@ -114,7 +114,7 @@ const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
                       {numReviewsDone} of {numReviewersAssigned}{' '}
                       {pluralizeString(prettyField(officialReviewName))} Submitted{' '}
                     </strong>
-                    {ratingAvg &&
+                    {ratingAvg != null &&
                       `/ Average Rating:${ratingAvg} (Min: ${ratingMin}, Max: ${ratingMax})`}
                   </div>
                 </div>

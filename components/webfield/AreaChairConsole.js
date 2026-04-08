@@ -1089,12 +1089,11 @@ const AreaChairConsole = ({ appContext }) => {
               const ratingValues = officialReviews.map((p) => p[displayRatingName])
               const validRatingValues = ratingValues.filter((p) => p !== null)
               const ratingAvg = validRatingValues.length
-                ? Number(
-                    (
-                      validRatingValues.reduce((sum, curr) => sum + curr, 0) /
-                      validRatingValues.length
-                    ).toFixed(2)
-                  )
+                ? Math.round(
+                    (validRatingValues.reduce((sum, curr) => sum + curr, 0) /
+                      validRatingValues.length) *
+                      100
+                  ) / 100
                 : 'N/A'
               const ratingMin = validRatingValues.length
                 ? Math.min(...validRatingValues)
@@ -1110,11 +1109,10 @@ const AreaChairConsole = ({ appContext }) => {
         const confidences = officialReviews.map((p) => p.confidence)
         const validConfidences = confidences.filter((p) => p !== null)
         const confidenceAvg = validConfidences.length
-          ? Number(
-              (
-                validConfidences.reduce((sum, curr) => sum + curr, 0) / validConfidences.length
-              ).toFixed(2)
-            )
+          ? Math.round(
+              (validConfidences.reduce((sum, curr) => sum + curr, 0) / validConfidences.length) *
+                100
+            ) / 100
           : 'N/A'
         const confidenceMin = validConfidences.length ? Math.min(...validConfidences) : 'N/A'
         const confidenceMax = validConfidences.length ? Math.max(...validConfidences) : 'N/A'

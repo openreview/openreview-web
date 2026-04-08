@@ -243,7 +243,7 @@ const ReviewerStatus = ({ rowData, officialReviewName, submissionName }) => {
                 <strong>
                   {numOfReviews} of {numOfReviewers} Reviews Submitted{' '}
                 </strong>
-                {ratingAvg && (
+                {ratingAvg != null && (
                   <>
                     <span>Average Rating: {ratingAvg}</span>
                     <span>{`(Min: ${ratingMin}, Max: ${ratingMax})`}</span>

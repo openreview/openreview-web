@@ -198,7 +198,7 @@ const SeniorAreaChairStatusRowForDirectPaperAssignment = ({
                         <strong>
                           {numReviewsDone} of {numReviewersAssigned} Reviews Submitted{' '}
                         </strong>
-                        {ratingAvg &&
+                        {ratingAvg != null &&
                           `/ Average Rating:${ratingAvg} (Min: ${ratingMin}, Max: ${ratingMax})`}
                       </div>
                     </div>
