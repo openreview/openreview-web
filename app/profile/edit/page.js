@@ -8,7 +8,7 @@ import ProfileEditor from '../../../components/profile/ProfileEditor'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
-import { getNoteAuthorIds } from '../../../lib/utils'
+import { getNoteAuthorIds, prettyId } from '../../../lib/utils'
 import LimitedStateAlert from './LimitedStateAlert'
 
 import styles from './Edit.module.scss'
@@ -76,6 +76,10 @@ export default function Page() {
           content: {
             author_index: { value: matchedIdx[0] },
             author_id: { value: '' },
+            ...(invitationMap[invitation] ===
+              `${process.env.SUPER_USER}/Public_Article/-/Author_Removal` && {
+              author_name: { value: prettyId(profileId) },
+            }),
           },
         }
       : {
