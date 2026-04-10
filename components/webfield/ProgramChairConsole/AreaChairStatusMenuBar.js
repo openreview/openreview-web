@@ -45,7 +45,7 @@ export const MessageACSACModal = ({
     try {
       await api.post('/messages', {
         invitation: messageInvitationId,
-        signature: messageInvitationId && messageSignature,
+        signature: messageSignature,
         groups: recipientsInfo.map((p) => p.id),
         subject,
         message,
