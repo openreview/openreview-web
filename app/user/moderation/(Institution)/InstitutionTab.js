@@ -3,9 +3,10 @@
 import { PlusOutlined } from '@ant-design/icons'
 import { Button, Col, Flex, Input, Modal, Pagination, Row, Select, Space } from 'antd'
 import { useMemo, useState } from 'react'
+import Icon from '../../../../components/Icon'
 import api from '../../../../lib/api-client'
 
-import styles from './institution.module.scss'
+import { moderation as legacyStyles } from '../../../../lib/legacy-bootstrap-styles'
 
 const pageSize = 25
 const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
@@ -148,6 +149,7 @@ export default function InstitutionTab() {
           <Input
             allowClear
             placeholder="Search institution domain"
+            style={legacyStyles.formInput}
             value={searchTerm}
             onChange={(e) => {
               const value = e.target.value ?? ''
@@ -161,10 +163,19 @@ export default function InstitutionTab() {
         </Col>
         <Col>
           <Space>
-            <Button type="primary" onClick={() => loadAndFilterInstitutions()}>
+            <Button
+              type="primary"
+              styles={{ root: legacyStyles.formButton }}
+              onClick={() => loadAndFilterInstitutions()}
+            >
               Search
             </Button>
-            <Button type="primary" icon={<PlusOutlined />} onClick={openAddModal}>
+            <Button
+              type="primary"
+              styles={{ root: legacyStyles.formButton }}
+              icon={<PlusOutlined />}
+              onClick={openAddModal}
+            >
               Add Institution
             </Button>
           </Space>
@@ -173,37 +184,34 @@ export default function InstitutionTab() {
 
       {institutionsToShow && (
         <>
-          <Flex vertical style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
+          <Flex vertical gap="middle" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
             {institutionsToShow.map((institutionDomain) => (
-              <Row
-                key={institutionDomain}
-                align="middle"
-                gutter={[8, 0]}
-                style={{ padding: '4px 0', borderBottom: '1px solid #f0f0f0' }}
-              >
-                <Col flex="auto" className={styles.truncatedtext}>
-                  {institutionDomain}
-                </Col>
+              <Row key={institutionDomain} align="middle" gutter={[8, 0]}>
                 <Col flex="none">
                   <Space size={4}>
                     <Button
                       size="small"
                       type="primary"
-                      classNames={{ content: styles.actionbuttoncontent }}
+                      styles={{ root: legacyStyles.actionButton }}
                       onClick={() => openEditModal(institutionDomain)}
                     >
-                      Edit
+                      <span style={{ top: '0px' }}>
+                        <Icon name="edit" />
+                      </span>
                     </Button>
                     <Button
                       size="small"
                       type="primary"
-                      classNames={{ content: styles.actionbuttoncontent }}
+                      styles={{ root: legacyStyles.actionButton }}
                       onClick={() => deleteInstitution(institutionDomain)}
                     >
-                      Delete
+                      <span style={{ top: '0px' }}>
+                        <Icon name="trash" />
+                      </span>
                     </Button>
                   </Space>
                 </Col>
+                <Col flex="auto">{institutionDomain}</Col>
               </Row>
             ))}
           </Flex>
@@ -240,6 +248,7 @@ export default function InstitutionTab() {
           <div>
             <label>Institution ID (domain)</label>
             <Input
+              style={legacyStyles.formInput}
               value={modalData.id ?? ''}
               disabled={isEditMode}
               onChange={(e) => setModalData((p) => ({ ...p, id: e.target.value }))}
@@ -248,6 +257,7 @@ export default function InstitutionTab() {
           <div>
             <label>Short Name</label>
             <Input
+              style={legacyStyles.formInput}
               value={modalData.shortname ?? ''}
               onChange={(e) => setModalData((p) => ({ ...p, shortname: e.target.value }))}
             />
@@ -255,6 +265,7 @@ export default function InstitutionTab() {
           <div>
             <label>Full Name</label>
             <Input
+              style={legacyStyles.formInput}
               value={modalData.fullname ?? ''}
               onChange={(e) => setModalData((p) => ({ ...p, fullname: e.target.value }))}
             />
@@ -262,6 +273,7 @@ export default function InstitutionTab() {
           <div>
             <label>Parent</label>
             <Input
+              style={legacyStyles.formInput}
               value={modalData.parent ?? ''}
               onChange={(e) => setModalData((p) => ({ ...p, parent: e.target.value }))}
             />
@@ -269,6 +281,7 @@ export default function InstitutionTab() {
           <div>
             <label>Domains (comma-separated)</label>
             <Input
+              style={legacyStyles.formInput}
               value={modalData.domains ?? ''}
               onChange={(e) => setModalData((p) => ({ ...p, domains: e.target.value }))}
             />
@@ -281,6 +294,7 @@ export default function InstitutionTab() {
               variant="outlined"
               style={{ width: '100%' }}
               options={countryOptions}
+              getPopupContainer={(triggerNode) => triggerNode.parentElement}
               onChange={(_value, option) =>
                 setModalData((p) => ({
                   ...p,
@@ -295,6 +309,7 @@ export default function InstitutionTab() {
           <div>
             <label>State/Province</label>
             <Input
+              style={legacyStyles.formInput}
               value={modalData.stateProvince ?? ''}
               onChange={(e) => setModalData((p) => ({ ...p, stateProvince: e.target.value }))}
             />
@@ -302,6 +317,7 @@ export default function InstitutionTab() {
           <div>
             <label>Web Pages (comma-separated)</label>
             <Input
+              style={legacyStyles.formInput}
               value={modalData.webPages ?? ''}
               onChange={(e) => setModalData((p) => ({ ...p, webPages: e.target.value }))}
             />
