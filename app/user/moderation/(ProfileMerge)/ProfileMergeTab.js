@@ -174,9 +174,6 @@ export default function ProfileMergeTab() {
         <Col xs={12} sm={4} md={4} lg={4}>
           Date
         </Col>
-        <Col xs={12} sm={4} md={5} lg={6}>
-          Actions
-        </Col>
       </Row>
 
       <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>

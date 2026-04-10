@@ -175,9 +175,6 @@ export default function NameDeletionTab() {
         <Col xs={12} sm={8} md={4} lg={4}>
           Date
         </Col>
-        <Col xs={12} sm={8} md={3} lg={4}>
-          Actions
-        </Col>
       </Row>
 
       <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
@@ -185,7 +182,11 @@ export default function NameDeletionTab() {
           <Row key={note.id} align="middle" gutter={[8, 8]}>
             <Col xs={8} sm={6} md={4} lg={3}>
               <Space size={4} wrap>
-                <Tag color={getBootstrap337LabelColor(getStatusColor(note))} variant="solid" styles={{ root: legacyStyles.statusTag }}>
+                <Tag
+                  color={getBootstrap337LabelColor(getStatusColor(note))}
+                  variant="solid"
+                  styles={{ root: legacyStyles.statusTag }}
+                >
                   {note.content.status.value}
                 </Tag>
                 {note.processLogStatus !== 'N/A' && (
