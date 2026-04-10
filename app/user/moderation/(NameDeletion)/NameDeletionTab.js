@@ -7,7 +7,10 @@ import api from '../../../../lib/api-client'
 import { formatDateTime, prettyId } from '../../../../lib/utils'
 
 import styles from './nameDeletion.module.scss'
-import { getBootstrap337LabelColor } from '../../../../lib/legacy-bootstrap-styles'
+import {
+  getBootstrap337LabelColor,
+  moderation as legacyStyles,
+} from '../../../../lib/legacy-bootstrap-styles'
 
 const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
 const pageSize = 25
@@ -182,7 +185,7 @@ export default function NameDeletionTab() {
           <Row key={note.id} align="middle" gutter={[8, 8]}>
             <Col xs={8} sm={6} md={4} lg={3}>
               <Space size={4} wrap>
-                <Tag color={getBootstrap337LabelColor(getStatusColor(note))} variant="solid">
+                <Tag color={getBootstrap337LabelColor(getStatusColor(note))} variant="solid" styles={{ root: legacyStyles.statusTag }}>
                   {note.content.status.value}
                 </Tag>
                 {note.processLogStatus !== 'N/A' && (
@@ -190,6 +193,7 @@ export default function NameDeletionTab() {
                     <Tag
                       color={getBootstrap337LabelColor(getProcessLogStatusColor(note))}
                       variant="solid"
+                      styles={{ root: legacyStyles.statusTag }}
                     >
                       {note.processLogStatus}
                     </Tag>
@@ -238,7 +242,7 @@ export default function NameDeletionTab() {
                     type="primary"
                     size="small"
                     icon={<CheckCircleOutlined />}
-                    classNames={{ content: styles.actionbuttoncontent }}
+                    styles={{ root: legacyStyles.actionButton }}
                     disabled={idsLoading.includes(note.id)}
                     onClick={() => acceptRejectNameDeletionNote(note, 'Accepted')}
                   >
@@ -248,7 +252,7 @@ export default function NameDeletionTab() {
                     type="primary"
                     size="small"
                     icon={<CloseCircleOutlined />}
-                    classNames={{ content: styles.actionbuttoncontent }}
+                    styles={{ root: legacyStyles.actionButton }}
                     disabled={idsLoading.includes(note.id)}
                     onClick={() => setNoteToReject(note)}
                   >
