@@ -6,7 +6,10 @@ import api from '../../../../lib/api-client'
 import { formatDateTime, prettyId } from '../../../../lib/utils'
 
 import styles from './profileMerge.module.scss'
-import { getBootstrap337LabelColor } from '../../../../lib/legacy-bootstrap-styles'
+import {
+  getBootstrap337LabelColor,
+  moderation as legacyStyles,
+} from '../../../../lib/legacy-bootstrap-styles'
 
 const pageSize = 25
 const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
@@ -184,18 +187,22 @@ export default function ProfileMergeTab() {
                 {note.content.support_comment?.value ? (
                   <Tooltip title={note.content.support_comment.value}>
                     <Tag
-                      className={styles.statustag}
                       color={getBootstrap337LabelColor(getStatusColor(note))}
                       variant="solid"
+                      styles={{
+                        root: { ...legacyStyles.statusTag, minWidth: 68, textAlign: 'center' },
+                      }}
                     >
                       {note.content.status.value}
                     </Tag>
                   </Tooltip>
                 ) : (
                   <Tag
-                    className={styles.statustag}
                     color={getBootstrap337LabelColor(getStatusColor(note))}
                     variant="solid"
+                    styles={{
+                      root: { ...legacyStyles.statusTag, minWidth: 68, textAlign: 'center' },
+                    }}
                   >
                     {note.content.status.value}
                   </Tag>
@@ -205,6 +212,7 @@ export default function ProfileMergeTab() {
                     <Tag
                       color={getBootstrap337LabelColor(getProcessLogStatusColor(note))}
                       variant="solid"
+                      styles={{ root: legacyStyles.statusTag }}
                     >
                       {note.processLogStatus}
                     </Tag>
@@ -243,7 +251,7 @@ export default function ProfileMergeTab() {
                     type="primary"
                     size="small"
                     icon={<CheckCircleOutlined />}
-                    classNames={{ content: styles.actionbuttoncontent }}
+                    styles={{ root: legacyStyles.actionButton }}
                     disabled={idsLoading.includes(note.id)}
                     onClick={() => acceptRejectProfileMergeNote(note, 'Accepted')}
                   >
@@ -253,7 +261,7 @@ export default function ProfileMergeTab() {
                     type="primary"
                     size="small"
                     icon={<CloseCircleOutlined />}
-                    classNames={{ content: styles.actionbuttoncontent }}
+                    styles={{ root: legacyStyles.actionButton }}
                     disabled={idsLoading.includes(note.id)}
                     onClick={() => setNoteToReject(note)}
                   >
@@ -262,7 +270,7 @@ export default function ProfileMergeTab() {
                   <Button
                     type="primary"
                     size="small"
-                    classNames={{ content: styles.actionbuttoncontent }}
+                    styles={{ root: legacyStyles.actionButton }}
                     disabled={idsLoading.includes(note.id)}
                     onClick={() => acceptRejectProfileMergeNote(note, 'Ignored')}
                   >
