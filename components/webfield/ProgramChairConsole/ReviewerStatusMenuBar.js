@@ -31,7 +31,7 @@ const MessageReviewersModal = ({
     try {
       await api.post('/messages', {
         invitation: messageReviewersInvitationId,
-        signature: messageReviewersInvitationId && messageSignature,
+        signature: messageSignature,
         groups: recipientsInfo.map((p) => p.id),
         subject,
         message,

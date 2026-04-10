@@ -2,8 +2,8 @@
 
 /* globals $: false */
 
-import { useEffect } from 'react'
 import Link from 'next/link'
+import { useEffect } from 'react'
 import NoteList from '../NoteList'
 import SourceGroupedNoteList from '../SourceGroupedNoteList'
 
@@ -69,7 +69,7 @@ const ProfilePublications = ({
       )}
     </>
   ) : (
-    <p className="empty-message">No publications</p>
+    <p style={{ fontStyle: 'italic' }}>No publications</p>
   )
 }
 
