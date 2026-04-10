@@ -4,6 +4,8 @@ import { Button, Col, Input, Row } from 'antd'
 import { useState } from 'react'
 import api from '../../../../lib/api-client'
 
+import { moderation as legacyStyles } from '../../../../lib/legacy-bootstrap-styles'
+
 export default function EmailDeletionForm({
   emailRemovalInvitationId,
   setEmailDeletionNotes,
@@ -45,18 +47,11 @@ export default function EmailDeletionForm({
   }
 
   return (
-    <Row
-      gutter={[8, 8]}
-      align="middle"
-      style={{
-        backgroundColor: '#efece3',
-        padding: '0.5rem',
-        marginBottom: '0.75rem',
-      }}
-    >
+    <Row gutter={[8, 8]} align="middle" style={legacyStyles.filterForm}>
       <Col xs={24} md={6}>
         <Input
           placeholder="Email to delete"
+          style={legacyStyles.formInput}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           onPressEnter={handleEmailDeletionRequest}
@@ -65,6 +60,7 @@ export default function EmailDeletionForm({
       <Col xs={24} md={6}>
         <Input
           placeholder="Profile ID the email is associated with"
+          style={legacyStyles.formInput}
           value={profileId}
           onChange={(e) => setProfileId(e.target.value)}
           onPressEnter={handleEmailDeletionRequest}
@@ -73,13 +69,18 @@ export default function EmailDeletionForm({
       <Col xs={24} md={10}>
         <Input
           placeholder="Moderator comment"
+          style={legacyStyles.formInput}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           onPressEnter={handleEmailDeletionRequest}
         />
       </Col>
       <Col xs={24} md={2}>
-        <Button type="primary" onClick={handleEmailDeletionRequest}>
+        <Button
+          type="primary"
+          styles={{ root: legacyStyles.formButton }}
+          onClick={handleEmailDeletionRequest}
+        >
           Submit
         </Button>
       </Col>

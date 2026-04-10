@@ -8,7 +8,10 @@ import { formatDateTime } from '../../../../lib/utils'
 import EmailDeletionForm from './EmailDeletionForm'
 
 import styles from './emailDeletion.module.scss'
-import { getBootstrap337LabelColor } from '../../../../lib/legacy-bootstrap-styles'
+import {
+  getBootstrap337LabelColor,
+  moderation as legacyStyles,
+} from '../../../../lib/legacy-bootstrap-styles'
 
 const emailRemovalInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Email_Removal`
 const pageSize = 25
@@ -108,6 +111,7 @@ export default function EmailDeletionTab() {
                     note.processLogStatus === 'ok' ? 'success' : 'default'
                   )}
                   variant="solid"
+                  styles={{ root: legacyStyles.statusTag }}
                 >
                   {note.processLogStatus}
                 </Tag>

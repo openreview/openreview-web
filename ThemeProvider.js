@@ -45,6 +45,7 @@ const theme = {
       activeBorderColor: '#3e6775',
       colorBgContainer: '#fffaf4',
       lineWidth: 2,
+      colorTextPlaceholder: '#999',
     },
     Layout: {
       footerPadding: 0,
