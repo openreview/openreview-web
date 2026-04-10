@@ -40,32 +40,34 @@ const PastStatesSection = ({ email, pastStates }) => {
         })
 
         return (
-          <Space key={index} size="small" align="center" wrap>
-            <span>
-              {formatDateTime(pastState.date, {
-                day: '2-digit',
-                month: 'short',
-                year: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-                second: undefined,
-                timeZoneName: undefined,
-                hour12: false,
-              })}
-            </span>
-            <Tag
-              color={getBootstrap337LabelColor(getProfileStateLabelClass(pastState.state))}
-              variant="solid"
-              styles={{ root: legacyStyles.statusTag }}
-            >
-              {pastState.state}
-            </Tag>
-
-            {pastState.setBy && (
-              <span style={{ color: colors.subtleGray, fontSize: '0.85em' }}>
-                {pastState.setBy}
+          <div key={index}>
+            <Space size="small" align="center" wrap>
+              <span>
+                {formatDateTime(pastState.date, {
+                  day: '2-digit',
+                  month: 'short',
+                  year: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                  second: undefined,
+                  timeZoneName: undefined,
+                  hour12: false,
+                })}
               </span>
-            )}
+              <Tag
+                color={getBootstrap337LabelColor(getProfileStateLabelClass(pastState.state))}
+                variant="solid"
+                styles={{ root: legacyStyles.statusTag }}
+              >
+                {pastState.state}
+              </Tag>
+
+              {pastState.setBy && (
+                <span style={{ color: colors.subtleGray, fontSize: '0.85em' }}>
+                  {pastState.setBy}
+                </span>
+              )}
+            </Space>
 
             {message && (
               <a
@@ -85,7 +87,7 @@ const PastStatesSection = ({ email, pastStates }) => {
                 )}
               </a>
             )}
-          </Space>
+          </div>
         )
       })}
     </Flex>

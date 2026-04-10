@@ -4,6 +4,7 @@ import {
   isNonDeletableError,
   convertToString,
   convertToArray,
+  evaluateOperator,
 } from '../lib/webfield-utils'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -76,6 +77,129 @@ describe('webfield-utils', () => {
 
     invalidValue = { delete: true, someOtherKey: 'some other value' }
     expect(isNonDeletableError(invalidValue)).toBe(false)
+  })
+})
+
+describe('evaluateOperator', () => {
+  test('return null when property value or target value is undefined or null', () => {
+    let propertyValue, targetValue, operator
+    operator = '='
+    propertyValue = undefined
+    targetValue = 'some value'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+
+    propertyValue = 'some value'
+    targetValue = null
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+
+    propertyValue = null
+    targetValue = undefined
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+  })
+
+  test('treat N/A property value as 0 when compared with number tagrget value', () => {
+    let propertyValue = 'N/A'
+    let targetValue = 5
+    let operator = '<'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+
+    operator = '>'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+
+    targetValue = -1
+    operator = '>'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+  })
+
+  test('user preferredName and preferredId as property value when searching profile', () => {
+    // convert all value to lowercase whne operator is not ==
+    let propertyValue = [
+      { preferredId: '~First_Last1', preferredName: 'First Last', type: 'profile' },
+    ]
+    let targetValue = 'last'
+    let operator = '='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+
+    targetValue = 'LAST'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+
+    // exact match when operator is ==
+    operator = '=='
+    targetValue = 'last'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    targetValue = 'first Last'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    targetValue = 'First Last'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+  })
+
+  test('not to allow greater less comparison when both target and property', () => {
+    let propertyValue = 'some string and some other string'
+    let targetValue = 'some string'
+
+    const notAllowedOperators = ['>', '>=', '<', '<=']
+    notAllowedOperators.forEach((operator) => {
+      expect(() => evaluateOperator(operator, propertyValue, targetValue)).toThrow(
+        'operator is invalid'
+      )
+    })
+
+    let operator = '='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    operator = '=='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    operator = '!='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+  })
+
+  test('not to convert target value to string when target value is number', () => {
+    // comparison of '5.00' and 3 is handled by js type coercion so no need to perform type conversion
+    let propertyValue = '5.00'
+    let targetValue = 3
+    let operator = '='
+
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    operator = '>='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    operator = '<'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+  })
+
+  test('compare number', () => {
+    // 1.23=1.23
+    let propertyValue = 1.23
+    let targetValue = 1.23
+    let trueOperators = ['=', '==', '>=', '<=']
+    let falseOperators = ['!=', '>', '<']
+
+    falseOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    })
+    trueOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    })
+
+    // 1.23<1.24
+    targetValue = 1.24
+    trueOperators = ['!=', '<', '<=']
+    falseOperators = ['=', '==', '>=', '>']
+    falseOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    })
+    trueOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    })
+
+    // 1.23>1.22
+    targetValue = 1.22
+    trueOperators = ['!=', '>', '>=']
+    falseOperators = ['=', '==', '<', '<=']
+    falseOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    })
+    trueOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    })
   })
 })
 
