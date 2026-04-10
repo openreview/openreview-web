@@ -1,14 +1,12 @@
 /* globals promptError,promptMessage: false */
 
-import React, { useReducer, useState } from 'react'
+import { Descriptions } from 'antd'
+import dayjs from 'dayjs'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
-import timezone from 'dayjs/plugin/timezone'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import SpinnerButton from '../SpinnerButton'
-import EditorSection from '../EditorSection'
-import GroupIdList, { InvitationIdList } from '../group/GroupIdList'
+import { useReducer, useState } from 'react'
 import api from '../../lib/api-client'
 import {
   formatDateTime,
@@ -19,11 +17,17 @@ import {
   trueFalseOptions,
   urlFromGroupId,
 } from '../../lib/utils'
+import EditorSection from '../EditorSection'
+import GroupIdList, { InvitationIdList } from '../group/GroupIdList'
 import LoadingSpinner from '../LoadingSpinner'
+import SpinnerButton from '../SpinnerButton'
+
+import { invitation as invitationStyles } from '../../lib/legacy-bootstrap-styles'
 
 dayjs.extend(timezone)
 dayjs.extend(utc)
 
+const CodeEditor = dynamic(() => import('../CodeEditor'))
 const DatetimePicker = dynamic(() => import('../DatetimePicker'), {
   ssr: false,
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
@@ -164,108 +168,129 @@ export const InvitationGeneralViewV2 = ({ invitation, isMetaInvitation }) => {
   const parentGroupId = invitation.id.split('/-/')[0]
 
   return (
-    <div>
-      <div className="row d-flex">
-        <span className="info-title">Parent Group:</span>
-        <Link href={urlFromGroupId(parentGroupId, true)}>{prettyId(parentGroupId)}</Link>
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Invitations:</span>
-        <div>
-          <InvitationIdList invitationIds={invitation.invitations} />
-        </div>
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Readers:</span>
-        <div>
-          <GroupIdList groupIds={invitation.readers} />
-        </div>
-      </div>
-      {invitation.nonreaders?.length > 0 && (
-        <div className="row d-flex">
-          <span className="info-title">Non-readers:</span>
-          <div>
-            <GroupIdList groupIds={invitation.nonreaders} />
-          </div>
-        </div>
-      )}
-      <div className="row d-flex">
-        <span className="info-title">Writers:</span>
-        <div>
-          <GroupIdList groupIds={invitation.writers} />
-        </div>
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Invitees:</span>
-        <div>
-          <GroupIdList groupIds={invitation.invitees} />
-        </div>
-      </div>
-      {invitation.noninvitees?.length > 0 && (
-        <div className="row d-flex">
-          <span className="info-title">Non-Invitees:</span>
-          <div>
-            <GroupIdList groupIds={invitation.noninvitees} />
-          </div>
-        </div>
-      )}
-
-      {!isMetaInvitation && (
-        <div className="row d-flex">
-          <span className="info-title">Max Replies:</span>
-          {invitation.maxReplies}
-        </div>
-      )}
-      {!isMetaInvitation && (
-        <div className="row d-flex">
-          <span className="info-title">Min Replies:</span>
-          {invitation.minReplies}
-        </div>
-      )}
-      <div className="row d-flex">
-        <span className="info-title">Bulk:</span>
-        {invitation.bulk?.toString()}
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Signature:</span>
-        <div>
-          <GroupIdList groupIds={invitation.signatures} />
-        </div>
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Creation Date:</span>
-        {formatDateTime(invitation.tcdate, { month: 'long', timeZoneName: 'short' })}
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Activation Date:</span>
-        {formatDateTime(invitation.cdate, { month: 'long', timeZoneName: 'short' }) ??
-          formatDateTime(invitation.tcdate, { month: 'long', timeZoneName: 'short' })}
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Modified Date:</span>
-        {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
-          formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Due Date:</span>
-        {formatDateTime(invitation.duedate, { month: 'long', timeZoneName: 'short' })}
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Expiration Date:</span>
-        {formatDateTime(invitation.expdate, { month: 'long', timeZoneName: 'short' })}
-      </div>
-      <div className="row d-flex">
-        <span className="info-title">Last Modified:</span>
-        {formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
-          formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' })}
-      </div>
-      {invitation.ddate && (
-        <div className="row d-flex">
-          <span className="info-title">Deleted:</span>
-          {formatDateTime(invitation.ddate, { month: 'long', timeZoneName: 'short' })}
-        </div>
-      )}
-    </div>
+    <Descriptions
+      column={1}
+      size="small"
+      styles={{ label: invitationStyles.descriptionsLabel }}
+      items={[
+        {
+          label: 'Parent Group',
+          children: (
+            <Link href={urlFromGroupId(parentGroupId, true)}>{prettyId(parentGroupId)}</Link>
+          ),
+        },
+        {
+          label: 'Invitations',
+          children: <InvitationIdList invitationIds={invitation.invitations} />,
+        },
+        {
+          label: 'Readers',
+          children: <GroupIdList groupIds={invitation.readers} />,
+        },
+        ...(invitation.nonreaders?.length > 0
+          ? [
+              {
+                label: 'Non-readers',
+                children: <GroupIdList groupIds={invitation.nonreaders} />,
+              },
+            ]
+          : []),
+        {
+          label: 'Writers',
+          children: <GroupIdList groupIds={invitation.writers} />,
+        },
+        {
+          label: 'Invitees',
+          children: <GroupIdList groupIds={invitation.invitees} />,
+        },
+        ...(invitation.noninvitees?.length > 0
+          ? [
+              {
+                label: 'Non-Invitees',
+                children: <GroupIdList groupIds={invitation.noninvitees} />,
+              },
+            ]
+          : []),
+        ...(isMetaInvitation
+          ? []
+          : [
+              {
+                label: 'Max Replies',
+                children: invitation.maxReplies,
+              },
+              {
+                label: 'Min Replies',
+                children: invitation.minReplies,
+              },
+            ]),
+        {
+          label: 'Bulk',
+          children: invitation.bulk?.toString(),
+        },
+        {
+          label: 'Signature',
+          children: <GroupIdList groupIds={invitation.signatures} />,
+        },
+        {
+          label: 'Creation Date',
+          children: formatDateTime(invitation.tcdate, {
+            month: 'long',
+            timeZoneName: 'short',
+          }),
+        },
+        {
+          label: 'Activation Date',
+          children:
+            formatDateTime(invitation.cdate, { month: 'long', timeZoneName: 'short' }) ??
+            formatDateTime(invitation.tcdate, { month: 'long', timeZoneName: 'short' }),
+        },
+        {
+          label: 'Modified Date',
+          children:
+            formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
+            formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' }),
+        },
+        {
+          label: 'Due Date',
+          children: formatDateTime(invitation.duedate, {
+            month: 'long',
+            timeZoneName: 'short',
+          }),
+        },
+        {
+          label: 'Expiration Date',
+          children: formatDateTime(invitation.expdate, {
+            month: 'long',
+            timeZoneName: 'short',
+          }),
+        },
+        {
+          label: 'Last Modified',
+          children:
+            formatDateTime(invitation.mdate, { month: 'long', timeZoneName: 'short' }) ??
+            formatDateTime(invitation.tmdate, { month: 'long', timeZoneName: 'short' }),
+        },
+        ...(invitation.ddate
+          ? [
+              {
+                label: 'Deleted',
+                children: formatDateTime(invitation.ddate, {
+                  month: 'long',
+                  timeZoneName: 'short',
+                }),
+              },
+            ]
+          : []),
+        ...(invitation.humanVerificationRequired
+          ? [
+              {
+                label: 'Human Verification',
+                children: JSON.stringify(invitation.humanVerificationRequired),
+              },
+            ]
+          : []),
+      ]}
+    />
   )
 }
 
@@ -609,6 +634,9 @@ const InvitationGeneralEditV2 = ({
     expDateTimezone: getDefaultTimezone()?.value,
     deletionDateTimezone: getDefaultTimezone()?.value,
     signatures: invitation.signatures?.join(', '),
+    humanVerificationRequired: invitation.humanVerificationRequired
+      ? JSON.stringify(invitation.humanVerificationRequired, null, 2)
+      : null,
   })
 
   const constructInvitationEditToPost = () => {
@@ -632,6 +660,15 @@ const InvitationGeneralEditV2 = ({
       !generalInfo.minReplies || Number.isNaN(parseInt(generalInfo.minReplies, 10))
         ? { delete: true }
         : parseInt(generalInfo.minReplies, 10)
+
+    let humanVerificationRequired
+    if (generalInfo.humanVerificationRequired?.trim()) {
+      try {
+        humanVerificationRequired = JSON.parse(generalInfo.humanVerificationRequired)
+      } catch {
+        throw new Error('Human Verification must be valid JSON')
+      }
+    }
 
     const invitationEdit = {
       invitation: {
@@ -657,6 +694,7 @@ const InvitationGeneralEditV2 = ({
         nonreaders: stringToArray(generalInfo.nonreaders),
         readers: stringToArray(generalInfo.readers),
         writers: stringToArray(generalInfo.writers),
+        ...(humanVerificationRequired && { humanVerificationRequired }),
         ...(isMetaInvitation && { edit: true }),
       },
       readers: [profileId],
@@ -669,8 +707,8 @@ const InvitationGeneralEditV2 = ({
 
   const saveGeneralInfo = async () => {
     setIsSaving(true)
-    const requestBody = constructInvitationEditToPost()
     try {
+      const requestBody = constructInvitationEditToPost()
       if (!isMetaInvitation && !requestBody.invitations) {
         throw new Error('No meta invitation found')
       }
@@ -857,6 +895,21 @@ const InvitationGeneralEditV2 = ({
             className="form-control input-sm"
             value={generalInfo.signatures}
             onChange={(e) => setGeneralInfo({ type: 'signatures', payload: e.target.value })}
+          />
+        </div>
+      </div>
+
+      <div className="row d-flex">
+        <span className="info-title edit-title">Human Verification:</span>
+        <div className="info-edit-control">
+          <CodeEditor
+            code={generalInfo.humanVerificationRequired ?? ''}
+            onChange={(value) =>
+              setGeneralInfo({ type: 'humanVerificationRequired', payload: value })
+            }
+            isJson
+            minHeight="80px"
+            maxHeight="200px"
           />
         </div>
       </div>
