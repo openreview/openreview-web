@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from 'react'
 import Markdown from '../../../../components/EditorComponents/Markdown'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import api from '../../../../lib/api-client'
-import { formatDateTime, getBootstrap337LabelColor, prettyId } from '../../../../lib/utils'
+import { formatDateTime, prettyId } from '../../../../lib/utils'
 
 import styles from './nameDeletion.module.scss'
+import { getBootstrap337LabelColor } from '../../../../lib/legacy-bootstrap-styles'
 
 const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
 const pageSize = 25

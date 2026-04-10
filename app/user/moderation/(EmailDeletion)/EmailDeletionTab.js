@@ -4,10 +4,11 @@ import { Col, Flex, Pagination, Row, Tag } from 'antd'
 import { useEffect, useMemo, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import api from '../../../../lib/api-client'
-import { formatDateTime, getBootstrap337LabelColor } from '../../../../lib/utils'
+import { formatDateTime } from '../../../../lib/utils'
 import EmailDeletionForm from './EmailDeletionForm'
 
 import styles from './emailDeletion.module.scss'
+import { getBootstrap337LabelColor } from '../../../../lib/legacy-bootstrap-styles'
 
 const emailRemovalInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Email_Removal`
 const pageSize = 25

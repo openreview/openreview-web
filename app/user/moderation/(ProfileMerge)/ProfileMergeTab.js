@@ -3,9 +3,10 @@ import { Button, Col, Flex, Input, Modal, Pagination, Row, Space, Tag, Tooltip }
 import { useEffect, useMemo, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import api from '../../../../lib/api-client'
-import { formatDateTime, getBootstrap337LabelColor, prettyId } from '../../../../lib/utils'
+import { formatDateTime, prettyId } from '../../../../lib/utils'
 
 import styles from './profileMerge.module.scss'
+import { getBootstrap337LabelColor } from '../../../../lib/legacy-bootstrap-styles'
 
 const pageSize = 25
 const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
