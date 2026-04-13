@@ -19,7 +19,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Run lint
         run: npx --yes oxlint@1.51.0 --report-unused-disable-directives --quiet
 
@@ -58,28 +58,28 @@ jobs:
         with:
           stack-version: 7.6.0
       - name: Checkout openreview-py
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: openreview/openreview-py
           path: openreview-py
       - name: Checkout openreview-api-v1
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: openreview/openreview-api-v1
           token: ${{ secrets.PAT_OPENREVIEW_IESL }}
           path: openreview-api-v1
       - name: Checkout openreview-api
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: openreview/openreview-api
           token: ${{ secrets.PAT_OPENREVIEW_IESL }}
           path: openreview-api
       - name: Checkout openreview-web
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: openreview-web
       - name: Setup Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ matrix.node-version }}
           cache: npm
@@ -87,7 +87,7 @@ jobs:
             openreview-api/package-lock.json
             openreview-web/package-lock.json
       - name: Set up Python 3.10
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.10'
       - name: Setup openreview-py
@@ -107,7 +107,7 @@ jobs:
           npm ci
       - name: Cache openreview-web
         id: openreview-web-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           # For explanation see https://nextjs.org/docs/advanced-features/ci-build-caching#github-actions
           path: openreview-web/.next/cache
@@ -216,7 +216,7 @@ jobs:
     if: github.ref == 'refs/heads/master' && (github.event_name != 'repository_dispatch' || github.event.action != 'openreview-api-updated')
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v2
