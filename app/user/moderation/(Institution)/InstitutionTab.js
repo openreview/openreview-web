@@ -31,7 +31,7 @@ export default function InstitutionTab() {
       return result
     } catch (error) {
       promptError(error.message)
-      return null
+      return []
     }
   }
 
@@ -122,8 +122,7 @@ export default function InstitutionTab() {
       promptMessage(`${institutionId} ${isEditMode ? 'saved' : 'added'}.`)
       setIsEditMode(null)
       setModalData({})
-      await loadInstitutionsDomains()
-      if (institutions) loadAndFilterInstitutions()
+      await loadAndFilterInstitutions()
     } catch (error) {
       promptError(error.message)
     }
@@ -135,8 +134,7 @@ export default function InstitutionTab() {
     try {
       await api.delete(`/settings/institutions/${institutionId}`)
       promptMessage(`${institutionId} is deleted.`)
-      await loadInstitutionsDomains()
-      if (institutions) loadAndFilterInstitutions()
+      await loadAndFilterInstitutions()
     } catch (error) {
       promptError(error.message)
     }
