@@ -634,9 +634,11 @@ const InvitationGeneralEditV2 = ({
     expDateTimezone: getDefaultTimezone()?.value,
     deletionDateTimezone: getDefaultTimezone()?.value,
     signatures: invitation.signatures?.join(', '),
-    humanVerificationRequired: invitation.humanVerificationRequired
-      ? JSON.stringify(invitation.humanVerificationRequired, null, 2)
-      : null,
+    ...(invitation.edit?.note && {
+      humanVerificationRequired: invitation.humanVerificationRequired
+        ? JSON.stringify(invitation.humanVerificationRequired, null, 2)
+        : null,
+    }),
   })
 
   const constructInvitationEditToPost = () => {
@@ -662,7 +664,7 @@ const InvitationGeneralEditV2 = ({
         : parseInt(generalInfo.minReplies, 10)
 
     let humanVerificationRequired
-    if (generalInfo.humanVerificationRequired?.trim()) {
+    if (isNoteInvitation && generalInfo.humanVerificationRequired?.trim()) {
       try {
         humanVerificationRequired = JSON.parse(generalInfo.humanVerificationRequired)
       } catch {
@@ -899,20 +901,22 @@ const InvitationGeneralEditV2 = ({
         </div>
       </div>
 
-      <div className="row d-flex">
-        <span className="info-title edit-title">Human Verification:</span>
-        <div className="info-edit-control">
-          <CodeEditor
-            code={generalInfo.humanVerificationRequired ?? ''}
-            onChange={(value) =>
-              setGeneralInfo({ type: 'humanVerificationRequired', payload: value })
-            }
-            isJson
-            minHeight="80px"
-            maxHeight="200px"
-          />
+      {isNoteInvitation && (
+        <div className="row d-flex">
+          <span className="info-title edit-title">Human Verification:</span>
+          <div className="info-edit-control">
+            <CodeEditor
+              code={generalInfo.humanVerificationRequired ?? ''}
+              onChange={(value) =>
+                setGeneralInfo({ type: 'humanVerificationRequired', payload: value })
+              }
+              isJson
+              minHeight="80px"
+              maxHeight="200px"
+            />
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="row d-flex">
         <span className="info-title edit-title" />
@@ -966,6 +970,7 @@ export const InvitationGeneralV2 = ({
   isMetaInvitation,
 }) => {
   const [isEditMode, setIsEditMode] = useState(false)
+  const isNoteInvitation = invitation.edit?.note
 
   return (
     <EditorSection title="General Info" className="general">
