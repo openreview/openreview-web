@@ -1,5 +1,3 @@
-/* globals promptError,promptMessage: false */
-
 import { Descriptions } from 'antd'
 import dayjs from 'dayjs'
 import timezone from 'dayjs/plugin/timezone'
@@ -27,7 +25,10 @@ import { invitation as invitationStyles } from '../../lib/legacy-bootstrap-style
 dayjs.extend(timezone)
 dayjs.extend(utc)
 
-const CodeEditor = dynamic(() => import('../CodeEditor'))
+const CodeEditor = dynamic(() => import('../CodeEditor'), {
+  ssr: false,
+  loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+})
 const DatetimePicker = dynamic(() => import('../DatetimePicker'), {
   ssr: false,
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
@@ -589,6 +590,7 @@ const InvitationGeneralEditV2 = ({
   isMetaInvitation,
 }) => {
   const [isSaving, setIsSaving] = useState(false)
+  const isNoteInvitation = invitation.edit?.note
   const generalInfoReducer = (state, action) => {
     switch (action.type) {
       case 'activationDateTimezone':
@@ -634,7 +636,7 @@ const InvitationGeneralEditV2 = ({
     expDateTimezone: getDefaultTimezone()?.value,
     deletionDateTimezone: getDefaultTimezone()?.value,
     signatures: invitation.signatures?.join(', '),
-    ...(invitation.edit?.note && {
+    ...(isNoteInvitation && {
       humanVerificationRequired: invitation.humanVerificationRequired
         ? JSON.stringify(invitation.humanVerificationRequired, null, 2)
         : null,
@@ -970,7 +972,6 @@ export const InvitationGeneralV2 = ({
   isMetaInvitation,
 }) => {
   const [isEditMode, setIsEditMode] = useState(false)
-  const isNoteInvitation = invitation.edit?.note
 
   return (
     <EditorSection title="General Info" className="general">
