@@ -31,7 +31,7 @@ jobs:
           fetch-depth: 0
       - name: Authenticate with Google Cloud
         id: auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
@@ -39,7 +39,7 @@ jobs:
           cleanup_credentials: true
           export_environment_variables: true
       - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           skip_install: true
