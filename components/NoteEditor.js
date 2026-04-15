@@ -1,28 +1,27 @@
-/* globals promptError, promptLogin, view2, clearMessage: false */
-
-import React, { useEffect, useCallback, useReducer, useState, useContext } from 'react'
-import throttle from 'lodash/throttle'
 import { intersection, isEmpty } from 'lodash'
-import EditorComponentContext from './EditorComponentContext'
-import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
-import EditorWidget from './webfield/EditorWidget'
-import SpinnerButton from './SpinnerButton'
-import LoadingSpinner from './LoadingSpinner'
-import Signatures from './Signatures'
-import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
-import Icon from './Icon'
+import throttle from 'lodash/throttle'
+import { useEffect, useCallback, useReducer, useState, useContext, useRef } from 'react'
+import useTurnstileToken from '../hooks/useTurnstileToken'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
+import { getNoteContentValues } from '../lib/forum-utils'
 import { getAutoStorageKey, prettyField, prettyInvitationId, classNames } from '../lib/utils'
 import { getErrorFieldName, isNonDeletableError } from '../lib/webfield-utils'
-import { getNoteContentValues } from '../lib/forum-utils'
+import EditorComponentContext from './EditorComponentContext'
+import DatePickerWidget from './EditorComponents/DatePickerWidget'
+import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
+import LicenseWidget from './EditorComponents/LicenseWidget'
+import Markdown from './EditorComponents/Markdown'
+import EditSignatures from './EditSignatures'
+import Icon from './Icon'
+import LoadingSpinner from './LoadingSpinner'
+import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
+import Signatures from './Signatures'
+import SpinnerButton from './SpinnerButton'
+import EditorWidget from './webfield/EditorWidget'
+import WebFieldContext from './WebFieldContext'
 
 import styles from '../styles/components/NoteEditor.module.scss'
-import LicenseWidget from './EditorComponents/LicenseWidget'
-import DatePickerWidget from './EditorComponents/DatePickerWidget'
-import EditSignatures from './EditSignatures'
-import Markdown from './EditorComponents/Markdown'
-import WebFieldContext from './WebFieldContext'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -268,6 +267,11 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
+  const [hasHumanVerificationError, setHasHumanVerificationError] = useState(false)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
+    'noteEditor',
+    hasHumanVerificationError
+  )
   const { noteEditorPreview } = useContext(WebFieldContext) ?? {}
   if (noteEditorPreview)
     customValidator = () => ({
@@ -586,7 +590,9 @@ const NoteEditor = ({
             invitationObj: invitation,
             noteObj: note,
           })
-      const result = await api.post('/notes/edits', editToPost)
+      const result = await api.post('/notes/edits', editToPost, {
+        'cf-turnstile-token': turnstileToken,
+      })
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })
@@ -594,6 +600,11 @@ const NoteEditor = ({
       closeNoteEditor()
       onNoteCreated(createdNote)
     } catch (error) {
+      if (error.name === 'HumanVerificationRequiredError' && !noteEditorPreview) {
+        setHasHumanVerificationError(true)
+        setIsSubmitting(false)
+        return
+      }
       if (error.errors) {
         setErrors(
           error.errors.map((p) => {
@@ -806,6 +817,8 @@ const NoteEditor = ({
           />
         </div>
       )}
+
+      <div className={styles.turnstileContainer} ref={turnstileContainerRef} />
 
       {Object.values(loading).some((p) => p) ? (
         <LoadingSpinner inline />
