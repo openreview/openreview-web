@@ -71,6 +71,9 @@ const theme = {
       colorInfoBg: backgroundGray,
       colorText: subtleGray,
     },
+    Descriptions: {
+      paddingXs: 4,
+    },
     Notification: {
       colorErrorBg: '#f2dede',
       colorSuccessBg: '#dff0d8',
