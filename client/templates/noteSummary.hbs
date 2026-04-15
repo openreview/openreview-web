@@ -3,12 +3,20 @@
   <h4>
     <a href="/forum{{#if useNewForumPage}}-new{{/if}}?id={{forum}}{{#if referrer}}&referrer={{referrer}}{{/if}}" target="_blank">{{content.title}}</a>
   </h4>
-  {{#if content.pdf}}
+  {{#if content.html}}
     <div style="margin-bottom: .5rem;">
-      <a href="{{pdfUrl this false}}" class="attachment-download-link" title="Download PDF" target="_blank" download="{{number}}.pdf">
-        <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download PDF
+      <a href="{{content.html}}" class="html-link" title="Open HTML" target="_blank">
+        <span class="glyphicon glyphicon-new-window" aria-hidden="true"></span> Open HTML
       </a>
     </div>
+  {{else}}
+    {{#if content.pdf}}
+      <div style="margin-bottom: .5rem;">
+        <a href="{{pdfUrl this false}}" class="attachment-download-link" title="Download PDF" target="_blank" download="{{number}}.pdf">
+          <span class="glyphicon glyphicon-download-alt" aria-hidden="true"></span> Download PDF
+        </a>
+      </div>
+    {{/if}}
   {{/if}}
   {{#if content.authors}}
     <div class="note-authors">{{noteAuthors content signatures details}}</div>

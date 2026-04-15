@@ -7,15 +7,6 @@
   "rules": {
     "consistent-return": "warn",
     "eqeqeq": "warn",
-    "max-len": [
-      "error",
-      {
-        "code": 120,
-        "ignoreStrings": true,
-        "ignoreTemplateLiterals": true,
-        "ignoreRegExpLiterals": true
-      }
-    ],
     "no-console": "error",
     "no-else-return": "warn",
     "no-nested-ternary": "warn",
@@ -25,8 +16,15 @@
     "no-unused-vars": "warn",
     "no-var": "warn",
     "prefer-destructuring": ["warn", { "object": true, "array": false }],
-    "semi": ["error", "never"],
     "react/rules-of-hooks": "error",
-    "react/self-closing-comp": "error"
+    "react/self-closing-comp": "error",
+    "no-undef": "warn"
+  },
+  "globals": {
+    "promptMessage": "readonly",
+    "promptError": "readonly",
+    "promptLogin": "readonly",
+    "promptRefresh": "readonly",
+    "clearMessage": "readonly"
   }
 }
