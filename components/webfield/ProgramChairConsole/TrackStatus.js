@@ -232,6 +232,14 @@ const TrackStatus = () => {
     }, {})
     return acc
   }, {})
+  const overallLoadData = roles.reduce((acc, role) => {
+    acc[role] = {
+      overallCapacity: 0,
+      registeredMembers: 0,
+      role,
+    }
+    return acc
+  }, {})
   // #endregion
 
   trackStatusData.allProfiles.forEach((profile) => {
@@ -257,6 +265,10 @@ const TrackStatus = () => {
       if (roleRegistrations.length > 0) {
         const profileTracks = roleRegistrations[0].content[registrationTrackName].value
         const profileAverageLoad = loads[role] / profileTracks.length
+
+        overallLoadData[role].registeredMembers += 1
+        overallLoadData[role].overallCapacity += loads[role]
+
         profileTracks.forEach((track) => {
           if (tracks.includes(track)) {
             reviewLoadData[track][role].averageLoad += profileAverageLoad
@@ -269,6 +281,7 @@ const TrackStatus = () => {
   })
 
   const rows = convertToTableRows(reviewLoadData)
+  const overallLoadRows = Object.values(overallLoadData)
 
   const LoadRow = ({ index, track, loadObj, rowSpan }) => (
     <tr key={index}>
@@ -297,6 +310,42 @@ const TrackStatus = () => {
     </tr>
   )
 
+  const OverallLoadSummary = ({ loadData }) => (
+    <div style={{ marginBottom: '2rem' }}>
+      <h3 style={{ marginTop: 0 }}>Overall Capacity by Role</h3>
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '1.5rem',
+          justifyContent: 'center',
+        }}
+      >
+        {loadData.map((row) => (
+          <div key={row.role} style={{ flex: '0 1 320px', width: '320px' }}>
+            <div className="panel panel-default" style={{ marginBottom: 0 }}>
+              <div
+                className="panel-body"
+                style={{
+                  alignItems: 'center',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  minHeight: '140px',
+                  textAlign: 'center',
+                }}
+              >
+                <h4 style={{ marginTop: 0, marginBottom: '1rem' }}>{prettyId(row.role)}</h4>
+                <div>{`Registered Members: ${row.registeredMembers}`}</div>
+                <div>{`Overall Capacity: ${row.overallCapacity}`}</div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+
   const TracksTable = ({ loadData }) => (
     <>
       {Object.keys(loadData).map((track) =>
@@ -315,6 +364,7 @@ const TrackStatus = () => {
 
   return (
     <div className="table-container">
+      <OverallLoadSummary loadData={overallLoadRows} />
       <Table
         className="console-table table-striped pc-console-paper-status"
         headings={[
