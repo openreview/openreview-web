@@ -337,7 +337,7 @@ const TrackStatus = () => {
               >
                 <h4 style={{ marginTop: 0, marginBottom: '1rem' }}>{prettyId(row.role)}</h4>
                 <div>{`Registered Members: ${row.registeredMembers}`}</div>
-                <div>{`Overall Capacity: ${row.overallCapacity}`}</div>
+                <div>{`Registered Capacity: ${row.overallCapacity}`}</div>
               </div>
             </div>
           </div>
