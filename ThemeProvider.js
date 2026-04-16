@@ -45,6 +45,7 @@ const theme = {
       activeBorderColor: '#3e6775',
       colorBgContainer: '#fffaf4',
       lineWidth: 2,
+      colorTextPlaceholder: '#999',
     },
     Layout: {
       footerPadding: 0,
@@ -69,6 +70,9 @@ const theme = {
     Alert: {
       colorInfoBg: backgroundGray,
       colorText: subtleGray,
+    },
+    Descriptions: {
+      paddingXs: 4,
     },
     Notification: {
       colorErrorBg: '#f2dede',

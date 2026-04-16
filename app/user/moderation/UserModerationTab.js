@@ -536,7 +536,7 @@ const UserModerationQueue = ({
       {profiles ? (
         <Flex vertical gap="small" style={{ marginBottom: '1.5rem' }}>
           {profiles.map((profile) => {
-            const name = profile.content.names[0]
+            const name = profile.content.names?.[0]
             const state =
               profile.ddate && profile.state !== 'Merged' ? 'Deleted' : profile.state
             return (
@@ -549,7 +549,7 @@ const UserModerationQueue = ({
                     title={profile.id}
                     className={styles.profilenamelink}
                   >
-                    {name.fullname}
+                    {name?.fullname}
                   </a>
                 </Col>
                 <Col

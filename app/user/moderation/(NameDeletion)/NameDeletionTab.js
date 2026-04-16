@@ -1,50 +1,56 @@
-/* globals promptError,view2,$: false */
-import { useEffect, useState } from 'react'
-import Table from '../../../../components/Table'
-import { formatDateTime, prettyId } from '../../../../lib/utils'
-import Icon from '../../../../components/Icon'
-import PaginationLinks from '../../../../components/PaginationLinks'
-import api from '../../../../lib/api-client'
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
+import { Button, Col, Flex, Input, Modal, Pagination, Row, Space, Tag, Tooltip } from 'antd'
+import { useEffect, useMemo, useState } from 'react'
 import Markdown from '../../../../components/EditorComponents/Markdown'
-import RequestRejectionModal from '../RequestRejectionModal'
-import FullTextModal from '../FullTextModal'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
+import api from '../../../../lib/api-client'
+import { formatDateTime, prettyId } from '../../../../lib/utils'
+
+import styles from './nameDeletion.module.scss'
+import {
+  getBootstrap337LabelColor,
+  moderation as legacyStyles,
+} from '../../../../lib/legacy-bootstrap-styles'
 
 const nameDeletionDecisionInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal_Decision`
 const pageSize = 25
+const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
+const tooltipTrigger = ['hover', 'click']
+const tooltipStyles = { root: { maxWidth: '500px', wordBreak: 'break-word' } }
 
-const getStatusLabelClass = (note) => {
+const getStatusColor = (note) => {
   switch (note.content.status.value) {
     case 'Accepted':
-      return 'label label-success'
+      return 'success'
     case 'Rejected':
-      return 'label label-danger'
+      return 'error'
     default:
-      return 'label label-default'
+      return 'default'
   }
 }
 
-const getProcessLogStatusLabelClass = (note) => {
+const getProcessLogStatusColor = (note) => {
   switch (note.processLogStatus) {
     case 'ok':
-      return 'label label-success'
+      return 'success'
     case 'error':
-      return 'label label-danger'
-    case 'running':
-      return 'label label-default'
+      return 'error'
     default:
-      return ''
+      return 'default'
   }
 }
 
 export default function NameDeletionTab() {
   const [nameDeletionNotes, setNameDeletionNotes] = useState(null)
-  const [nameDeletionNotesToShow, setNameDeletionNotesToShow] = useState(null)
   const [page, setPage] = useState(1)
-  const [commentToView, setCommentToView] = useState(null)
   const [idsLoading, setIdsLoading] = useState([])
   const [noteToReject, setNoteToReject] = useState(null)
-  const fullTextModalId = 'deletion-fulltext-modal'
+  const [rejectionComment, setRejectionComment] = useState('')
+
+  const nameDeletionNotesToShow = useMemo(() => {
+    if (!nameDeletionNotes) return null
+    return nameDeletionNotes.slice((page - 1) * pageSize, page * pageSize)
+  }, [nameDeletionNotes, page])
 
   const updateRequestStatus = async (noteId) => {
     const nameRemovalNotesP = api.get('/notes', { id: noteId })
@@ -82,11 +88,11 @@ export default function NameDeletionTab() {
           status: response,
           ...(response === 'Rejected' && { support_comment: supportComment }),
         },
-
         invitationObj: nameDeletionDecisionInvitation,
       })
-      const result = await api.post('/notes/edits', editToPost)
-      $('#name-delete-reject').modal('hide')
+      await api.post('/notes/edits', editToPost)
+      setNoteToReject(null)
+      setRejectionComment('')
       updateRequestStatus(nameDeletionNote.id)
     } catch (error) {
       promptError(error.message)
@@ -94,90 +100,51 @@ export default function NameDeletionTab() {
     }
   }
 
-  const loadNameDeletionRequests = async (noteId) => {
+  const loadNameDeletionRequests = async () => {
     try {
-      let nameRemovalNotesP
-      let decisionResultsP
-      let processLogsP
-
-      if (noteId) {
-        nameRemovalNotesP = api.get('/notes', { id: noteId })
-        decisionResultsP = api.getAll(
-          '/notes/edits',
-          { 'note.id': noteId, invitation: nameDeletionDecisionInvitationId },
-          { resultsKey: 'edits' }
-        )
-        processLogsP = Promise.resolve(null)
-      } else {
-        nameRemovalNotesP = api.get('/notes', {
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
-        })
-        decisionResultsP = api.getAll(
-          '/notes/edits',
-          {
-            invitation: nameDeletionDecisionInvitationId,
-          },
-          { resultsKey: 'edits' }
-        )
-        processLogsP = api.getAll(
-          '/logs/process',
-          { invitation: nameDeletionDecisionInvitationId },
-          { resultsKey: 'logs' }
-        )
-      }
+      const nameRemovalNotesP = api.get('/notes', {
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
+      })
+      const decisionResultsP = api.getAll(
+        '/notes/edits',
+        { invitation: nameDeletionDecisionInvitationId },
+        { resultsKey: 'edits' }
+      )
+      const processLogsP = api.getAll(
+        '/logs/process',
+        { invitation: nameDeletionDecisionInvitationId },
+        { resultsKey: 'logs' }
+      )
 
       const [nameRemovalNotes, decisionResults, processLogs] = await Promise.all([
         nameRemovalNotesP,
         decisionResultsP,
         processLogsP,
       ])
-      const sortedResult = noteId
-        ? [
-            ...nameDeletionNotes.filter(
-              (p) => p.content.status.value === 'Pending' && p.id !== noteId
-            ),
-            {
-              ...nameRemovalNotes.notes[0],
-              processLogStatus: 'running',
-              processLogUrl: `${process.env.API_V2_URL}/logs/process?id=${decisionResults[0].id}`,
-            },
-            ...nameDeletionNotes.filter((p) => p.content.status.value !== 'Pending'),
-          ]
-        : [
-            ...nameRemovalNotes.notes.filter((p) => p.content.status.value === 'Pending'),
-            ...nameRemovalNotes.notes.filter((p) => p.content.status.value !== 'Pending'),
-          ].map((p) => {
-            const decisionEdit = decisionResults.find((q) => q.note.id === p.id)
-            let processLogStatus = 'N/A'
-            if (p.content.status.value !== 'Pending')
-              processLogStatus =
-                processLogs.find((q) => q.id === decisionEdit?.id)?.status ?? 'running'
-            return {
-              ...p,
-              processLogStatus,
-              processLogUrl: decisionEdit
-                ? `${process.env.API_V2_URL}/logs/process?id=${decisionEdit.id}`
-                : null,
-            }
-          })
+
+      const sortedResult = [
+        ...nameRemovalNotes.notes.filter((p) => p.content.status.value === 'Pending'),
+        ...nameRemovalNotes.notes.filter((p) => p.content.status.value !== 'Pending'),
+      ].map((p) => {
+        const decisionEdit = decisionResults.find((q) => q.note.id === p.id)
+        let processLogStatus = 'N/A'
+        if (p.content.status.value !== 'Pending')
+          processLogStatus =
+            processLogs.find((q) => q.id === decisionEdit?.id)?.status ?? 'running'
+        return {
+          ...p,
+          processLogStatus,
+          processLogUrl: decisionEdit
+            ? `${process.env.API_V2_URL}/logs/process?id=${decisionEdit.id}`
+            : null,
+        }
+      })
+
       setNameDeletionNotes(sortedResult)
     } catch (error) {
       promptError(error.message)
     }
   }
-
-  useEffect(() => {
-    if (!nameDeletionNotes) return
-    setNameDeletionNotesToShow(nameDeletionNotes.slice((page - 1) * pageSize, page * pageSize))
-  }, [nameDeletionNotes, page])
-
-  useEffect(() => {
-    if (commentToView) $(`#${fullTextModalId}`).modal('show')
-  }, [commentToView])
-
-  useEffect(() => {
-    if (noteToReject) $('#name-delete-reject').modal('show')
-  }, [noteToReject])
 
   useEffect(() => {
     loadNameDeletionRequests()
@@ -187,107 +154,152 @@ export default function NameDeletionTab() {
 
   return (
     <>
-      <div className="name-deletion-list">
-        <Table
-          headings={[
-            { content: 'Status', width: '12%' },
-            { content: 'Requester', width: '15%' },
-            { content: 'Name to delete', width: '15%' },
-            { content: 'Reason', width: '20%' },
-            { content: 'Date' },
-          ]}
-        />
+      <Row
+        align="middle"
+        gutter={[8, 0]}
+        className={styles.columnheaders}
+        style={{ fontWeight: 'bold', marginBottom: '0.5rem' }}
+      >
+        <Col xs={8} sm={6} md={4} lg={3}>
+          Status
+        </Col>
+        <Col xs={16} sm={6} md={4} lg={4}>
+          Requester
+        </Col>
+        <Col xs={12} sm={8} md={4} lg={4}>
+          Name to delete
+        </Col>
+        <Col xs={12} sm={8} md={5} lg={5}>
+          Reason
+        </Col>
+        <Col xs={12} sm={8} md={4} lg={4}>
+          Date
+        </Col>
+      </Row>
+
+      <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
         {nameDeletionNotesToShow.map((note) => (
-          <div className="name-deletion-row" key={note.id}>
-            <span className="col-status">
-              <span className={getStatusLabelClass(note)}>{note.content.status.value}</span>
-            </span>
-            <span className="col-status">
-              <a href={note.processLogUrl} target="_blank" rel="noreferrer">
-                <span className={getProcessLogStatusLabelClass(note)}>
-                  {note.processLogStatus}
-                </span>
-              </a>
-            </span>
-            <span className="name">
+          <Row key={note.id} align="middle" gutter={[8, 8]}>
+            <Col xs={8} sm={6} md={4} lg={3}>
+              <Space size={4} wrap>
+                <Tag
+                  color={getBootstrap337LabelColor(getStatusColor(note))}
+                  variant="solid"
+                  styles={{ root: legacyStyles.statusTag }}
+                >
+                  {note.content.status.value}
+                </Tag>
+                {note.processLogStatus !== 'N/A' && (
+                  <a href={note.processLogUrl} target="_blank" rel="noreferrer">
+                    <Tag
+                      color={getBootstrap337LabelColor(getProcessLogStatusColor(note))}
+                      variant="solid"
+                      styles={{ root: legacyStyles.statusTag }}
+                    >
+                      {note.processLogStatus}
+                    </Tag>
+                  </a>
+                )}
+              </Space>
+            </Col>
+            <Col xs={16} sm={6} md={4} lg={4} className={styles.truncatedtext}>
               <a href={`/profile?id=${note.signatures[0]}`} target="_blank" rel="noreferrer">
                 {prettyId(note.signatures[0])}
               </a>
-            </span>
-            <span
-              className="usernames"
-              onClick={() =>
-                setCommentToView(
-                  <ul>
+            </Col>
+            <Col xs={12} sm={8} md={4} lg={4}>
+              <Tooltip
+                title={
+                  <>
                     {note.content.usernames.value.map((p) => (
-                      <li key={p}>{p}</li>
+                      <p key={p}>{p}</p>
                     ))}
-                  </ul>
-                )
-              }
-            >
-              {note.content.usernames.value.join(',')}
-            </span>
-            <div className="comment">
-              <span
-                onClick={() =>
-                  setCommentToView(<Markdown text={note.content.comment.value} />)
+                  </>
                 }
+                trigger={tooltipTrigger}
+                styles={tooltipStyles}
               >
-                {note.content.comment.value}
-              </span>
-            </div>
-            <span className="col-created">{formatDateTime(note.tcdate)}</span>
-            <span className="col-actions">
+                <span className={styles.truncatedtext}>
+                  {note.content.usernames.value.join(', ')}
+                </span>
+              </Tooltip>
+            </Col>
+            <Col xs={12} sm={8} md={5} lg={5}>
+              <Tooltip
+                title={<Markdown text={note.content.comment.value} />}
+                trigger={tooltipTrigger}
+                styles={tooltipStyles}
+              >
+                <span className={styles.truncatedtext}>{note.content.comment.value}</span>
+              </Tooltip>
+            </Col>
+            <Col xs={12} sm={8} md={4} lg={4}>
+              {formatDateTime(note.tcdate)}
+            </Col>
+            <Col xs={12} sm={8} md={3} lg={4}>
               {note.content.status.value === 'Pending' && (
-                <>
-                  <button
-                    type="button"
-                    className="btn btn-xs"
+                <Space size={4}>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<CheckCircleOutlined />}
+                    styles={{ root: legacyStyles.actionButton }}
                     disabled={idsLoading.includes(note.id)}
-                    onClick={() => {
-                      acceptRejectNameDeletionNote(note, 'Accepted')
-                    }}
+                    onClick={() => acceptRejectNameDeletionNote(note, 'Accepted')}
                   >
-                    <Icon name="ok-circle" /> Accept
-                  </button>{' '}
-                  <button
-                    type="button"
-                    className="btn btn-xs"
+                    Accept
+                  </Button>
+                  <Button
+                    type="primary"
+                    size="small"
+                    icon={<CloseCircleOutlined />}
+                    styles={{ root: legacyStyles.actionButton }}
                     disabled={idsLoading.includes(note.id)}
-                    onClick={() => {
-                      setNoteToReject(note)
-                    }}
+                    onClick={() => setNoteToReject(note)}
                   >
-                    <Icon name="remove-circle" /> Reject
-                  </button>{' '}
-                </>
+                    Reject
+                  </Button>
+                </Space>
               )}
-            </span>
-          </div>
+            </Col>
+          </Row>
         ))}
-        {nameDeletionNotes.length === 0 ? (
-          <p className="empty-message">No name deletion requests.</p>
-        ) : (
-          <PaginationLinks
-            currentPage={page}
-            itemsPerPage={pageSize}
-            totalCount={nameDeletionNotes.length}
-            options={{ useShallowRouting: true }}
-            setCurrentPage={setPage}
-          />
-        )}
-      </div>
-      <RequestRejectionModal
-        noteToReject={noteToReject}
-        acceptRejectNote={acceptRejectNameDeletionNote}
-        setNoteToReject={setNoteToReject}
-      />
-      <FullTextModal
-        id={fullTextModalId}
-        textToView={commentToView}
-        setTextToView={setCommentToView}
-      />
+      </Flex>
+
+      {nameDeletionNotes.length === 0 ? (
+        <p>No name deletion requests.</p>
+      ) : (
+        <Pagination
+          align="center"
+          current={page}
+          pageSize={pageSize}
+          total={nameDeletionNotes.length}
+          onChange={(newPage) => setPage(newPage)}
+          showSizeChanger={false}
+          hideOnSinglePage
+        />
+      )}
+
+      <Modal
+        title={`Reason for rejecting ${noteToReject?.content?.name?.value ?? ''}`}
+        open={!!noteToReject}
+        okText="Submit"
+        okButtonProps={{ disabled: !rejectionComment.trim() }}
+        destroyOnHidden
+        onCancel={() => {
+          setNoteToReject(null)
+          setRejectionComment('')
+        }}
+        onOk={() => acceptRejectNameDeletionNote(noteToReject, 'Rejected', rejectionComment)}
+        width={modalWidth}
+      >
+        <Input.TextArea
+          rows={5}
+          value={rejectionComment}
+          onChange={(e) => setRejectionComment(e.target.value)}
+          placeholder="Enter reason for rejection"
+        />
+      </Modal>
     </>
   )
 }
