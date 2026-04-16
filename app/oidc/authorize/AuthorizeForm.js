@@ -26,8 +26,8 @@ const AuthorizeForm = ({ interactionId, clientName, scopes }) => {
       window.location.href = redirectUri
     } catch (error) {
       promptError(error.message)
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   return (

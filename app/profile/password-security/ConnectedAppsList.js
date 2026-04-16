@@ -12,7 +12,7 @@ const ConnectedAppsList = () => {
 
   const loadConnectedApps = async () => {
     try {
-      const { consents } = await api.get('oidc/consents')
+      const { consents } = await api.get('/oidc/consents')
       setConnectedApps(consents)
     } catch (error) {
       promptError(error.message)

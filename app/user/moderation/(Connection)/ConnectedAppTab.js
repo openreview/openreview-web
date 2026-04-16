@@ -149,7 +149,7 @@ export default function ConnectedAppTab() {
         open={isAddModalOpen}
         okText="Add"
         onCancel={() => {
-          setIsAddModalOpen(null)
+          setIsAddModalOpen(false)
           setModalData({})
         }}
         onOk={handleAddConnectedApp}

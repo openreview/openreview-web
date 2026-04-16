@@ -25,7 +25,7 @@ describe('ConnectedAppsList', () => {
 
     render(<ConnectedAppsList />)
 
-    expect(api.get).toHaveBeenCalledWith('oidc/consents')
+    expect(api.get).toHaveBeenCalledWith('/oidc/consents')
     await waitFor(() => {
       expect(
         screen.getByText('There are no connected third-party apps or services.')
@@ -60,7 +60,7 @@ describe('ConnectedAppsList', () => {
 
     render(<ConnectedAppsList />)
 
-    expect(api.get).toHaveBeenCalledWith('oidc/consents')
+    expect(api.get).toHaveBeenCalledWith('/oidc/consents')
     await waitFor(() => {
       expect(
         screen.queryByText('There is no connected third-party apps or services.')
