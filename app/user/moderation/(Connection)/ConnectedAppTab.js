@@ -101,13 +101,13 @@ export default function ConnectedAppTab() {
         <Col xs={0} sm={5} md={4} lg={4}>
           Client ID
         </Col>
-        <Col xs={0} sm={5} md={4} lg={4}>
+        <Col xs={0} sm={5} md={5} lg={7}>
           Client Name
         </Col>
         <Col xs={0} sm={3} md={3} lg={3}>
           Trusted
         </Col>
-        <Col xs={0} sm={5} md={11} lg={12}>
+        <Col xs={0} sm={5} md={10} lg={9}>
           Redirect URIs
         </Col>
       </Row>
@@ -130,13 +130,13 @@ export default function ConnectedAppTab() {
             <Col xs={20} sm={5} md={4} lg={4}>
               <strong>{app.clientId}</strong>
             </Col>
-            <Col xs={24} sm={5} md={4} lg={4} className={styles.truncatedtext}>
+            <Col xs={24} sm={5} md={5} lg={7} className={styles.truncatedtext}>
               {app.clientName}
             </Col>
             <Col xs={24} sm={3} md={3} lg={3}>
               {app.trusted ? 'Yes' : 'No'}
             </Col>
-            <Col xs={24} sm={5} md={11} lg={12} className={styles.truncatedtext}>
+            <Col xs={24} sm={5} md={10} lg={9} className={styles.truncatedtext}>
               {app.redirectUris?.join(', ')}
             </Col>
           </Row>
