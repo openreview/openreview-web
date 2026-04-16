@@ -62,7 +62,7 @@ const AuthorizeForm = ({ interactionId, clientName, scopes }) => {
 
           <Paragraph type="secondary" style={{ fontSize: 12, marginBottom: 24 }}>
             Make sure you trust {clientName}. You can revoke access at any time from your
-            OpenReview profile settings.
+            OpenReview profile password & security.
           </Paragraph>
 
           <Flex justify="end" gap={12}>
