@@ -1,24 +1,24 @@
 /* globals promptError: false */
 
-import { useState, useEffect, useContext, useRef } from 'react'
 import _ from 'lodash'
+import debounce from 'lodash/debounce'
 import { useSearchParams } from 'next/navigation'
-import Icon from '../Icon'
-import LoadingSpinner from '../LoadingSpinner'
-import EdgeBrowserContext from './EdgeBrowserContext'
-import EntityList from './EntityList'
-import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
-import EditEdgeInviteEmail from './EditEdgeInviteEmail'
+import { useState, useEffect, useContext, useRef } from 'react'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
 import {
   getInvitationPrefix,
   isForBothGroupTypesInvite,
   isNotInGroupInvite,
   transformName,
 } from '../../lib/edge-utils'
-import api from '../../lib/api-client'
-import useUser from '../../hooks/useUser'
+import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
 import { filterCollections, getEdgeValue } from '../../lib/webfield-utils'
-import debounce from 'lodash/debounce'
+import Icon from '../Icon'
+import LoadingSpinner from '../LoadingSpinner'
+import EdgeBrowserContext from './EdgeBrowserContext'
+import EditEdgeInviteEmail from './EditEdgeInviteEmail'
+import EntityList from './EntityList'
 
 export default function Column(props) {
   const {
@@ -35,8 +35,14 @@ export default function Column(props) {
     parentExistingLoad,
     shouldReloadEntities, // something non traverse changed in another column with same parent
   } = props
-  const { traverseInvitation, editInvitations, browseInvitations, hideInvitation, version } =
-    useContext(EdgeBrowserContext)
+  const {
+    traverseInvitation,
+    editInvitations,
+    browseInvitations,
+    hideInvitation,
+    version,
+    browseEdgesCache,
+  } = useContext(EdgeBrowserContext)
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
@@ -539,13 +545,16 @@ export default function Column(props) {
         { ...invitation.query, details: detailsParam },
         sort
       )
-      edgesPromiseMap.push({
-        id: invitation.id,
-        query: invitation.query,
-        invitations: [invitationType],
-        getWritable,
-        sort,
-        promise: api
+
+      let promise
+      const isIgnoreHeadTailBrowseInvitation =
+        invitation.category === 'browse' &&
+        (invitation.query.head === 'ignore' || invitation.query.tail === 'ignore')
+
+      if (isIgnoreHeadTailBrowseInvitation && browseEdgesCache.has(invitation.id)) {
+        promise = browseEdgesCache.get(invitation.id)
+      } else {
+        promise = api
           .getAll(
             '/edges',
             { ...apiQuery, ...(version === 2 && { domain: invitation.domain }) },
@@ -564,7 +573,18 @@ export default function Column(props) {
                 }))
               : result
           )
-          .catch((error) => promptError(error.message)),
+          .catch((error) => promptError(error.message))
+        if (isIgnoreHeadTailBrowseInvitation) {
+          browseEdgesCache.set(invitation.id, promise)
+        }
+      }
+      edgesPromiseMap.push({
+        id: invitation.id,
+        query: invitation.query,
+        invitations: [invitationType],
+        getWritable,
+        sort,
+        promise,
       })
     }
   }
