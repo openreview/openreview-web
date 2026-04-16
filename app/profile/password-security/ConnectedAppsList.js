@@ -20,8 +20,10 @@ const ConnectedAppsList = () => {
   }
 
   const deleteConnectedApp = async (clientId, clientName) => {
+    const confirmed = window.confirm(`Are you sure you want to delete ${clientName}?`)
+    if (!confirmed) return
     try {
-      await api.delete(`oidc/consents/${clientId}`)
+      await api.delete(`/oidc/consents/${clientId}`)
       promptMessage(`You are no longer connected to ${clientName}.`)
       loadConnectedApps()
     } catch (error) {
@@ -34,7 +36,7 @@ const ConnectedAppsList = () => {
   }, [])
 
   if (!connectedApps) return <LoadingSpinner />
-  if (!connectedApps.length) return <p>There is no connected third-party apps or services.</p>
+  if (!connectedApps.length) return <p>There are no connected third-party apps or services.</p>
 
   return (
     <Flex vertical gap="small">

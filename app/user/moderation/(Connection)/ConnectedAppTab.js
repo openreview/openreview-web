@@ -15,7 +15,7 @@ const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
 export default function ConnectedAppTab() {
   const [connectedApps, setConnectedApps] = useState(null)
   const [modalData, setModalData] = useState({})
-  const [isAddModalOpen, setIsAddModalOpen] = useState(null)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
 
   const loadConnectedApps = async () => {
     try {
@@ -50,7 +50,7 @@ export default function ConnectedAppTab() {
         trusted: false,
       })
       promptMessage(`${clientId} app has been added.`)
-      setIsAddModalOpen(null)
+      setIsAddModalOpen(false)
       setModalData({})
       await loadConnectedApps()
     } catch (error) {
@@ -146,7 +146,7 @@ export default function ConnectedAppTab() {
 
       <Modal
         title="Add Connected App"
-        open={isAddModalOpen !== null}
+        open={isAddModalOpen}
         okText="Add"
         onCancel={() => {
           setIsAddModalOpen(null)

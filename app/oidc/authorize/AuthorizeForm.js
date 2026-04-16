@@ -68,7 +68,7 @@ const AuthorizeForm = ({ interactionId, clientName, scopes }) => {
           <Flex justify="end" gap={12}>
             <Button
               iconPlacement="end"
-              loading={loading && { icon: <LoadingIcon /> }}
+              loading={loading ? { icon: <LoadingIcon /> } : false}
               onClick={() => handleAuthorizeDecision(false)}
             >
               Deny
@@ -76,7 +76,7 @@ const AuthorizeForm = ({ interactionId, clientName, scopes }) => {
             <Button
               type="primary"
               iconPlacement="end"
-              loading={loading && { icon: <LoadingIcon /> }}
+              loading={loading ? { icon: <LoadingIcon /> } : false}
               onClick={() => handleAuthorizeDecision(true)}
             >
               Allow
