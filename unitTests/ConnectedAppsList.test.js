@@ -28,7 +28,7 @@ describe('ConnectedAppsList', () => {
     expect(api.get).toHaveBeenCalledWith('oidc/consents')
     await waitFor(() => {
       expect(
-        screen.getByText('There is no connected third-party apps or services.')
+        screen.getByText('There are no connected third-party apps or services.')
       ).toBeInTheDocument()
     })
   })
@@ -91,12 +91,13 @@ describe('ConnectedAppsList', () => {
     )
     api.delete = jest.fn(() => Promise.resolve())
     global.promptMessage = jest.fn()
+    window.confirm = jest.fn(() => true)
 
     render(<ConnectedAppsList />)
 
     await waitFor(() => {
       userEvent.click(screen.getByRole('button'))
-      expect(api.delete).toHaveBeenCalledWith('oidc/consents/some-test-app')
+      expect(api.delete).toHaveBeenCalledWith('/oidc/consents/some-test-app')
       expect(global.promptMessage).toHaveBeenCalledWith(
         'You are no longer connected to Test App.'
       )
