@@ -59,6 +59,14 @@ jobs:
         with:
           mongodb-version: 8.0
           mongodb-replica-set: rs0
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: openreview
+          repositories: openreview-api-v1,openreview-api
       - name: Checkout openreview-py
         uses: actions/checkout@v6
         with:
@@ -68,13 +76,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: openreview/openreview-api-v1
-          token: ${{ secrets.PAT_OPENREVIEW_IESL }}
+          token: ${{ steps.app-token.outputs.token }}
           path: openreview-api-v1
       - name: Checkout openreview-api
         uses: actions/checkout@v6
         with:
           repository: openreview/openreview-api
-          token: ${{ secrets.PAT_OPENREVIEW_IESL }}
+          token: ${{ steps.app-token.outputs.token }}
           path: openreview-api
       - name: Checkout openreview-web
         uses: actions/checkout@v6
