@@ -14,7 +14,7 @@ import {
 
 const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
     .wait(100)
@@ -23,7 +23,7 @@ const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
 
 const userARole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), hasTaskUser.email)
     .typeText(Selector('#password-input'), hasTaskUser.password)
     .wait(100)
@@ -834,7 +834,7 @@ fixture`Profile page`
 test('user open own profile', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), hasTaskUser.email)
     .typeText(Selector('#password-input'), hasTaskUser.password)
     .wait(100)
@@ -1473,7 +1473,7 @@ fixture`Profile page different user`
 test('open profile of other user by email', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
     .wait(100)
@@ -1614,14 +1614,14 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .wait(100)
-    .expect(Selector('#user-menu').innerText)
+    .expect(Selector('#user-menu').filterVisible().innerText)
     .eql('FirstB LastB ')
     .click(nameMakePreferredButton)
     .click(saveProfileButton)
     .expect(saveProfileButton.find('div.spinner-container').exists)
     .notOk({ timeout: 15000 })
     .click(cancelButton)
-    .expect(Selector('#user-menu').innerText)
+    .expect(Selector('#user-menu').filterVisible().innerText)
     .eql('Di Xu ')
     .expect(Selector('h1').nth(0).innerText)
     .eql('Di Xu')
