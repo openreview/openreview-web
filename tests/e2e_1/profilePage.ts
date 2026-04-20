@@ -839,7 +839,7 @@ test('user open own profile', async (t) => {
     .typeText(Selector('#password-input'), hasTaskUser.password)
     .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
-    .click(Selector('a.dropdown-toggle'))
+    .click(Selector('#user-menu').filterVisible())
     .click(Selector('a').withText('Profile'))
     .expect(pageHeader.innerText)
     .eql(hasTaskUser.fullname)

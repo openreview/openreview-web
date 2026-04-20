@@ -62,7 +62,7 @@ test('own profile shows correct user', async (t) => {
     .wait(100)
     .click(loginButton)
     .wait(1000)
-    .click(Selector('a.dropdown-toggle'))
+    .click(Selector('#user-menu').filterVisible())
     .click(Selector('a').withText('Profile'))
     .click(Selector('#edit-banner').find('a'))
     .expect(Selector('input.full-name').value)
