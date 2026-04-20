@@ -1,8 +1,6 @@
 @use '../utils/constants';
 
-// Top-level navbar container. Red bg is part of OR brand identity,
-// will be kept even after dropping Bootstrap-era styling.
-.or-navbar {
+.navBar {
   background-color: constants.$orRed;
   z-index: 1031;
   position: relative;
@@ -10,31 +8,29 @@
   margin-bottom: 0;
 }
 
-// Show/hide mechanism for 3 layouts. Keeps responsive design working
-// without depending on JS breakpoint detection (no hydration shift).
-.or-nav-mobile,
-.or-nav-tablet,
-.or-nav-desktop {
+.navMobile,
+.navTablet,
+.navDesktop {
   min-height: 50px;
 }
 
 // Default (< 768px): mobile visible, others hidden
-.or-nav-mobile {
+.navMobile {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
-.or-nav-tablet,
-.or-nav-desktop {
+.navTablet,
+.navDesktop {
   display: none;
 }
 
 // 768-991px: tablet layout
 @media (min-width: 768px) and (max-width: 991px) {
-  .or-nav-mobile {
+  .navMobile {
     display: none;
   }
-  .or-nav-tablet {
+  .navTablet {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -43,10 +39,10 @@
 
 // >= 992px: desktop layout
 @media (min-width: 992px) {
-  .or-nav-mobile {
+  .navMobile {
     display: none;
   }
-  .or-nav-desktop {
+  .navDesktop {
     display: flex;
     align-items: center;
     justify-content: space-between;

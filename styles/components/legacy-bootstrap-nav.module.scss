@@ -1,42 +1,38 @@
 // Legacy Bootstrap-era navbar styles. Everything here matches Bootstrap 3
-// dimensions, padding, colors, and responsive behavior so the look stays
-// pixel-identical to the pre-antd version.
-//
-// When accepting antd-native navbar styling, delete this file entirely
-// along with lib/legacy-bootstrap-styles.js.
+// dimensions, padding, colors, and responsive behavior
 
 @use '../utils/constants';
 
 // ===== Navbar border (Bootstrap .navbar-inverse) =====
-.or-navbar {
+.navBar {
   border-bottom: 1px solid constants.$orRedDark;
 }
 
 // ===== Container widths (Bootstrap .container) =====
-.or-nav-container {
+.navContainer {
   margin: 0 auto;
   padding: 0 15px;
   width: 100%;
   max-width: 100%;
 }
 @media (min-width: 768px) {
-  .or-nav-container {
+  .navContainer {
     max-width: 750px;
   }
 }
 @media (min-width: 992px) {
-  .or-nav-container {
+  .navContainer {
     max-width: 970px;
   }
 }
 @media (min-width: 1200px) {
-  .or-nav-container {
+  .navContainer {
     max-width: 1170px;
   }
 }
 
 // ===== Brand (Bootstrap .navbar-brand) =====
-.or-nav-brand {
+.navBrand {
   font-size: 1.375rem;
   line-height: 20px;
   padding: 15px;
@@ -75,7 +71,7 @@
 }
 
 // ===== Nav links in tablet/desktop right section (Bootstrap .navbar-nav li > a) =====
-.or-nav-link {
+.navLink {
   color: #fff;
   text-decoration: none;
   display: block;
@@ -91,14 +87,14 @@
   }
 }
 @media (min-width: 1200px) {
-  .or-nav-link {
+  .navLink {
     padding-left: 15px;
     padding-right: 15px;
   }
 }
 
 // ===== User menu trigger (Bootstrap .dropdown-toggle in navbar) =====
-.or-nav-user-trigger {
+.navUserTrigger {
   color: #fff;
   text-decoration: none;
   display: block;
@@ -121,21 +117,21 @@
     background-color: constants.$orRedDark;
   }
 
-  &.is-open,
-  &.is-open:hover,
-  &.is-open:focus {
+  &.isOpen,
+  &.isOpen:hover,
+  &.isOpen:focus {
     background-color: constants.$darkBlue;
   }
 }
 @media (min-width: 1200px) {
-  .or-nav-user-trigger {
+  .navUserTrigger {
     padding-left: 15px;
     padding-right: 15px;
   }
 }
 
 // ===== Bootstrap caret triangle =====
-.or-nav-caret {
+.navCaret {
   display: inline-block;
   width: 0;
   height: 0;
@@ -147,7 +143,7 @@
 }
 
 // ===== Bootstrap badge =====
-.or-nav-badge {
+.navBadge {
   display: inline-block;
   min-width: 20px;
   padding: 3px 7px;
@@ -163,12 +159,12 @@
   margin-top: -3px;
   margin-left: 4px;
 }
-.or-nav-dropdown-item .or-nav-badge {
+.navDropdownItem .navBadge {
   margin-left: 6px;
 }
 
 // ===== Dropdown menu item (Bootstrap .dropdown-menu li > a) =====
-.or-nav-dropdown-item {
+.navDropdownItem {
   display: block;
   padding: 4px 20px;
   color: constants.$darkBlue;
@@ -185,7 +181,7 @@
 }
 
 // ===== Hamburger toggle button (Bootstrap .navbar-toggle) =====
-.or-nav-toggle {
+.navToggle {
   background-color: constants.$mediumDarkBlue;
   border: 1px solid constants.$orRedDark;
   border-radius: 2px;
@@ -203,40 +199,40 @@
   }
 }
 
-.or-nav-toggle-bar {
+.navToggleBar {
   display: block;
   width: 22px;
   height: 2px;
   background-color: #fff;
   border-radius: 1px;
 
-  & + .or-nav-toggle-bar {
+  & + .navToggleBar {
     margin-top: 4px;
   }
 }
 
 // ===== Search form (Bootstrap .navbar-form) =====
-.or-nav-search-form {
+.navSearchForm {
   border-top: 0;
   margin: 0;
   padding-right: 0;
 }
 
-.or-nav-search-form-drawer {
+.navSearchFormDrawer {
   margin: 10px 15px;
 }
 
 // ===== Search wrapper (Bootstrap .form-group.has-feedback) =====
-.or-nav-search-wrapper {
+.navSearchWrapper {
   position: relative;
   display: inline-block;
 }
-.or-nav-search-form-drawer .or-nav-search-wrapper {
+.navSearchFormDrawer .navSearchWrapper {
   display: block;
 }
 
 // ===== Search input (Bootstrap .form-control responsive) =====
-.or-nav-search-input {
+.navSearchInput {
   background-color: #ddd;
   width: 100%;
   height: 30px;
@@ -257,18 +253,18 @@
   }
 }
 @media (min-width: 768px) {
-  .or-nav-search-form:not(.or-nav-search-form-drawer) .or-nav-search-input {
+  .navSearchForm:not(.navSearchFormDrawer) .navSearchInput {
     width: 250px;
   }
 }
 @media (min-width: 1200px) {
-  .or-nav-search-form:not(.or-nav-search-form-drawer) .or-nav-search-input {
+  .navSearchForm:not(.navSearchFormDrawer) .navSearchInput {
     width: 380px;
   }
 }
 
 // ===== Search feedback icon (Bootstrap .form-control-feedback) =====
-.or-nav-search-feedback {
+.navSearchFeedback {
   width: 30px;
   height: 30px;
   line-height: 30px;
@@ -281,7 +277,7 @@
 }
 
 // ===== Drawer (mobile) links =====
-.or-nav-drawer-link {
+.navDrawerLink {
   color: #fff;
   text-decoration: none;
   display: block;
@@ -297,7 +293,7 @@
   }
 }
 
-.or-nav-drawer-user-name {
+.navDrawerUserName {
   color: #fff;
   display: block;
   padding: 10px 15px;
@@ -306,7 +302,7 @@
   cursor: default;
 }
 
-.or-nav-drawer-divider {
+.navDrawerDivider {
   border: none;
   border-top: 1px solid constants.$darkBlue;
   margin: 5px 0;

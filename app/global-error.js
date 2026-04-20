@@ -2,6 +2,9 @@
 
 import Link from 'next/link'
 
+import legacyNavStyles from '../styles/components/legacy-bootstrap-nav.module.scss'
+import styles from '../styles/components/nav.module.scss'
+
 export default function GlobalError({ error }) {
   return (
     <html lang="en">
@@ -11,9 +14,12 @@ export default function GlobalError({ error }) {
       </head>
       <body>
         <div id="__next">
-          <nav className="or-navbar" role="navigation">
-            <div className="or-nav-desktop or-nav-container" style={{ display: 'flex' }}>
-              <Link href="/" className="or-nav-brand">
+          <nav className={`${styles.navBar} ${legacyNavStyles.navBar}`} role="navigation">
+            <div
+              className={`${styles.navDesktop} ${legacyNavStyles.navContainer}`}
+              style={{ display: 'flex' }}
+            >
+              <Link href="/" className={legacyNavStyles.navBrand}>
                 <strong>OpenReview</strong>.net
               </Link>
             </div>

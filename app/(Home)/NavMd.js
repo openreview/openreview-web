@@ -7,6 +7,9 @@ import { useState } from 'react'
 import LogoutLink from './LogoutLink'
 import NavSearch from './NavSearch'
 
+import legacyNavStyles from '../../styles/components/legacy-bootstrap-nav.module.scss'
+import styles from '../../styles/components/nav.module.scss'
+
 export default function NavMd({ user, notificationCountSlot }) {
   const [dropdownOpen, setDropdownOpen] = useState(false)
 
@@ -15,7 +18,7 @@ export default function NavMd({ user, notificationCountSlot }) {
         {
           key: 'profile',
           label: (
-            <Link href="/profile" className="or-nav-dropdown-item">
+            <Link href="/profile" className={legacyNavStyles.navDropdownItem}>
               Profile
             </Link>
           ),
@@ -24,7 +27,10 @@ export default function NavMd({ user, notificationCountSlot }) {
         {
           key: 'password',
           label: (
-            <Link href="/profile/password-security" className="or-nav-dropdown-item">
+            <Link
+              href="/profile/password-security"
+              className={legacyNavStyles.navDropdownItem}
+            >
               Password &amp; Security
             </Link>
           ),
@@ -33,7 +39,11 @@ export default function NavMd({ user, notificationCountSlot }) {
         {
           key: 'notifications',
           label: (
-            <Link href="/notifications" prefetch={false} className="or-nav-dropdown-item">
+            <Link
+              href="/notifications"
+              prefetch={false}
+              className={legacyNavStyles.navDropdownItem}
+            >
               Notifications
               {notificationCountSlot}
             </Link>
@@ -43,7 +53,11 @@ export default function NavMd({ user, notificationCountSlot }) {
         {
           key: 'activity',
           label: (
-            <Link href="/activity" prefetch={false} className="or-nav-dropdown-item">
+            <Link
+              href="/activity"
+              prefetch={false}
+              className={legacyNavStyles.navDropdownItem}
+            >
               Activity
             </Link>
           ),
@@ -52,7 +66,7 @@ export default function NavMd({ user, notificationCountSlot }) {
         {
           key: 'tasks',
           label: (
-            <Link href="/tasks" prefetch={false} className="or-nav-dropdown-item">
+            <Link href="/tasks" prefetch={false} className={legacyNavStyles.navDropdownItem}>
               Tasks
             </Link>
           ),
@@ -61,16 +75,16 @@ export default function NavMd({ user, notificationCountSlot }) {
         { type: 'divider' },
         {
           key: 'logout',
-          label: <LogoutLink className="or-nav-dropdown-item" />,
+          label: <LogoutLink className={legacyNavStyles.navDropdownItem} />,
           style: { padding: 0 },
         },
       ]
     : []
 
   return (
-    <div className="or-nav-tablet or-nav-container">
+    <div className={`${styles.navTablet} ${legacyNavStyles.navContainer}`}>
       <div style={{ display: 'flex', alignItems: 'center' }}>
-        <Link href="/" className="or-nav-brand">
+        <Link href="/" className={legacyNavStyles.navBrand}>
           <strong>OpenReview</strong>.net
         </Link>
         <NavSearch />
@@ -87,7 +101,7 @@ export default function NavMd({ user, notificationCountSlot }) {
           >
             <a
               id="user-menu"
-              className={`or-nav-user-trigger${dropdownOpen ? ' is-open' : ''}`}
+              className={`${legacyNavStyles.navUserTrigger}${dropdownOpen ? ` ${legacyNavStyles.isOpen}` : ''}`}
               onClick={(e) => e.preventDefault()}
             >
               <span>
@@ -96,11 +110,11 @@ export default function NavMd({ user, notificationCountSlot }) {
                 })}
                 {user.impersonator && ' (Impersonated)'}
               </span>{' '}
-              <span className="or-nav-caret" />
+              <span className={legacyNavStyles.navCaret} />
             </a>
           </Dropdown>
         ) : (
-          <a href="/login" className="or-nav-link">
+          <a href="/login" className={legacyNavStyles.navLink}>
             Login
           </a>
         )}
