@@ -10,7 +10,11 @@ import Icon from './Icon'
 import api from '../lib/api-client'
 import { getTitleObjects, getTokenObjects } from '../lib/utils'
 
-const AutoCompleteInput = () => {
+const AutoCompleteInput = ({
+  inputClassName,
+  wrapperClassName,
+  feedbackClassName,
+}) => {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [autoCompleteItems, setAutoCompleteItems] = useState([])
@@ -140,12 +144,12 @@ const AutoCompleteInput = () => {
 
   return (
     <>
-      <div className="form-group has-feedback">
+      <div className={wrapperClassName || 'form-group has-feedback'}>
         <input
           aria-label="term"
           type="text"
           name="term"
-          className="form-control"
+          className={inputClassName || 'form-control'}
           value={immediateSearchTerm}
           placeholder="Search OpenReview..."
           autoComplete="off"
@@ -156,7 +160,10 @@ const AutoCompleteInput = () => {
           }}
           onKeyDown={(e) => keyDownHandler(e)}
         />
-        <Icon name="search" extraClasses="form-control-feedback" />
+        <Icon
+          name="search"
+          extraClasses={feedbackClassName || 'form-control-feedback'}
+        />
       </div>
 
       {autoCompleteItems.length !== 0 && (

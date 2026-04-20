@@ -1,0 +1,313 @@
+// Legacy Bootstrap-era navbar styles. Everything here matches Bootstrap 3
+// dimensions, padding, colors, and responsive behavior so the look stays
+// pixel-identical to the pre-antd version.
+//
+// When accepting antd-native navbar styling, delete this file entirely
+// along with lib/legacy-bootstrap-styles.js.
+
+@use '../utils/constants';
+
+// ===== Navbar border (Bootstrap .navbar-inverse) =====
+.or-navbar {
+  border-bottom: 1px solid constants.$orRedDark;
+}
+
+// ===== Container widths (Bootstrap .container) =====
+.or-nav-container {
+  margin: 0 auto;
+  padding: 0 15px;
+  width: 100%;
+  max-width: 100%;
+}
+@media (min-width: 768px) {
+  .or-nav-container {
+    max-width: 750px;
+  }
+}
+@media (min-width: 992px) {
+  .or-nav-container {
+    max-width: 970px;
+  }
+}
+@media (min-width: 1200px) {
+  .or-nav-container {
+    max-width: 1170px;
+  }
+}
+
+// ===== Brand (Bootstrap .navbar-brand) =====
+.or-nav-brand {
+  font-size: 1.375rem;
+  line-height: 20px;
+  padding: 15px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  color: #b8b8b8;
+  text-decoration: none;
+
+  strong {
+    color: #fff;
+  }
+
+  @media (max-width: 767px) {
+    font-size: 20px;
+  }
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+  &:hover {
+    color: constants.$mediumBlue;
+    text-shadow: 0px 1px 0px constants.$darkBlue;
+    strong {
+      color: constants.$mediumBlue;
+    }
+  }
+  &:focus {
+    color: #9d9d9d;
+    strong {
+      color: #fff;
+    }
+  }
+}
+
+// ===== Nav links in tablet/desktop right section (Bootstrap .navbar-nav li > a) =====
+.or-nav-link {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 15px 0.5rem;
+  line-height: 20px;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    text-decoration: none;
+    background-color: constants.$orRedDark;
+    cursor: pointer;
+  }
+}
+@media (min-width: 1200px) {
+  .or-nav-link {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+// ===== User menu trigger (Bootstrap .dropdown-toggle in navbar) =====
+.or-nav-user-trigger {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 15px 0.5rem;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  max-width: 295px;
+  white-space: nowrap;
+  overflow: hidden;
+  background: none;
+  border: none;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    text-decoration: none;
+    background-color: constants.$orRedDark;
+  }
+
+  &.is-open,
+  &.is-open:hover,
+  &.is-open:focus {
+    background-color: constants.$darkBlue;
+  }
+}
+@media (min-width: 1200px) {
+  .or-nav-user-trigger {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+// ===== Bootstrap caret triangle =====
+.or-nav-caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-top: 4px solid;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+}
+
+// ===== Bootstrap badge =====
+.or-nav-badge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 12px;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-color: #777;
+  border-radius: 10px;
+  margin-top: -3px;
+  margin-left: 4px;
+}
+.or-nav-dropdown-item .or-nav-badge {
+  margin-left: 6px;
+}
+
+// ===== Dropdown menu item (Bootstrap .dropdown-menu li > a) =====
+.or-nav-dropdown-item {
+  display: block;
+  padding: 4px 20px;
+  color: constants.$darkBlue;
+  text-decoration: none;
+  line-height: 1.42857143;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    color: constants.$darkBlue;
+    background-color: constants.$backgroundGray;
+    text-decoration: none;
+  }
+}
+
+// ===== Hamburger toggle button (Bootstrap .navbar-toggle) =====
+.or-nav-toggle {
+  background-color: constants.$mediumDarkBlue;
+  border: 1px solid constants.$orRedDark;
+  border-radius: 2px;
+  padding: 9px 10px;
+  margin: 8px 15px 8px 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  &:hover,
+  &:focus {
+    background-color: constants.$darkBlue;
+  }
+}
+
+.or-nav-toggle-bar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background-color: #fff;
+  border-radius: 1px;
+
+  & + .or-nav-toggle-bar {
+    margin-top: 4px;
+  }
+}
+
+// ===== Search form (Bootstrap .navbar-form) =====
+.or-nav-search-form {
+  border-top: 0;
+  margin: 0;
+  padding-right: 0;
+}
+
+.or-nav-search-form-drawer {
+  margin: 10px 15px;
+}
+
+// ===== Search wrapper (Bootstrap .form-group.has-feedback) =====
+.or-nav-search-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.or-nav-search-form-drawer .or-nav-search-wrapper {
+  display: block;
+}
+
+// ===== Search input (Bootstrap .form-control responsive) =====
+.or-nav-search-input {
+  background-color: #ddd;
+  width: 100%;
+  height: 30px;
+  border: 1px solid #ccc;
+  border-radius: 0;
+  padding: 4px 30px 4px 12px;
+  outline: none;
+  font-size: 14px;
+  line-height: 20px;
+  color: #555;
+  box-sizing: border-box;
+  transition:
+    background-color 0.5s linear,
+    box-shadow 0.4s 0.2s ease;
+
+  &:focus {
+    background-color: #fff;
+  }
+}
+@media (min-width: 768px) {
+  .or-nav-search-form:not(.or-nav-search-form-drawer) .or-nav-search-input {
+    width: 250px;
+  }
+}
+@media (min-width: 1200px) {
+  .or-nav-search-form:not(.or-nav-search-form-drawer) .or-nav-search-input {
+    width: 380px;
+  }
+}
+
+// ===== Search feedback icon (Bootstrap .form-control-feedback) =====
+.or-nav-search-feedback {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  color: #777;
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+// ===== Drawer (mobile) links =====
+.or-nav-drawer-link {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 10px 15px;
+  font-size: 1rem;
+  line-height: 20px;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    text-decoration: none;
+    background-color: constants.$orRedDark;
+  }
+}
+
+.or-nav-drawer-user-name {
+  color: #fff;
+  display: block;
+  padding: 10px 15px;
+  font-size: 1rem;
+  line-height: 20px;
+  cursor: default;
+}
+
+.or-nav-drawer-divider {
+  border: none;
+  border-top: 1px solid constants.$darkBlue;
+  margin: 5px 0;
+}

@@ -20,5 +20,5 @@ export default function NotificationCount({ notificationCountP }) {
   }, [storeCount])
 
   if (!count) return null
-  return <span className="badge">{count}</span>
+  return <span className="or-nav-badge">{count}</span>
 }

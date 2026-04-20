@@ -5,6 +5,8 @@
 @use 'utils/mixins';
 
 @use 'components/nav';
+@use 'components/legacy-bootstrap-nav';
+@use 'components/banner';
 @use 'components/footer';
 @use 'components/forum-note';
 @use 'components/note-content';
@@ -1250,8 +1252,6 @@ table.table-minimal {
   }
 }
 
-
-
 .venue-request-list {
   margin-left: -1rem;
   .venue-request-row {
@@ -1292,8 +1292,6 @@ table.table-minimal {
     }
   }
 }
-
-
 
 // Profile Search Widget
 .search-profile {

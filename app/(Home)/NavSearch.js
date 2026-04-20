@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
 import AutoCompleteInput from '../../components/AutoCompleteInput'
 
-export default function NavSearch() {
+export default function NavSearch({ inDrawer = false }) {
   const router = useRouter()
 
   const handleSearch = (e) => {
@@ -19,11 +19,15 @@ export default function NavSearch() {
 
   return (
     <form
-      className="navbar-form navbar-left profile-search"
       role="search"
       onSubmit={handleSearch}
+      className={`or-nav-search-form${inDrawer ? ' or-nav-search-form-drawer' : ''}`}
     >
-      <AutoCompleteInput />
+      <AutoCompleteInput
+        inputClassName="or-nav-search-input"
+        wrapperClassName="or-nav-search-wrapper"
+        feedbackClassName="or-nav-search-feedback"
+      />
       <input name="group" type="hidden" value="all" />
       <input name="content" type="hidden" value="all" />
       <input name="source" type="hidden" value="all" />

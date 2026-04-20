@@ -1,37 +1,21 @@
-import Link from 'next/link'
-import NavUserLinks from './NavUserLinks'
-import NavSearch from './NavSearch'
+import serverAuth from '../auth'
+import NavLg from './NavLg'
+import NavMd from './NavMd'
+import NavNotificationCount from './NavNotificationCount'
+import NavSm from './NavSm'
 
-function Nav() {
+export default async function Nav() {
+  const { user } = await serverAuth()
+  const notificationCountSlot = user ? <NavNotificationCount /> : null
+
+  // All three layout components are rendered. CSS media queries show exactly
+  // one at a time based on viewport. This avoids JS-based hydration layout
+  // shift and keeps each component's logic focused on its breakpoint.
   return (
-    <nav className="navbar navbar-inverse" role="navigation">
-      <div className="container">
-        <div className="navbar-header">
-          <button
-            type="button"
-            className="navbar-toggle collapsed"
-            data-toggle="collapse"
-            data-target="#navbar"
-            aria-expanded="false"
-            aria-controls="navbar"
-          >
-            <span className="sr-only">Toggle navigation</span>
-            <span className="icon-bar" />
-            <span className="icon-bar" />
-            <span className="icon-bar" />
-          </button>
-          <Link href="/" className="navbar-brand home push-link">
-            <strong>OpenReview</strong>.net
-          </Link>
-        </div>
-
-        <div id="navbar" className="navbar-collapse collapse">
-          <NavSearch />
-          <NavUserLinks />
-        </div>
-      </div>
+    <nav className="or-navbar" role="navigation">
+      <NavSm user={user ?? null} notificationCountSlot={notificationCountSlot} />
+      <NavMd user={user ?? null} notificationCountSlot={notificationCountSlot} />
+      <NavLg user={user ?? null} notificationCountSlot={notificationCountSlot} />
     </nav>
   )
 }
-
-export default Nav
