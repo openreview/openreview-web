@@ -514,7 +514,7 @@ test('add alternate email', async (t) => {
     .ok()
     .wait(100)
     .click(Selector('#user-menu').filterVisible())
-    .expect(Selector('ul').withAttribute('class', 'dropdown-menu').exists)
+    .expect(Selector('ul.ant-dropdown-menu').filterVisible().exists)
     .ok()
     .click(Selector('a').withText('Profile'))
     .click(Selector('a').withAttribute('href', '/profile/edit'))
