@@ -1,11 +1,11 @@
+import isEqual from 'lodash/isEqual'
 /* globals $: false */
 import uniqBy from 'lodash/uniqBy'
-import isEqual from 'lodash/isEqual'
 import zip from 'lodash/zip'
 import Link from 'next/link'
+import { prettyId } from '../lib/utils'
 import ExpandableList from './ExpandableList'
 import Icon from './Icon'
-import { prettyId } from '../lib/utils'
 
 const maxAuthorsToShow = 20
 
@@ -97,15 +97,20 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
 }
 
 export const NoteAuthorsV2 = ({
-  authors,
-  authorIds,
+  authors: authorsProp,
+  authorIds: authorIdsProp,
   signatures,
   noteReaders,
   showAuthorInstitutions,
 }) => {
-  if (showAuthorInstitutions && !authorIds?.value) {
-    return <NoteAuthorsWithInstitutions authors={authors} noteReaders={noteReaders} />
+  if (showAuthorInstitutions && !authorIdsProp?.value) {
+    return <NoteAuthorsWithInstitutions authors={authorsProp} noteReaders={noteReaders} />
   }
+
+  // forum note pass raw authors (for NoteAuthorsWithInstitutions)
+  // note list pass string array
+  const authors = authorsProp?.value ?? authorsProp
+  const authorIds = authorIdsProp?.value ?? authorIdsProp
 
   let showPrivateLabel = false
   const sortedReaders = noteReaders ? [...noteReaders].sort() : []
