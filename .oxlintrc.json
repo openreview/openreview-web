@@ -25,6 +25,7 @@
     "promptError": "readonly",
     "promptLogin": "readonly",
     "promptRefresh": "readonly",
-    "clearMessage": "readonly"
+    "clearMessage": "readonly",
+    "window": "readonly"
   }
 }
