@@ -1,19 +1,23 @@
-/* globals promptError: false, view2 */
-
 import { useState } from 'react'
+import useTurnstileToken from '../../hooks/useTurnstileToken'
+import api from '../../lib/api-client'
+import { getNoteContentValues } from '../../lib/forum-utils'
+import { prettyId } from '../../lib/utils'
 import BasicModal from '../BasicModal'
+import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
 import { NewReplyEditNoteReaders } from '../NoteEditorReaders'
 import Signatures from '../Signatures'
-import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
-import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
-import { getNoteContentValues } from '../../lib/forum-utils'
 
 export default function ConfirmDeleteModal({ note, invitation, updateNote, onClose, isEdit }) {
   const [editReaders, setEditReaders] = useState({ value: note?.readers })
   const [editSignatures, setEditSignatures] = useState(null)
   const [readersError, setReadersError] = useState(null)
   const [signaturesError, setSignaturesError] = useState(null)
+  const [hasHumanVerificationError, setHasHumanVerificationError] = useState(false)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
+    'confirmDeleteModal',
+    hasHumanVerificationError
+  )
 
   const noteTitle = note?.content?.title?.value ?? note?.generatedTitle ?? 'Untitled'
   const isDeleted = note && note.ddate && note.ddate < Date.now()
@@ -45,7 +49,9 @@ export default function ConfirmDeleteModal({ note, invitation, updateNote, onClo
       })
     }
     api
-      .post('/notes/edits', editToPost)
+      .post('/notes/edits', editToPost, {
+        'cf-turnstile-token': turnstileToken,
+      })
       .then((res) =>
         // the return of the post is an edit not the full note, so get the updated note again
         api.get('/notes', { id: res.note.id, trash: !isDeleted })
@@ -57,8 +63,12 @@ export default function ConfirmDeleteModal({ note, invitation, updateNote, onClo
         }
       })
       .catch((error) => {
-        promptError(error.message)
-        if (typeof onClose === 'function') onClose()
+        if (error.name === 'HumanVerificationRequiredError') {
+          setHasHumanVerificationError(true)
+        } else {
+          promptError(error.message)
+          if (typeof onClose === 'function') onClose()
+        }
       })
   }
 
@@ -126,6 +136,7 @@ export default function ConfirmDeleteModal({ note, invitation, updateNote, onClo
           }}
         />
       </EditorComponentHeader>
+      <div ref={turnstileContainerRef} />
     </BasicModal>
   )
 }
