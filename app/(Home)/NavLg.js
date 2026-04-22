@@ -3,16 +3,13 @@
 import { Dropdown } from 'antd'
 import truncate from 'lodash/truncate'
 import Link from 'next/link'
-import { useState } from 'react'
 import LogoutLink from './LogoutLink'
 import NavSearch from './NavSearch'
 
 import legacyNavStyles from '../../styles/components/legacy-bootstrap-nav.module.scss'
 import styles from '../../styles/components/nav.module.scss'
 
-export default function NavLg({ user, notificationCountSlot }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false)
-
+export default function NavLg({ user, notificationCountSlot, dropdownOpen, setDropdownOpen }) {
   const dropdownItems = user
     ? [
         {

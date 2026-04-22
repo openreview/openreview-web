@@ -140,6 +140,11 @@
   border-top: 4px solid;
   border-right: 4px solid transparent;
   border-left: 4px solid transparent;
+  transition: transform 0.15s ease;
+
+  &.isOpen {
+    transform: rotate(180deg);
+  }
 }
 
 // ===== Bootstrap badge =====
@@ -293,13 +298,43 @@
   }
 }
 
-.navDrawerUserName {
+.navDrawerUserToggle {
   color: #fff;
-  display: block;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
   padding: 10px 15px;
   font-size: 1rem;
   line-height: 20px;
-  cursor: default;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    background-color: constants.$orRedDark;
+    outline: none;
+  }
+}
+
+.navDrawerSubLink {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 10px 15px 10px 32px;
+  font-size: 1rem;
+  line-height: 20px;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    text-decoration: none;
+    background-color: constants.$orRedDark;
+  }
 }
 
 .navDrawerDivider {

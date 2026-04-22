@@ -1,8 +1,6 @@
 import serverAuth from '../auth'
-import NavLg from './NavLg'
-import NavMd from './NavMd'
+import NavClient from './NavClient'
 import NavNotificationCount from './NavNotificationCount'
-import NavSm from './NavSm'
 
 import legacyNavStyles from '../../styles/components/legacy-bootstrap-nav.module.scss'
 import styles from '../../styles/components/nav.module.scss'
@@ -13,9 +11,7 @@ export default async function Nav() {
 
   return (
     <nav className={`${styles.navBar} ${legacyNavStyles.navBar}`} role="navigation">
-      <NavSm user={user ?? null} notificationCountSlot={notificationCountSlot} />
-      <NavMd user={user ?? null} notificationCountSlot={notificationCountSlot} />
-      <NavLg user={user ?? null} notificationCountSlot={notificationCountSlot} />
+      <NavClient user={user ?? null} notificationCountSlot={notificationCountSlot} />
     </nav>
   )
 }
