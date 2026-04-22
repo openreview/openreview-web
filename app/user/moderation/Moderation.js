@@ -1,17 +1,18 @@
 'use client'
 
-import { useMemo } from 'react'
 import dynamic from 'next/dynamic'
+import { useMemo } from 'react'
+import { AntdTabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import NewVenueRequestCount from './(VenueRequests)/NewVenueRequestCount'
 import UserModerationTab from './UserModerationTab'
-import { AntdTabs } from '../../../components/Tabs'
 
 const EmailDeletionTab = dynamic(() => import('./(EmailDeletion)/EmailDeletionTab'))
 const NameDeletionTab = dynamic(() => import('./(NameDeletion)/NameDeletionTab'))
 const ProfileMergeTab = dynamic(() => import('./(ProfileMerge)/ProfileMergeTab'))
 const InstitutionTab = dynamic(() => import('./(Institution)/InstitutionTab'))
+const ConnectedAppTab = dynamic(() => import('./(Connection)/ConnectedAppTab'))
 const VenueRequestTab = dynamic(() => import('./(VenueRequests)/VenueRequestTab'))
 const VenuesTab = dynamic(() => import('./(VenueRequests)/VenuesTab'))
 
@@ -42,6 +43,11 @@ export default function Moderation() {
         key: 'institution',
         label: 'Institution List',
         children: <InstitutionTab />,
+      },
+      {
+        key: 'connections',
+        label: 'Connected Apps',
+        children: <ConnectedAppTab />,
       },
       {
         key: 'requests',
