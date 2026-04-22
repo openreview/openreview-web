@@ -40,9 +40,7 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
       </div>
       {noteToShow && (
         <ul className="note-meta-info list-inline">
-          <li>
-            <ClientForumDate note={noteToShow} />
-          </li>
+          <ClientForumDate note={noteToShow} />
           <li>
             {!noteToShow.content?.venue?.value
               ? prettyId(noteToShow.invitations[0])

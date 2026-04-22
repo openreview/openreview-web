@@ -782,7 +782,7 @@ const emailSectionPlusIconSelector = Selector('section').find('.glyphicon-plus-s
 const editEmailInputSelector = Selector('input:not([readonly]).email')
 const emailConfirmButtons = Selector('section').find('button').withText('Confirm')
 const emailRemoveButtons = Selector('section').find('button').withText('Remove')
-const pageHeader = Selector('div.title-container').find('h1')
+const pageHeader = Selector('h1').nth(0)
 const profileViewEmail = Selector('section.emails').find('span')
 const addDBLPPaperToProfileButton = Selector('button.personal-links__adddblpbtn')
 const persistentUrlInput = Selector('div.persistent-url-input').find('input')
@@ -1623,7 +1623,7 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .click(cancelButton)
     .expect(Selector('#user-menu').innerText)
     .eql('Di Xu ')
-    .expect(Selector('div.title-container').find('h1').innerText)
+    .expect(Selector('h1').nth(0).innerText)
     .eql('Di Xu')
 })
 test('#160 allow user to overwrite name to be lowercase', async (t) => {

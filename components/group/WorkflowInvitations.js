@@ -1,13 +1,14 @@
+import dayjs from 'dayjs'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
+import { motion } from 'framer-motion'
+import { orderBy, sortBy, get } from 'lodash'
 /* globals promptError,promptMessage,$: false */
 import { useEffect, useRef, useState } from 'react'
-import { orderBy, sortBy, get } from 'lodash'
-import timezone from 'dayjs/plugin/timezone'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
-import { motion } from 'framer-motion'
-import EditorSection from '../EditorSection'
+import useSocket from '../../hooks/useSocket'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import {
   formatDateTime,
@@ -19,13 +20,12 @@ import {
   getSubInvitationContentFieldDisplayValue,
   getMetaInvitationId,
 } from '../../lib/utils'
-import InvitationEditor from './InvitationEditor'
 import Dropdown from '../Dropdown'
 import Markdown from '../EditorComponents/Markdown'
+import EditorSection from '../EditorSection'
 import Icon from '../Icon'
-import useSocket from '../../hooks/useSocket'
-import useUser from '../../hooks/useUser'
 import LoadingSpinner from '../LoadingSpinner'
+import InvitationEditor from './InvitationEditor'
 
 dayjs.extend(isSameOrBefore)
 dayjs.extend(timezone)
@@ -938,7 +938,7 @@ const WorkFlowInvitations = ({ group }) => {
         return []
       return stepObj
     })
-    if (!tempFilterResult.length) {
+    if (!tempFilterResult.length && !skipWorkflowInvitationCheck) {
       // skip workflow invitation check
       return filterWorkflowInvitations(
         exclusionWorkflowInvitations,

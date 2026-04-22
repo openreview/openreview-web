@@ -17,6 +17,15 @@
     "no-var": "warn",
     "prefer-destructuring": ["warn", { "object": true, "array": false }],
     "react/rules-of-hooks": "error",
-    "react/self-closing-comp": "error"
+    "react/self-closing-comp": "error",
+    "no-undef": "warn"
+  },
+  "globals": {
+    "promptMessage": "readonly",
+    "promptError": "readonly",
+    "promptLogin": "readonly",
+    "promptRefresh": "readonly",
+    "clearMessage": "readonly",
+    "window": "readonly"
   }
 }
