@@ -1475,7 +1475,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         }
         note.replyCount = replies.length
         if (useCache) delete note.details?.replies
-        if (typeof note.content?.authors?.value === 'object') {
+        if (typeof note.content?.authors?.value === 'object' && !note.content?.authorids) {
           // eslint-disable-next-line no-param-reassign
           note.authorSearchValue = note.content.authors.value.map((p) => ({
             ...p,
