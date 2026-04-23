@@ -11,7 +11,7 @@ import CommonLayout from '../CommonLayout'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
 import Banner from '../../components/Banner'
 
-export default function Assignments({ accessToken }) {
+export default function Assignments() {
   const [error, setError] = useState(null)
   const [configInvitation, setConfigInvitation] = useState(null)
   const [preferredEmailInvitationId, setPreferredEmailInvitationId] = useState(null)
@@ -24,7 +24,7 @@ export default function Assignments({ accessToken }) {
 
   const getPreferredEmailInvitationId = async (invitation) => {
     try {
-      const domainGroup = await api.getGroupById(invitation.domain, accessToken)
+      const domainGroup = await api.getGroupById(invitation.domain)
       setPreferredEmailInvitationId(domainGroup?.content?.preferred_emails_id?.value)
     } catch (_) {
       /* empty */
@@ -33,10 +33,7 @@ export default function Assignments({ accessToken }) {
 
   const getConfigInvitation = async () => {
     try {
-      const invitation = await api.getInvitationById(
-        `${group}/-/Assignment_Configuration`,
-        accessToken
-      )
+      const invitation = await api.getInvitationById(`${group}/-/Assignment_Configuration`)
       if (invitation) {
         setConfigInvitation(invitation)
         getPreferredEmailInvitationId(invitation)
@@ -79,7 +76,6 @@ export default function Assignments({ accessToken }) {
       <div className={styles.assignments}>
         <V2Assignments
           configInvitation={configInvitation}
-          accessToken={accessToken}
           preferredEmailInvitationId={preferredEmailInvitationId}
         />
       </div>

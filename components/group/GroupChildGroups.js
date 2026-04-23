@@ -4,19 +4,15 @@ import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import PaginatedList from '../PaginatedList'
 
-const GroupChildGroups = ({ groupId, accessToken }) => {
+const GroupChildGroups = ({ groupId }) => {
   const [totalCount, setTotalCount] = useState(0)
 
   const loadChildGroups = async (limit, offset) => {
-    const { groups, count } = await api.get(
-      '/groups',
-      {
-        parent: groupId,
-        limit,
-        offset,
-      },
-      { accessToken }
-    )
+    const { groups, count } = await api.get('/groups', {
+      parent: groupId,
+      limit,
+      offset,
+    })
 
     let translatedGroups = []
     if (groups?.length > 0) {
@@ -36,7 +32,7 @@ const GroupChildGroups = ({ groupId, accessToken }) => {
     }
   }
 
-  const loadItems = useCallback(loadChildGroups, [groupId, accessToken])
+  const loadItems = useCallback(loadChildGroups, [groupId])
 
   return (
     <EditorSection

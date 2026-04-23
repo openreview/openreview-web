@@ -1,32 +1,37 @@
 'use client'
 
-/* globals promptMessage,promptError: false */
-import { useEffect, useState } from 'react'
-import Table from '../../../../components/Table'
-import PaginationLinks from '../../../../components/PaginationLinks'
+import { PlusOutlined } from '@ant-design/icons'
+import { Button, Col, Flex, Input, Modal, Pagination, Row, Select, Space } from 'antd'
+import { useMemo, useState } from 'react'
 import Icon from '../../../../components/Icon'
-import Dropdown from '../../../../components/Dropdown'
-import InstituitonSearchForm from './InstitutionSearchForm'
 import api from '../../../../lib/api-client'
-import LoadingSpinner from '../../../../components/LoadingSpinner'
+
+import { moderation as legacyStyles } from '../../../../lib/legacy-bootstrap-styles'
 
 const pageSize = 25
+const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
 
-export default function InstitutionTab({ accessToken }) {
+export default function InstitutionTab() {
   const [institutions, setInstitutions] = useState(null)
-  const [institutionsToShow, setInstitutionsToShow] = useState(null)
   const [page, setPage] = useState(1)
-  const [institutionToEdit, setInstitutionToEdit] = useState(null)
   const [countryOptions, setCountryOptions] = useState([])
+  const [searchTerm, setSearchTerm] = useState('')
+  const [modalData, setModalData] = useState({})
+  const [isEditMode, setIsEditMode] = useState(null)
 
-  const loadInstitutionsDomains = async (noCache) => {
+  const institutionsToShow = useMemo(() => {
+    if (!institutions) return null
+    return institutions.slice(pageSize * (page - 1), pageSize * page)
+  }, [institutions, page])
+
+  const loadInstitutionsDomains = async () => {
     try {
-      const result = await api.get(
-        `/settings/institutiondomains${noCache ? '?cache=false' : ''}`
-      )
-      setInstitutions(result)
+      const result = await api.get(`/settings/institutionDomains?cache=false`)
+
+      return result
     } catch (error) {
       promptError(error.message)
+      return []
     }
   }
 
@@ -44,38 +49,25 @@ export default function InstitutionTab({ accessToken }) {
     }
   }
 
-  const saveInstitution = async () => {
-    try {
-      await api.post(
-        '/settings/institutions',
-        {
-          id: institutionToEdit.id,
-          shortname: institutionToEdit.shortname ? institutionToEdit.shortname.trim() : null,
-          fullname: institutionToEdit.fullname ? institutionToEdit.fullname.trim() : null,
-          parent: institutionToEdit.parent ? institutionToEdit.parent.trim() : null,
-          domains: institutionToEdit.domains
-            ? institutionToEdit.domains.split(',').map((p) => p.trim())
-            : [],
-          country: institutionToEdit.country,
-          alphaTwoCode: institutionToEdit.alphaTwoCode,
-          stateProvince: institutionToEdit.stateProvince
-            ? institutionToEdit.stateProvince.trim()
-            : null,
-          webPages: institutionToEdit.webPages
-            ? institutionToEdit.webPages.split(',').map((p) => p.trim())
-            : null,
-        },
-        { accessToken }
-      )
-      promptMessage(`${institutionToEdit.id} saved.`)
-      setInstitutionToEdit(null)
-      loadInstitutionsDomains()
-    } catch (error) {
-      promptError(error.message)
+  const loadAndFilterInstitutions = async (termOverride) => {
+    const cleanTerm = (termOverride ?? searchTerm)?.trim()?.toLowerCase()
+    setPage(1)
+    const domains = await loadInstitutionsDomains()
+    if (!cleanTerm.length) {
+      setInstitutions(domains)
+    } else {
+      setInstitutions(domains.filter((p) => p.toLowerCase().includes(cleanTerm)))
     }
   }
 
-  const getInstitutionDetails = async (institutionDomain) => {
+  const openAddModal = async () => {
+    if (!countryOptions.length) await loadCountryOptions()
+    setModalData({})
+    setIsEditMode(false)
+  }
+
+  const openEditModal = async (institutionDomain) => {
+    if (!countryOptions.length) await loadCountryOptions()
     try {
       const result = await api.get('/settings/institutions', { domain: institutionDomain })
       const institution = result.institutions[0]
@@ -87,224 +79,249 @@ export default function InstitutionTab({ accessToken }) {
         promptError(`Id of ${institutionDomain} is ${institution.id}`)
         return
       }
-      setInstitutionToEdit({
+      setModalData({
         ...institution,
         domains: institution.domains.join(','),
         webPages: institution.webPages?.join(',') ?? '',
       })
+      setIsEditMode(true)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  const handleModalOk = async () => {
+    const institutionId = modalData.id?.trim()?.toLowerCase()
+    if (!institutionId) {
+      promptError('Institution ID is required.')
+      return
+    }
+
+    try {
+      await api.post('/settings/institutions', {
+        id: institutionId,
+        shortname: modalData.shortname?.trim() || null,
+        fullname: modalData.fullname?.trim() || null,
+        parent: modalData.parent?.trim() || null,
+        domains: modalData.domains
+          ? modalData.domains
+              .split(',')
+              .map((p) => p.trim())
+              .filter(Boolean)
+          : [],
+        country: modalData.country || null,
+        alphaTwoCode: modalData.alphaTwoCode || null,
+        stateProvince: modalData.stateProvince?.trim() || null,
+        webPages: modalData.webPages
+          ? modalData.webPages
+              .split(',')
+              .map((p) => p.trim())
+              .filter(Boolean)
+          : null,
+      })
+      promptMessage(`${institutionId} ${isEditMode ? 'saved' : 'added'}.`)
+      setIsEditMode(null)
+      setModalData({})
+      await loadAndFilterInstitutions()
     } catch (error) {
       promptError(error.message)
     }
   }
 
   const deleteInstitution = async (institutionId) => {
-    // eslint-disable-next-line no-alert
     const confirmed = window.confirm(`Are you sure you want to delete ${institutionId}?`)
     if (!confirmed) return
     try {
-      await api.delete(`/settings/institutions/${institutionId}`, undefined, { accessToken })
+      await api.delete(`/settings/institutions/${institutionId}`)
       promptMessage(`${institutionId} is deleted.`)
-      loadInstitutionsDomains(true)
+      await loadAndFilterInstitutions()
     } catch (error) {
       promptError(error.message)
     }
   }
 
-  useEffect(() => {
-    if (!institutions) return
-    setInstitutionsToShow(
-      institutions.slice(pageSize * (page - 1), pageSize * (page - 1) + pageSize)
-    )
-  }, [page, institutions])
-
-  useEffect(() => {
-    loadInstitutionsDomains(true)
-    loadCountryOptions()
-  }, [])
-
-  if (!institutionsToShow) return <LoadingSpinner />
-
   return (
-    <div className="institution-container">
-      <InstituitonSearchForm
-        accessToken={accessToken}
-        countryOptions={countryOptions}
-        setInstitutions={setInstitutions}
-        setPage={setPage}
-        reloadInstitutionsDomains={loadInstitutionsDomains}
-        institutions={institutions}
-      />
-      <>
-        <Table
-          headings={[
-            { content: '', width: '8%' },
-            { content: 'Id', width: '15%' },
-            { content: 'Short Name', width: '25%' },
-            { content: 'Full Name', width: '25%' },
-            { content: 'Parent', width: '25%' },
-            { content: 'Domains', width: '15%' },
-          ]}
-        />
-        {institutionsToShow.map((institutionDomain) => (
-          <div className="institution-row" key={institutionDomain}>
-            <span className="col-actions">
-              {institutionDomain === institutionToEdit?.id ? (
-                <button type="button" className="btn btn-xs " onClick={saveInstitution}>
-                  <Icon name="floppy-disk" />
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  className="btn btn-xs "
-                  onClick={() => {
-                    getInstitutionDetails(institutionDomain)
-                  }}
-                >
-                  <Icon name="edit" />
-                </button>
-              )}
-              <button
-                type="button"
-                className="btn btn-xs btn-delete-institution"
-                onClick={() => {
-                  deleteInstitution(institutionDomain)
-                }}
-              >
-                <Icon name="trash" />
-              </button>
-            </span>
-
-            {institutionDomain === institutionToEdit?.id ? (
-              <>
-                <span className="col-id">
-                  <input
-                    className="form-control input-sm"
-                    value={institutionToEdit.id ?? ''}
-                    onChange={() => {}}
-                  />
-                </span>
-                <span className="col-short-name">
-                  <input
-                    className="form-control input-sm"
-                    value={institutionToEdit.shortname ?? ''}
-                    onChange={(e) => {
-                      setInstitutionToEdit((p) => ({
-                        ...p,
-                        shortname: e.target.value,
-                      }))
-                    }}
-                  />
-                </span>
-                <span className="col-full-name">
-                  <input
-                    className="form-control input-sm"
-                    value={institutionToEdit.fullname ?? ''}
-                    onChange={(e) => {
-                      setInstitutionToEdit((p) => ({
-                        ...p,
-                        fullname: e.target.value,
-                      }))
-                    }}
-                  />
-                </span>
-                <span className="col-parent">
-                  <input
-                    className="form-control input-sm"
-                    value={institutionToEdit.parent ?? ''}
-                    onChange={(e) => {
-                      setInstitutionToEdit((p) => ({
-                        ...p,
-                        parent: e.target.value,
-                      }))
-                    }}
-                  />
-                </span>
-                <span className="col-domains">
-                  <input
-                    className="form-control input-sm"
-                    value={institutionToEdit.domains ?? ''}
-                    onChange={(e) => {
-                      setInstitutionToEdit((p) => ({
-                        ...p,
-                        domains: e.target.value,
-                      }))
-                    }}
-                  />
-                </span>
-                <th key="empty" scope="col" style={{ width: '8%' }}></th>
-                <th key="country" scope="col" style={{ width: '20%' }}>
-                  Country/Region
-                </th>
-                <th key="state" scope="col" style={{ width: '20%' }}>
-                  State/Province
-                </th>
-                <th key="webpages" scope="col" style={{ width: '50%' }}>
-                  Webpages
-                </th>
-                <span className="col-actions"></span>
-                <span className="col-country">
-                  <Dropdown
-                    options={countryOptions}
-                    onChange={(e) => {
-                      setInstitutionToEdit((p) => ({
-                        ...p,
-                        country: e?.label ?? null,
-                        alphaTwoCode: e?.value ?? null,
-                      }))
-                    }}
-                    value={
-                      countryOptions?.find(
-                        (q) => q.value === institutionToEdit.alphaTwoCode
-                      ) ?? null
-                    }
-                    placeholder="Institution Country/Region"
-                    className="dropdown-select dropdown-sm"
-                    hideArrow
-                    isClearable
-                  />
-                </span>
-                <span className="col-state">
-                  <input
-                    className="form-control input-sm"
-                    value={institutionToEdit.stateProvince ?? ''}
-                    onChange={(e) => {
-                      setInstitutionToEdit((p) => ({
-                        ...p,
-                        stateProvince: e.target.value,
-                      }))
-                    }}
-                  />
-                </span>
-                <span className="col-webpages">
-                  <input
-                    className="form-control input-sm"
-                    value={institutionToEdit.webPages ?? ''}
-                    onChange={(e) => {
-                      setInstitutionToEdit((p) => ({
-                        ...p,
-                        webPages: e.target.value,
-                      }))
-                    }}
-                  />
-                </span>
-              </>
-            ) : (
-              <span className="col-id">{institutionDomain}</span>
-            )}
-          </div>
-        ))}
-        {institutions.length === 0 ? (
-          <p className="empty-message">No matching domains found.</p>
-        ) : (
-          <PaginationLinks
-            currentPage={page}
-            itemsPerPage={pageSize}
-            totalCount={institutions.length}
-            options={{ useShallowRouting: true }}
-            setCurrentPage={setPage}
+    <>
+      <Row gutter={[8, 8]} align="middle" style={{ marginBottom: '0.75rem' }}>
+        <Col xs={24} sm={12} md={10}>
+          <Input
+            allowClear
+            placeholder="Search institution domain"
+            style={legacyStyles.formInput}
+            value={searchTerm}
+            onChange={(e) => {
+              const value = e.target.value ?? ''
+              setSearchTerm(value)
+              if (!value) {
+                loadAndFilterInstitutions('')
+              }
+            }}
+            onPressEnter={() => loadAndFilterInstitutions()}
           />
-        )}
-      </>
-    </div>
+        </Col>
+        <Col>
+          <Space>
+            <Button
+              type="primary"
+              styles={{ root: legacyStyles.formButton }}
+              onClick={() => loadAndFilterInstitutions()}
+            >
+              Search
+            </Button>
+            <Button
+              type="primary"
+              styles={{ root: legacyStyles.formButton }}
+              icon={<PlusOutlined />}
+              onClick={openAddModal}
+            >
+              Add Institution
+            </Button>
+          </Space>
+        </Col>
+      </Row>
+
+      {institutionsToShow && (
+        <>
+          <Flex vertical gap="middle" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
+            {institutionsToShow.map((institutionDomain) => (
+              <Row key={institutionDomain} align="middle" gutter={[8, 0]}>
+                <Col flex="none">
+                  <Space size={4}>
+                    <Button
+                      size="small"
+                      type="primary"
+                      styles={{ root: legacyStyles.actionButton }}
+                      onClick={() => openEditModal(institutionDomain)}
+                    >
+                      <span style={{ top: '0px' }}>
+                        <Icon name="edit" />
+                      </span>
+                    </Button>
+                    <Button
+                      size="small"
+                      type="primary"
+                      styles={{ root: legacyStyles.actionButton }}
+                      onClick={() => deleteInstitution(institutionDomain)}
+                    >
+                      <span style={{ top: '0px' }}>
+                        <Icon name="trash" />
+                      </span>
+                    </Button>
+                  </Space>
+                </Col>
+                <Col flex="auto">{institutionDomain}</Col>
+              </Row>
+            ))}
+          </Flex>
+
+          {institutions.length === 0 ? (
+            <p>No matching domains found.</p>
+          ) : (
+            <Pagination
+              align="center"
+              current={page}
+              pageSize={pageSize}
+              total={institutions.length}
+              onChange={(newPage) => setPage(newPage)}
+              showSizeChanger={false}
+              hideOnSinglePage
+            />
+          )}
+        </>
+      )}
+
+      <Modal
+        title={isEditMode ? 'Edit Institution' : 'Add Institution'}
+        open={isEditMode !== null}
+        okText={isEditMode ? 'Save' : 'Add'}
+        onCancel={() => {
+          setIsEditMode(null)
+          setModalData({})
+        }}
+        onOk={handleModalOk}
+        destroyOnHidden
+        width={modalWidth}
+      >
+        <Flex vertical gap="small" style={{ marginTop: 12 }}>
+          <div>
+            <label>Institution ID (domain)</label>
+            <Input
+              style={legacyStyles.formInput}
+              value={modalData.id ?? ''}
+              disabled={isEditMode}
+              onChange={(e) => setModalData((p) => ({ ...p, id: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label>Short Name</label>
+            <Input
+              style={legacyStyles.formInput}
+              value={modalData.shortname ?? ''}
+              onChange={(e) => setModalData((p) => ({ ...p, shortname: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label>Full Name</label>
+            <Input
+              style={legacyStyles.formInput}
+              value={modalData.fullname ?? ''}
+              onChange={(e) => setModalData((p) => ({ ...p, fullname: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label>Parent</label>
+            <Input
+              style={legacyStyles.formInput}
+              value={modalData.parent ?? ''}
+              onChange={(e) => setModalData((p) => ({ ...p, parent: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label>Domains (comma-separated)</label>
+            <Input
+              style={legacyStyles.formInput}
+              value={modalData.domains ?? ''}
+              onChange={(e) => setModalData((p) => ({ ...p, domains: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label>Country/Region</label>
+            <Select
+              showSearch
+              allowClear
+              variant="outlined"
+              style={{ width: '100%' }}
+              options={countryOptions}
+              getPopupContainer={(triggerNode) => triggerNode.parentElement}
+              onChange={(_value, option) =>
+                setModalData((p) => ({
+                  ...p,
+                  country: option?.label ?? null,
+                  alphaTwoCode: option?.value ?? null,
+                }))
+              }
+              value={modalData.alphaTwoCode ?? null}
+              placeholder="Select country/region"
+            />
+          </div>
+          <div>
+            <label>State/Province</label>
+            <Input
+              style={legacyStyles.formInput}
+              value={modalData.stateProvince ?? ''}
+              onChange={(e) => setModalData((p) => ({ ...p, stateProvince: e.target.value }))}
+            />
+          </div>
+          <div>
+            <label>Web Pages (comma-separated)</label>
+            <Input
+              style={legacyStyles.formInput}
+              value={modalData.webPages ?? ''}
+              onChange={(e) => setModalData((p) => ({ ...p, webPages: e.target.value }))}
+            />
+          </div>
+        </Flex>
+      </Modal>
+    </>
   )
 }

@@ -1,13 +1,26 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom'
 import FileUploadWidget from '../components/EditorComponents/FileUploadWidget'
 import api from '../lib/api-client'
 import { renderWithEditorComponentContext } from './util'
+import '@testing-library/jest-dom'
+
+let useTurnstileTokenProps
 
 jest.mock('../lib/api-client')
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({ user: {}, accessToken: 'some token' }))
+jest.mock('../hooks/useTurnstileToken', () => (key, hasHumanVerificationError) => {
+  useTurnstileTokenProps(key, hasHumanVerificationError)
+  if (!hasHumanVerificationError) return {}
+  return {
+    turnstileToken: 'some token',
+  }
+})
+
+beforeEach(() => {
+  useTurnstileTokenProps = jest.fn()
+})
 
 describe('FileUploadWidget', () => {
   test('display choose file button', () => {
@@ -187,6 +200,92 @@ describe('FileUploadWidget', () => {
     expect(onChange).toHaveBeenCalledWith({
       fieldName: 'supplementary_material',
       value: undefined,
+    })
+  })
+
+  test('show turnstile token when api return human verfication error', async () => {
+    const humanVerificationError = new Error('Human verification required')
+    humanVerificationError.name = 'HumanVerificationRequiredError'
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    api.put = jest.fn(() => Promise.reject(humanVerificationError))
+
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitationId' },
+        field: {
+          supplementary_material: {
+            value: {
+              param: {
+                type: 'file',
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+    renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
+
+    const fileInput = screen.getByLabelText('supplementary_material')
+    const file = new File(['some byte string'], 'test.pdf', { type: 'application/pdf' })
+    await userEvent.upload(fileInput, file)
+
+    expect(useTurnstileTokenProps).toHaveBeenCalledWith('fileUpload', true)
+  })
+
+  test('retry upload after HumanVerificationRequiredError and turnstile token obtained', async () => {
+    const humanVerificationError = new Error('Human verification required')
+    humanVerificationError.name = 'HumanVerificationRequiredError'
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    api.put = jest
+      .fn()
+      .mockRejectedValueOnce(humanVerificationError)
+      .mockResolvedValue({ url: 'test url' })
+
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitationId' },
+        field: {
+          supplementary_material: {
+            value: {
+              param: {
+                type: 'file',
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+    renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
+
+    const fileInput = screen.getByLabelText('supplementary_material')
+    const file = new File(['some byte string'], 'test.pdf', { type: 'application/pdf' })
+    await userEvent.upload(fileInput, file)
+
+    // initial failure + retry with token
+    await waitFor(() => {
+      expect(api.put).toHaveBeenCalledTimes(2)
+      expect(api.put).toHaveBeenNthCalledWith(
+        1,
+        '/attachment/chunk',
+        expect.anything(),
+        expect.objectContaining({
+          'cf-turnstile-token': undefined,
+        })
+      )
+      expect(api.put).toHaveBeenNthCalledWith(
+        2,
+        '/attachment/chunk',
+        expect.anything(),
+        expect.objectContaining({
+          'cf-turnstile-token': 'some token',
+        })
+      )
     })
   })
 })

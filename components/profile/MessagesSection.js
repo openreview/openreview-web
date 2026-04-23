@@ -3,22 +3,18 @@ import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import Table from '../Table'
 
-const MessagesSection = ({ email, accessToken, rejectMessagesOnly }) => {
+const MessagesSection = ({ email, rejectMessagesOnly }) => {
   const [messages, setMessages] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
   const loadMessages = async () => {
     setIsLoading(true)
     try {
-      const apiRes = await api.get(
-        '/messages',
-        {
-          to: email,
-          ...(rejectMessagesOnly && { subject: 'OpenReview profile activation status' }),
-          limit: 5,
-        },
-        { accessToken }
-      )
+      const apiRes = await api.get('/messages', {
+        to: email,
+        ...(rejectMessagesOnly && { subject: 'OpenReview profile activation status' }),
+        limit: 5,
+      })
 
       setMessages(apiRes.messages || [])
     } catch (apiError) {

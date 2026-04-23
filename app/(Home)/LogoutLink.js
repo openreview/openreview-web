@@ -13,6 +13,7 @@ export default function LogoutLink() {
       window.location.reload()
       window.localStorage.setItem('openreview.lastLogout', Date.now())
     } catch (error) {
+      // oxlint-disable-next-line no-console
       console.log('Error in LogoutLink', {
         page: 'Home',
         component: 'LogoutLink',
@@ -26,7 +27,6 @@ export default function LogoutLink() {
   }
 
   return (
-    // eslint-disable-next-line jsx-a11y/anchor-is-valid
     <Link href="#" onClick={handleLogout}>
       Logout
     </Link>

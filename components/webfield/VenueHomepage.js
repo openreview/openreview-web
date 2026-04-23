@@ -1,30 +1,22 @@
-/* globals promptError, promptMessage, $: false */
-import { useState, useContext, useEffect, useReducer } from 'react'
+import { get } from 'lodash'
+import kebabCase from 'lodash/kebabCase'
+import uniq from 'lodash/uniq'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import uniq from 'lodash/uniq'
-import kebabCase from 'lodash/kebabCase'
-import { get } from 'lodash'
-import WebFieldContext from '../WebFieldContext'
-import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
-import VenueHeader from './VenueHeader'
-import SubmissionButton from './SubmissionButton'
-import SubmissionsList from './SubmissionsList'
-import ActivityList from './ActivityList'
-import Markdown from '../EditorComponents/Markdown'
-import ErrorDisplay from '../ErrorDisplay'
+import { useState, useContext, useEffect, useReducer } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import Markdown from '../EditorComponents/Markdown'
+import ErrorDisplay from '../ErrorDisplay'
 import LoadingSpinner from '../LoadingSpinner'
+import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
+import WebFieldContext from '../WebFieldContext'
+import ActivityList from './ActivityList'
+import SubmissionButton from './SubmissionButton'
+import SubmissionsList from './SubmissionsList'
+import VenueHeader from './VenueHeader'
 
-function ConsolesList({
-  venueId,
-  submissionInvitationId,
-  setHidden,
-  shouldReload,
-  user,
-  accessToken,
-}) {
+function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload, user }) {
   const [userConsoles, setUserConsoles] = useState(null)
 
   useEffect(() => {
@@ -34,11 +26,12 @@ function ConsolesList({
     }
 
     api
-      .getAll(
-        '/groups',
-        { prefix: `${venueId}/`, member: user.id, web: true, domain: venueId },
-        { accessToken }
-      )
+      .getAll('/groups', {
+        prefix: `${venueId}/`,
+        member: user.id,
+        web: true,
+        domain: venueId,
+      })
       .then((userGroups) => {
         const groupIds = []
         if (userGroups?.length > 0) {
@@ -52,7 +45,7 @@ function ConsolesList({
         setUserConsoles([])
         promptError(error.message)
       })
-  }, [user, accessToken, venueId, submissionInvitationId, shouldReload])
+  }, [user, venueId, submissionInvitationId, shouldReload])
 
   useEffect(() => {
     if (!userConsoles || typeof setHidden !== 'function') return
@@ -116,7 +109,7 @@ export default function VenueHomepage({ appContext }) {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const queryParam = useSearchParams()
   const { setBannerContent } = appContext ?? {}
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const submissionIds =
     typeof submissionId === 'string' ? [{ value: submissionId, version: 2 }] : submissionId
   const defaultConfirmationMessage =
@@ -150,7 +143,6 @@ export default function VenueHomepage({ appContext }) {
             markTabLoaded()
           }}
           user={user}
-          accessToken={accessToken}
         />
       )
     }
@@ -163,7 +155,7 @@ export default function VenueHomepage({ appContext }) {
           invitation={tabConfig.options.invitation}
           pageSize={tabConfig.options.pageSize}
           shouldReload={shouldReload}
-          accessToken={accessToken}
+          user={user}
         />
       )
     }
@@ -215,7 +207,7 @@ export default function VenueHomepage({ appContext }) {
             markTabLoaded()
           }}
           filterNotes={filterFn}
-          accessToken={accessToken}
+          skipDomain={tabConfig.options.skipDomain}
         />
       )
     }
@@ -296,7 +288,6 @@ export default function VenueHomepage({ appContext }) {
               reload()
             }}
             options={{ largeLabel: true, showStartEndDate: true }}
-            accessToken={accessToken}
           />
         </div>
       ))}

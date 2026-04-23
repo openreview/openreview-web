@@ -9,7 +9,7 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 
 const pageSize = 25
 
-export default function Messages({ query, statusOptionValues, accessToken }) {
+export default function Messages({ query, statusOptionValues }) {
   const [currentPage, setCurrentPage] = useState(1)
   const [allMessages, setAllMessages] = useState(null)
   const [error, setError] = useState(null)
@@ -28,15 +28,11 @@ export default function Messages({ query, statusOptionValues, accessToken }) {
     }
 
     try {
-      const apiRes = await api.get(
-        '/messages',
-        {
-          ...query,
-          status: validStatus,
-          after,
-        },
-        { accessToken }
-      )
+      const apiRes = await api.get('/messages', {
+        ...query,
+        status: validStatus,
+        after,
+      })
       if (after) {
         setAllMessages((existingMessages) =>
           (existingMessages ?? []).concat(apiRes.messages || [])

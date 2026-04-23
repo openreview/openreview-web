@@ -20,7 +20,6 @@ export default function LegacyForum({ forumNote, selectedNoteId, selectedInvitat
   useEffect(() => {
     if (isRefreshing) return
 
-    // eslint-disable-next-line global-require
     const runForum = require('../../client/forum')
     runForum(id, selectedNoteId, selectedInvitationId, user)
     // authors resets when clientJsLoading turns false
@@ -109,32 +108,38 @@ const ForumAuthors = ({ authors, authorIds, signatures, original }) => (
   </div>
 )
 
-const ForumMeta = ({ note }) => (
-  <div className="meta_row">
-    <span className="date item">
-      {forumDate(
-        note.cdate,
-        note.tcdatem,
-        note.mdate,
-        note.tmdate,
-        note.content.year,
-        note.pdate
-      )}
-    </span>
-
-    {note.content.venue ? (
-      <span className="item">{note.content.venue}</span>
-    ) : (
-      <span className="item">{prettyId(note.invitation)}</span>
-    )}
-
-    {note.readers && (
-      <span className="item">
-        Readers: <NoteReaders readers={note.readers} />
+const ForumMeta = ({ note }) => {
+  const isdblpPublication = note.invitation === 'dblp.org/-/record'
+  return (
+    <div className="meta_row">
+      <span className="date item">
+        {forumDate(
+          note.cdate,
+          note.tcdatem,
+          note.mdate,
+          note.tmdate,
+          note.content.year,
+          note.pdate,
+          false,
+          false,
+          isdblpPublication
+        )}
       </span>
-    )}
-  </div>
-)
+
+      {note.content.venue ? (
+        <span className="item">{note.content.venue}</span>
+      ) : (
+        <span className="item">{prettyId(note.invitation)}</span>
+      )}
+
+      {note.readers && (
+        <span className="item">
+          Readers: <NoteReaders readers={note.readers} />
+        </span>
+      )}
+    </div>
+  )
+}
 
 const ForumReplyCount = ({ count }) => (
   <div className="reply_row clearfix">

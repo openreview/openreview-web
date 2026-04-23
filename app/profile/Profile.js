@@ -1,13 +1,16 @@
+import { Col, Flex, Row, Space } from 'antd'
 import { upperFirst } from 'lodash'
 import Icon from '../../components/Icon'
-import styles from './Profile.module.scss'
 import BasicProfileView from '../../components/profile/BasicProfileView'
-import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import ProfilePublications from '../../components/profile/ProfilePublications'
-import serverAuth from '../auth'
+import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import api from '../../lib/api-client'
-import CoAuthorsList from './CoAuthorsList'
 import { getCoAuthorsFromPublications } from '../../lib/profiles'
+import serverAuth from '../auth'
+import CoAuthorsList from './CoAuthorsList'
+
+import styles from './Profile.module.scss'
+import { colors } from '../../lib/legacy-bootstrap-styles'
 
 export default async function Profile({
   profile,
@@ -21,25 +24,29 @@ export default async function Profile({
       (p) => !p.end || p.end >= new Date().getFullYear()
     )
     return (
-      <>
+      <div>
         {currentHistories?.map((history, index) => {
           const posititon = upperFirst(history.position).trim()
           const department = history.institution.department?.trim()
           const institutionName = history.institution.name?.trim()
 
           return (
-            <h3 key={index}>
+            <div
+              key={index}
+              style={{
+                fontSize: '1.375rem',
+                color: colors.subtleGray,
+                lineHeight: 'normal',
+                marginTop: index > 0 ? '0.25rem' : 0,
+              }}
+            >
               {[posititon, department, institutionName].filter(Boolean).join(', ')}
-            </h3>
+            </div>
           )
         })}
-      </>
+      </div>
     )
   }
-
-  let count = 0
-  let publications = null
-  let coAuthors = null
 
   const loadPublications = async () => {
     let apiRes
@@ -56,13 +63,13 @@ export default async function Profile({
         { accessToken: token, remoteIpAddress }
       )
       if (apiRes.notes) {
-        publications = apiRes.notes
-        // eslint-disable-next-line prefer-destructuring
-        count = apiRes.count
-        coAuthors = getCoAuthorsFromPublications(profile, publications)
+        const publications = apiRes.notes
+        const coAuthors = getCoAuthorsFromPublications(profile, publications)
+        return { publications, count: apiRes.count, coAuthors }
       }
     } catch (error) {
       apiRes = error
+      // oxlint-disable-next-line no-console
       console.error('Error in loadPublications', {
         page: 'profile',
         component: 'Profile',
@@ -74,52 +81,50 @@ export default async function Profile({
         },
       })
     }
+    return {}
   }
-  await loadPublications()
+  const { publications, count, coAuthors } = await loadPublications()
 
   return (
-    <div className={styles.profile}>
-      <header className="clearfix">
-        <div className="title-container">
-          <h1>{profile.preferredName}</h1>
-          {profile.pronouns &&
-            profile.pronouns !== '' &&
-            profile.pronouns !== 'Not Specified' && (
-              <h4 className="pronouns">Pronouns: {profile.pronouns}</h4>
-            )}
-          {getCurrentInstitutionInfo()}
-          <ul className="list-inline">
-            <li>
-              <Icon name="calendar" extraClasses="pr-1" /> Joined {profile.joined}
-            </li>
-          </ul>
-        </div>
-      </header>
-      <div className="row equal-height-cols">
-        <div className="col-md-12 col-lg-8">
+    <Flex vertical gap="small" className={styles.profileContainer}>
+      <h1 style={{ fontWeight: 'bold', fontSize: '2.25rem', marginBottom: 0 }}>
+        {profile.preferredName}
+      </h1>
+      {profile.pronouns && profile.pronouns !== '' && profile.pronouns !== 'Not Specified' && (
+        <h4 className={styles.pronouns}>Pronouns: {profile.pronouns}</h4>
+      )}
+      {getCurrentInstitutionInfo()}
+      <Space style={{ fontSize: '1rem', color: colors.subtleGray, marginBottom: '1rem' }}>
+        <Icon name="calendar" /> Joined{profile.joined}
+      </Space>
+      <Row>
+        <Col xs={24} lg={16} style={{ paddingRight: '15px' }}>
           <BasicProfileView
             profile={profile}
             publicProfile={publicProfile}
             serviceRoles={serviceRoles}
           />
-        </div>
+        </Col>
+        <Col xs={24} lg={8} className={styles.publicationsSection}>
+          <Flex vertical>
+            <ProfileViewSection title="Publications">
+              <div className={styles.publicationsList}>
+                <ProfilePublications
+                  profileId={profile.preferredId}
+                  publications={publications}
+                  count={count}
+                  loading={!publications}
+                  preferredName={profile.preferredName}
+                />
+              </div>
+            </ProfileViewSection>
 
-        <aside className="col-md-12 col-lg-4">
-          <ProfileViewSection name="publications" title="Publications">
-            <ProfilePublications
-              profileId={profile.preferredId}
-              publications={publications}
-              count={count}
-              loading={!publications}
-              preferredName={profile.preferredName}
-            />
-          </ProfileViewSection>
-
-          <ProfileViewSection name="coauthors" title="Co-Authors">
-            <CoAuthorsList coAuthors={coAuthors} />
-          </ProfileViewSection>
-        </aside>
-      </div>
-    </div>
+            <ProfileViewSection title="Co-Authors">
+              <CoAuthorsList coAuthors={coAuthors} />
+            </ProfileViewSection>
+          </Flex>
+        </Col>
+      </Row>
+    </Flex>
   )
 }

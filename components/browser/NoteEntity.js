@@ -1,6 +1,3 @@
-/* eslint-disable no-use-before-define */
-/* eslint-disable jsx-a11y/anchor-is-valid */
-/* eslint-disable react/destructuring-assignment */
 /* globals $: false */
 /* globals promptError: false */
 
@@ -26,7 +23,7 @@ import useUser from '../../hooks/useUser'
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
     useContext(EdgeBrowserContext)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
 
   if (!props.note || !props.note.content) {
     return null
@@ -79,8 +76,7 @@ export default function NoteEntity(props) {
       editInvitation,
       availableSignaturesInvitationMap,
       number,
-      user,
-      accessToken
+      user
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     if (version === 1 && (!signatures || signatures.length === 0)) {
@@ -100,7 +96,7 @@ export default function NoteEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version })
+      const result = await api.post('/edges', body, { version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else {
@@ -111,7 +107,6 @@ export default function NoteEntity(props) {
     }
   }
 
-  // eslint-disable-next-line object-curly-newline
   const addEdge = async ({ e, existingEdge, editEdgeTemplate, updatedEdgeFields = {} }) => {
     if (e) {
       e.preventDefault()
@@ -129,8 +124,7 @@ export default function NoteEntity(props) {
       editInvitation,
       availableSignaturesInvitationMap,
       number,
-      user,
-      accessToken
+      user
     )
     const isTraverseInvitation = editInvitation.id === traverseInvitation.id
     const maxLoadInvitationHead = editInvitation.head?.query?.id
@@ -161,7 +155,7 @@ export default function NoteEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version })
+      const result = await api.post('/edges', body, { version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else {
@@ -248,7 +242,6 @@ export default function NoteEntity(props) {
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
         existingEdge={editEdge}
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === editInvitation.id).length === 0 ||
           editInvitation.multiReply
@@ -268,7 +261,6 @@ export default function NoteEntity(props) {
         existingEdge={editEdge}
         addEdge={addEdge}
         removeEdge={() => removeEdge(editEdge)}
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === editInvitation.id).length === 0 ||
           editInvitation.multiReply
@@ -281,7 +273,6 @@ export default function NoteEntity(props) {
     )
     const editEdgeTwoDropdowns = (controlType) => (
       <EditEdgeTwoDropdowns
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === editInvitation.id).length === 0 ||
           editInvitation.multiReply
@@ -322,7 +313,6 @@ export default function NoteEntity(props) {
   }
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick}>
       <div className="note-heading">
         <h3>
@@ -352,7 +342,6 @@ export default function NoteEntity(props) {
       <div className="note-meta clearfix">
         {/* existing editEdges */}
         {editEdges?.map((editEdge, index) => (
-          // eslint-disable-next-line react/no-array-index-key
           <React.Fragment key={index}>
             {renderEditEdgeWidget({
               editEdge,
@@ -363,7 +352,6 @@ export default function NoteEntity(props) {
 
         {/* add new editEdge */}
         {editInvitations?.map((editInvitation, index) => (
-          // eslint-disable-next-line react/no-array-index-key
           <React.Fragment key={index}>
             {renderEditEdgeWidget({ editInvitation })}
           </React.Fragment>
@@ -376,7 +364,6 @@ export default function NoteEntity(props) {
             <li>
               {props.canTraverse ? (
                 <a href="#" className="show-assignments">
-                  {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   {props.traverseLabel} ({props.note.traverseEdgesCount}) &raquo;
                 </a>
               ) : (

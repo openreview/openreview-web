@@ -1,7 +1,37 @@
-import { useNotification } from 'rc-notification'
-import Icon from '../components/Icon'
+import { Button, Flex, notification } from 'antd'
 import Markdown from '../components/EditorComponents/Markdown'
 import useBreakpoint from './useBreakPoint'
+
+const okTextColor = '#3c763d'
+
+const commonStyles = {
+  icon: { display: 'none' },
+  description: {
+    fontSize: '0.9375rem',
+    lineHeight: '21px',
+    marginTop: 0,
+    marginInlineStart: 0,
+  },
+}
+
+const getStyles = (type) => {
+  switch (type) {
+    case 'success':
+    case 'login':
+    case 'refresh':
+      return {
+        ...commonStyles,
+        description: { ...commonStyles.description, color: okTextColor },
+      }
+    case 'error':
+      return {
+        ...commonStyles,
+        description: { ...commonStyles.description, color: '#a94442' },
+      }
+    default:
+      return {}
+  }
+}
 
 export default function usePrompt() {
   const isMobile = !useBreakpoint('md')
@@ -9,43 +39,41 @@ export default function usePrompt() {
   const messageDuration = isMobile ? 2 : 3
   const errorDuration = isMobile ? 2 : 4
 
-  const [api, holder] = useNotification({
+  const [api, contextHolder] = notification.useNotification({
     maxCount: 2,
-    ...(canClose && {
-      closeIcon: <Icon name="remove" />,
-    }),
-    animation: null,
+    placement: 'top',
+    top: 91,
   })
 
+  const commonProps = {
+    title: null,
+    pauseOnHover: true,
+    closable: canClose,
+  }
+
   return {
-    notificationHolder: holder,
+    notificationHolder: contextHolder,
     promptFunctions: {
       promptMessage: (message, customDuration) =>
-        api.open({
-          content: (
-            <div className="message">
-              <Markdown text={message} />
-            </div>
-          ),
+        api.success({
+          ...commonProps,
+          styles: getStyles('success'),
+          description: <Markdown text={message?.toString()} />,
           duration: customDuration ?? messageDuration,
-          closable: canClose,
-          pauseOnHover: true,
         }),
       promptError: (message, customDuration) =>
-        api.open({
-          content: (
-            <div className="error">
-              <Markdown text={`**Error:** ${message}`} />
-            </div>
-          ),
+        api.error({
+          ...commonProps,
+          styles: getStyles('error'),
+          description: <Markdown text={`**Error:** ${message?.toString()}`} />,
           duration: customDuration ?? errorDuration,
-          closable: canClose,
-          pauseOnHover: true,
         }),
       promptLogin: (customDuration) =>
-        api.open({
-          content: (
-            <div className="login">
+        api.info({
+          ...commonProps,
+          styles: getStyles('login'),
+          description: (
+            <>
               <span>Please&nbsp;</span>
               <a
                 href={`/login?redirect=${encodeURIComponent(
@@ -55,25 +83,25 @@ export default function usePrompt() {
                 Login
               </a>
               <span> to proceed</span>
-            </div>
+            </>
           ),
           duration: customDuration ?? errorDuration,
-          closable: canClose,
-          pauseOnHover: true,
         }),
       promptRefresh: (message, customDuration) =>
-        api.open({
-          content: (
-            <div className="message">
-              <Markdown text={message} />
-              <button className="btn btn-xs" onClick={() => window.location.reload()}>
+        api.info({
+          ...commonProps,
+          styles: getStyles('refresh'),
+          description: (
+            <Flex align="center" gap={8}>
+              <div style={{ overflow: 'hidden', height: '21px' }}>
+                <Markdown text={message?.toString()} />
+              </div>
+              <Button type="primary" size="small" onClick={() => window.location.reload()}>
                 Refresh
-              </button>
-            </div>
+              </Button>
+            </Flex>
           ),
           duration: customDuration ?? messageDuration,
-          closable: canClose,
-          pauseOnHover: true,
         }),
       clearMessage: () => {
         api.destroy()

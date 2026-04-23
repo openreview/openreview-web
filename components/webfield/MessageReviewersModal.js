@@ -2,7 +2,6 @@
 import uniqBy from 'lodash/uniqBy'
 import { useContext, useEffect, useState } from 'react'
 import List from 'rc-virtual-list'
-import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import BasicModal from '../BasicModal'
 import WebFieldContext from '../WebFieldContext'
@@ -14,7 +13,6 @@ const MessageReviewersModal = ({
   messageModalId,
   selectedIds,
 }) => {
-  const { accessToken } = useUser()
   const {
     shortPhrase,
     venueId,
@@ -81,9 +79,11 @@ const MessageReviewersModal = ({
         break
       case 'allAuthors':
         roleName = 'Authors'
+        messageInvitation = `${venueId}/-/Edit`
         break
       case 'allSACs':
         roleName = seniorAreaChairName
+        messageInvitation = `${venueId}/-/Edit`
         break
       default:
         roleName = reviewerName
@@ -111,21 +111,17 @@ const MessageReviewersModal = ({
               const rowData = simplifiedTableRowsDisplayed.find((row) => row.id === noteId)
               const groupIds = allRecipients.get(rowData?.number)
               if (!groupIds?.length) return Promise.resolve()
-              return api.post(
-                '/messages',
-                {
-                  ...(messageInvitation && {
-                    invitation: messageInvitation.replace('{number}', rowData.number),
-                  }),
-                  signature: messageInvitation && rowData.messageSignature,
-                  groups: groupIds,
-                  subject,
-                  message: getMessage(rowData),
-                  parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
-                  replyTo: emailReplyTo,
-                },
-                { accessToken }
-              )
+              return api.post('/messages', {
+                invitation: messageInvitation
+                  ? messageInvitation.replace('{number}', rowData.number)
+                  : `${venueId}/-/Edit`,
+                signature: rowData.messageSignature ?? venueId,
+                groups: groupIds,
+                subject,
+                message: getMessage(rowData),
+                parentGroup: `${venueId}/${submissionName}${rowData.number}/${roleName}`,
+                replyTo: emailReplyTo,
+              })
             })
             return Promise.all(currentBatchSendEmailPs)
           }),

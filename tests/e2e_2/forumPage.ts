@@ -92,7 +92,9 @@ test('delete the forum note and restore it', async (t) => {
     .expect(Selector('.forum-note').exists)
     .ok()
     // Delete the note
-    .click(Selector('.invitation-buttons').find('button').withAttribute('type', 'button').nth(1))
+    .click(
+      Selector('.invitation-buttons').find('button').withAttribute('type', 'button').nth(1)
+    )
     .expect(confirmDeleteModal.exists)
     .ok()
     .click(Selector('.dropdown-select'))
@@ -103,7 +105,9 @@ test('delete the forum note and restore it', async (t) => {
     .expect(Selector('.forum-note').hasClass('trashed'))
     .ok()
     // Restore the note
-    .click(Selector('.invitation-buttons').find('button').withAttribute('type', 'button').nth(0))
+    .click(
+      Selector('.invitation-buttons').find('button').withAttribute('type', 'button').nth(0)
+    )
     .expect(confirmDeleteModal.exists)
     .ok()
     .click(Selector('.dropdown-select'))

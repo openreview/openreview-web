@@ -13,7 +13,7 @@ function EmptyMessage({ id }) {
   return <p className="empty-message">No revision history available for {prettyId(id)}.</p>
 }
 
-export default function EditHistory({ group, invitation, accessToken, setError, editId }) {
+export default function EditHistory({ group, invitation, setError, editId }) {
   const [edits, setEdits] = useState(null)
   const [count, setCount] = useState(null)
   const [editLookupComplete, setEditLookupComplete] = useState(!editId)
@@ -25,18 +25,14 @@ export default function EditHistory({ group, invitation, accessToken, setError, 
       const groupOrInvitation = group ? 'group' : 'invitation'
       const queryParam = `${groupOrInvitation}.id`
       try {
-        const apiRes = await api.get(
-          `/${groupOrInvitation}s/edits`,
-          {
-            [queryParam]: group?.id ?? invitation?.id,
-            sort: 'tcdate',
-            details: 'writable,presentation',
-            limit: pageSize,
-            offset: (page - 1) * pageSize,
-            trash: true,
-          },
-          { accessToken }
-        )
+        const apiRes = await api.get(`/${groupOrInvitation}s/edits`, {
+          [queryParam]: group?.id ?? invitation?.id,
+          sort: 'tcdate',
+          details: 'writable,presentation',
+          limit: pageSize,
+          offset: (page - 1) * pageSize,
+          trash: true,
+        })
         if (apiRes.edits?.length > 0) {
           setEdits(
             apiRes.edits.map((edit) => ({
@@ -55,7 +51,7 @@ export default function EditHistory({ group, invitation, accessToken, setError, 
     }
 
     loadEdits()
-  }, [group, invitation, accessToken, page])
+  }, [group, invitation, page])
 
   useEffect(() => {
     const findEditId = async () => {
@@ -96,7 +92,6 @@ export default function EditHistory({ group, invitation, accessToken, setError, 
               className={edit.ddate ? 'edit-trashed' : ''}
               showContents
               showLog
-              accessToken={accessToken}
             />
           </motion.div>
         )

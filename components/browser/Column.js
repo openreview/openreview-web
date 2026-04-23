@@ -1,24 +1,24 @@
 /* globals promptError: false */
-/* eslint-disable react/destructuring-assignment */
 
-import { useState, useEffect, useContext, useRef } from 'react'
 import _ from 'lodash'
+import debounce from 'lodash/debounce'
 import { useSearchParams } from 'next/navigation'
-import Icon from '../Icon'
-import LoadingSpinner from '../LoadingSpinner'
-import EdgeBrowserContext from './EdgeBrowserContext'
-import EntityList from './EntityList'
-import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
-import EditEdgeInviteEmail from './EditEdgeInviteEmail'
+import { useState, useEffect, useContext, useRef } from 'react'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
 import {
   getInvitationPrefix,
   isForBothGroupTypesInvite,
   isNotInGroupInvite,
   transformName,
 } from '../../lib/edge-utils'
-import api from '../../lib/api-client'
-import useUser from '../../hooks/useUser'
+import { prettyId, prettyInvitationId, pluralizeString } from '../../lib/utils'
 import { filterCollections, getEdgeValue } from '../../lib/webfield-utils'
+import Icon from '../Icon'
+import LoadingSpinner from '../LoadingSpinner'
+import EdgeBrowserContext from './EdgeBrowserContext'
+import EditEdgeInviteEmail from './EditEdgeInviteEmail'
+import EntityList from './EntityList'
 
 export default function Column(props) {
   const {
@@ -35,14 +35,20 @@ export default function Column(props) {
     parentExistingLoad,
     shouldReloadEntities, // something non traverse changed in another column with same parent
   } = props
-  const { traverseInvitation, editInvitations, browseInvitations, hideInvitation, version } =
-    useContext(EdgeBrowserContext)
+  const {
+    traverseInvitation,
+    editInvitations,
+    browseInvitations,
+    hideInvitation,
+    version,
+    browseEdgesCache,
+  } = useContext(EdgeBrowserContext)
   const parent = parentId ? altGlobalEntityMap[parentId] : null
   const otherType = type === 'head' ? 'tail' : 'head'
   const colBodyEl = useRef(null)
   const entityMap = useRef({ globalEntityMap, altGlobalEntityMap })
   const [entityMapChanged, setEntityMapChanged] = useState(false)
-  const { accessToken, user } = useUser()
+  const { user } = useUser()
   const query = useSearchParams()
 
   const sortOptions = [
@@ -73,7 +79,10 @@ export default function Column(props) {
   const [numItemsToRender, setNumItemsToRender] = useState(100)
   const [columnSort, setColumnSort] = useState('default')
   const [hideQuotaReached, setHideQuotaReached] = useState(false)
-  const [search, setSearch] = useState({ term: '' })
+  const [searchTerm, setSearchTerm] = useState('')
+  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
+
+  const delaySearch = useRef(debounce((term) => setSearchTerm(term), 400)).current
 
   const showLoadMoreButton = numItemsToRender < filteredItems.length
   const showHideQuotaReachedCheckbox =
@@ -186,7 +195,6 @@ export default function Column(props) {
       const entityInvitationName = entityInvitation
         ? prettyId(entityInvitation)
         : pluralizeString(defautEntityName)
-      // eslint-disable-next-line react/jsx-one-expression-per-line
       return (
         <p>
           <strong>All {entityInvitationName}</strong>
@@ -209,7 +217,6 @@ export default function Column(props) {
         separator: ' ',
       })
       const num = parent.number ? ` (#${parent.number})` : ''
-      // eslint-disable-next-line react/jsx-one-expression-per-line
       return (
         <p>
           {invitationNamePlural} for <strong>{paperTitle}</strong>
@@ -221,7 +228,6 @@ export default function Column(props) {
     // Profiles
     if (_.has(parent, 'content.name')) {
       const { name } = parent.content
-      // eslint-disable-next-line react/jsx-one-expression-per-line
       return (
         <p>
           {invitationNamePlural} for <strong>{name.fullname}</strong>
@@ -236,7 +242,6 @@ export default function Column(props) {
       startInvitation.query.head ||
       startInvitation.query.storageKey
     if (parentIdToShow === user?.profile?.id) parentIdToShow = user?.profile?.preferredId
-    // eslint-disable-next-line react/jsx-one-expression-per-line
     if (parentIdToShow) {
       return (
         <p>
@@ -330,7 +335,7 @@ export default function Column(props) {
         // This mainly occurs when an affinity edge references a withdrawn paper
         // and isn't usually a problem. Missing profile IDs sometimes occur if
         // profiles get merged and the edges are not updated.
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn(
           `${headOrTailId} not found in global entity map. From ${edgeFormatted.name}`
         )
@@ -457,7 +462,6 @@ export default function Column(props) {
     if (sortLabels) {
       // has no weight; construct label map then sort
       const sortLabelMap = _.fromPairs(_.zip(sortLabels, _.range(sortLabels.length, 0, -1)))
-      // eslint-disable-next-line no-param-reassign
       return _.orderBy(
         [...colItems].map((p) => ({
           ...p,
@@ -531,7 +535,6 @@ export default function Column(props) {
     if (existingIndex >= 0) {
       edgesPromiseMap[existingIndex].invitations.push(invitationType)
     } else {
-      // eslint-disable-next-line no-nested-ternary
       const detailsParam = getWritable
         ? invitation.query.details
           ? `${invitation.query.details},writable`
@@ -542,18 +545,20 @@ export default function Column(props) {
         { ...invitation.query, details: detailsParam },
         sort
       )
-      edgesPromiseMap.push({
-        id: invitation.id,
-        query: invitation.query,
-        invitations: [invitationType],
-        getWritable,
-        sort,
-        promise: api
+
+      let promise
+      const isIgnoreHeadTailBrowseInvitation =
+        invitation.category === 'browse' &&
+        (invitation.query.head === 'ignore' || invitation.query.tail === 'ignore')
+
+      if (isIgnoreHeadTailBrowseInvitation && browseEdgesCache.has(invitation.id)) {
+        promise = browseEdgesCache.get(invitation.id)
+      } else {
+        promise = api
           .getAll(
             '/edges',
             { ...apiQuery, ...(version === 2 && { domain: invitation.domain }) },
             {
-              accessToken,
               version,
               ...(isCountQuery && { resultsKey: 'groupedEdges' }),
             }
@@ -568,7 +573,18 @@ export default function Column(props) {
                 }))
               : result
           )
-          .catch((error) => promptError(error.message)),
+          .catch((error) => promptError(error.message))
+        if (isIgnoreHeadTailBrowseInvitation) {
+          browseEdgesCache.set(invitation.id, promise)
+        }
+      }
+      edgesPromiseMap.push({
+        id: invitation.id,
+        query: invitation.query,
+        invitations: [invitationType],
+        getWritable,
+        sort,
+        promise,
       })
     }
   }
@@ -606,9 +622,9 @@ export default function Column(props) {
                 )
 
                 if (edge) {
-                  prev[invitaitonId] = getEdgeValue(edge) // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = getEdgeValue(edge)
                 } else {
-                  prev[invitaitonId] = curr.defaultWeight ?? curr.defaultLabel // eslint-disable-line no-param-reassign
+                  prev[invitaitonId] = curr.defaultWeight ?? curr.defaultLabel
                 }
                 return prev
               },
@@ -620,7 +636,6 @@ export default function Column(props) {
         ['!=', '>=', '<=', '>', '<', '==', '='],
         editAndBrowserInvitationsUnique.reduce(
           (prev, curr) => {
-            // eslint-disable-next-line no-param-reassign
             prev[curr.id.replaceAll('.', '_')] = [
               `filterProperties.${curr.id.replaceAll('.', '_')}`,
             ]
@@ -689,7 +704,6 @@ export default function Column(props) {
           '/edges',
           { ...apiQuery, ...(version === 2 && { domain: startInvitation.domain }) },
           {
-            accessToken,
             version,
           }
         )
@@ -701,12 +715,11 @@ export default function Column(props) {
 
           const colItems = []
           const existingItems = new Set()
-          // eslint-disable-next-line no-param-reassign
           startEdges = _.orderBy(startEdges, (p) => p.weight ?? 0, ['desc'])
           startEdges.forEach((sEdge) => {
             const headOrTailId = sEdge[type]
             if (!globalEntityMap[headOrTailId]) {
-              // eslint-disable-next-line no-console
+              // oxlint-disable-next-line no-console
               console.warn(`${headOrTailId} not found in global entity map`)
               return
             }
@@ -791,7 +804,6 @@ export default function Column(props) {
         const traverseLabelMap = _.fromPairs(
           _.zip(traverseLabels, _.range(traverseLabels.length, 0, -1))
         )
-        // eslint-disable-next-line no-param-reassign
         traverseEdges = _.orderBy(
           traverseEdges,
           [(edge) => traverseLabelMap[edge.label] || 0],
@@ -822,10 +834,10 @@ export default function Column(props) {
               searchText: headOrTailId,
               traverseEdgesCount: traverseEdges.filter((p) => p[type] === headOrTailId).length,
             }
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn(`${headOrTailId} not found in global entity map`)
           } else {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn(`${headOrTailId} not found in global entity map`)
             return
           }
@@ -872,7 +884,6 @@ export default function Column(props) {
         const bidLabels = browseInvitations[i]?.label?.['value-radio']
         if (bidLabels) {
           const bidLabelMap = _.fromPairs(_.zip(bidLabels, _.range(bidLabels.length, 0, -1)))
-          // eslint-disable-next-line no-param-reassign
           browseEdges = browseEdges.map((e) => ({ ...e, weight: bidLabelMap[e.label] || 0 }))
         }
         browseEdges.forEach(updateColumnItems('browseEdges', colItems))
@@ -886,11 +897,9 @@ export default function Column(props) {
           const hasAggregateScoreEdge =
             item.browseEdges.length && item.browseEdges[0].name === 'Aggregate_Score'
           const edgeWeight = hasAggregateScoreEdge ? item.browseEdges[0].weight : 0
-          // eslint-disable-next-line no-param-reassign
           item.editEdgeTemplates = editInvitations.map((editInvitation) =>
             buildNewEditEdge(editInvitation, item.id, edgeWeight)
           )
-          // eslint-disable-next-line no-param-reassign
           item.traverseEdgeTemplate = buildNewEditEdge(traverseInvitation, item.id, 0)
         })
       }
@@ -905,20 +914,19 @@ export default function Column(props) {
       return
     }
     // Reset column to show original items and no search heading
-    if (!search.term && !hideQuotaReached) {
+    if (!searchTerm && !hideQuotaReached) {
       setFilteredItems(sortItems(filterQuotaReachedItems(items)))
       setItemsHeading(null)
       return
     }
 
     // Show all entities when filter by quota reached without searching
-    if (!search.term && hideQuotaReached && parentId) {
+    if (!searchTerm && hideQuotaReached && parentId) {
       const allItems = [...items]
       Object.values(globalEntityMap).forEach((item) => {
         if (allItems.find((p) => p.id === item.id)) return
         allItems.push({
           ...item,
-          // eslint-disable-next-line max-len
           editEdgeTemplates: editInvitations.map((editInvitation) =>
             buildNewEditEdge(editInvitation, item.id)
           ),
@@ -933,14 +941,14 @@ export default function Column(props) {
       setFilteredItems(sortItems(filterQuotaReachedItems(allItems)))
       return
     }
-    if (search.term.length < 2) {
+    if (searchTerm.length < 2) {
       return
     }
 
     // Build search regex. \b represents a word boundary, so matches in the
     // middle of a word don't count. Includes special case for searching by
     // paper number so only the exact paper is matched.
-    const escapedTerm = _.escapeRegExp(search.term)
+    const escapedTerm = _.escapeRegExp(searchTerm)
     let [preModifier, postModifier] = ['\\b', '']
     if (escapedTerm.startsWith('#')) {
       ;[preModifier, postModifier] = ['^', '\\b']
@@ -960,7 +968,6 @@ export default function Column(props) {
         if (item.searchText.match(searchRegex)) {
           matchingItems.push({
             ...item,
-            // eslint-disable-next-line max-len
             editEdgeTemplates: editInvitations.map((editInvitation) =>
               buildNewEditEdge(editInvitation, item.id)
             ),
@@ -976,12 +983,12 @@ export default function Column(props) {
 
     setFilteredItems(sortItems(filterQuotaReachedItems(matchingItems)))
     setItemsHeading('Search Results')
-  }, [items, search, columnSort, hideQuotaReached])
+  }, [items, searchTerm, columnSort, hideQuotaReached])
 
   useEffect(() => {
     setNumItemsToRender(100)
     colBodyEl.current.scrollTop = 0
-  }, [search, columnSort, hideQuotaReached])
+  }, [searchTerm, columnSort, hideQuotaReached])
 
   useEffect(() => {
     populateColumnItems()
@@ -1062,13 +1069,11 @@ export default function Column(props) {
     }
 
     if (type === 'head') {
-      // eslint-disable-next-line max-len
       props.updateMetadataMap(id, parentId, {
         isUserAssigned: shouldUserBeAssigned,
         isUserUnassigned: !shouldUserBeAssigned,
       })
     } else {
-      // eslint-disable-next-line max-len
       props.updateMetadataMap(parentId, id, {
         isUserAssigned: shouldUserBeAssigned,
         isUserUnassigned: !shouldUserBeAssigned,
@@ -1137,8 +1142,11 @@ export default function Column(props) {
               type="text"
               className="form-control input-sm"
               placeholder={getPlaceholderText()}
-              value={search.term}
-              onChange={(e) => setSearch({ term: e.target.value })}
+              value={immediateSearchTerm}
+              onChange={(e) => {
+                setImmediateSearchTerm(e.target.value)
+                delaySearch(e.target.value)
+              }}
               autoComplete="off"
               autoCorrect="off"
               aria-label={getPlaceholderText()}
@@ -1150,7 +1158,6 @@ export default function Column(props) {
           </div>
           {parentId && (
             <div className="sort-container form-group">
-              {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
               <label>Order By:</label>
               <select
                 className="form-control input-sm"

@@ -1,16 +1,9 @@
-/* eslint-disable max-len */
+import { chunk } from 'lodash'
+import { useSearchParams } from 'next/navigation'
 /* globals typesetMathJax,promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { chunk } from 'lodash'
-import api from '../../lib/api-client'
-import Table from '../Table'
-import WebFieldContext from '../WebFieldContext'
-import BasicHeader from './BasicHeader'
-import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
-import NoteSummary from './NoteSummary'
 import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
 import {
   getNumberFromGroup,
   pluralizeString,
@@ -22,18 +15,23 @@ import {
 } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import ErrorDisplay from '../ErrorDisplay'
-import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 import LoadingSpinner from '../LoadingSpinner'
-import ConsoleTaskList from './ConsoleTaskList'
-import { getProfileLink } from '../../lib/webfield-utils'
+import Table from '../Table'
+import WebFieldContext from '../WebFieldContext'
+import BasicHeader from './BasicHeader'
 import ConsoleTabs from './ConsoleTabs'
+import ConsoleTaskList from './ConsoleTaskList'
+import { ReviewerConsoleNoteReviewStatus } from './NoteReviewStatus'
+import NoteSummary from './NoteSummary'
+import ProfileLink from './ProfileLink'
+import ReviewerConsoleMenuBar from './ReviewerConsoleMenuBar'
 
 const AreaChairInfo = ({ areaChairName, areaChairIds }) => (
   <div className="note-area-chairs">
     <strong>{prettyField(areaChairName)}:</strong>
     {areaChairIds.map((areaChairId) => (
       <div key={areaChairId}>
-        <Link href={getProfileLink(areaChairId)}>{prettyId(areaChairId)}</Link>
+        <ProfileLink id={areaChairId} name={prettyId(areaChairId)} />
       </div>
     ))}
   </div>
@@ -53,7 +51,6 @@ const PaperRankingDropdown = ({
   enablePaperRanking,
   setEnablePaperRanking,
 }) => {
-  const { accessToken } = useUser()
   const noRankingText = 'No Ranking'
   const currentTagvalue = currentTagObj?.tag
   const allOptions = [{ label: noRankingText, value: noRankingText }].concat(
@@ -76,19 +73,15 @@ const PaperRankingDropdown = ({
   const postTag = async (newTagValue) => {
     setEnablePaperRanking(false)
     try {
-      const result = await api.post(
-        '/tags',
-        {
-          id: currentTagObj.id,
-          tag: newTagValue,
-          signatures: [anonGroupId],
-          readers: tagReaders,
-          forum: noteId,
-          invitation: paperRankingInvitation?.id ?? paperRankingId,
-          ddate: null,
-        },
-        { accessToken }
-      )
+      const result = await api.post('/tags', {
+        id: currentTagObj.id,
+        tag: newTagValue,
+        signatures: [anonGroupId],
+        readers: tagReaders,
+        forum: noteId,
+        invitation: paperRankingInvitation?.id ?? paperRankingId,
+        ddate: null,
+      })
 
       setReviewerConsoleData((reviewerConsoleData) => {
         const newPaperRankingTags = [...reviewerConsoleData.paperRankingTags].filter(
@@ -373,7 +366,6 @@ const ReviewerConsoleTabs = ({
  *
  * @typedef {Object} ReviewerConsoleConfig
  *
- // eslint-disable-next-line max-len
  * @property {Object} header mandatory but can be empty object
  * @property {string} venueId mandatory
  * @property {string} reviewerName mandatory
@@ -384,6 +376,7 @@ const ReviewerConsoleTabs = ({
  * @property {string} submissionInvitationId mandatory
  * @property {string} recruitmentInvitationId mandatory
  * @property {string} customMaxPapersInvitationId mandatory
+ * @property {string[]} edgeInvitationIds optional
  * @property {string|number} reviewLoad mandatory
  * @property {boolean} hasPaperRanking mandatory
  * @property {string[]} reviewDisplayFields optional
@@ -498,6 +491,15 @@ const ReviewerConsoleTabs = ({
  */
 
 /**
+ * @name ReviewerConsoleConfig.edgeInvitationIds
+ * @description The invitations to get edge for the logged in reviewer. If edge exist the label or weight is shown at top of page. When there are multiple edges, the value is joined
+ * @type {string[]}
+ * @default []
+ * @example
+ * { "edgeInvitationIds": ["ICLR.cc/202X/Conference/Reviewers/-/Review_Policy"] }
+ */
+
+/**
  * @name ReviewerConsoleConfig.reviewLoad
  * @description Related to recruitmentInvitationId and customMaxPapersInvitationId. The default value to display in header when there's no custom load edge or recruitment note
  * @type {string|number}
@@ -538,11 +540,12 @@ const ReviewerConsole = ({ appContext }) => {
     submissionInvitationId,
     recruitmentInvitationId,
     customMaxPapersInvitationId, // to query custom load edges
+    edgeInvitationIds = [],
     reviewLoad,
     hasPaperRanking,
     reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
-  const { user, accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const query = useSearchParams()
   const { setBannerContent } = appContext ?? {}
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
@@ -558,15 +561,11 @@ const ReviewerConsole = ({ appContext }) => {
       const singularName = reviewerName.endsWith('s')
         ? reviewerName.slice(0, -1)
         : reviewerName
-      const memberGroups = await api.getAll(
-        '/groups',
-        {
-          prefix: `${venueId}/${submissionName}.*`,
-          member: user.id,
-          domain: group.domain,
-        },
-        { accessToken }
-      )
+      const memberGroups = await api.getAll('/groups', {
+        prefix: `${venueId}/${submissionName}.*`,
+        member: user.id,
+        domain: group.domain,
+      })
       anonGroups = memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
 
       groupByNumber = memberGroups
@@ -587,23 +586,19 @@ const ReviewerConsole = ({ appContext }) => {
     // #region get notes
     const getNotesP = noteNumbers.length
       ? api
-          .get(
-            '/notes',
-            {
-              invitation: submissionInvitationId,
-              number: noteNumbers.join(','),
-              domain: group.domain,
-              details: 'invitation,directReplies',
-            },
-            { accessToken }
-          )
+          .get('/notes', {
+            invitation: submissionInvitationId,
+            number: noteNumbers.join(','),
+            domain: group.domain,
+            details: 'invitation,directReplies',
+          })
           .then((result) => result.notes ?? [])
       : Promise.resolve([])
     // #endregion
 
     // #region paper ranking invitation
     const paperRankingInvitationP = hasPaperRanking
-      ? api.getInvitationById(paperRankingId, accessToken, {
+      ? api.getInvitationById(paperRankingId, undefined, {
           invitee: true,
           duedate: true,
           type: 'tags',
@@ -615,30 +610,22 @@ const ReviewerConsole = ({ appContext }) => {
 
     // #region get custom load
     const getCustomLoadP = api
-      .get(
-        '/edges',
-        {
-          invitation: customMaxPapersInvitationId,
-          tail: user.id,
-          domain: group.domain,
-        },
-        { accessToken }
-      )
+      .get('/edges', {
+        invitation: customMaxPapersInvitationId,
+        tail: user.profile.id,
+        domain: group.domain,
+      })
       .then((result) => {
         if (result.edges?.length) {
           return result.edges[0].weight
         }
 
         return api
-          .get(
-            '/notes',
-            {
-              invitation: recruitmentInvitationId,
-              domain: group.domain,
-              sort: 'cdate:desc',
-            },
-            { accessToken }
-          )
+          .get('/notes', {
+            invitation: recruitmentInvitationId,
+            domain: group.domain,
+            sort: 'cdate:desc',
+          })
           .then((noteResult) => {
             if (!noteResult.notes?.length) return reviewLoad
             return parseInt(noteResult.notes[0].content?.reduced_load?.value, 10)
@@ -646,19 +633,41 @@ const ReviewerConsole = ({ appContext }) => {
       })
     // #endregion
 
+    // #region get reviewer edges
+    const getReviewerEdgesP = edgeInvitationIds.length
+      ? Promise.all(
+          edgeInvitationIds.flatMap((invitationId) =>
+            api
+              .get('/edges', {
+                invitation: invitationId,
+                tail: user.profile.id,
+                domain: group.domain,
+              })
+              .then((result) => {
+                if (!result.edges?.length) return []
+                const displayName = prettyInvitationId(invitationId)
+                const displayValue = result.edges
+                  .map((p) => {
+                    if ('label' in p) return p.label
+                    return p.weight
+                  })
+                  .join(', ')
+                return [{ displayName, displayValue }]
+              })
+          )
+        ).then((edgeResults) => edgeResults.flat())
+      : Promise.resolve(null)
+    // #endregion
+
     // #region get area chair groups
     const getAreaChairGroupsP = areaChairName
       ? Promise.all(
           noteNumbers.map((noteNumber) =>
-            api.get(
-              '/groups',
-              {
-                parent: `${venueId}/${submissionName}${noteNumber}`,
-                select: 'id,members',
-                domain: group.domain,
-              },
-              { accessToken }
-            )
+            api.get('/groups', {
+              parent: `${venueId}/${submissionName}${noteNumber}`,
+              select: 'id,members',
+              domain: group.domain,
+            })
           )
         ).then((result) => {
           const singularAreaChairName = areaChairName.endsWith('s')
@@ -687,8 +696,14 @@ const ReviewerConsole = ({ appContext }) => {
       : Promise.resolve({})
     // #endregion
 
-    Promise.all([getNotesP, paperRankingInvitationP, getCustomLoadP, getAreaChairGroupsP])
-      .then(([notes, paperRankingInvitation, customLoad, areaChairMap]) => {
+    Promise.all([
+      getNotesP,
+      paperRankingInvitationP,
+      getCustomLoadP,
+      getAreaChairGroupsP,
+      getReviewerEdgesP,
+    ])
+      .then(([notes, paperRankingInvitation, customLoad, areaChairMap, reviewerEdges]) => {
         const noteChunks = chunk(notes, 50)
         // get offical review invitations to show submit official review link
         const officalReviewInvitationPs = noteChunks.map((noteChunk) => {
@@ -696,14 +711,10 @@ const ReviewerConsole = ({ appContext }) => {
             (note) => `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
           )
           return api
-            .get(
-              '/invitations',
-              {
-                ids: officalReviewInvitationIds,
-                domain: group.domain,
-              },
-              { accessToken }
-            )
+            .get('/invitations', {
+              ids: officalReviewInvitationIds,
+              domain: group.domain,
+            })
             .then((result) => result.invitations)
         })
         return Promise.all(officalReviewInvitationPs)
@@ -714,6 +725,7 @@ const ReviewerConsole = ({ appContext }) => {
             customLoad,
             areaChairMap,
             officialReviewInvitationsResult,
+            reviewerEdges,
           ])
       })
       .then(
@@ -723,6 +735,7 @@ const ReviewerConsole = ({ appContext }) => {
           customLoad,
           areaChairMap,
           officialReviewInvitations,
+          reviewerEdges,
         ]) => {
           const anonGroupIds = anonGroups.map((p) => p.id)
           // get official reviews from notes details
@@ -741,11 +754,7 @@ const ReviewerConsole = ({ appContext }) => {
             )
           } else if (hasPaperRanking) {
             paperRankingTagsP = api
-              .get(
-                '/tags',
-                { invitation: paperRankingId, domain: group.domain },
-                { accessToken }
-              )
+              .get('/tags', { invitation: paperRankingId, domain: group.domain })
               .then((result) => (result.tags?.length > 0 ? result.tags : []))
           }
           paperRankingTagsP.then((paperRankingTags) => {
@@ -753,6 +762,7 @@ const ReviewerConsole = ({ appContext }) => {
               paperNumberAnonGroupIdMap: groupByNumber,
               notes,
               customLoad,
+              reviewerEdges,
               officialReviews,
               paperRankingTags,
               areaChairMap,
@@ -827,6 +837,19 @@ const ReviewerConsole = ({ appContext }) => {
         instructions={header.instructions}
         customLoad={reviewerConsoleData.customLoad}
         submissionName={submissionName}
+        options={{
+          extra: reviewerConsoleData.reviewerEdges?.length ? (
+            <>
+              {reviewerConsoleData.reviewerEdges.map(
+                ({ displayName, displayValue }, index) => (
+                  <p key={`${displayName}${index}`} className="dark">
+                    {displayName}: <strong>{displayValue}</strong>
+                  </p>
+                )
+              )}
+            </>
+          ) : undefined,
+        }}
       />
       {reviewerConsoleData.notes ? (
         <ReviewerConsoleTabs

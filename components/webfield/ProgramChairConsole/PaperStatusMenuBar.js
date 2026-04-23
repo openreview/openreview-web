@@ -121,9 +121,9 @@ const PaperStatusMenuBar = ({
     Object.entries(extraPropertiesAllowed).forEach(([key, value]) => {
       if (Array.isArray(value)) return
       try {
-        result[key] = Function('row', value) // eslint-disable-line no-new-func
+        result[key] = Function('row', value)
       } catch (error) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.error(`Error parsing function for extra property ${key}: ${error}`)
       }
     })
@@ -134,7 +134,6 @@ const PaperStatusMenuBar = ({
     Object.keys(functionExtraProperties).length > 0
       ? tableRowsAll.map((row) => {
           const extraProperties = {}
-          // eslint-disable-next-line no-restricted-syntax
           for (const [key, value] of Object.entries(functionExtraProperties)) {
             extraProperties[key] = value(row)
           }
@@ -443,6 +442,34 @@ const PaperStatusMenuBar = ({
         getValueWithDefault(p.metaReviewData?.metaReviews?.length),
       initialDirection: 'desc',
     },
+    ...(customStageInvitations?.length > 0
+      ? customStageInvitations
+          .map((invitation) => {
+            const items = []
+            if (invitation.extraDisplayFields?.length) {
+              invitation.extraDisplayFields.forEach((extraDisplayField) => {
+                items.push({
+                  label: `${prettyId(invitation.name)} - ${prettyField(extraDisplayField)}`,
+                  value: `${invitation.name} ${extraDisplayField}`,
+                  getValue: (p) =>
+                    p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
+                      ?.content?.[extraDisplayField]?.value ?? 'N/A',
+                })
+              })
+            }
+            if (invitation.displayField) {
+              items.push({
+                label: prettyField(invitation.displayField),
+                value: invitation.name,
+                getValue: (p) =>
+                  p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
+                    ?.searchValue,
+              })
+            }
+            return items
+          })
+          .flat()
+      : []),
     {
       label: 'Decision',
       value: 'Decision',
@@ -465,8 +492,7 @@ const PaperStatusMenuBar = ({
   ]
 
   const basicSearchFunction = (row, term) =>
-    row.note.number == term || // eslint-disable-line eqeqeq
-    row.note.content?.title?.value?.toLowerCase()?.includes(term)
+    row.note.number == term || row.note.content?.title?.value?.toLowerCase()?.includes(term)
   return (
     <BaseMenuBar
       tableRowsAll={tableRowsAllWithFilterProperties}

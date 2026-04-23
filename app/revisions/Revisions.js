@@ -8,7 +8,7 @@ import RevisionsList from './RevisionsList'
 import api from '../../lib/api-client'
 import ErrorAlert from '../../components/ErrorAlert'
 
-export default function Revisions({ parentNote, accessToken }) {
+export default function Revisions({ parentNote, user }) {
   const [revisions, setRevisions] = useState(null)
   const [selectedIndexes, setSelectedIndexes] = useState(null)
   const [error, setError] = useState(null)
@@ -29,16 +29,12 @@ export default function Revisions({ parentNote, accessToken }) {
 
   const loadEdits = async () => {
     try {
-      const { edits } = await api.get(
-        '/notes/edits',
-        {
-          'note.id': parentNote.id,
-          sort: 'tcdate',
-          details: 'writable,presentation,invitation',
-          trash: true,
-        },
-        { accessToken }
-      )
+      const { edits } = await api.get('/notes/edits', {
+        'note.id': parentNote.id,
+        sort: 'tcdate',
+        details: 'writable,presentation,invitation',
+        trash: true,
+      })
       setRevisions((edits ?? []).map((edit) => [edit, edit.details.invitation]))
     } catch (apiError) {
       setError(apiError)
@@ -63,7 +59,7 @@ export default function Revisions({ parentNote, accessToken }) {
   }
 
   const enterSelectMode = () => {
-    if (!accessToken) {
+    if (!user) {
       promptLogin()
       return
     }
@@ -117,7 +113,6 @@ export default function Revisions({ parentNote, accessToken }) {
           revisions={revisions}
           selectedIndexes={selectedIndexes}
           setSelectedIndexes={setSelectedIndexes}
-          accessToken={accessToken}
           loadEdits={loadEdits}
           isNoteWritable={parentNote.details.writable}
         />

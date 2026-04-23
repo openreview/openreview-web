@@ -8,6 +8,7 @@ import {
   prettyInvitationId,
   stringToObject,
   buildNoteUrl,
+  sanitizeRedirectUrl,
 } from '../lib/utils'
 import { screen, render } from '@testing-library/react'
 import '@testing-library/jest-dom'
@@ -926,5 +927,39 @@ describe('utils', () => {
     options = {}
     expectedValue = '/forum?id=someForumId&noteId=someNoteId'
     expect(buildNoteUrl(id, forum, content, options)).toEqual(expectedValue)
+  })
+
+  test('return redirect url in sanitizeRedirectUrl', () => {
+    let redirect, expectedValue
+
+    //allowed redirect url
+    redirect = '/tasks'
+    expectedValue = '/tasks'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //allowed redirect url with query param
+    redirect = '/profile?id=~Test_User1'
+    expectedValue = '/profile?id=~Test_User1'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //allowed redirect url with mutiple query param
+    redirect = '/forum?id=someForumId&noteId=someNoteId'
+    expectedValue = '/forum?id=someForumId&noteId=someNoteId'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //allowed redirect url with query param and hash
+    redirect = '/group?id=some/group/id#tab-recent-activity'
+    expectedValue = '/group?id=some/group/id#tab-recent-activity'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //external url
+    redirect = 'https://google.com/test'
+    expectedValue = '/'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+
+    //javascript url
+    redirect = 'javascript:alert("some alert")'
+    expectedValue = '/'
+    expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
   })
 })

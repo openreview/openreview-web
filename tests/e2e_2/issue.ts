@@ -1,4 +1,4 @@
-/* eslint-disable no-unused-expressions */
+/* oxlint-disable no-unused-expressions */
 import { Selector, ClientFunction } from 'testcafe'
 import { strongPassword } from '../utils/api-helper'
 
@@ -67,20 +67,23 @@ test('login button to show tooltip when email is invalid', async (t) => {
     .navigateTo(`${homepageUrl}/login`)
     .typeText('#email-input', '~tilde_id1')
     .typeText('#password-input', strongPassword)
-    .expect(loginButton.hasAttribute('disabled')).ok()
+    .expect(loginButton.hasAttribute('disabled'))
+    .ok()
     .expect(
-      loginButton.withAttribute(
-        'data-original-title',
-        'Please enter a valid email address'
-      ).exists).ok()
+      loginButton.withAttribute('data-original-title', 'Please enter a valid email address')
+        .exists
+    )
+    .ok()
 
-  await t.typeText('#email-input', 'test@mail.com', { replace: true })
-    .expect(loginButton.hasAttribute('disabled')).notOk()
+  await t
+    .typeText('#email-input', 'test@mail.com', { replace: true })
+    .expect(loginButton.hasAttribute('disabled'))
+    .notOk()
     .expect(
-      loginButton.withAttribute(
-        'data-original-title',
-        'Please enter a valid email address'
-      ).exists).notOk()
+      loginButton.withAttribute('data-original-title', 'Please enter a valid email address')
+        .exists
+    )
+    .notOk()
 })
 
 test('terms and conditions date should be updated', async (t) => {
@@ -88,14 +91,16 @@ test('terms and conditions date should be updated', async (t) => {
   const lastUpdatedDate = 'September 24, 2024'
   await t
     .navigateTo(`${homepageUrl}/legal/terms`)
-    .expect(Selector('p').withText(lastUpdatedDate).exists).ok()
+    .expect(Selector('p').withText(lastUpdatedDate).exists)
+    .ok()
 
   await t
     .navigateTo(`${homepageUrl}/legal/privacy`)
-    .expect(Selector('p').withText(lastUpdatedDate).exists).ok()
+    .expect(Selector('p').withText(lastUpdatedDate).exists)
+    .ok()
 
   await t
     .navigateTo(`${homepageUrl}/login`)
-    .expect(Selector('p').withText(lastUpdatedDate).exists).ok()
-
+    .expect(Selector('p').withText(lastUpdatedDate).exists)
+    .ok()
 })

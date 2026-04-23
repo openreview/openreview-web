@@ -18,16 +18,14 @@ import InvitationAdmin from '../admin/InvitationAdmin'
 export default function InvitationEditor({ id, query }) {
   const [invitation, setInvitation] = useState(null)
   const [error, setError] = useState(null)
-  const { accessToken, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser()
   const router = useRouter()
 
   const loadInvitation = async () => {
     try {
-      const invitationObj = await api.getInvitationById(id, accessToken)
+      const invitationObj = await api.getInvitationById(id)
       const domainResult = invitationObj
-        ? await api
-            .get('/groups', { id: invitationObj.domain }, { accessToken })
-            .catch(() => {})
+        ? await api.get('/groups', { id: invitationObj.domain }).catch(() => {})
         : null
       const domainGroup = domainResult?.groups?.length > 0 ? domainResult.groups[0] : null
       if (invitationObj) {
@@ -37,7 +35,7 @@ export default function InvitationEditor({ id, query }) {
       }
     } catch (apiError) {
       if (apiError.name === 'ForbiddenError') {
-        if (!accessToken) {
+        if (!user) {
           router.replace(
             `/login?redirect=/invitation/edit?${encodeURIComponent(stringify(query))}`
           )

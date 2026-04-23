@@ -18,6 +18,8 @@ import GroupMembers from '../../../components/group/GroupMembers'
 import WorkFlowInvitations from '../../../components/group/WorkflowInvitations'
 import ConsoleTabs from '../../../components/webfield/ConsoleTabs'
 import GroupSectionWithEditInvitation from './GroupSectionWithEditInvitation'
+import GroupRestrictGroup from '../../../components/group/GroupRestrictGroup'
+import Alert from '../../../components/Alert'
 
 const groupTabsConfig = (group) => {
   const tabs = [
@@ -56,6 +58,15 @@ const groupTabsConfig = (group) => {
       label: 'Related Invitations',
       sections: ['groupRelatedInvitations'],
     },
+    ...(group.id === group.domain && group.details.writable
+      ? [
+          {
+            id: 'emergencyShutdown',
+            label: 'Emergency Shutdown',
+            sections: ['groupEmergencyShutdown'],
+          },
+        ]
+      : []),
   ]
   tabs[0].default = true
   return tabs
@@ -124,19 +135,18 @@ const GroupContent = ({ groupContent, presentation, groupReaders }) => {
   )
 }
 
-const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
+const GroupWithInvitation = ({ group, reloadGroup }) => {
   const [editGroupInvitations, setEditGroupInvitations] = useState([])
   const [messageAllMembersInvitation, setMessageAllMembersInvitation] = useState(null)
   const [messageSingleMemberInvitation, setMessageSingleMemberInvitation] = useState(null)
   const [addRemoveMembersInvitaiton, setAddRemoveMembersInvitaiton] = useState(null)
+  const [isGroupRestricted, setIsGroupRestricted] = useState(false)
 
   const renderSection = (sectionName) => {
     let editInvitations = []
     switch (sectionName) {
       case 'workflowInvitations':
-        return (
-          <WorkFlowInvitations key={sectionName} group={group} accessToken={accessToken} />
-        )
+        return <WorkFlowInvitations key={sectionName} group={group} />
       case 'groupContent':
         editInvitations = editGroupInvitations.filter((p) => p.edit?.group?.content)
         return (
@@ -181,14 +191,18 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
           </GroupSectionWithEditInvitation>
         )
       case 'groupSignedNotes':
-        return <GroupSignedNotes key={sectionName} group={group} accessToken={accessToken} />
+        return <GroupSignedNotes key={sectionName} group={group} />
       case 'groupChildGroups':
-        return (
-          <GroupChildGroups key={sectionName} groupId={group.id} accessToken={accessToken} />
-        )
+        return <GroupChildGroups key={sectionName} groupId={group.id} />
       case 'groupRelatedInvitations':
+        return <GroupRelatedInvitations key={sectionName} group={group} />
+      case 'groupEmergencyShutdown':
         return (
-          <GroupRelatedInvitations key={sectionName} group={group} accessToken={accessToken} />
+          <GroupRestrictGroup
+            key={sectionName}
+            group={group}
+            setIsGroupRestricted={setIsGroupRestricted}
+          />
         )
       default:
         return null
@@ -202,11 +216,11 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
       const addRemoveMembersInvitationId = `${group.id}/-/Members`
 
       const result = await Promise.all([
-        api.getInvitationById(messageAllMembersInvitationId, accessToken, { invitee: true }),
-        api.getInvitationById(messageSingleMemberInvitationId, accessToken, {
+        api.getInvitationById(messageAllMembersInvitationId, null, { invitee: true }),
+        api.getInvitationById(messageSingleMemberInvitationId, undefined, {
           invitee: true,
         }),
-        api.getInvitationById(addRemoveMembersInvitationId, accessToken, { invitee: true }),
+        api.getInvitationById(addRemoveMembersInvitationId, undefined, { invitee: true }),
       ])
       if (result?.length) {
         setMessageAllMembersInvitation(result[0])
@@ -220,11 +234,10 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
 
   const getInvitationsByReplyGroup = async () => {
     try {
-      const result = await api.get(
-        '/invitations',
-        { 'edit.group.id': group.id, details: 'writable' },
-        { accessToken }
-      )
+      const result = await api.get('/invitations', {
+        'edit.group.id': group.id,
+        details: 'writable',
+      })
       const writableInvitations = (result.invitations ?? []).filter(
         (invitation) =>
           invitation.details?.writable &&
@@ -248,6 +261,7 @@ const GroupWithInvitation = ({ group, reloadGroup, accessToken }) => {
       <div className={styles.groupDescription}>
         <Markdown text={group.description} />
       </div>
+      {isGroupRestricted && <Alert color="danger">This venue is currently shut down.</Alert>}
       <div className={styles.invitationMeta}>
         <span className="date item">
           <Icon name="calendar" />

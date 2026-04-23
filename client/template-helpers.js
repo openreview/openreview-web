@@ -440,7 +440,6 @@ Handlebars.registerHelper('noteContentCollapsible', function (noteObj, options) 
   if (noteObj.version === 2) {
     contentOrder = noteObj.details?.presentation
       ? Object.values(noteObj.details.presentation)
-          // eslint-disable-next-line no-unsafe-optional-chaining
           .sort((a, b) => a?.order - b?.order)
           .map((p) => p.name)
       : contentKeys
@@ -936,19 +935,19 @@ Handlebars.registerHelper('isnt', function (a, b, options) {
 })
 
 Handlebars.registerHelper('debug', function (optionalValue) {
-  // eslint-disable-next-line no-console
+  // oxlint-disable-next-line no-console
   console.log('Current Context')
-  // eslint-disable-next-line no-console
+  // oxlint-disable-next-line no-console
   console.log('====================')
-  // eslint-disable-next-line no-console
+  // oxlint-disable-next-line no-console
   console.log(this)
 
   if (optionalValue) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.log('Value')
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.log('====================')
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.log(optionalValue)
   }
 })

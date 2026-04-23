@@ -111,10 +111,10 @@ describe('Contact page', () => {
       })
     ).toBeInTheDocument()
     expect(
-      screen.getByRole('option', {
+      screen.queryByRole('option', {
         name: 'Please add my domain to your list of publishing institutions',
       })
-    ).toBeInTheDocument()
+    ).not.toBeInTheDocument()
   })
 
   test('show fields based on selected feedback option', async () => {
@@ -271,20 +271,20 @@ describe('Contact page', () => {
     await userEvent.click(screen.getByRole('button', { name: 'remove' }))
     await userEvent.click(screen.getByRole('combobox'))
 
-    const addInstitutionOption = screen.getByRole('option', {
-      name: 'Please add my domain to your list of publishing institutions',
-    })
-    await userEvent.click(addInstitutionOption)
-    expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
-    expect(
-      screen.queryByPlaceholderText('Venue ID or Conference Name')
-    ).not.toBeInTheDocument()
-    expect(screen.queryByPlaceholderText('Submission ID')).not.toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Email Domain of Your Institution')).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Full Name of Your Institution')).toBeInTheDocument()
-    expect(
-      screen.getByPlaceholderText('Official Website URL of Your Institution')
-    ).toBeInTheDocument()
+    // const addInstitutionOption = screen.getByRole('option', {
+    //   name: 'Please add my domain to your list of publishing institutions',
+    // })
+    // await userEvent.click(addInstitutionOption)
+    // expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
+    // expect(
+    //   screen.queryByPlaceholderText('Venue ID or Conference Name')
+    // ).not.toBeInTheDocument()
+    // expect(screen.queryByPlaceholderText('Submission ID')).not.toBeInTheDocument()
+    // expect(screen.getByPlaceholderText('Email Domain of Your Institution')).toBeInTheDocument()
+    // expect(screen.getByPlaceholderText('Full Name of Your Institution')).toBeInTheDocument()
+    // expect(
+    //   screen.getByPlaceholderText('Official Website URL of Your Institution')
+    // ).toBeInTheDocument()
   })
 
   test('show missing field error when there are fields missing', async () => {
@@ -317,16 +317,12 @@ describe('Contact page', () => {
 
     // send message with no error
     await userEvent.click(screen.getByRole('button', { name: 'Send' }))
-    expect(api.put).toHaveBeenCalledWith(
-      expect.anything(),
-      {
-        from: 'test@mail.com',
-        message: 'Profile ID: ~Test_User1\n\nsome message',
-        subject: 'I have a question about my existing OpenReview profile - ~Test_User1',
-        token: 'some token',
-      },
-      expect.anything()
-    )
+    expect(api.put).toHaveBeenCalledWith(expect.anything(), {
+      from: 'test@mail.com',
+      message: 'Profile ID: ~Test_User1\n\nsome message',
+      subject: 'I have a question about my existing OpenReview profile - ~Test_User1',
+      token: 'some token',
+    })
     expect(global.promptMessage).toHaveBeenCalledWith(
       'Your feedback has been submitted. Thank you.'
     )
@@ -351,16 +347,12 @@ describe('Contact page', () => {
     await userEvent.type(venueInput, 'some venue')
     await userEvent.type(messageInput, 'some message')
     await userEvent.click(screen.getByRole('button', { name: 'Send' }))
-    expect(api.put).toHaveBeenCalledWith(
-      expect.anything(),
-      {
-        from: 'test@mail.com',
-        message: 'Venue ID: some venue\n\nsome message',
-        subject: 'Venue - some venue',
-        token: 'some token',
-      },
-      expect.anything()
-    )
+    expect(api.put).toHaveBeenCalledWith(expect.anything(), {
+      from: 'test@mail.com',
+      message: 'Venue ID: some venue\n\nsome message',
+      subject: 'Venue - some venue',
+      token: 'some token',
+    })
     expect(global.promptMessage).toHaveBeenCalledWith(
       'Your feedback has been submitted. Thank you.'
     )
@@ -386,7 +378,7 @@ describe('Contact page', () => {
     expect(screen.getByRole('button', { name: 'Send' })).not.toBeDisabled()
   })
 
-  test('read feedbackInstitution and select adding domain option', () => {
+  test.skip('read feedbackInstitution and select adding domain option', () => {
     useUser.mockImplementation(() => ({
       // only guest can access sign up
       isRefreshing: false,

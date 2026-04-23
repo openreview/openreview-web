@@ -872,7 +872,8 @@
       &.preprocess,
       &.reply,
       &.tabs,
-      &.notes {
+      &.notes,
+      &.restrict {
         margin-bottom: 1.75rem;
         h4 {
           margin-bottom: 1rem;
@@ -1275,11 +1276,24 @@
       }
     }
 
+    .restrict-container {
+      padding-left: 0;
+      margin-left: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: flex-start;
+      max-width: 50%;
+    }
+
     .workflow {
       h4 {
         font-size: 1.25rem;
       }
       .group-workflow-container {
+        .subgroups-container {
+          margin-left: 2rem;
+        }
         .group-workflow {
           display: flex;
           justify-content: left;

@@ -1,17 +1,17 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { stringify } from 'query-string'
-import { headers } from 'next/headers'
 import { orderBy } from 'lodash'
-import serverAuth, { isSuperUser } from '../auth'
-import api from '../../lib/api-client'
-import ErrorDisplay from '../../components/ErrorDisplay'
-import Profile from './Profile'
-import { formatProfileData } from '../../lib/profiles'
-import CommonLayout from '../CommonLayout'
+import { headers } from 'next/headers'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { stringify } from 'query-string'
 import EditBanner from '../../components/EditBanner'
-import PreferredIdUpdater from './PreferredIdUpdater'
+import ErrorDisplay from '../../components/ErrorDisplay'
+import api from '../../lib/api-client'
+import { formatProfileData } from '../../lib/profiles'
 import { prettyId } from '../../lib/utils'
+import serverAuth, { isSuperUser } from '../auth'
+import CommonLayout from '../CommonLayout'
+import PreferredIdUpdater from './PreferredIdUpdater'
+import Profile from './Profile'
 
 export const dynamic = 'force-dynamic'
 
@@ -27,8 +27,10 @@ export default async function page({ searchParams }) {
   const { user, token } = await serverAuth()
   const query = await searchParams
   const { id, email } = query
+
   if (!user && !id && !email)
     redirect(`/login?redirect=/profile?${encodeURIComponent(stringify(query))}`)
+  if (email && !isSuperUser(user)) return <ErrorDisplay message="Profile id is required" />
 
   const headersList = await headers()
   const remoteIpAddress = headersList.get('x-forwarded-for')
@@ -40,10 +42,18 @@ export default async function page({ searchParams }) {
     email === '' ||
     (!id && !email)
 
+  let profileQuery
+  if (isProfileOwner) {
+    profileQuery = { id: user.profile.id }
+  } else if (id) {
+    profileQuery = { id }
+  } else {
+    profileQuery = { email }
+  }
+
   let profileResult
   try {
-    // eslint-disable-next-line no-nested-ternary
-    profileResult = await api.get('/profiles', isProfileOwner ? {} : id ? { id } : { email }, {
+    profileResult = await api.get('/profiles', profileQuery, {
       accessToken: token,
       remoteIpAddress,
     })
@@ -80,6 +90,7 @@ export default async function page({ searchParams }) {
         ['desc']
       )
     } catch (error) {
+      // oxlint-disable-next-line no-console
       console.log('Error in page', {
         page: 'Home',
         error,

@@ -14,7 +14,7 @@ const CodeEditorPreviewWidget = () => {
   const [showWebfieldPreview, setShowWebfieldPreview] = useState(false)
   const [webComponentProps, setWebComponentProps] = useState({})
   const [WebComponent, setWebComponent] = useState(null)
-  const { user, isRefreshing, accessToken } = useUser()
+  const { user, isRefreshing } = useUser()
 
   const fieldName = Object.keys(field)[0]
 
@@ -27,11 +27,9 @@ const CodeEditorPreviewWidget = () => {
         { ...group, web: modifiedWebCode },
         group.details.domain,
         user,
-        null,
-        accessToken
+        null
       )
     } catch (error) {
-      // eslint-disable-next-line react/display-name
       setWebComponent(() => () => (
         <em className="preview-error">{`Error parsing component code: ${error.message}`}</em>
       ))

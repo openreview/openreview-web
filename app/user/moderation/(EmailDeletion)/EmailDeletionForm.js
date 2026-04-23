@@ -1,30 +1,27 @@
 'use client'
 
-/* globals promptMessage,promptError,view2: false */
-import { useRef } from 'react'
+import { Button, Col, Input, Row } from 'antd'
+import { useState } from 'react'
 import api from '../../../../lib/api-client'
+
+import { moderation as legacyStyles } from '../../../../lib/legacy-bootstrap-styles'
 
 export default function EmailDeletionForm({
   emailRemovalInvitationId,
-  accessToken,
   setEmailDeletionNotes,
 }) {
-  const emailDeletionFormRef = useRef(null)
+  const [email, setEmail] = useState('')
+  const [profileId, setProfileId] = useState('')
+  const [comment, setComment] = useState('')
 
-  const handleEmailDeletionRequest = async (e) => {
-    e.preventDefault()
-
-    const formData = new FormData(emailDeletionFormRef.current)
-    const formContent = {}
-    formData.forEach((value, name) => {
-      const cleanValue = value.trim()
-      formContent[name] = cleanValue?.length ? cleanValue : undefined
-    })
+  const handleEmailDeletionRequest = async () => {
+    const formContent = {
+      email: email.trim() || undefined,
+      profile_id: profileId.trim() || undefined,
+      comment: comment.trim() || undefined,
+    }
     try {
-      const emailRemovalInvitation = await api.getInvitationById(
-        emailRemovalInvitationId,
-        accessToken
-      )
+      const emailRemovalInvitation = await api.getInvitationById(emailRemovalInvitationId)
 
       const editToPost = view2.constructEdit({
         formData: formContent,
@@ -32,48 +29,61 @@ export default function EmailDeletionForm({
       })
 
       const editResult = await api.post('/notes/edits', editToPost, {
-        accessToken,
         version: 2,
       })
-      const noteResult = await api.getNoteById(editResult.note.id, accessToken)
+      const noteResult = await api.getNoteById(editResult.note.id)
 
       setEmailDeletionNotes((emailDeletionNotes) => [
         { ...noteResult, processLogStatus: 'running' },
         ...emailDeletionNotes,
       ])
+
+      setEmail('')
+      setProfileId('')
+      setComment('')
     } catch (error) {
       promptError(error.message)
     }
   }
 
   return (
-    <form
-      className="well mt-3"
-      ref={emailDeletionFormRef}
-      onSubmit={handleEmailDeletionRequest}
-    >
-      <input
-        type="text"
-        name="email"
-        className="form-control input-sm"
-        placeholder="Email to delete"
-      />
-      <input
-        type="text"
-        name="profile_id"
-        className="form-control input-sm"
-        placeholder="Profile ID the email is associated with"
-      />
-      <input
-        type="text"
-        name="comment"
-        className="form-control input-sm comment"
-        placeholder="Moderator comment"
-      />
-
-      <button type="submit" className="btn btn-xs">
-        Submit
-      </button>
-    </form>
+    <Row gutter={[8, 8]} align="middle" style={legacyStyles.filterForm}>
+      <Col xs={24} md={6}>
+        <Input
+          placeholder="Email to delete"
+          style={legacyStyles.formInput}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onPressEnter={handleEmailDeletionRequest}
+        />
+      </Col>
+      <Col xs={24} md={6}>
+        <Input
+          placeholder="Profile ID the email is associated with"
+          style={legacyStyles.formInput}
+          value={profileId}
+          onChange={(e) => setProfileId(e.target.value)}
+          onPressEnter={handleEmailDeletionRequest}
+        />
+      </Col>
+      <Col xs={24} md={10}>
+        <Input
+          placeholder="Moderator comment"
+          style={legacyStyles.formInput}
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          onPressEnter={handleEmailDeletionRequest}
+        />
+      </Col>
+      <Col xs={24} md={2}>
+        <Button
+          type="primary"
+          styles={{ root: legacyStyles.formButton }}
+          onClick={handleEmailDeletionRequest}
+        >
+          Submit
+        </Button>
+      </Col>
+    </Row>
   )
 }

@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import Icon from '../Icon'
 import Markdown from '../EditorComponents/Markdown'
 
@@ -16,6 +17,11 @@ const VenueHeader = ({ headerInfo }) => {
     deadline,
     date,
   } = headerInfo
+
+  let formattedDate = date
+  if (date && typeof date !== 'string') {
+    formattedDate = dayjs(date).format('MMM DD YYYY')
+  }
 
   return (
     <div className="venue-header" id="header">
@@ -46,10 +52,10 @@ const VenueHeader = ({ headerInfo }) => {
               {location}
             </span>
           )}
-          {date && (
+          {formattedDate && (
             <span className="venue-date">
               <Icon name="calendar" />
-              {date}
+              {formattedDate}
             </span>
           )}
           {website && (

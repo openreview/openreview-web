@@ -11,12 +11,16 @@ export default function ClientForumDate({ note }) {
   }, [])
 
   if (!isClientRendering) return null
-  return forumDate(
-    note.cdate,
-    note.tcdate,
-    note.mdate,
-    note.tmdate,
-    note.content?.year?.value,
-    note.pdate
+  return (
+    <li>
+      {forumDate(
+        note.cdate,
+        note.tcdate,
+        note.mdate,
+        note.tmdate,
+        note.content?.year?.value,
+        note.pdate
+      )}
+    </li>
   )
 }

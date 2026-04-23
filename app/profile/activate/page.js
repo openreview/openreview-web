@@ -27,7 +27,7 @@ export default function Page() {
         return
       }
 
-      setProfile(formatProfileData(apiRes.profile, true))
+      setProfile(formatProfileData(apiRes.profile, { useLinkObjectFormat: true }))
     } catch (apiError) {
       setError(apiError.message)
     }
@@ -77,7 +77,6 @@ export default function Page() {
   return (
     <CommonLayout banner={null}>
       <div className={styles.activate}>
-        <header></header>
         <h1>Complete Registration</h1>
         <h5>
           {' '}

@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'
 
 export default async function page() {
   const { user, token } = await serverAuth()
-  if (!token) redirect('/login?redirect=/user/impersonate')
+  if (!token) redirect('/login')
 
   return (
     <div>

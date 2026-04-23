@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useDispatch } from 'react-redux'
+import { setBannerContent } from '../../bannerSlice'
+import api from '../../lib/api-client'
 import Note, { NoteV2 } from '../Note'
 import PaginatedList from '../PaginatedList'
-import api from '../../lib/api-client'
 
 const defaultDisplayOptions = {
   pdfLink: true,
@@ -24,17 +26,24 @@ export default function SubmissionsList({
   enableSearch,
   useCredentials,
   paperDisplayOptions,
-  accessToken,
+  skipDomain = false,
 }) {
   const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
+  const dispatch = useDispatch()
   const details = 'replyCount,presentation,writable'
 
   const loadNotes = useCallback(
     async (limit, offset) => {
       const { notes, count } = await api.get(
         '/notes',
-        { details, ...query, limit, offset, domain: apiVersion === 1 ? undefined : venueId },
-        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
+        {
+          details,
+          ...query,
+          limit,
+          offset,
+          domain: apiVersion === 1 || skipDomain ? undefined : venueId,
+        },
+        { version: apiVersion, useCredentials: useCredentials ?? true }
       )
       if (typeof updateCount === 'function') {
         updateCount(count ?? 0)
@@ -44,12 +53,12 @@ export default function SubmissionsList({
         count: count ?? 0,
       }
     },
-    [accessToken, query, apiVersion, useCredentials]
+    [query, apiVersion, useCredentials]
   )
 
   const searchNotes = useCallback(
     async (term, limit, offset) => {
-      const { notes, count } = await api.get(
+      const { notes, count, searchUnavailable } = await api.get(
         '/notes/search',
         {
           ...(query['content.venue'] && { venue: query['content.venue'] }),
@@ -62,14 +71,25 @@ export default function SubmissionsList({
           limit,
           offset,
         },
-        { accessToken, version: apiVersion, useCredentials: useCredentials ?? true }
+        { version: apiVersion, useCredentials: useCredentials ?? true }
+      )
+      dispatch(
+        setBannerContent(
+          searchUnavailable
+            ? {
+                type: 'error',
+                value:
+                  'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+              }
+            : { type: null, value: null }
+        )
       )
       return {
         items: notes,
         count: count ?? 0,
       }
     },
-    [accessToken, query, apiVersion, useCredentials]
+    [query, apiVersion, useCredentials]
   )
 
   function NoteListItem({ item }) {

@@ -1,7 +1,6 @@
 /* globals $: false */
 /* globals promptError: false */
 /* globals promptMessage: false */
-/* eslint-disable react/destructuring-assignment */
 
 import { nanoid } from 'nanoid'
 import React, { useContext } from 'react'
@@ -34,7 +33,7 @@ export default function ProfileEntity(props) {
     version,
     traverseGroup,
   } = useContext(EdgeBrowserContext)
-  const { user, accessToken } = useUser()
+  const { user } = useUser()
   const query = useSearchParams()
   const preferredEmailInvitationId = query.get('preferredEmailInvitationId')
 
@@ -121,8 +120,7 @@ export default function ProfileEntity(props) {
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user,
-      accessToken
+      user
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
@@ -143,7 +141,7 @@ export default function ProfileEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version })
+      const result = await api.post('/edges', body, { version })
       if (isTraverseInvitation) {
         props.removeEdgeFromEntity(id, result)
       } else if (isCustomLoadInvitation) {
@@ -204,8 +202,7 @@ export default function ProfileEntity(props) {
       editInvitation,
       availableSignaturesInvitationMap,
       props.parentInfo.number,
-      user,
-      accessToken
+      user
     )
     if (version === 1 && (!signatures || signatures.length === 0)) {
       promptError("You don't have permission to edit this edge")
@@ -235,7 +232,7 @@ export default function ProfileEntity(props) {
       signatures,
     }
     try {
-      const result = await api.post('/edges', body, { accessToken, version })
+      const result = await api.post('/edges', body, { version })
       if (isTraverseInvitation) {
         props.addEdgeToEntity(id, result)
       } else if (isCustomLoadInvitation) {
@@ -373,7 +370,6 @@ export default function ProfileEntity(props) {
         existingEdge={edge}
         addEdge={addEdge}
         removeEdge={() => removeEdge(edge, isTraverseEdge)}
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === invitation.id).length === 0 ||
           invitation.multiReply
@@ -389,7 +385,6 @@ export default function ProfileEntity(props) {
     )
     const editEdgeTwoDropdowns = (controlType) => (
       <EditEdgeTwoDropdowns
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === invitation.id).length === 0 ||
           invitation.multiReply
@@ -431,11 +426,9 @@ export default function ProfileEntity(props) {
     return editEdgeToggle()
   }
 
-  // eslint-disable-next-line consistent-return
   const renderTraverseEdgeWidget = () => {
     // existing
     if (props.profile.traverseEdge) {
-      // eslint-disable-next-line max-len
       if (
         !props.profile.traverseEdge?.writable ||
         editInvitations.some((p) => p.id === traverseInvitation.id)
@@ -468,7 +461,6 @@ export default function ProfileEntity(props) {
   }
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li
       className={`entry entry-reviewer d-flex ${extraClasses.join(' ')}`}
       onClick={handleClick}
@@ -502,7 +494,6 @@ export default function ProfileEntity(props) {
 
       {/* existing editEdges */}
       {editEdges?.map((editEdge, index) => (
-        // eslint-disable-next-line react/no-array-index-key
         <React.Fragment key={index}>
           {renderEditEdgeWidget({
             edge: editEdge,
@@ -516,7 +507,6 @@ export default function ProfileEntity(props) {
 
       {/* add new editEdge */}
       {editInvitations?.map((editInvitation, index) => (
-        // eslint-disable-next-line react/no-array-index-key
         <React.Fragment key={index}>
           {renderEditEdgeWidget({ invitation: editInvitation })}
         </React.Fragment>
@@ -528,9 +518,7 @@ export default function ProfileEntity(props) {
           <ul className="list-unstyled text-right">
             <li>
               {props.canTraverse ? (
-                // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a href="#" className="show-assignments">
-                  {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   {props.traverseLabel} ({props.profile.traverseEdgesCount}) &raquo;
                 </a>
               ) : (

@@ -24,7 +24,7 @@ export default function BaseActivityList({
       const modifiedDate = note.mdate ?? note.tmdate
 
       const noteAuthors = note.tauthor ? [note.tauthor] : note.signatures
-      const userIds = user?.profile.emails.concat(user.profile.usernames, user.id) ?? []
+      const userIds = user?.profile?.usernames?.concat(user?.id ?? []) ?? []
       const userIsSignatory = intersection(noteAuthors, userIds).length > 0
       let formattedSignature
       if (userIsSignatory) {

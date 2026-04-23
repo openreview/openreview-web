@@ -95,7 +95,6 @@ const Note = ({ note, invitation, options }) => {
             />
           )}
         </li>
-        {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
         <li className="readers">
           Readers: <NoteReaders readers={note.readers} />
         </li>
@@ -166,7 +165,6 @@ export const NoteV2 = ({ note, options }) => {
           <strong>{note.forumContent.title?.value || 'No Title'}</strong>
         </div>
       )}
-
       <div className="note-authors">
         {options.customAuthor ? (
           options.customAuthor(note)
@@ -184,20 +182,20 @@ export const NoteV2 = ({ note, options }) => {
         options.customMetaInfo(note)
       ) : (
         <ul className="note-meta-info list-inline">
-          <li>
-            {options.clientRenderingOnly ? (
-              <ClientForumDate note={note} />
-            ) : (
-              forumDate(
+          {options.clientRenderingOnly ? (
+            <ClientForumDate note={note} />
+          ) : (
+            <li>
+              {forumDate(
                 note.cdate,
                 note.tcdate,
                 note.mdate,
                 note.tmdate,
                 note.content?.year?.value,
                 note.pdate
-              )
-            )}
-          </li>
+              )}
+            </li>
+          )}
           <li>
             {note.note || !note.content?.venue?.value // note.note indicates this is an edit
               ? prettyId(note.invitations[0])

@@ -1,5 +1,5 @@
 /* globals DOMPurify,marked,$,promptError,promptMessage: false */
-import React, { useEffect, useReducer, useRef, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
 import Link from 'next/link'
 import copy from 'copy-to-clipboard'
 import ProgressBar from '../ProgressBar'
@@ -42,7 +42,7 @@ const StatusMessage = ({ statusParam }) => {
   )
 }
 
-const GroupMessages = ({ jobId, accessToken, groupId }) => {
+const GroupMessages = ({ jobId, groupId }) => {
   const sectionRef = useRef(null)
   const [errorText, setErrorText] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
@@ -53,7 +53,7 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
   const getJobStatus = async () => {
     if (retryCount > 5 || statusObj.status?.status === 'ok') return
     try {
-      const result = await api.get('/logs/process', { id: jobId }, { accessToken })
+      const result = await api.get('/logs/process', { id: jobId })
       if (!result.logs?.length) {
         setErrorText(
           'Error: Email progress could not be loaded. See link below for more details.'
@@ -130,7 +130,6 @@ const GroupMessages = ({ jobId, accessToken, groupId }) => {
 
 const GroupMembers = ({
   group,
-  accessToken,
   reloadGroup,
   messageAllMembersInvitation,
   messageSingleMemberInvitation,
@@ -147,15 +146,11 @@ const GroupMembers = ({
     isDeleted: false,
     isSelected: false,
   }))
-  const [groupMembers, setGroupMembers] = useReducer(
-    // eslint-disable-next-line no-use-before-define
-    groupMemberReducer,
-    defaultGroupMembers
-  )
+  const [groupMembers, setGroupMembers] = useReducer(groupMemberReducer, defaultGroupMembers)
   const [filteredMembers, setFilteredMembers] = useState(groupMembers)
 
   const { user } = useUser()
-  const userIds = [...(user?.profile?.emails ?? []), ...(user?.profile?.usernames ?? [])]
+  const userIds = user?.profile?.usernames ?? []
   const profileId = user?.profile?.id
 
   function groupMemberReducer(state, action) {
@@ -196,11 +191,9 @@ const GroupMembers = ({
           action.payload.includes(p.id) ? { ...p, isDeleted: false } : p
         )
       case 'SELECTDESELECTALL':
-        // eslint-disable-next-line no-case-declarations
         const filterdMembers = state.filter((p) =>
           p.id.toLowerCase().includes(searchTerm.trim().toLowerCase())
         )
-        // eslint-disable-next-line no-case-declarations
         const allSelected = filterdMembers
           .filter((p) => !p.isDeleted)
           .every((p) => p.isSelected)
@@ -281,11 +274,10 @@ const GroupMembers = ({
   const deleteMember = async (memberId) => {
     const confirmMessage =
       'You are removing yourself and may lose access to this group. Are you sure you want to continue?'
-    // eslint-disable-next-line no-alert
     if (userIds.includes(memberId) && !window.confirm(confirmMessage)) return
 
     try {
-      await api.post('/groups/edits', buildEdit('remove', [memberId]), { accessToken })
+      await api.post('/groups/edits', buildEdit('remove', [memberId]))
       setGroupMembers({ type: 'DELETE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -295,7 +287,7 @@ const GroupMembers = ({
 
   const restoreMember = async (memberId) => {
     try {
-      await api.post('/groups/edits', buildEdit('add', [memberId]), { accessToken })
+      await api.post('/groups/edits', buildEdit('add', [memberId]))
       setGroupMembers({ type: 'RESTORE', payload: [memberId] })
       reloadGroup()
     } catch (error) {
@@ -308,7 +300,7 @@ const GroupMembers = ({
       const anonGroupRegex = group.id.endsWith('s')
         ? `${group.id.slice(0, -1)}_`
         : `${group.id}_`
-      const result = await api.get(`/groups?prefix=${anonGroupRegex}`, {}, { accessToken })
+      const result = await api.get(`/groups?prefix=${anonGroupRegex}`)
       setMemberAnonIds(
         result.groups.map((p) =>
           p.id.startsWith(anonGroupRegex)
@@ -359,9 +351,7 @@ const GroupMembers = ({
       : ''
 
     try {
-      await api.post('/groups/edits', buildEdit('add', [...newMembers, ...existingDeleted]), {
-        accessToken,
-      })
+      await api.post('/groups/edits', buildEdit('add', [...newMembers, ...existingDeleted]))
       setSearchTerm('')
       setGroupMembers({
         type: 'ADD',
@@ -388,7 +378,6 @@ const GroupMembers = ({
       ? 'You are removing yourself and may lose access to this group if you continue.'
       : ''
     if (
-      // eslint-disable-next-line no-alert
       !window.confirm(
         `Are you sure you want to remove ${membersToRemove.length} members from ${groupName}? ${additionalWarning}`
       )
@@ -397,7 +386,7 @@ const GroupMembers = ({
     }
 
     try {
-      await api.post('/groups/edits', buildEdit('remove', membersToRemove), { accessToken })
+      await api.post('/groups/edits', buildEdit('remove', membersToRemove))
       setGroupMembers({ type: 'DELETE', payload: membersToRemove })
       reloadGroup()
     } catch (error) {
@@ -617,11 +606,10 @@ const GroupMembers = ({
           domainId={group.domain}
           groupDomainContent={group.details.domain?.content}
           membersToMessage={memberToMessage}
-          accessToken={accessToken}
           setJobId={(id) => setJobId(id)}
         />
 
-        <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
+        <GroupMessages jobId={jobId} groupId={group.id} />
       </>
     )
 
@@ -824,12 +812,11 @@ const GroupMembers = ({
         domainId={group.domain}
         groupDomainContent={group.details.domain?.content}
         membersToMessage={memberToMessage}
-        accessToken={accessToken}
         setJobId={(id) => setJobId(id)}
         messageMemberInvitation={messageInvitation}
       />
 
-      <GroupMessages jobId={jobId} accessToken={accessToken} groupId={group.id} />
+      <GroupMessages jobId={jobId} groupId={group.id} />
     </>
   )
 }

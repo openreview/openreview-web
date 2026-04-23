@@ -1,13 +1,14 @@
+import { Noto_Sans } from 'next/font/google'
+import StoreProvider from '../storeProvider'
+import ThemeProvider from '../ThemeProvider'
+import Nav from './(Home)/Nav'
+import AppInit from './AppInit'
+import GoogleAnalyticsScript from './GoogleAnalyticsScript'
 import '../lib/logger'
+
 import 'bootstrap/dist/css/bootstrap.min.css'
 import '../styles/global.scss'
 import '../styles/components.scss'
-// eslint-disable-next-line camelcase
-import { Noto_Sans } from 'next/font/google'
-import AppInit from './AppInit'
-import StoreProvider from '../storeProvider'
-import Nav from './(Home)/Nav'
-import GoogleAnalyticsScript from './GoogleAnalyticsScript'
 
 const notoSans = Noto_Sans({
   subsets: ['latin'],
@@ -36,13 +37,15 @@ export default function RootLayout({ children }) {
         <link rel="manifest" href="/manifest.json" />
       </head>
       <StoreProvider>
-        <body className={notoSans.className}>
-          <div id="__next">
-            <Nav />
-            <AppInit />
-            {children}
-          </div>
-        </body>
+        <ThemeProvider>
+          <body className={notoSans.className} style={{ overflowY: 'scroll', width: '100%' }}>
+            <div id="__next">
+              <Nav />
+              <AppInit />
+              {children}
+            </div>
+          </body>
+        </ThemeProvider>
       </StoreProvider>
       <GoogleAnalyticsScript />
     </html>

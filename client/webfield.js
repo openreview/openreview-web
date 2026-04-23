@@ -14,9 +14,6 @@
 /* globals typesetMathJax: false */
 
 module.exports = (function () {
-  // Save authentication token as a private var
-  var token
-
   // AJAX Functions
   var get = function (url, queryObj, options) {
     var defaults = {
@@ -24,7 +21,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
     var xhrFields = {
@@ -43,7 +39,7 @@ module.exports = (function () {
       contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
       url: baseUrl + url,
       data: queryObj,
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: xhrFields,
     }).then(jqSuccessCallback, errorCallback)
   }
@@ -54,7 +50,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -65,7 +60,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -78,7 +73,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -89,7 +83,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -102,7 +96,6 @@ module.exports = (function () {
     }
     options = _.defaults(options, defaults)
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var errorCallback = options.handleErrors ? jqErrorCallback : null
 
@@ -113,7 +106,7 @@ module.exports = (function () {
       contentType: 'application/json; charset=UTF-8',
       url: baseUrl + url,
       data: JSON.stringify(queryObj),
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -163,7 +156,6 @@ module.exports = (function () {
           return get(url, Object.assign({}, queryObj, { offset: n }))
         })
         return $.when.apply($, remainingRequests).then(function () {
-          // eslint-disable-next-line prefer-rest-params
           var rest = _.compact(_.flatMap(arguments, resultsKey))
           return initialResults.concat(rest)
         })
@@ -176,9 +168,9 @@ module.exports = (function () {
   }
 
   var jqErrorCallback = function (jqXhr, textStatus, errorThrown) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus)
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2))
 
     var errorText = getErrorFromJqXhr(jqXhr, textStatus)
@@ -211,14 +203,9 @@ module.exports = (function () {
     return jqXhr.responseJSON?.message || 'Something went wrong'
   }
 
-  var setToken = function (newAccessToken) {
-    token = newAccessToken
-  }
-
   var sendFile = function (url, data, contentType, fieldName) {
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     return $.ajax({
       url: baseUrl + url,
       type: 'put',
@@ -227,14 +214,14 @@ module.exports = (function () {
       processData: false,
       contentType: contentType || false,
       data: data,
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
     }).fail(function (jqXhr, textStatus, errorThrown) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus)
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2))
 
       if (fieldName) {
@@ -248,14 +235,13 @@ module.exports = (function () {
   var sendFileChunk = function (data, $progressBar) {
     var baseUrl = window.OR_API_URL ? window.OR_API_URL : ''
     var defaultHeaders = { 'Access-Control-Allow-Origin': '*' }
-    var authHeaders = token ? { Authorization: 'Bearer ' + token } : {}
     return $.ajax({
       url: baseUrl + '/attachment/chunk',
       type: 'put',
       contentType: false,
       processData: false,
       data: data,
-      headers: Object.assign(defaultHeaders, authHeaders),
+      headers: defaultHeaders,
       xhrFields: {
         withCredentials: true,
       },
@@ -583,7 +569,7 @@ module.exports = (function () {
       container: '#invitation',
       largeLabel: true,
       onNoteCreated: function () {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn('onNoteCreated option is required')
       },
     }
@@ -641,7 +627,6 @@ module.exports = (function () {
           if (middleOfOperand) {
             currentOperand += 'AND'
             i += 2
-            // eslint-disable-next-line no-continue
             continue
           } else if (stuffInBrackets.length) {
             return new TreeNode(
@@ -658,7 +643,6 @@ module.exports = (function () {
           } else {
             currentOperand = t
           }
-          // eslint-disable-next-line no-continue
           continue
         }
       }
@@ -667,7 +651,6 @@ module.exports = (function () {
           if (middleOfOperand) {
             currentOperand += 'OR'
             i += 1
-            // eslint-disable-next-line no-continue
             continue
           } else if (stuffInBrackets.length) {
             return new TreeNode(
@@ -684,7 +667,6 @@ module.exports = (function () {
           } else {
             currentOperand = t
           }
-          // eslint-disable-next-line no-continue
           continue
         }
       } else if (t === '(') {
@@ -695,7 +677,6 @@ module.exports = (function () {
           stuffInBrackets = query.slice(i + 1, i + lengthToRightBracket + 1)
           i = i + lengthToRightBracket + 1
           if (i === query.length - 1) return queryToTree(query.slice(1, -1)) // no more expression
-          // eslint-disable-next-line no-continue
           continue
         }
       } else if (t === '"' || t === "'") {
@@ -886,7 +867,6 @@ module.exports = (function () {
       case 'OR':
         return [...new Set([...collection1, ...collection2])]
       case 'AND':
-        // eslint-disable-next-line no-case-declarations
         const collection2UniqueIdentifiers = collection2.map((p) =>
           propertyPath.reduce((r, s) => r?.[s], p)
         )
@@ -1500,7 +1480,7 @@ module.exports = (function () {
         .off('click', 'ul.pagination > li > a')
         .on('click', 'ul.pagination > li > a', function () {
           if (!_.isFunction(options.onPageClick)) {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn('Missing required onPageClick callback')
             return false
           }
@@ -1780,7 +1760,7 @@ module.exports = (function () {
     })
 
     if (_.isEmpty(sections)) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('Missing required parameter for tabPanel: sections')
       return
     }
@@ -2062,7 +2042,7 @@ module.exports = (function () {
     options = _.defaults(options, defaults)
 
     if (_.isEmpty(container)) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('Missing required parameter for spinner: container')
       return
     }
@@ -2130,7 +2110,6 @@ module.exports = (function () {
     put: put,
     delete: xhrDelete,
     getAll: getAll,
-    setToken: setToken,
     sendFile: sendFile,
     sendFileChunk: sendFileChunk,
     getErrorFromJqXhr: getErrorFromJqXhr,

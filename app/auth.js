@@ -5,7 +5,7 @@ export function isSuperUser(user) {
   return user?.id === process.env.SUPER_USER
 }
 
-function getTokenPayload(token) {
+export function getTokenPayload(token) {
   if (!token) {
     return null
   }
@@ -30,7 +30,7 @@ export default async function serverAuth() {
   const token = cookie.get(process.env.ACCESS_TOKEN_NAME)
 
   const payload = getTokenPayload(token?.value)
-  if (!payload) {
+  if (!payload || !payload.user?.profile?.id) {
     return {}
   }
 

@@ -44,6 +44,7 @@ export default async function page({ searchParams }) {
       throw new Error(`The Invitation ${id} was not found`)
     }
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.log('Error in get invitation', {
       page: 'invitation',
       user: user?.id,
@@ -83,10 +84,10 @@ export default async function page({ searchParams }) {
         .get('/groups', { id: invitation.domain }, { accessToken, remoteIpAddress })
         .then((apiRes) => {
           const domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
-          return parseComponentCode(invitation, domainGroup, user, query, accessToken)
+          return parseComponentCode(invitation, domainGroup, user, query)
         })
-        .catch((error) => parseComponentCode(invitation, null, user, query, accessToken))
-    : parseComponentCode(invitation, null, user, query, accessToken)
+        .catch((error) => parseComponentCode(invitation, null, user, query))
+    : parseComponentCode(invitation, null, user, query)
 
   return (
     <CommonLayout banner={null} editBanner={editBanner}>

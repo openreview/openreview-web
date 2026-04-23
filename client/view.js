@@ -3,7 +3,6 @@
 /* globals promptError, typesetMathJax: false */
 /* globals marked, DOMPurify, MathJax, Handlebars, nanoid: false */
 
-// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   var mkDropdown = function (
     placeholder,
@@ -26,7 +25,7 @@ module.exports = (function () {
       placeholder: placeholder,
       class: 'form-control',
       value: value,
-      value_id: valueId, // eslint-disable-line
+      value_id: valueId,
     }
 
     var $dropdown = $('<div>', { class: 'dropdown ' + extraClasses }).append(
@@ -423,7 +422,7 @@ module.exports = (function () {
 
   var mkRemovableItem = function (text, id) {
     return $('<span>', { class: 'removable_item' }).append(
-      $('<span>', { class: 'removable_item_content', text: text, value_id: id }), // eslint-disable-line
+      $('<span>', { class: 'removable_item_content', text: text, value_id: id }),
       $('<span>', { class: 'removable_item_button glyphicon glyphicon-remove-circle' }).click(
         function () {
           $(this)
@@ -804,351 +803,6 @@ module.exports = (function () {
       $('<div>', { class: 'author-emails' }).append($emails)
     )
     return $profileCard
-  }
-
-  var mkSearchProfile = function (authors, authorids, options) {
-    var defaults = {
-      allowUserDefined: true,
-      allowAddRemove: true,
-    }
-    options = _.defaults(options, defaults)
-    var $container = $('<div>', { class: 'search-profile' })
-    var $authors = $('<div>', { class: 'submission-authors' })
-
-    var createAuthorRow = function ($fullName, $emails, $title) {
-      // Check if the current profileId is already in the author list
-      var repeatedProfileId = false
-      $authors.find('.author-fullname').each(function () {
-        if ($(this).text() === $fullName.text()) {
-          repeatedProfileId = true
-        }
-      })
-      // Do not add the same author to the list
-      if (repeatedProfileId) return null
-      // Clear all the inputs after adding to the Author list
-      $('.search-input').each(function () {
-        $(this).val('')
-      })
-      if ($noResults) $noResults.hide()
-      // Add row with buttons UP and REMOVE to control the order of authors
-      // or to remove authors from the table
-      var $row = $('<div>', { class: 'author-row' })
-      var $upButton = $(
-        '<button class="btn btn-xs"><span class="glyphicon glyphicon-arrow-up"></span></button>'
-      ).on('click', function () {
-        $row.insertBefore($row.prev())
-      })
-      var $deleteButton = $(
-        '<button class="btn btn-xs"><span class="glyphicon glyphicon-minus"></span></button>'
-      ).on('click', function () {
-        $row.remove()
-      })
-
-      $row.append(
-        mkProfileCard($fullName, $emails, $title),
-        $('<div>', { class: 'profile-actions' }).append(
-          $upButton,
-          options.allowAddRemove ? $deleteButton : null
-        )
-      )
-      return $row
-    }
-
-    var getPreferredName = function (profile, authorid, authorname) {
-      var tildeId
-      if (profile) {
-        var nameObj = _.find(profile.content.names, 'preferred')
-        tildeId = (nameObj && nameObj.username) || profile.id
-      } else {
-        tildeId = authorid
-      }
-      var setClass = function (className) {
-        return function (match) {
-          return '<span class="' + className + '">' + match + '</span>'
-        }
-      }
-      if (tildeId.startsWith('~')) {
-        return $('<a>', {
-          href: '/profile?id=' + tildeId,
-          target: '_blank',
-          'data-tildeid': tildeId,
-        }).append(
-          tildeId
-            .replace(/[^~_0-9]+/g, setClass('black'))
-            .replace(/[~_0-9]+/g, setClass('light-gray'))
-        )
-      } else {
-        return $('<a>', {
-          href: '/profile?email=' + tildeId,
-          class: 'black',
-          target: '_blank',
-        }).append(authorname)
-      }
-    }
-
-    var getEmails = function (emails) {
-      return $(
-        emails
-          .filter(Boolean)
-          .map(function (email) {
-            return '<span>' + email.toLowerCase() + '</span>'
-          })
-          .join(', ')
-      )
-    }
-
-    var createAddButton = function ($fullName, $emails, title) {
-      return $(
-        '<button class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>'
-      ).on('click', function () {
-        $authors.append(createAuthorRow($fullName, $emails, title))
-        $searchResults.empty()
-      })
-    }
-
-    // If authors and authorids are passed, we prepopulate the table
-    if (authors && authorids) {
-      var tildeIds = []
-      var emailIds = []
-      for (var i = 0; i < authorids.length; i++) {
-        if (_.startsWith(authorids[i], '~')) {
-          tildeIds.push(authorids[i])
-        } else if (_.includes(authorids[i], '@')) {
-          emailIds.push(authorids[i])
-        }
-      }
-
-      var tildeProfilesP = Webfield.post('/profiles/search', { ids: tildeIds })
-      var emailProfilesP = Webfield.post('/profiles/search', { emails: emailIds })
-
-      $.when(tildeProfilesP, emailProfilesP).then(function (tildeRes, emailRes) {
-        var profiles = _.concat(tildeRes.profiles, emailRes.profiles)
-        for (var i = 0; i < authors.length; i++) {
-          var $spanFullname
-          var $spanEmails
-          var title = ''
-
-          // eslint-disable-next-line no-loop-func
-          var profile = _.find(profiles, function (profile) {
-            if (profile.id === authorids[i]) {
-              return true
-            }
-            if (
-              _.startsWith(authorids[i], '~') &&
-              _.find(profile.content.names, ['username', authorids[i]])
-            ) {
-              return true
-            }
-            return profile.email === authorids[i]
-          })
-
-          if (profile) {
-            title = formatProfileContent(profile.content).title
-            if (options.allowAddRemove) {
-              $spanFullname = getPreferredName(profile)
-              $spanEmails = getEmails(profile.content.emails)
-            } else {
-              // Authors are not editable, keep the original values
-              $spanFullname = getPreferredName(null, authorids[i], authors[i])
-              if (profile.email) {
-                $spanEmails = getEmails([profile.email])
-              } else {
-                $spanEmails = getEmails(profile.content.emails)
-              }
-            }
-          } else {
-            $spanFullname = $('<span>' + authors[i] + '</span>')
-            $spanEmails = getEmails([authorids[i]])
-          }
-          $authors.append(createAuthorRow($spanFullname, $spanEmails, title))
-        }
-      })
-    }
-
-    if (!options.allowAddRemove) {
-      $container.append($authors)
-      return $container
-    }
-
-    var createSearchResultRow = function (profile) {
-      var $fullName = getPreferredName(profile)
-      var $emails = getEmails(profile.content.emails)
-      var formattedProfile = formatProfileContent(profile.content)
-      var $addButton = createAddButton($fullName, $emails, formattedProfile.title)
-
-      // Add row with ADD button to create a row in the Author list
-      var $row = $('<div>', { class: 'author-row' })
-      $row.append(
-        mkProfileCard($fullName, $emails, formattedProfile.title),
-        $('<div>', { class: 'profile-actions' }).append($addButton)
-      )
-      return $row
-    }
-
-    var $searchResults = $('<div>', { class: 'search-results' })
-
-    var $noResults = $('<table>', { class: 'table' }).append(
-      $('<tr>').append(
-        "<td><span>No matching profiles found. Please enter the author's full name and email, then click the + button to add the author.</span></td>"
-      )
-    )
-    $noResults.hide()
-
-    var $firstNameSearch = $('<input>', {
-      id: 'first-name-search',
-      class: 'search-input form-control note-content-search',
-      type: 'text',
-      placeholder: 'Full name',
-    })
-    var $emailSearch = $('<input>', {
-      id: 'email-search',
-      class: 'search-input form-control note-content-search',
-      type: 'text',
-      placeholder: 'Email',
-    })
-
-    var addDirectly = function () {
-      $(this).hide()
-      var $fullName = $('<span>' + _.trim($firstNameSearch.val()) + '</span>')
-      var $emails = $('<span>').append(_.trim($emailSearch.val()))
-      $authors.append(createAuthorRow($fullName, $emails))
-      $searchResults.empty()
-    }
-
-    var $addDirectlyButton = $(
-      '<button id="add-directly" class="btn btn-xs"><span class="glyphicon glyphicon-plus"></span></button>'
-    )
-      .on('click', addDirectly)
-      .hide()
-
-    var $spinner = $(
-      [
-        '<div class="spinner-small spinner-search">',
-        '<div class="rect1"></div><div class="rect2"></div>',
-        '<div class="rect3"></div><div class="rect4"></div>',
-        '</div>',
-      ].join('\n')
-    )
-    // var $spinner = $(Handlebars.templates.spinner({extraClasses: 'spinner-inline'}));
-    $spinner.addClass('invisible')
-
-    var $searchInput = $('<div class="search-container">').append(
-      $firstNameSearch,
-      $emailSearch,
-      $addDirectlyButton,
-      $spinner
-    )
-
-    var handleResponses = function (namesResponse, emailResponse) {
-      $spinner.addClass('invisible')
-      $searchResults.empty()
-      $noResults.hide()
-
-      var response = namesResponse || emailResponse
-      if (namesResponse && emailResponse) {
-        var profiles = _.unionWith(
-          emailResponse.profiles,
-          namesResponse.profiles,
-          function (emailProfile, nameProfile) {
-            return emailProfile.id === nameProfile.id
-          }
-        )
-        response = {
-          count: profiles.length,
-          profiles: profiles,
-        }
-      }
-      // Only show Profiles that have an associated email
-      var profilesWithEmails = _.filter(response.profiles, function (profile) {
-        return profile.content.emails && profile.content.emails.length
-      })
-      if (profilesWithEmails.length) {
-        profilesWithEmails.forEach(function (profile) {
-          $searchResults.append(createSearchResultRow(profile))
-        })
-        $searchResults.append(
-          $('<div>', { class: 'text-center' }).append(
-            '<span class="hint">Click the + button of the profile you wish to add to the authors list</span>'
-          )
-        )
-      } else if (options.allowUserDefined) {
-        $noResults.show()
-      }
-      // No profiles were found using the email and now if the fields are valid, the user can add directly a person
-      // with no Profile
-      var email = _.trim($emailSearch.val())
-      var fullName = _.trim($firstNameSearch.val())
-      if (
-        options.allowUserDefined &&
-        emailResponse &&
-        !emailResponse.count &&
-        isValidEmail(email) &&
-        isValidName(fullName)
-      ) {
-        $addDirectlyButton.show()
-      }
-    }
-
-    var combinedSearch = function () {
-      $addDirectlyButton.hide()
-      var fullName = _.trim($firstNameSearch.val())
-      var email = _.trim($emailSearch.val())
-
-      var hasValidName = fullName && fullName.length > 2
-      var hasValidEmail = email.length > 5 && email.indexOf('@') !== -1
-
-      if (hasValidName || hasValidEmail) {
-        $spinner.removeClass('invisible')
-      }
-
-      // If both the name and the email information are in the search, then we have to do two searches
-      // Then we merge the responses by doing a union and prioritizing email results
-      if (hasValidName && hasValidEmail) {
-        Webfield.get('/profiles/search', { term: email }).then(function (emailResponse) {
-          Webfield.get('/profiles/search', { fullname: fullName, es: true }).then(
-            function (namesResponse) {
-              handleResponses(namesResponse, emailResponse)
-            }
-          )
-        })
-      } else if (hasValidEmail) {
-        Webfield.get('/profiles/search', { term: email }).then(function (emailResponse) {
-          handleResponses(null, emailResponse)
-        })
-      } else if (hasValidName) {
-        Webfield.get('/profiles/search', { fullname: fullName, es: true }).then(
-          function (namesResponse) {
-            handleResponses(namesResponse, null)
-          }
-        )
-      }
-    }
-
-    var clearSearchWhenEmpty = function () {
-      var fullName = _.trim($firstNameSearch.val())
-      var email = _.trim($emailSearch.val())
-
-      if (!fullName && !email) {
-        $searchResults.empty()
-      }
-    }
-
-    var debounceSearch = _.debounce(combinedSearch, 300)
-
-    $firstNameSearch.on('input', function () {
-      clearSearchWhenEmpty()
-      debounceSearch()
-    })
-    $emailSearch.on('input', function () {
-      clearSearchWhenEmpty()
-      // Lower case email always
-      $(this).val($(this).val().toLowerCase())
-      debounceSearch()
-    })
-
-    $container.append($authors, $searchInput, $searchResults, $noResults)
-
-    return $container
   }
 
   var valueInput = function (contentInput, fieldName, fieldDescription) {
@@ -1642,33 +1296,6 @@ module.exports = (function () {
 
     if (fieldName === 'pdf' && fieldDescription['value-regex']) {
       contentInputResult = mkPdfSection(fieldDescription, fieldValue)
-    } else if (
-      fieldName === 'authorids' &&
-      ((_.has(fieldDescription, 'values-regex') &&
-        isTildeIdAllowed(fieldDescription['values-regex'])) ||
-        _.has(fieldDescription, 'values'))
-    ) {
-      var authors
-      var authorids
-      if (params && params.note) {
-        authors = params.note.content.authors
-        authorids = params.note.content.authorids
-      } else if (params && params.user) {
-        var userProfile = params.user.profile
-        authors = [userProfile.fullname]
-        authorids = [userProfile.preferredId]
-      }
-      var invitationRegex = fieldDescription['values-regex']
-      // Enable allowUserDefined if the values-regex has '~.*|'
-      // Don't enable adding or removing authors if invitation uses 'values' instead of values-regex
-      contentInputResult = valueInput(
-        mkSearchProfile(authors, authorids, {
-          allowUserDefined: invitationRegex && invitationRegex.includes('|'),
-          allowAddRemove: !!invitationRegex,
-        }),
-        'authors',
-        fieldDescription
-      )
     } else {
       contentInputResult = mkComposerContentInput(
         fieldName,
@@ -1771,7 +1398,6 @@ module.exports = (function () {
               contentMap.authors = authList.join(', ')
             }
 
-            // eslint-disable-next-line no-restricted-syntax, guard-for-in
             for (var k in contentMap) {
               $('.note_content_value[name=' + k + ']').val(contentMap[k])
             }
@@ -2560,6 +2186,7 @@ module.exports = (function () {
 
     // Meta Info Row
     var $metaEditRow = $('<div>', { class: 'meta_row' })
+    var isdblpPublication = note.invitation === 'dblp.org/-/record'
     var formattedDate = forumDate(
       note.cdate,
       note.tcdate,
@@ -2567,7 +2194,9 @@ module.exports = (function () {
       note.tmdate,
       note.content.year,
       note.pdate,
-      note.id !== note.forum // include time if this a reply
+      note.id !== note.forum, // include time if this a reply
+      false,
+      isdblpPublication
     )
     var $replyCountLabel =
       params.withReplyCount && details.replyCount
@@ -3074,7 +2703,7 @@ module.exports = (function () {
             .replace(/^\./g, '') // journal names start with '.'
             .replace(/\..+/g, '') // remove text after dots, ex: uai.org
             .replace(/^-$/g, '') // remove dashes
-            .replace(/_/g, ' ') // replace undescores with spaces
+            .replace(/_/g, ' ') // replace underscores with spaces
 
           // if the letters in the token are all lowercase, replace it with empty string
           var lettersOnly = token.replace(/\d|\W/g, '')
@@ -3113,7 +2742,7 @@ module.exports = (function () {
         }
         return token
           .replace(/^-$/g, '') // remove dashes
-          .replace(/_/g, ' ') // replace undescores with spaces
+          .replace(/_/g, ' ') // replace underscores with spaces
           .replace(/\.\*/g, '') // remove wildcards
           .replace(/^.*[0-9]$/g, '') // remove tokens ending with a digit
           .trim()
@@ -3170,7 +2799,8 @@ module.exports = (function () {
     createdYear,
     pdate,
     withTime = false,
-    withTimezone = false
+    withTimezone = false,
+    pDateShowYear = false
   ) {
     var mdateSettings = {
       day: '2-digit',
@@ -3217,7 +2847,10 @@ module.exports = (function () {
       : ''
 
     if (pdate) {
-      var pdateFormatted = new Date(pdate).toLocaleDateString('en-GB', mdateSettings)
+      var pdateFormatted = new Date(pdate).toLocaleDateString(
+        'en-GB',
+        pDateShowYear ? { year: 'numeric' } : mdateSettings
+      )
       var secondaryDate = mdate
         ? `Last Modified: ${mdateFormatted}`
         : `Uploaded: ${cdateFormatted}`
@@ -3534,7 +3167,6 @@ module.exports = (function () {
   }
 
   var getReaders = function (widget, invitation, signatures, isEdit = false) {
-    // eslint-disable-next-line no-nested-ternary
     var readers = invitation.edit
       ? isEdit
         ? invitation.edit.readers
@@ -3832,7 +3464,6 @@ module.exports = (function () {
       $cancelButton.click(function () {
         const confirmCancel =
           $noteEditor.data('hasUnsavedData') &&
-          // eslint-disable-next-line no-alert
           !window.confirm(
             'Any unsaved changes will be lost. Are you sure you want to continue?'
           )
@@ -4530,7 +4161,6 @@ module.exports = (function () {
       $cancelButton.click(function () {
         const confirmCancel =
           $noteEditor.data('hasUnsavedData') &&
-          // eslint-disable-next-line no-alert
           !window.confirm(
             'Any unsaved changes will be lost. Are you sure you want to continue?'
           )
@@ -4659,7 +4289,7 @@ module.exports = (function () {
             localStorage.setItem(uniqueKey, $(this).val())
             $noteEditor.data('hasUnsavedData', true)
           } catch (error) {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn(error)
           }
         }, 2000)
@@ -4940,7 +4570,6 @@ module.exports = (function () {
     buildSignatures: buildSignatures,
     autolinkFieldDescriptions: autolinkFieldDescriptions,
     isTildeIdAllowed: isTildeIdAllowed,
-    mkSearchProfile: mkSearchProfile,
     mkFileInput: mkFileInput,
     idsFromListAdder: idsFromListAdder,
     getReaders: getReaders,

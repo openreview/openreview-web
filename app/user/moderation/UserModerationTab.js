@@ -1,151 +1,117 @@
-/* globals promptMessage,promptError,view2,$: false */
-import { useEffect, useReducer, useRef, useState } from 'react'
+import {
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  PlusOutlined,
+  StopOutlined,
+  UndoOutlined,
+} from '@ant-design/icons'
+import { Button, Col, Flex, Input, Modal, Pagination, Row, Select, Space, Tag } from 'antd'
 import dayjs from 'dayjs'
 import { cloneDeep, uniqBy } from 'lodash'
-import api from '../../../lib/api-client'
-import {
-  formatDateTime,
-  getProfileStateLabelClass,
-  inflect,
-  prettyId,
-} from '../../../lib/utils'
-import Dropdown from '../../../components/Dropdown'
-import { formatProfileData } from '../../../lib/profiles'
+import { useEffect, useReducer, useState } from 'react'
 import Icon from '../../../components/Icon'
 import LoadingSpinner from '../../../components/LoadingSpinner'
-import PaginationLinks from '../../../components/PaginationLinks'
-import BasicModal from '../../../components/BasicModal'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
+import api from '../../../lib/api-client'
+import { formatProfileData } from '../../../lib/profiles'
+import { formatDateTime, getRejectionReasons, inflect, prettyId } from '../../../lib/utils'
 
-export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes }) => {
+import styles from './moderation.module.scss'
+import {
+  colors,
+  getBootstrap337LabelColor,
+  getProfileStateLabelClass,
+  moderation as legacyStyles,
+} from '../../../lib/legacy-bootstrap-styles'
+
+const ActionButton = (props) => (
+  <Button
+    type="primary"
+    size="small"
+    styles={{ root: legacyStyles.actionButton }}
+    {...props}
+  />
+)
+
+export const RejectionModal = ({
+  profileToReject,
+  setProfileToReject,
+  rejectUser,
+  signedNotes,
+}) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
-  const selectRef = useRef(null)
 
   const currentInstitutionName = profileToReject?.content?.history?.find(
     (p) => !p.end || p.end >= new Date().getFullYear()
   )?.institution?.name
 
-  const instructionText =
-    'Please go back to the sign up page, enter the same name and email, click the Resend Activation button and follow the activation link to update your information.'
-  const rejectionReasons = [
-    {
-      value: 'requestEmailVerification',
-      label: 'Institutional Email is missing',
-      rejectionText: `Please add and confirm an institutional email ${
-        currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      }to your profile. Please make sure the verification token is entered and verified.\n\nIf your affiliation ${
-        currentInstitutionName ? `issued by ${currentInstitutionName} ` : ''
-      } is not current, please update your profile with your current affiliation and associated institutional email.\n\n${instructionText}`,
-    },
-    {
-      value: 'requestEmailConfirmation',
-      label: 'Institutional Email is added but not confirmed',
-      rejectionText: `Please confirm the institutional email in your profile by clicking the "Confirm" button next to the email and enter the verification token received.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidDBLP',
-      label: 'DBLP link is a disambiguation page',
-      rejectionText: `The DBLP link you have provided is a disambiguation page and is not intended to be used as a bibliography. Please select the correct bibliography page listed under "Other persons with a similar name". If your page is not listed please contact the DBLP team so they can add your bibliography page. We recommend providing a different bibliography homepage when resubmitting to OpenReview moderation.\n\n${instructionText}`,
-    },
-    {
-      value: 'imPersonalHomepage',
-      label: 'Homepage is invalid',
-      rejectionText: `The homepage url provided in your profile is invalid or does not display your name/email used to register so your identity can't be determined.\n\n${instructionText}`,
-    },
-    {
-      value: 'imPersonalHomepageAndEmail',
-      label: 'Homepage is invalid + no institution email',
-      rejectionText: `A Homepage url which displays your name and institutional email matching your latest career/education history are required. Please confirm the institutional email by entering the verification token received after clicking confirm button next to the institutional email.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidName',
-      label: 'Profile name is invalid',
-      rejectionText: `The name in your profile does not match the name listed in your homepage or is invalid.\n\n${instructionText}`,
-    },
-    {
-      value: 'invalidORCID',
-      label: 'ORCID profile is incomplete',
-      rejectionText: `The ORCID profile you've provided as a homepage is empty or does not match the Career & Education history you've provided.\n\n${instructionText}`,
-    },
-    {
-      value: 'lastNotice',
-      label: 'Last notice before block',
-      rejectionText: `If invalid info is submitted again, your email will be blocked.\n\n${instructionText}`,
-    },
-  ]
+  const rejectionReasons = getRejectionReasons(currentInstitutionName)
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
     setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
   }
 
   return (
-    <BasicModal
-      id={id}
-      primaryButtonDisabled={!rejectionMessage}
-      onPrimaryButtonClick={() => {
+    <Modal
+      title={`Reason for rejecting ${prettyId(profileToReject?.id)}`}
+      open={profileToReject}
+      okText="Submit"
+      okButtonProps={{ disabled: !rejectionMessage.trim() }}
+      closable={true}
+      destroyOnHidden={true}
+      onCancel={() => {
+        setRejectionMessage('')
+        setProfileToReject(null)
+      }}
+      onOk={() => {
+        setRejectionMessage('')
         rejectUser(rejectionMessage, profileToReject.id)
       }}
-      onClose={() => {
-        selectRef.current.clearValue()
+      width={{
+        xs: '90%',
+        sm: '50%',
       }}
     >
-      <>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
+      <Flex vertical gap="small" align="flex-start">
+        <Select
+          allowClear
+          style={{ width: '100%' }}
+          placeholder="Choose a common reject reason..."
+          options={rejectionReasons}
+          onChange={(value) => {
+            const rejectOption = rejectionReasons.find((r) => r.value === value)
+            setRejectionMessage(rejectOption?.rejectionText || '')
           }}
-        >
-          <div className="form-group form-rejection">
-            <label htmlFor="message" className="mb-1">
-              Reason for rejecting {prettyId(profileToReject?.id)}:
-            </label>
-
-            <Dropdown
-              name="rejection-reason"
-              instanceId="rejection-reason"
-              placeholder="Choose a common reject reason..."
-              options={rejectionReasons}
-              onChange={(p) => {
-                setRejectionMessage(p?.rejectionText || '')
-              }}
-              selectRef={selectRef}
-              isClearable
-            />
-
-            <div>
-              <button
-                className="btn btn-xs mr-2"
-                onClick={() =>
-                  updateMessageForPastRejectProfile(
-                    "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
-                  )
-                }
-              >
-                Add Invalid Info Warning
-              </button>
-              <button
-                className="btn btn-xs"
-                onClick={() =>
-                  updateMessageForPastRejectProfile(
-                    'If invalid info is submitted again, your email will be blocked.'
-                  )
-                }
-              >
-                Add Last Notice Warning
-              </button>
-            </div>
-
-            <textarea
-              name="message"
-              className="form-control mt-2"
-              rows="10"
-              value={rejectionMessage}
-              onChange={(e) => {
-                setRejectionMessage(e.target.value)
-              }}
-            />
-          </div>
-        </form>
+        />
+        <Space wrap>
+          <Button
+            type="primary"
+            onClick={() =>
+              updateMessageForPastRejectProfile(
+                "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
+              )
+            }
+          >
+            Add Invalid Info Warning
+          </Button>
+          <Button
+            type="primary"
+            onClick={() =>
+              updateMessageForPastRejectProfile(
+                'If invalid info is submitted again, your email will be blocked.'
+              )
+            }
+          >
+            Add Last Notice Warning
+          </Button>
+        </Space>
+        <Input.TextArea
+          autoSize={{ minRows: 5 }}
+          value={rejectionMessage}
+          onChange={(e) => {
+            setRejectionMessage(e.target.value)
+          }}
+        />
         {signedNotes.length > 0 && (
           <>
             <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
@@ -169,16 +135,21 @@ export const RejectionModal = ({ id, profileToReject, rejectUser, signedNotes })
             ))}
           </>
         )}
-      </>
-    </BasicModal>
+      </Flex>
+    </Modal>
   )
 }
 
-const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToken }) => {
+const BlockModal = ({
+  profileToBlockUnblock,
+  setProfileToBlockUnblock,
+  signedNotes,
+  reload,
+}) => {
   const [blockTag, setBlockTag] = useState('')
   const actionIsBlock = profileToBlockUnblock?.state !== 'Blocked'
 
-  const blockUnblockUser = async (profile) => {
+  const blockUser = async (profile) => {
     if (!profile) return
 
     try {
@@ -190,44 +161,83 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToke
         readers: [`${process.env.SUPER_USER}/Support`],
       })
 
-      await api.post(
-        '/profile/moderate',
-        { id: profile.id, decision: actionIsBlock ? 'block' : 'unblock' },
-        { accessToken }
-      )
+      await api.post('/profile/moderate', {
+        id: profile.id,
+        decision: 'block',
+      })
       setBlockTag('')
-      $(`#${id}`).modal('hide')
     } catch (error) {
       promptError(error.message)
     }
     reload()
   }
 
-  useEffect(() => {}, [profileToBlockUnblock])
+  const unblockUser = async (profile) => {
+    if (!profile) return
+    try {
+      const blockTagResult = await api.get('/tags', {
+        profile: profileToBlockUnblock.id,
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`,
+      })
+
+      const existingBlockTag = blockTagResult?.tags?.[0]
+
+      if (existingBlockTag) {
+        await api.post('/tags', {
+          id: existingBlockTag.id,
+          ddate: Date.now(),
+          profile: existingBlockTag.profile,
+          label: existingBlockTag.label,
+          readers: existingBlockTag.readers,
+          signature: existingBlockTag.signature,
+          invitation: existingBlockTag.invitation,
+        })
+      }
+
+      await api.post('/profile/moderate', {
+        id: profile.id,
+        decision: 'unblock',
+      })
+    } catch (error) {
+      promptError(error.message)
+    }
+    reload()
+  }
 
   return (
-    <BasicModal
-      id={id}
-      primaryButtonText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
-      onPrimaryButtonClick={() => {
-        blockUnblockUser(profileToBlockUnblock)
+    <Modal
+      title={`You are about to ${actionIsBlock ? 'block' : 'unblock'} ${
+        profileToBlockUnblock?.content?.names?.[0]?.fullname
+      }.`}
+      open={profileToBlockUnblock}
+      okText={`${profileToBlockUnblock?.state === 'Blocked' ? 'Unblock' : 'Block'}`}
+      okButtonProps={{ disabled: actionIsBlock && !blockTag.trim() }}
+      destroyOnHidden={true}
+      onCancel={() => {
+        setBlockTag('')
+        setProfileToBlockUnblock(null)
       }}
-      primaryButtonDisabled={!blockTag.trim()}
+      onOk={async () => {
+        if (actionIsBlock) {
+          await blockUser(profileToBlockUnblock)
+        } else {
+          await unblockUser(profileToBlockUnblock)
+        }
+        setProfileToBlockUnblock(null)
+      }}
+      width={{
+        xs: '90%',
+        sm: '50%',
+      }}
     >
-      <>
-        <h4>{`You are about to ${actionIsBlock ? 'block' : 'unblock'} ${
-          profileToBlockUnblock?.content?.names?.[0]?.fullname
-        }.`}</h4>
-        <div>
-          <input
-            id="tag-input"
-            type="text"
-            className="form-control mb-2"
+      <Flex vertical gap="small" align="flex-start">
+        {actionIsBlock && (
+          <Input
+            placeholder="a tag to be added to this profile such as block reason"
             value={blockTag}
-            placeholder="a tag to be added to this profile such as block/unblock reason"
             onChange={(e) => setBlockTag(e.target.value)}
           />
-        </div>
+        )}
         {actionIsBlock && signedNotes.length > 0 && (
           <>
             <h4>{`There ${inflect(signedNotes.length, 'is', 'are', false)} ${inflect(
@@ -251,13 +261,12 @@ const BlockModal = ({ id, profileToBlockUnblock, signedNotes, reload, accessToke
             ))}
           </>
         )}
-      </>
-    </BasicModal>
+      </Flex>
+    </Modal>
   )
 }
 
 const UserModerationQueue = ({
-  accessToken,
   title,
   onlyModeration = true,
   reload,
@@ -273,15 +282,9 @@ const UserModerationQueue = ({
   const [signedNotes, setSignedNotes] = useState(0)
   const [idsLoading, setIdsLoading] = useState([])
   const [descOrder, setDescOrder] = useState(true)
-  const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 15)
+  const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 10)
   const [profileToPreview, setProfileToPreview] = useState(null)
-  const [lastPreviewedProfileId, setLastPreviewedProfileId] = useState(null)
-  const rejectModalId = `${onlyModeration ? 'new' : ''}-user-reject-modal`
-  const blockModalId = `${onlyModeration ? 'new' : ''}-user-block-modal`
-  const pageSizeOptions = [15, 30, 50, 100, 200].map((p) => ({
-    label: `${p} items`,
-    value: p,
-  }))
+  const [searchTerm, setSearchTerm] = useState('')
   const [profileStateOption, setProfileStateOption] = useState('All')
   const profileStateOptions = [
     'All',
@@ -319,7 +322,7 @@ const UserModerationQueue = ({
           ...(shouldSearchProfile && searchQuery),
           ...(profileStateOption !== 'All' && { state: profileStateOption }),
         },
-        { accessToken, cachePolicy: 'no-cache' }
+        { cachePolicy: 'no-cache' }
       )
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
@@ -328,32 +331,18 @@ const UserModerationQueue = ({
     }
   }
 
-  const filterProfiles = (e) => {
-    e.preventDefault()
-
-    const formData = new FormData(e.target)
-    const newFilters = {}
-    formData.forEach((value, name) => {
-      if (name === 'id' && value.includes('@')) {
-        newFilters.email = value.trim()
-      } else {
-        newFilters[name] = value.trim()
-      }
-    })
+  const filterProfiles = () => {
+    const cleanSearchTerm = searchTerm.trim()
 
     setPageNumber(1)
     if (profileStateOption !== 'All') setProfileStateOption('All')
-    setFilters(newFilters)
+    setFilters({ term: cleanSearchTerm })
   }
 
   const acceptUser = async (profileId) => {
     try {
       setIdsLoading((p) => [...p, profileId])
-      await api.post(
-        '/profile/moderate',
-        { id: profileId, decision: 'accept' },
-        { accessToken }
-      )
+      await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -371,7 +360,6 @@ const UserModerationQueue = ({
       { signature: profileId, select: 'id' },
       null,
       {
-        accessToken,
         includeVersion: true,
       }
     )
@@ -379,7 +367,7 @@ const UserModerationQueue = ({
       '/notes',
       { 'content.authorids': profileId, select: 'id' },
       null,
-      { accessToken, includeVersion: true }
+      { includeVersion: true }
     )
 
     const [signedNotesResult, authoredNotesResult] = await Promise.all([
@@ -396,29 +384,21 @@ const UserModerationQueue = ({
       setSignedNotes(signedAuthoredNotes)
     }
     setProfileToReject(profile)
-
-    $(`#${rejectModalId}`).modal('show')
   }
 
   const showBlockUnblockModal = async (profile) => {
     const signedAuthoredNotes = await getSignedAuthoredNotesCount(profile.id)
     setSignedNotes(signedAuthoredNotes)
     setProfileToBlockUnblock(profile)
-    $(`#${blockModalId}`).modal('show')
   }
 
   const rejectUser = async (rejectionMessage, id) => {
     try {
-      await api.post(
-        '/profile/moderate',
-        {
-          id,
-          decision: 'reject',
-          reason: rejectionMessage,
-        },
-        { accessToken }
-      )
-      $(`#${rejectModalId}`).modal('hide')
+      await api.post('/profile/moderate', {
+        id,
+        decision: 'reject',
+        reason: rejectionMessage,
+      })
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -427,7 +407,7 @@ const UserModerationQueue = ({
       promptError(error.message)
     }
   }
-  
+
   const deleteRestoreUser = async (profile) => {
     if (!profile) return
 
@@ -449,17 +429,15 @@ const UserModerationQueue = ({
 
     const actionLabel = actionIsDelete ? 'delete' : 'restore'
     const name = profile.content?.names?.[0]?.fullname ?? 'this profile'
-    // eslint-disable-next-line no-alert
     const confirmResult = window.confirm(
       `Are you sure you want to ${actionLabel} ${name}?\n\n${noteCountMessage}`
     )
     if (confirmResult) {
       try {
-        await api.post(
-          '/profile/moderate',
-          { id: profile.id, decision: actionIsDelete ? 'delete' : 'restore' },
-          { accessToken }
-        )
+        await api.post('/profile/moderate', {
+          id: profile.id,
+          decision: actionIsDelete ? 'delete' : 'restore',
+        })
       } catch (error) {
         promptError(error.message)
       }
@@ -470,23 +448,19 @@ const UserModerationQueue = ({
   const addSDNException = async (profileId) => {
     const sdnExceptionGroupId = `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`
     try {
-      const sdnExceptionGroup = await api.getGroupById(sdnExceptionGroupId, accessToken)
-      await api.post(
-        '/groups/edits',
-        {
-          group: {
-            id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
-            members: {
-              append: [profileId],
-            },
+      const sdnExceptionGroup = await api.getGroupById(sdnExceptionGroupId)
+      await api.post('/groups/edits', {
+        group: {
+          id: `${process.env.SUPER_USER}/Support/SDN_Profiles/Exceptions`,
+          members: {
+            append: [profileId],
           },
-          readers: sdnExceptionGroup.signatures,
-          writers: sdnExceptionGroup.signatures,
-          signatures: sdnExceptionGroup.signatures,
-          invitation: sdnExceptionGroup.invitations?.[0],
         },
-        { accessToken }
-      )
+        readers: sdnExceptionGroup.signatures,
+        writers: sdnExceptionGroup.signatures,
+        signatures: sdnExceptionGroup.signatures,
+        invitation: sdnExceptionGroup.invitations?.[0],
+      })
       promptMessage(`${profileId} is added to SDN exception group`)
     } catch (error) {
       promptError(error.message)
@@ -496,8 +470,9 @@ const UserModerationQueue = ({
   const showNextProfile = (currentProfileId) => {
     const nextProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) + 1]
     if (nextProfile) {
-      setProfileToPreview(formatProfileData(cloneDeep(nextProfile)))
-      setLastPreviewedProfileId(nextProfile.id)
+      setProfileToPreview(
+        formatProfileData(cloneDeep(nextProfile), { includePastStates: true })
+      )
     }
   }
 
@@ -505,65 +480,90 @@ const UserModerationQueue = ({
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
 
-  useEffect(() => {
-    if (profileToPreview) $('#profile-preview').modal('show')
-  }, [profileToPreview])
-
   return (
-    <div className="profiles-list">
-      <h4>
-        {title} ({totalCount})
-      </h4>
-      {showSortButton && profiles && profiles.length !== 0 && (
-        <button className="btn btn-xs sort-button" onClick={() => setDescOrder((p) => !p)}>{`${
-          descOrder ? 'Sort: Most Recently Modified' : 'Sort: Least Recently Modified'
-        }`}</button>
-      )}
+    <div style={{ marginBottom: '1.75rem' }}>
+      <Flex align="center">
+        <h4 style={{ marginRight: '1rem' }}>
+          {title} ({totalCount})
+        </h4>
+        {showSortButton && profiles && profiles.length !== 0 && (
+          <Button
+            type="primary"
+            size="small"
+            styles={{ root: legacyStyles.actionButton }}
+            onClick={() => setDescOrder((p) => !p)}
+          >{`${
+            descOrder ? 'Sort: Most Recently Modified' : 'Sort: Least Recently Modified'
+          }`}</Button>
+        )}
+      </Flex>
 
       {!onlyModeration && (
-        <form className="filter-form well mt-3" onSubmit={filterProfiles}>
-          <input type="text" name="term" className="form-control input-sm" />
-          <Dropdown
-            className="dropdown-select dropdown-profile-state dropdown-sm"
+        <Flex
+          justify="space-start"
+          align="center"
+          gap="middle"
+          wrap
+          style={legacyStyles.filterForm}
+        >
+          <Input
+            type="text"
+            className={styles.searchinput}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            onPressEnter={filterProfiles}
+          />
+          <Select
+            className={styles.statefilter}
             options={profileStateOptions}
+            value={profileStateOption}
             placeholder="Select profile state"
-            value={profileStateOptions.find((option) => option.value === profileStateOption)}
             onChange={(e) => {
               setPageNumber(1)
-              setProfileStateOption(e.value)
+              setProfileStateOption(e)
             }}
           />
-          <button type="submit" className="btn btn-xs">
+          <Button
+            type="primary"
+            styles={{ root: legacyStyles.actionButton }}
+            onClick={filterProfiles}
+          >
             Search
-          </button>
-        </form>
+          </Button>
+        </Flex>
       )}
 
       {profiles ? (
-        <ul className="list-unstyled list-paginated">
+        <Flex vertical gap="small" style={{ marginBottom: '1.5rem' }}>
           {profiles.map((profile) => {
-            const name = profile.content.names[0]
+            const name = profile.content.names?.[0]
             const state =
               profile.ddate && profile.state !== 'Merged' ? 'Deleted' : profile.state
             return (
-              <li
-                key={profile.id}
-                className={`${profile.state === 'Blocked' ? 'blocked' : ''}${
-                  profile.ddate ? ' deleted' : ''
-                }`}
-              >
-                <span className="col-name">
+              <Row key={profile.id} align="middle" gutter={[15, 15]}>
+                <Col xs={24} sm={12} md={6} lg={3} xl={3}>
                   <a
                     href={`/profile?id=${profile.id}`}
                     target="_blank"
                     rel="noreferrer"
                     title={profile.id}
+                    className={styles.profilenamelink}
                   >
-                    {name.fullname}
+                    {name?.fullname}
                   </a>
-                </span>
-                <span className="col-email text-muted">{profile.content.preferredEmail}</span>
-                <span className="col-created">
+                </Col>
+                <Col
+                  xs={24}
+                  sm={12}
+                  md={6}
+                  lg={4}
+                  xl={4}
+                  className={styles.truncatedtext}
+                  style={{ color: colors.textMuted }}
+                >
+                  {profile.content.preferredEmail}
+                </Col>
+                <Col xs={24} sm={12} md={6} lg={6} xl={6}>
                   {profile.tcdate !== profile.tmdate && (
                     <>
                       <span>
@@ -597,166 +597,154 @@ const UserModerationQueue = ({
                       hour12: false,
                     })}
                   </span>
-                </span>
-                <span className="col-status">
-                  <span className={`label label-${profile.password ? 'success' : 'danger'}`}>
-                    password
-                  </span>{' '}
-                  <span
-                    className={`${getProfileStateLabelClass(state)}${
-                      profile.id === lastPreviewedProfileId ? ' last-previewed' : ''
-                    }`}
-                    onClick={() => {
-                      setProfileToPreview(formatProfileData(cloneDeep(profile)))
-                    }}
-                  >
-                    {state}
-                  </span>
-                </span>
-                <span className="col-actions">
-                  {onlyModeration ? (
-                    <>
-                      <button
-                        type="button"
-                        className="btn btn-xs"
+                </Col>
+                <Col xs={24} sm={12} md={6} lg={5} xl={5}>
+                  <Space>
+                    <Tag
+                      color={getBootstrap337LabelColor(profile.password ? 'success' : 'error')}
+                      variant="solid"
+                      styles={{ root: legacyStyles.statusTag }}
+                    >
+                      password
+                    </Tag>
+                    <Tag
+                      color={getBootstrap337LabelColor(getProfileStateLabelClass(state))}
+                      variant="solid"
+                      onClick={() =>
+                        setProfileToPreview(
+                          formatProfileData(cloneDeep(profile), { includePastStates: true })
+                        )
+                      }
+                      styles={{ root: { ...legacyStyles.statusTag, cursor: 'pointer' } }}
+                    >
+                      {state}
+                    </Tag>
+                  </Space>
+                </Col>
+
+                {onlyModeration ? (
+                  <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                    <Flex wrap gap="small">
+                      <ActionButton
+                        icon={<CheckCircleOutlined />}
                         disabled={idsLoading.includes(profile.id)}
                         onClick={() => acceptUser(profile.id)}
                       >
-                        <Icon name="ok-circle" /> Accept
-                      </button>{' '}
-                      <button
-                        type="button"
-                        className="btn btn-xs"
+                        Accept
+                      </ActionButton>
+                      <ActionButton
+                        icon={<CloseCircleOutlined />}
                         onClick={() => showRejectionModal(profile)}
                       >
-                        <Icon name="remove-circle" /> Reject
-                      </button>{' '}
-                      <button
-                        type="button"
-                        className="btn btn-xs btn-block-profile"
+                        Reject
+                      </ActionButton>
+                      <ActionButton
+                        icon={<StopOutlined />}
                         onClick={() => showBlockUnblockModal(profile)}
                       >
-                        <Icon name="ban-circle" />
-                        {'   '}
                         Block
-                      </button>
-                    </>
-                  ) : (
-                    <>
+                      </ActionButton>
+                    </Flex>
+                  </Col>
+                ) : (
+                  <Col xs={24} sm={12} md={6} lg={6} xl={6}>
+                    <Flex wrap gap="small">
                       {(profile.state === 'Needs Moderation' ||
                         profile.state === 'Rejected') && (
-                        <button
-                          type="button"
-                          className="btn btn-xs"
+                        <ActionButton
+                          icon={<CheckCircleOutlined />}
                           onClick={() => acceptUser(profile.id)}
                         >
-                          <Icon name="ok-circle" /> Accept
-                        </button>
-                      )}{' '}
+                          Accept
+                        </ActionButton>
+                      )}
                       {!(
                         profile.state === 'Blocked' ||
                         profile.state === 'Limited' ||
                         profile.state === 'Rejected' ||
                         profile.ddate
                       ) && (
-                        <button
-                          type="button"
-                          className="btn btn-xs"
+                        <ActionButton
+                          icon={<CloseCircleOutlined />}
                           onClick={() => showRejectionModal(profile)}
                         >
-                          <Icon name="remove-circle" /> Reject
-                        </button>
+                          Reject
+                        </ActionButton>
                       )}
                       {profile.state === 'Limited' && profile.content.yearOfBirth && (
-                        <button
-                          type="button"
-                          className="btn btn-xs"
+                        <ActionButton
+                          icon={<PlusOutlined />}
                           onClick={() => addSDNException(profile.id)}
                         >
-                          <Icon name="plus" /> Exception
-                        </button>
-                      )}{' '}
+                          Exception
+                        </ActionButton>
+                      )}
                       {!profile.ddate && (
-                        <button
-                          type="button"
-                          className="btn btn-xs btn-block-profile"
+                        <ActionButton
+                          icon={
+                            profile.state === 'Blocked' ? <UndoOutlined /> : <StopOutlined />
+                          }
                           onClick={() => showBlockUnblockModal(profile)}
                         >
-                          <Icon
-                            name={`${profile.state === 'Blocked' ? 'refresh' : 'ban-circle'}`}
-                          />{' '}
                           {`${profile.state === 'Blocked' ? 'Unblock' : 'Block'}`}
-                        </button>
-                      )}{' '}
-                      {state !== 'Merged' && profile.state !== 'Needs Moderation' && (
-                        <button
-                          type="button"
-                          className="btn btn-xs"
-                          onClick={() => deleteRestoreUser(profile)}
-                          title={
-                            profile.ddate ? 'restore this profile' : 'delete this profile'
-                          }
-                        >
-                          <Icon name={profile.ddate ? 'refresh' : 'trash'} />
-                        </button>
+                        </ActionButton>
                       )}
-                    </>
-                  )}
-                </span>
-              </li>
+                      {state !== 'Merged' && profile.state !== 'Needs Moderation' && (
+                        <ActionButton onClick={() => deleteRestoreUser(profile)}>
+                          {profile.ddate ? (
+                            <UndoOutlined />
+                          ) : (
+                            <span style={{ top: '0px' }}>
+                              <Icon name="trash" />
+                            </span>
+                          )}
+                        </ActionButton>
+                      )}
+                    </Flex>
+                  </Col>
+                )}
+              </Row>
             )
           })}
           {profiles.length === 0 && (
-            <li>
-              <p className="empty-message">{`${
-                onlyModeration
-                  ? 'No profiles pending moderation.'
-                  : 'No matching profile found'
-              }`}</p>
-            </li>
+            <p className="empty-message">{`${
+              onlyModeration ? 'No profiles pending moderation.' : 'No matching profile found'
+            }`}</p>
           )}
-        </ul>
+        </Flex>
       ) : (
         <LoadingSpinner inline />
       )}
-      <div className="pagination-container-with-control">
-        <PaginationLinks
-          currentPage={pageNumber}
-          itemsPerPage={pageSize}
-          totalCount={totalCount}
-          setCurrentPage={setPageNumber}
-          options={{ noScroll: true }}
-        />
-        {totalCount > pageSize && (
-          <Dropdown
-            className="dropdown-select dropdown-pagesize"
-            options={pageSizeOptions}
-            value={pageSizeOptions.find((p) => p.value === pageSize)}
-            onChange={(e) => {
-              setPageNumber(1)
-              setPageSize(e.value)
-            }}
-          />
-        )}
-      </div>
+      <Pagination
+        align="center"
+        current={pageNumber}
+        pageSize={pageSize}
+        total={totalCount}
+        onChange={(page, size) => {
+          setPageNumber(page)
+        }}
+        showSizeChanger={!onlyModeration}
+        onShowSizeChange={(current, size) => {
+          setPageSize(size)
+        }}
+        hideOnSinglePage
+      />
 
       <RejectionModal
-        id={rejectModalId}
         profileToReject={profileToReject}
+        setProfileToReject={setProfileToReject}
         rejectUser={rejectUser}
         signedNotes={signedNotes}
       />
       <BlockModal
-        id={blockModalId}
         profileToBlockUnblock={profileToBlockUnblock}
+        setProfileToBlockUnblock={setProfileToBlockUnblock}
         signedNotes={signedNotes}
         reload={reload}
-        accessToken={accessToken}
       />
       <ProfilePreviewModal
         profileToPreview={profileToPreview}
         setProfileToPreview={setProfileToPreview}
-        setLastPreviewedProfileId={setLastPreviewedProfileId}
         contentToShow={[
           'names',
           'emails',
@@ -765,35 +753,28 @@ const UserModerationQueue = ({
           'relations',
           'expertise',
           'publications',
-          'messages',
+          'pastStates',
           'tags',
         ]}
         showNextProfile={showNextProfile}
         acceptUser={acceptUser}
-        setProfileToReject={setProfileToReject}
         rejectUser={rejectUser}
       />
     </div>
   )
 }
 
-export default function UserModerationTab({ accessToken }) {
+export default function UserModerationTab() {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
 
-  const moderationDisabled = configNote?.content?.moderate?.value === 'No'
-
   const getModerationStatus = async () => {
     try {
-      const result = await api.get(
-        '/notes',
-        {
-          invitation: `${process.env.SUPER_USER}/-/OpenReview_Config`,
-          details: 'invitation',
-          limit: 1,
-        },
-        { accessToken }
-      )
+      const result = await api.get('/notes', {
+        invitation: `${process.env.SUPER_USER}/-/OpenReview_Config`,
+        details: 'invitation',
+        limit: 1,
+      })
 
       if (result?.notes?.[0]) {
         setConfigNote(result?.notes?.[0])
@@ -809,30 +790,8 @@ export default function UserModerationTab({ accessToken }) {
     getModerationStatus()
   }, [])
 
-  const enableDisableModeration = async () => {
-    // eslint-disable-next-line no-alert
-    const result = window.confirm(`${moderationDisabled ? 'Enable' : 'Disable'} moderation?`)
-    if (!result) return
-
-    try {
-      await api.post(
-        '/notes/edits',
-        view2.constructEdit({
-          formData: { moderate: moderationDisabled ? 'Yes' : 'No' },
-          invitationObj: configNote.details.invitation,
-          noteObj: configNote,
-        }),
-        { accessToken }
-      )
-      getModerationStatus()
-    } catch (error) {
-      promptError(error.message)
-    }
-  }
-
   const updateTermStamp = async () => {
     const currentTimeStamp = dayjs().valueOf()
-    // eslint-disable-next-line no-alert
     const result = window.confirm(
       `Update terms of service timestamp to ${currentTimeStamp}? (${dayjs(
         currentTimeStamp
@@ -847,8 +806,7 @@ export default function UserModerationTab({ accessToken }) {
           formData: { terms_timestamp: currentTimeStamp },
           invitationObj: configNote.details.invitation,
           noteObj: configNote,
-        }),
-        { accessToken }
+        })
       )
 
       getModerationStatus()
@@ -860,44 +818,34 @@ export default function UserModerationTab({ accessToken }) {
   return (
     <>
       {configNote && (
-        <div className="moderation-status">
-          <h4>Moderation Status:</h4>
-
-          <select
-            className="form-control input-sm"
-            value={moderationDisabled ? 'disabled' : 'enabled'}
-            onChange={enableDisableModeration}
-          >
-            <option value="enabled">Enabled</option>
-            <option value="disabled">Disabled</option>
-          </select>
-
-          <span className="terms-timestamp">
+        <Flex gap="large" align="center">
+          <span>
             {`Terms Timestamp is ${configNote?.content?.terms_timestamp?.value ?? 'unset'}`}
           </span>
-          <button type="button" className="btn btn-xs" onClick={updateTermStamp}>
+          <Button
+            onClick={updateTermStamp}
+            size="small"
+            type="primary"
+            styles={{ root: legacyStyles.updateTermStampButton }}
+          >
             Update Terms Stamp
-          </button>
-        </div>
+          </Button>
+        </Flex>
       )}
 
-      <div className="moderation-container">
-        <UserModerationQueue
-          accessToken={accessToken}
-          title="Recently Created Profiles"
-          onlyModeration={false}
-          reload={reload}
-          shouldReload={shouldReload}
-        />
+      <UserModerationQueue
+        title="Recently Created Profiles"
+        onlyModeration={false}
+        reload={reload}
+        shouldReload={shouldReload}
+      />
 
-        <UserModerationQueue
-          accessToken={accessToken}
-          title="New Profiles Pending Moderation"
-          reload={reload}
-          shouldReload={shouldReload}
-          showSortButton
-        />
-      </div>
+      <UserModerationQueue
+        title="New Profiles Pending Moderation"
+        reload={reload}
+        shouldReload={shouldReload}
+        showSortButton
+      />
     </>
   )
 }

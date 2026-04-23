@@ -45,6 +45,7 @@ export default async function page() {
     activeVenues = activeVenuesResult.value
   } else {
     activeVenues = []
+    // oxlint-disable-next-line no-console
     console.log('Error in page', {
       page: 'Home',
       activeVenuesResult,
@@ -55,6 +56,7 @@ export default async function page() {
     openVenues = openVenuesResult.value
   } else {
     openVenues = []
+    // oxlint-disable-next-line no-console
     console.log('Error in page', {
       page: 'Home',
       openVenuesResult,
@@ -64,6 +66,7 @@ export default async function page() {
   if (newsResult.status === 'fulfilled') {
     news = newsResult.value.notes
   } else {
+    // oxlint-disable-next-line no-console
     console.log('Error in page', {
       page: 'Home',
       newsResult,

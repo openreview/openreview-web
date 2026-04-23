@@ -1,13 +1,14 @@
 'use client'
 
-/* globals promptError: false */
-import React, { useEffect, useState } from 'react'
 import { isEmpty } from 'lodash'
 import { nanoid } from 'nanoid'
-import SpinnerButton from '../../../components/SpinnerButton'
-import { getProfileStateLabelClass, prettyField } from '../../../lib/utils'
+import React, { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import SpinnerButton from '../../../components/SpinnerButton'
 import api from '../../../lib/api-client'
+import { prettyField } from '../../../lib/utils'
+
+import { getProfileStateLabelClass } from '../../../lib/legacy-bootstrap-styles'
 
 // #region components used by Compare (in renderField method)
 const Names = ({ names, highlightValue }) => (
@@ -163,7 +164,6 @@ const Publications = ({ publications, highlightValue }) => (
             <tr>
               <td style={{ paddingBottom: '.75rem' }}>
                 {publication.authorids.map((authorid, index) => (
-                  // eslint-disable-next-line react/no-array-index-key
                   <a
                     key={index}
                     href={`/group?id=${authorid}`}
@@ -207,7 +207,6 @@ const Others = ({ fieldContent, highlightValue, isEmailSection }) => {
         {fieldContent &&
           fieldContent.map((content, i) => (
             <tr
-              // eslint-disable-next-line react/no-array-index-key
               key={`${content.value}-${i}`}
               data-toggle={content.signatures && 'tooltip'}
               title={content.signature && `Edited by ${content.signatures}`}
@@ -337,11 +336,9 @@ const getHighlightValue = (withSignatureProfile) => {
     if (key === 'publications') {
       value.forEach((publication) => {
         compareFields.push(publication?.title)
-        // eslint-disable-next-line no-unused-expressions
         publication?.authors?.forEach((author) => {
           compareFields.push(author)
         })
-        // eslint-disable-next-line no-unused-expressions
         publication?.authorids?.forEach((authorids) => {
           compareFields.push(authorids)
         })
@@ -357,7 +354,7 @@ const getHighlightValue = (withSignatureProfile) => {
   return compareFields.filter((p) => p)
 }
 
-export default function Compare({ profiles, accessToken, loadProfiles }) {
+export default function Compare({ profiles, loadProfiles }) {
   const [highlightValues, setHighlightValues] = useState(null)
   const [fields, setFields] = useState(null)
   const [edgeCounts, setEdgeCounts] = useState(null)
@@ -369,10 +366,10 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
     if (!profiles.left?.id || !profiles.right?.id || profiles.left.id === profiles.right.id)
       return
     try {
-      const leftHeadP = api.get('/edges', { head: profiles.left.id }, { accessToken })
-      const leftTailP = api.get('/edges', { tail: profiles.left.id }, { accessToken })
-      const rightHeadP = api.get('/edges', { head: profiles.right.id }, { accessToken })
-      const rightTailP = api.get('/edges', { tail: profiles.right.id }, { accessToken })
+      const leftHeadP = api.get('/edges', { head: profiles.left.id })
+      const leftTailP = api.get('/edges', { tail: profiles.left.id })
+      const rightHeadP = api.get('/edges', { head: profiles.right.id })
+      const rightTailP = api.get('/edges', { tail: profiles.right.id })
       const results = await Promise.all([leftHeadP, leftTailP, rightHeadP, rightTailP])
       setEdgeCounts({
         leftHead: results[0].count,
@@ -389,20 +386,12 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
     if (!profiles.left?.id || !profiles.right?.id || profiles.left.id === profiles.right.id)
       return
     try {
-      const leftTagsP = api.get(
-        '/tags',
-        {
-          profile: profiles.left.id,
-        },
-        { accessToken }
-      )
-      const rightTagsP = api.get(
-        '/tags',
-        {
-          profile: profiles.right.id,
-        },
-        { accessToken }
-      )
+      const leftTagsP = api.get('/tags', {
+        profile: profiles.left.id,
+      })
+      const rightTagsP = api.get('/tags', {
+        profile: profiles.right.id,
+      })
       const results = await Promise.all([leftTagsP, rightTagsP])
       setTags({
         left: results[0].count,
@@ -428,11 +417,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
     }
     const postMerge = async () => {
       try {
-        await api.post(
-          '/profiles/merge',
-          { from: fromProfile.id, to: toProfile.id },
-          { accessToken }
-        )
+        await api.post('/profiles/merge', { from: fromProfile.id, to: toProfile.id })
         await loadProfiles()
         setEdgeCounts(null)
         setTags(null)
@@ -443,7 +428,6 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
 
     if (toProfile.active === false && fromProfile.active === true) {
       if (
-        // eslint-disable-next-line no-alert
         window.confirm(
           `You are merging an ${fromProfile.state} profile into an ${toProfile.state} profile. Are you sure you want to proceed?`
         )
@@ -458,11 +442,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
   const mergeEdge = async (from, to) => {
     setLoadingEdges(true)
     try {
-      await api.post(
-        '/edges/rename',
-        { currentId: profiles[from].id, newId: profiles[to].id },
-        { accessToken }
-      )
+      await api.post('/edges/rename', { currentId: profiles[from].id, newId: profiles[to].id })
       await getEdges()
     } catch (apiError) {
       promptError(apiError.message)
@@ -473,11 +453,7 @@ export default function Compare({ profiles, accessToken, loadProfiles }) {
   const mergeTag = async (from, to) => {
     setLoadingTags(true)
     try {
-      await api.post(
-        '/tags/rename',
-        { currentId: profiles[from].id, newId: profiles[to].id },
-        { accessToken }
-      )
+      await api.post('/tags/rename', { currentId: profiles[from].id, newId: profiles[to].id })
       await getTags()
     } catch (error) {
       promptError(error.message)

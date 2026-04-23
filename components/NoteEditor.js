@@ -1,28 +1,27 @@
-/* globals promptError, promptLogin, view2, clearMessage: false */
-
-import React, { useEffect, useCallback, useReducer, useState, useContext } from 'react'
-import throttle from 'lodash/throttle'
 import { intersection, isEmpty } from 'lodash'
-import EditorComponentContext from './EditorComponentContext'
-import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
-import EditorWidget from './webfield/EditorWidget'
-import SpinnerButton from './SpinnerButton'
-import LoadingSpinner from './LoadingSpinner'
-import Signatures from './Signatures'
-import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
-import Icon from './Icon'
+import throttle from 'lodash/throttle'
+import { useEffect, useCallback, useReducer, useState, useContext, useRef } from 'react'
+import useTurnstileToken from '../hooks/useTurnstileToken'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
+import { getNoteContentValues } from '../lib/forum-utils'
 import { getAutoStorageKey, prettyField, prettyInvitationId, classNames } from '../lib/utils'
 import { getErrorFieldName, isNonDeletableError } from '../lib/webfield-utils'
-import { getNoteContentValues } from '../lib/forum-utils'
+import EditorComponentContext from './EditorComponentContext'
+import DatePickerWidget from './EditorComponents/DatePickerWidget'
+import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
+import LicenseWidget from './EditorComponents/LicenseWidget'
+import Markdown from './EditorComponents/Markdown'
+import EditSignatures from './EditSignatures'
+import Icon from './Icon'
+import LoadingSpinner from './LoadingSpinner'
+import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
+import Signatures from './Signatures'
+import SpinnerButton from './SpinnerButton'
+import EditorWidget from './webfield/EditorWidget'
+import WebFieldContext from './WebFieldContext'
 
 import styles from '../styles/components/NoteEditor.module.scss'
-import LicenseWidget from './EditorComponents/LicenseWidget'
-import DatePickerWidget from './EditorComponents/DatePickerWidget'
-import EditSignatures from './EditSignatures'
-import Markdown from './EditorComponents/Markdown'
-import WebFieldContext from './WebFieldContext'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -155,34 +154,31 @@ const addMissingReaders = (
         }
       }
     } else {
-      const acIndex = signatureId.indexOf(anonAreaChairName)
+      if (readersDefinedInInvitation?.includes(signatureId)) {
+        return [...new Set([...readersSelected, signatureId])]
+      }
+
       const secondaryAcIndex = signatureId.indexOf(secondaryAreaChairName)
+      if (secondaryAcIndex > 0) {
+        const secondaryACsGroup = signatureId
+          .slice(0, secondaryAcIndex)
+          .concat(`Secondary_${areaChairName}`)
+        return [...new Set([...readersSelected, secondaryACsGroup])]
+      }
 
-      const acGroupId =
-        acIndex >= 0 ? signatureId.slice(0, acIndex).concat(areaChairName) : signatureId
-      const secondaryAcGroupId =
-        secondaryAcIndex >= 0
-          ? signatureId.slice(0, secondaryAcIndex).concat(areaChairName)
-          : signatureId
+      const acIndex = signatureId.indexOf(anonAreaChairName)
+      if (acIndex > 0) {
+        const acsGroup = signatureId.slice(0, acIndex).concat(areaChairName)
+        return [...new Set([...readersSelected, acsGroup])]
+      }
 
-      const groupToAdd = [acGroupId, secondaryAcGroupId].filter((p) =>
-        readersDefinedInInvitation?.includes(p)
-      )
-
-      return groupToAdd.length
-        ? [...new Set([...readersSelected, ...groupToAdd])]
-        : readersSelected
+      return readersSelected
     }
   }
   return readersSelected
 }
 
-export const getNoteReaderValues = async (
-  roleNames,
-  invitation,
-  noteEditorData,
-  accessToken
-) => {
+export const getNoteReaderValues = async (roleNames, invitation, noteEditorData) => {
   if (!invitation.edit.note.readers || Array.isArray(invitation.edit.note.readers)) {
     return undefined
   }
@@ -201,7 +197,7 @@ export const getNoteReaderValues = async (
         if (p.value) return p.value
         if (p.inGroup) {
           try {
-            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            const result = await api.get('/groups', { id: p.inGroup })
             return result.groups[0]?.members
           } catch (error) {
             return []
@@ -219,12 +215,7 @@ export const getNoteReaderValues = async (
   )
 }
 
-export const getEditReaderValues = async (
-  roleNames,
-  invitation,
-  noteEditorData,
-  accessToken
-) => {
+export const getEditReaderValues = async (roleNames, invitation, noteEditorData) => {
   if (Array.isArray(invitation.edit.readers)) return undefined
 
   const invitationEditReaderValues =
@@ -234,7 +225,7 @@ export const getEditReaderValues = async (
         if (p.value) return p.value
         if (p.inGroup) {
           try {
-            const result = await api.get('/groups', { id: p.inGroup }, { accessToken })
+            const result = await api.get('/groups', { id: p.inGroup })
             return result.groups[0]?.members
           } catch (error) {
             return []
@@ -265,7 +256,7 @@ const NoteEditor = ({
   customValidator,
   className,
 }) => {
-  const { user, isRefreshing, accessToken } = useUser()
+  const { user, isRefreshing } = useUser()
   const [fields, setFields] = useState([])
   const [loading, setLoading] = useState({
     noteReaders: false,
@@ -276,9 +267,13 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
+  const [hasHumanVerificationError, setHasHumanVerificationError] = useState(false)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
+    'noteEditor',
+    hasHumanVerificationError
+  )
   const { noteEditorPreview } = useContext(WebFieldContext) ?? {}
   if (noteEditorPreview)
-    // eslint-disable-next-line no-param-reassign
     customValidator = () => ({
       isValid: false,
       errorMessage: 'This is a note editor preview',
@@ -479,7 +474,7 @@ const NoteEditor = ({
     }
 
     if (writerDescription?.param?.regex === '~.*') {
-      return [user.profile?.id]
+      return [user.profile.id]
     }
 
     return noteEditorData.editSignatureInputValues
@@ -492,11 +487,10 @@ const NoteEditor = ({
       details: { invitation, writable: true },
     }
     try {
-      const result = await api.get(
-        '/notes',
-        { id: noteCreated.id, details: 'invitation,presentation,writable' },
-        { accessToken }
-      )
+      const result = await api.get('/notes', {
+        id: noteCreated.id,
+        details: 'invitation,presentation,writable',
+      })
       return result.notes?.[0] ? result.notes[0] : constructedNote
     } catch (error) {
       if (error.name === 'ForbiddenError') return constructedNote
@@ -524,9 +518,9 @@ const NoteEditor = ({
           noteOrEdit = note
           label = 'note'
         }
-        const latestNoteOrEdit = (
-          await api.get(apiPath, { id: noteOrEdit.id }, { accessToken })
-        )?.[`${label}s`]?.[0]
+        const latestNoteOrEdit = (await api.get(apiPath, { id: noteOrEdit.id }))?.[
+          `${label}s`
+        ]?.[0]
 
         if (latestNoteOrEdit?.tmdate && latestNoteOrEdit.tmdate !== noteOrEdit.tmdate) {
           throw new Error(
@@ -538,7 +532,7 @@ const NoteEditor = ({
       const domainGroup =
         !invitation.domain || invitation.domain === process.env.SUPER_USER
           ? {}
-          : await api.get('/groups', { id: invitation.domain }, { accessToken })
+          : await api.get('/groups', { id: invitation.domain })
       const {
         reviewers_name: { value: reviewerName } = {},
         reviewers_anon_name: { value: anonReviewerName } = {},
@@ -561,18 +555,8 @@ const NoteEditor = ({
           Object.entries(noteEditorData)
             .filter(([key, value]) => value === undefined)
             .reduce((acc, [key, value]) => ({ ...acc, [key]: { delete: true } }), {})),
-        noteReaderValues: await getNoteReaderValues(
-          roleNames,
-          invitation,
-          noteEditorData,
-          accessToken
-        ),
-        editReaderValues: await getEditReaderValues(
-          roleNames,
-          invitation,
-          noteEditorData,
-          accessToken
-        ),
+        noteReaderValues: await getNoteReaderValues(roleNames, invitation, noteEditorData),
+        editReaderValues: await getEditReaderValues(roleNames, invitation, noteEditorData),
         editWriterValues: getEditWriterValues(),
         ...(replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,
@@ -601,7 +585,9 @@ const NoteEditor = ({
             invitationObj: invitation,
             noteObj: note,
           })
-      const result = await api.post('/notes/edits', editToPost, { accessToken })
+      const result = await api.post('/notes/edits', editToPost, {
+        'cf-turnstile-token': turnstileToken,
+      })
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })
@@ -609,6 +595,11 @@ const NoteEditor = ({
       closeNoteEditor()
       onNoteCreated(createdNote)
     } catch (error) {
+      if (error.name === 'HumanVerificationRequiredError' && !noteEditorPreview) {
+        setHasHumanVerificationError(true)
+        setIsSubmitting(false)
+        return
+      }
       if (error.errors) {
         setErrors(
           error.errors.map((p) => {
@@ -816,6 +807,8 @@ const NoteEditor = ({
           />
         </div>
       )}
+
+      <div className={styles.turnstileContainer} ref={turnstileContainerRef} />
 
       {Object.values(loading).some((p) => p) ? (
         <LoadingSpinner inline />

@@ -40,9 +40,7 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
       </div>
       {noteToShow && (
         <ul className="note-meta-info list-inline">
-          <li>
-            <ClientForumDate note={noteToShow} />
-          </li>
+          <ClientForumDate note={noteToShow} />
           <li>
             {!noteToShow.content?.venue?.value
               ? prettyId(noteToShow.invitations[0])
@@ -91,7 +89,6 @@ const SourceGroupedNoteList = ({ notes, displayOptions }) => {
         `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
       ].some((p) => curr.invitations.includes(p))
     ) {
-      // eslint-disable-next-line no-param-reassign
       prev[curr.id] = [curr]
       return prev
     }
@@ -100,7 +97,6 @@ const SourceGroupedNoteList = ({ notes, displayOptions }) => {
     const key = `${title}|${authors}`
 
     if (!prev[key]) {
-      // eslint-disable-next-line no-param-reassign
       prev[key] = []
     }
     prev[key].push(curr)
