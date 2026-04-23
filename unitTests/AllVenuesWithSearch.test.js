@@ -1,69 +1,131 @@
-import { screen, render, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
-import api from '../lib/api-client'
-import AllVenuesWithSearch from '../app/(Home)/AllVenuesWithSearch'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import AllVenuesWithSearch from '../app/(Home)/AllVenuesWithSearch'
+import api from '../lib/api-client'
+import '@testing-library/jest-dom'
+
+// required by autocomplete component
+global.ResizeObserver =
+  global.ResizeObserver ||
+  class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+global.MessageChannel =
+  global.MessageChannel ||
+  class {
+    constructor() {
+      this.port1 = { postMessage: () => {}, close: () => {}, onmessage: null }
+      this.port2 = { postMessage: () => {}, close: () => {}, onmessage: null }
+    }
+  }
+if (!window.matchMedia) {
+  window.matchMedia = (query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  })
+}
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
+const pushMock = jest.fn()
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock }),
+}))
+
 describe('AllVenuesWithSearch', () => {
-  test('show search input', async () => {
-    render(<AllVenuesWithSearch />)
-    expect(
-      screen.getByRole('textbox', { placeholder: 'Type to search for venues...' })
-    ).toBeInTheDocument()
+  beforeEach(() => {
+    pushMock.mockReset()
+    global.promptError = jest.fn()
   })
 
-  test('show empty message when search return nothing', async () => {
+  test('show search input', () => {
+    render(<AllVenuesWithSearch />)
+    expect(screen.getByPlaceholderText('Type to search for venues...')).toBeInTheDocument()
+  })
+
+  test('does not call api when typing fewer than 3 characters', async () => {
     api.get = jest.fn(() => ({ venues: [] }))
     render(<AllVenuesWithSearch />)
 
-    await userEvent.type(screen.getByRole('textbox'), 'non existing venue')
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AA')
+
+    await new Promise((resolve) => setTimeout(resolve, 400))
+    expect(api.get).not.toHaveBeenCalled()
+  })
+
+  test('calls api and renders results when typing 3+ characters', async () => {
+    api.get = jest.fn(() => ({ venues: [{ id: 'AAAA' }, { id: 'AAAB' }, { id: 'AAAC' }] }))
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AAA')
 
     await waitFor(() => {
-      expect(screen.getByText('Your search did not return any results.')).toBeInTheDocument()
-      expect(screen.getByRole('link', { name: 'View All Venues' })).toHaveAttribute(
+      expect(api.get).toHaveBeenCalledWith(
+        '/venues/search',
+        expect.objectContaining({ term: 'AAA', limit: 10 })
+      )
+    })
+
+    await waitFor(() => {
+      expect(screen.getByRole('option', { name: 'AAAA' })).toBeInTheDocument()
+      expect(screen.getByRole('option', { name: 'AAAB' })).toBeInTheDocument()
+      expect(screen.getByRole('option', { name: 'AAAC' })).toBeInTheDocument()
+    })
+  })
+
+  test('navigates to /group when a result is selected', async () => {
+    api.get = jest.fn(() => ({ venues: [{ id: 'AAAA' }] }))
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AAA')
+
+    const option = await screen.findByRole('option', { name: 'AAAA' })
+    await userEvent.click(option)
+
+    expect(pushMock).toHaveBeenCalledWith('/group?id=AAAA')
+  })
+
+  test('shows empty-state message when server returns no results', async () => {
+    api.get = jest.fn(() => ({ venues: [] }))
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Type to search for venues...'),
+      'nonexistent'
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('No venues match your search.')).toBeInTheDocument()
+    })
+  })
+
+  test('shows "View All Venues" link in the dropdown footer', async () => {
+    api.get = jest.fn(() => ({ venues: [{ id: 'AAAA' }] }))
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AAA')
+
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: /View All Venues/ })).toHaveAttribute(
         'href',
         '/venues'
       )
     })
   })
 
-  test('show search results', async () => {
-    api.get = jest.fn(() => ({ venues: [{ id: 'AAAA' }, { id: 'AAAB' }, { id: 'AAAC' }] }))
-    render(<AllVenuesWithSearch />)
-
-    await userEvent.type(screen.getByRole('textbox'), 'AAA')
-
-    await waitFor(() => {
-      expect(api.get).toHaveBeenCalledWith(
-        expect.anything(),
-        expect.objectContaining({ term: 'AAA' })
-      )
-      expect(
-        screen.queryByText('Your search did not return any results.')
-      ).not.toBeInTheDocument()
-      expect(screen.getByRole('link', { name: 'AAAA' })).toHaveAttribute(
-        'href',
-        '/group?id=AAAA'
-      )
-      expect(screen.getByRole('link', { name: 'AAAB' })).toHaveAttribute(
-        'href',
-        '/group?id=AAAB'
-      )
-      expect(screen.getByRole('link', { name: 'AAAC' })).toHaveAttribute(
-        'href',
-        '/group?id=AAAC'
-      )
-    })
-  })
-
-  test('show error when search fail', async () => {
+  test('calls promptError when the search request fails', async () => {
     api.get = jest.fn(() => Promise.reject(new Error('some error')))
-    global.promptError = jest.fn()
     render(<AllVenuesWithSearch />)
 
-    await userEvent.type(screen.getByRole('textbox'), 'non existing venue')
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
 
     await waitFor(() => {
       expect(global.promptError).toHaveBeenCalledWith('some error')

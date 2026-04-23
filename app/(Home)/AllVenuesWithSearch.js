@@ -1,80 +1,110 @@
 'use client'
 
+import { AutoComplete, Divider, Input } from 'antd'
 import { debounce } from 'lodash'
 import Link from 'next/link'
-import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import LoadingIcon from '../../components/LoadingIcon'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
+const MIN_SEARCH_LENGTH = 3
+
 export default function AllVenuesWithSearch() {
   const [searchTerm, setSearchTerm] = useState('')
-  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
-  const [venueResults, setVenueResults] = useState(null)
+  const [venueSearchResults, setVenueSearchResults] = useState([])
+  const [loading, setLoading] = useState(false)
+  const latestTermRef = useRef('')
+  const router = useRouter()
 
   const searchVenues = async (term) => {
+    setLoading(true)
     try {
       const result = await api.get('/venues/search', { term, limit: 10 })
-      setVenueResults(result.venues.map((p) => ({ value: p.id, label: prettyId(p.id) })))
+      if (term !== latestTermRef.current) return
+      setVenueSearchResults(
+        result.venues.map((venue) => ({ value: venue.id, label: prettyId(venue.id) }))
+      )
     } catch (error) {
+      if (term !== latestTermRef.current) return
       promptError(error.message)
+    } finally {
+      if (term === latestTermRef.current) setLoading(false)
     }
   }
 
-  const delaySearch = useCallback(
-    debounce((term) => setSearchTerm(term), 300),
+  const delaySearch = useMemo(
+    () =>
+      debounce((term) => {
+        const cleanTerm = term.trim()
+        latestTermRef.current = cleanTerm
+        if (cleanTerm.length < MIN_SEARCH_LENGTH) {
+          setVenueSearchResults([])
+          setLoading(false)
+          return
+        }
+        searchVenues(cleanTerm)
+      }, 300),
     []
   )
 
-  useEffect(() => {
-    const cleanSeachTerm = searchTerm?.trim()
-    if (!cleanSeachTerm) {
-      setVenueResults(null)
-      return
-    }
-    if (cleanSeachTerm.length >= 3) {
-      searchVenues(cleanSeachTerm)
-    }
-  }, [searchTerm])
+  useEffect(() => () => delaySearch.cancel(), [delaySearch])
+
+  const handleSelect = (value) => {
+    setSearchTerm('')
+    setVenueSearchResults([])
+    router.push(`/group?id=${value}`)
+  }
+
+  let notFoundContent
+  if (loading) {
+    notFoundContent = (
+      <span style={{ color: '#8c1b13' }}>
+        <LoadingIcon />
+      </span>
+    )
+  } else if (searchTerm.trim().length < MIN_SEARCH_LENGTH) {
+    notFoundContent = `Type at least ${MIN_SEARCH_LENGTH} characters to search.`
+  } else {
+    notFoundContent = 'No venues match your search.'
+  }
+
+  const popupRender = (menu) => (
+    <>
+      {menu}
+      <Divider style={{ margin: '4px 0' }} />
+      <div style={{ padding: '6px 12px' }}>
+        <Link href="/venues">View All Venues →</Link>
+      </div>
+    </>
+  )
 
   return (
-    <>
-      <section id="all-venues">
-        <h1>Search Venues</h1>
-        <div>
-          <input
-            className="form-control"
-            type="text"
-            value={immediateSearchTerm}
-            placeholder="Type to search for venues..."
-            onChange={(e) => {
-              setImmediateSearchTerm(e.target.value)
-              delaySearch(e.target.value)
-            }}
-          />
-        </div>
-        <div className="mt-3">
-          <ul className="list-unstyled venues-list">
-            {venueResults && venueResults.length === 0 ? (
-              <>
-                <li className="text-muted">
-                  Your search did not return any results.{' '}
-                  <Link href={`/venues`} className="all-venues-link">
-                    View All Venues
-                  </Link>
-                </li>
-              </>
-            ) : (
-              <>
-                {venueResults?.map(({ value, label }) => (
-                  <li key={value}>
-                    <Link href={`/group?id=${value}`}>{label}</Link>
-                  </li>
-                ))}
-              </>
-            )}
-          </ul>
-        </div>
-      </section>
-    </>
+    <section id="all-venues">
+      <h1>Search Venues</h1>
+      <Divider style={{ marginTop: 0, minWidth: 0, width: '100%', maxWidth: 768 }} />
+      <AutoComplete
+        value={searchTerm}
+        options={venueSearchResults}
+        onChange={setSearchTerm}
+        showSearch={{ onSearch: delaySearch }}
+        onClear={() => {
+          latestTermRef.current = ''
+          setVenueSearchResults([])
+          setLoading(false)
+        }}
+        onSelect={handleSelect}
+        popupRender={popupRender}
+        notFoundContent={notFoundContent}
+        allowClear
+        virtual={false}
+        style={{ width: '100%', maxWidth: 768 }}
+        popupMatchSelectWidth
+        getPopupContainer={(triggerNode) => triggerNode.parentElement}
+      >
+        <Input size="large" placeholder="Type to search for venues..." />
+      </AutoComplete>
+    </section>
   )
 }
