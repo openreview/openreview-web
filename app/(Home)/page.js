@@ -1,13 +1,14 @@
 import { cookies, headers } from 'next/headers'
-import ActiveVenues from './ActiveVenues'
-import styles from './Home.module.scss'
-import OpenVenues from './OpenVenues'
+import VersionChecker from '../../components/VersionChecker'
 import api from '../../lib/api-client'
 import { formatGroupResults } from '../../lib/utils'
 import ActiveConsoles from './ActiveConsoles'
-import VersionChecker from '../../components/VersionChecker'
-import News from './News'
+import ActiveVenues from './ActiveVenues'
 import AllVenuesWithSearch from './AllVenuesWithSearch'
+import News from './News'
+import OpenVenues from './OpenVenues'
+
+import styles from './Home.module.scss'
 
 export const metadata = {
   title: 'Venues | OpenReview',

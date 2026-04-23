@@ -1,10 +1,11 @@
-import Link from 'next/link'
 import { headers } from 'next/headers'
+import Link from 'next/link'
 import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
 import { deburrString, prettyId } from '../../lib/utils'
-import styles from './Venues.module.scss'
 import CommonLayout from '../CommonLayout'
+
+import styles from './Venues.module.scss'
 
 export const metadata = {
   title: 'Venue Directory | OpenReview',
@@ -68,7 +69,6 @@ export default async function page() {
             {venues.map((group, i) => {
               const isLeadingVenue =
                 deburrFirstLetter(group) > deburrFirstLetter(venues[i - 1])
-              console.log({ isLeadingVenue })
               return (
                 <li key={group.id}>
                   <VenueItem id={group.id} name={group.name} isLeadingVenue={isLeadingVenue} />

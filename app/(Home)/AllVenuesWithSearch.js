@@ -1,9 +1,8 @@
 'use client'
 
-/* globals promptError: false */
-import { useCallback, useEffect, useState } from 'react'
 import { debounce } from 'lodash'
 import Link from 'next/link'
+import { useCallback, useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
