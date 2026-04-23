@@ -11,6 +11,19 @@ import { prettyId } from '../../lib/utils'
 
 const MIN_SEARCH_LENGTH = 3
 
+const highlightMatch = (text, term) => {
+  if (!term) return text
+  const idx = text.toLowerCase().indexOf(term.toLowerCase())
+  if (idx === -1) return text
+  return (
+    <>
+      {text.slice(0, idx)}
+      <strong>{text.slice(idx, idx + term.length)}</strong>
+      {text.slice(idx + term.length)}
+    </>
+  )
+}
+
 export default function AllVenuesWithSearch() {
   const [searchTerm, setSearchTerm] = useState('')
   const [venueSearchResults, setVenueSearchResults] = useState([])
@@ -24,7 +37,10 @@ export default function AllVenuesWithSearch() {
       const result = await api.get('/venues/search', { term, limit: 10 })
       if (term !== latestTermRef.current) return
       setVenueSearchResults(
-        result.venues.map((venue) => ({ value: venue.id, label: prettyId(venue.id) }))
+        result.venues.map((venue) => ({
+          value: venue.id,
+          label: highlightMatch(prettyId(venue.id), term),
+        }))
       )
     } catch (error) {
       if (term !== latestTermRef.current) return
@@ -101,6 +117,7 @@ export default function AllVenuesWithSearch() {
         virtual={false}
         style={{ width: '100%', maxWidth: 768 }}
         popupMatchSelectWidth
+        listHeight={150}
         getPopupContainer={(triggerNode) => triggerNode.parentElement}
       >
         <Input size="large" placeholder="Type to search for venues..." />
