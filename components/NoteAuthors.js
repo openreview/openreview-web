@@ -1,11 +1,11 @@
+import isEqual from 'lodash/isEqual'
 /* globals $: false */
 import uniqBy from 'lodash/uniqBy'
-import isEqual from 'lodash/isEqual'
 import zip from 'lodash/zip'
 import Link from 'next/link'
+import { prettyId } from '../lib/utils'
 import ExpandableList from './ExpandableList'
 import Icon from './Icon'
-import { prettyId } from '../lib/utils'
 
 const maxAuthorsToShow = 20
 
@@ -96,7 +96,22 @@ const NoteAuthors = ({ authors, authorIds, signatures, original }) => {
   )
 }
 
-export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) => {
+export const NoteAuthorsV2 = ({
+  authors: authorsProp,
+  authorIds: authorIdsProp,
+  signatures,
+  noteReaders,
+  showAuthorInstitutions,
+}) => {
+  if (showAuthorInstitutions && !authorIdsProp?.value) {
+    return <NoteAuthorsWithInstitutions authors={authorsProp} noteReaders={noteReaders} />
+  }
+
+  // forum note pass raw authors (for NoteAuthorsWithInstitutions)
+  // note list pass string array
+  const authors = authorsProp?.value ?? authorsProp
+  const authorIds = authorIdsProp?.value ?? authorIdsProp
+
   let showPrivateLabel = false
   const sortedReaders = noteReaders ? [...noteReaders].sort() : []
   if (Array.isArray(authorIds?.readers) && !isEqual(sortedReaders, authorIds.readers.sort())) {
@@ -104,8 +119,8 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
   }
 
   let authorsList
-  if (authors?.value?.length > 0) {
-    authorsList = zip(authors?.value, authorIds?.value || [])
+  if (authors?.length > 0) {
+    authorsList = zip(authors, authorIds || [])
   } else if (signatures?.length > 0) {
     authorsList = signatures.map((id) => [prettyId(id), id])
   } else {
@@ -177,6 +192,104 @@ export const NoteAuthorsV2 = ({ authors, authorIds, signatures, noteReaders }) =
         />
       )}
     </ExpandableList>
+  )
+}
+
+export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
+  let showPrivateLabel = false
+  const sortedReaders = noteReaders ? [...noteReaders].sort() : []
+  if (Array.isArray(authors?.readers) && !isEqual(sortedReaders, authors.readers.sort())) {
+    showPrivateLabel = !authors.readers.includes('everyone')
+  }
+
+  if (!authors?.value) return null
+  const uniqueInstitutions = uniqBy(
+    authors.value
+      .map((p) => p.institutions)
+      .flat()
+      .filter((p) => p?.domain),
+    (p) => p.domain
+  )
+
+  const institutionIndexMap = new Map(
+    uniqueInstitutions.map((institution, index) => [institution.domain, index + 1])
+  )
+
+  const authorsLinks = authors.value.map((author) => {
+    if (!author) return null
+    if (!author.username) return <span key={author.fullname}>{author.fullname}</span>
+    if (author.username.startsWith('https://dblp.org')) {
+      return (
+        <a
+          key={`${author.fullname} ${author.username}`}
+          href={author.username}
+          title={author.username}
+          data-toggle="tooltip"
+          data-placement="top"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {author.fullname}
+        </a>
+      )
+    }
+
+    const institutionNumbers = (author.institutions || []).map((institution) =>
+      institutionIndexMap.get(institution.domain)
+    )
+
+    return (
+      <span
+        key={`${author.fullname} ${author.username}`}
+        className="note-author-with-institutions"
+      >
+        <Link
+          href={`/profile?id=${encodeURIComponent(author.username)}`}
+          title={author.username}
+          data-toggle="tooltip"
+          data-placement="top"
+        >
+          {author.fullname}
+        </Link>
+        {institutionNumbers.length > 0 && <sup>{institutionNumbers.join(',')}</sup>}
+      </span>
+    )
+  })
+
+  return (
+    <>
+      <ExpandableList
+        items={authorsLinks}
+        maxItems={maxAuthorsToShow}
+        expandLabel={`et al. (${
+          authorsLinks.length - maxAuthorsToShow
+        } additional authors not shown)`}
+        collapseLabel="(hide authors)"
+      >
+        {showPrivateLabel && (
+          <Icon
+            key="private-label"
+            name="eye-open"
+            extraClasses="private-contents-icon"
+            tooltip={`Identities privately revealed to ${authors?.readers
+              ?.map((p) => prettyId(p))
+              .join(', ')}`}
+          />
+        )}
+      </ExpandableList>
+      {uniqueInstitutions.length > 0 && (
+        <div className="note-authors-institutions">
+          {uniqueInstitutions.map((institution) => {
+            const institutionIndex = institutionIndexMap.get(institution.domain)
+            return (
+              <div key={institution.domain}>
+                <sup>{institutionIndex}</sup> {institution.name} ({institution.domain})
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </>
   )
 }
 
