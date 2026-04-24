@@ -79,6 +79,7 @@ export default function AllVenuesWithSearch() {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [venueSearchResults, setVenueSearchResults] = useState([])
   const [loading, setLoading] = useState(false)
+  const [searchUnavailable, setSearchUnavailable] = useState(false)
   const latestTermRef = useRef('')
   const router = useRouter()
 
@@ -91,6 +92,7 @@ export default function AllVenuesWithSearch() {
     latestTermRef.current = tokenizedTerm
     if (tokenizedTerm.length < MIN_SEARCH_LENGTH) {
       setVenueSearchResults([])
+      setSearchUnavailable(false)
       setLoading(false)
       return undefined
     }
@@ -103,6 +105,13 @@ export default function AllVenuesWithSearch() {
           limit: 10,
         })
         if (tokenizedTerm !== latestTermRef.current) return
+        if (result.searchUnavailable) {
+          setVenueSearchResults([])
+          setSearchUnavailable(true)
+          setLoading(false)
+          return
+        }
+        setSearchUnavailable(false)
         setVenueSearchResults(
           result.venues.map((venue) => {
             const name = prettyId(venue.id)
@@ -153,6 +162,13 @@ export default function AllVenuesWithSearch() {
     notFoundContent = (
       <span style={{ color: '#8c1b13' }}>
         <LoadingIcon />
+      </span>
+    )
+  } else if (searchUnavailable) {
+    notFoundContent = (
+      <span style={{ color: '#8c1b13' }}>
+        OpenReview is experiencing degraded performance in search functionality. Please try
+        again later.
       </span>
     )
   } else if (tokenizedTerm.length < MIN_SEARCH_LENGTH) {
