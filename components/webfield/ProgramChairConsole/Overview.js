@@ -451,8 +451,10 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     paperReviewsCompleteThreshold,
     reviewerName = 'Reviewers',
     officialReviewName,
+    officialReviewNames,
     submissionName,
   } = useContext(WebFieldContext)
+  const resolvedOfficialReviewNames = officialReviewNames ?? [officialReviewName]
   const singularReviewerName = getSingularRoleName(reviewerName)
   const reviewStats = useMemo(() => {
     if (!pcConsoleData.notes) return {}
@@ -532,14 +534,10 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     }
   }, [pcConsoleData.notes])
 
-  const officialReviewNames = Array.isArray(officialReviewName)
-    ? officialReviewName
-    : [officialReviewName]
-
   return (
     <>
       <div className="row">
-        {officialReviewNames.map((name) => (
+        {resolvedOfficialReviewNames.map((name) => (
           <StatContainer
             key={name}
             title={`${prettyField(name)} Progress`}

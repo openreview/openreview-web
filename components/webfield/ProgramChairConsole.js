@@ -864,6 +864,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     submissionId,
     submissionVenueId,
     officialReviewName,
+    officialReviewNames,
     commentName,
     anonReviewerName,
     shortPhrase,
@@ -937,9 +938,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     reviewerRoles.map((role) => [role, `${getSingularRoleName(role)}_`])
   )
   const areaChairRoles = domainContent?.area_chair_roles?.value ?? [areaChairName]
-  const officialReviewNames = Array.isArray(officialReviewName)
-    ? officialReviewName
-    : [officialReviewName]
+  const resolvedOfficialReviewNames = officialReviewNames ?? [officialReviewName]
 
   const reviewersInvitedId = reviewersId ? `${reviewersId}/Invited` : null
   const areaChairsInvitedId = areaChairsId ? `${areaChairsId}/Invited` : null
@@ -1386,7 +1385,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         const metaReviewAgreements = []
         const latestDisplayReplies = []
 
-        const officialReviewInvitationIds = officialReviewNames.map(
+        const officialReviewInvitationIds = resolvedOfficialReviewNames.map(
           (name) => `${venueId}/${submissionName}${note.number}/-/${name}`
         )
         const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
@@ -1434,7 +1433,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               signatures: reply.signatures,
               forum: reply.forum,
               anonId: getIndentifierFromGroup(anonymousGroupId, matchedAnonPrefix),
-              reviewName: officialReviewNames[matchedReviewInvitationIndex],
+              reviewName: resolvedOfficialReviewNames[matchedReviewInvitationIndex],
             })
           }
           if (reply.invitations.includes(officialMetaReviewInvitationId)) {
