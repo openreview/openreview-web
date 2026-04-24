@@ -75,9 +75,11 @@ describe('AllVenuesWithSearch', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByRole('option', { name: 'AAAA' })).toBeInTheDocument()
-      expect(screen.getByRole('option', { name: 'AAAB' })).toBeInTheDocument()
-      expect(screen.getByRole('option', { name: 'AAAC' })).toBeInTheDocument()
+      const options = screen.getAllByRole('option')
+      expect(options).toHaveLength(3)
+      expect(options[0]).toHaveTextContent('AAAA')
+      expect(options[1]).toHaveTextContent('AAAB')
+      expect(options[2]).toHaveTextContent('AAAC')
     })
   })
 
@@ -87,8 +89,8 @@ describe('AllVenuesWithSearch', () => {
 
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AAA')
 
-    const option = await screen.findByRole('option', { name: 'AAAA' })
-    await userEvent.click(option)
+    const options = await screen.findAllByRole('option')
+    await userEvent.click(options[0])
 
     expect(pushMock).toHaveBeenCalledWith('/group?id=AAAA')
   })

@@ -1,7 +1,6 @@
 'use client'
 
 import { AutoComplete, Divider, Input } from 'antd'
-import { debounce } from 'lodash'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -11,64 +10,114 @@ import { prettyId } from '../../lib/utils'
 
 const MIN_SEARCH_LENGTH = 3
 
-const highlightMatch = (text, term) => {
-  if (!term) return text
-  const idx = text.toLowerCase().indexOf(term.toLowerCase())
-  if (idx === -1) return text
+const wordSegmenter = new Intl.Segmenter(undefined, { granularity: 'word' })
+
+const tokenizeTerm = (term) => {
+  if (!term) return []
+  return Array.from(wordSegmenter.segment(term))
+    .filter((s) => s.isWordLike)
+    .map((s) => s.segment)
+}
+
+const highlightMatch = (text, tokenizedTerm) => {
+  if (!tokenizedTerm) return text
+  const regex = new RegExp(`(${tokenizedTerm.split(' ').join('|')})`, 'gi')
+  const segments = text.split(regex)
   return (
     <>
-      {text.slice(0, idx)}
-      <strong>{text.slice(idx, idx + term.length)}</strong>
-      {text.slice(idx + term.length)}
+      {segments.map((segment, index) =>
+        index % 2 === 1 ? <strong key={index}>{segment}</strong> : segment
+      )}
     </>
   )
 }
 
+const searchFieldsConfig = [
+  { key: 'domain', label: 'Domain', getValue: (venue) => venue.domain },
+  { key: 'title', label: 'Title', getValue: (venue) => venue.content?.title?.value },
+  { key: 'subtitle', label: 'Subtitle', getValue: (venue) => venue.content?.subtitle?.value },
+  { key: 'location', label: 'Location', getValue: (venue) => venue.content?.location?.value },
+  { key: 'website', label: 'Website', getValue: (venue) => venue.content?.website?.value },
+]
+
+const findFieldMatch = (venue, term) => {
+  const tokens = tokenizeTerm(term).map((t) => t.toLowerCase())
+  if (!tokens.length) return null
+  const result = searchFieldsConfig.find((fieldConfig) => {
+    const value = fieldConfig.getValue(venue)
+    if (!value) return false
+    const lowerValue = value.toLowerCase()
+    return tokens.some((token) => lowerValue.includes(token))
+  })
+  return result ? { field: result.label, fieldValue: result.getValue(venue) } : null
+}
+
 export default function AllVenuesWithSearch() {
-  const [searchTerm, setSearchTerm] = useState('')
+  const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [venueSearchResults, setVenueSearchResults] = useState([])
   const [loading, setLoading] = useState(false)
   const latestTermRef = useRef('')
   const router = useRouter()
 
-  const searchVenues = async (term) => {
-    setLoading(true)
-    try {
-      const result = await api.get('/venues/search', { term, limit: 10 })
-      if (term !== latestTermRef.current) return
-      setVenueSearchResults(
-        result.venues.map((venue) => ({
-          value: venue.id,
-          label: highlightMatch(prettyId(venue.id), term),
-        }))
-      )
-    } catch (error) {
-      if (term !== latestTermRef.current) return
-      promptError(error.message)
-    } finally {
-      if (term === latestTermRef.current) setLoading(false)
-    }
-  }
-
-  const delaySearch = useMemo(
-    () =>
-      debounce((term) => {
-        const cleanTerm = term.trim()
-        latestTermRef.current = cleanTerm
-        if (cleanTerm.length < MIN_SEARCH_LENGTH) {
-          setVenueSearchResults([])
-          setLoading(false)
-          return
-        }
-        searchVenues(cleanTerm)
-      }, 300),
-    []
+  const tokenizedTerm = useMemo(
+    () => tokenizeTerm(immediateSearchTerm).join(' '),
+    [immediateSearchTerm]
   )
 
-  useEffect(() => () => delaySearch.cancel(), [delaySearch])
+  useEffect(() => {
+    latestTermRef.current = tokenizedTerm
+    if (tokenizedTerm.length < MIN_SEARCH_LENGTH) {
+      setVenueSearchResults([])
+      setLoading(false)
+      return undefined
+    }
+
+    const eventsHandler = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const result = await api.get('/venues/search', {
+          term: tokenizedTerm,
+          limit: 10,
+        })
+        if (tokenizedTerm !== latestTermRef.current) return
+        setVenueSearchResults(
+          result.venues.map((venue) => {
+            const name = prettyId(venue.id)
+            const lowerName = name.toLowerCase()
+            const nameMatches = tokenizeTerm(tokenizedTerm).some((t) =>
+              lowerName.includes(t.toLowerCase())
+            )
+            const matchedField = nameMatches ? null : findFieldMatch(venue, tokenizedTerm)
+
+            return {
+              value: venue.id,
+              label: (
+                <>
+                  <div>{highlightMatch(name, tokenizedTerm)}</div>
+                  {matchedField && (
+                    <div style={{ fontSize: '0.85em', color: '#666' }}>
+                      {matchedField.field} -{' '}
+                      {highlightMatch(matchedField.fieldValue, tokenizedTerm)}
+                    </div>
+                  )}
+                </>
+              ),
+            }
+          })
+        )
+      } catch (error) {
+        if (tokenizedTerm !== latestTermRef.current) return
+        promptError(error.message)
+      } finally {
+        if (tokenizedTerm === latestTermRef.current) setLoading(false)
+      }
+    }, 300)
+
+    return () => clearTimeout(eventsHandler)
+  }, [tokenizedTerm])
 
   const handleSelect = (value) => {
-    setSearchTerm('')
+    setImmediateSearchTerm('')
     setVenueSearchResults([])
     router.push(`/group?id=${value}`)
   }
@@ -80,7 +129,7 @@ export default function AllVenuesWithSearch() {
         <LoadingIcon />
       </span>
     )
-  } else if (searchTerm.trim().length < MIN_SEARCH_LENGTH) {
+  } else if (tokenizedTerm.length < MIN_SEARCH_LENGTH) {
     notFoundContent = `Type at least ${MIN_SEARCH_LENGTH} characters to search.`
   } else {
     notFoundContent = 'No venues match your search.'
@@ -101,15 +150,9 @@ export default function AllVenuesWithSearch() {
       <h1>Search Venues</h1>
       <Divider style={{ marginTop: 0, minWidth: 0, width: '100%', maxWidth: 768 }} />
       <AutoComplete
-        value={searchTerm}
+        value={immediateSearchTerm}
         options={venueSearchResults}
-        onChange={setSearchTerm}
-        showSearch={{ onSearch: delaySearch }}
-        onClear={() => {
-          latestTermRef.current = ''
-          setVenueSearchResults([])
-          setLoading(false)
-        }}
+        onChange={setImmediateSearchTerm}
         onSelect={handleSelect}
         popupRender={popupRender}
         notFoundContent={notFoundContent}
