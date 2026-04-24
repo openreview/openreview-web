@@ -352,7 +352,12 @@ const NoteEditor = ({
       }))
     }
 
-    if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
+    if (
+      fieldName === 'authors' &&
+      Array.isArray(fieldDescription?.value) &&
+      fieldDescription.value.every((p) => typeof p !== 'object') // object author reorder should still show widget
+    )
+      return null
 
     return (
       <div key={fieldName} className={isHiddenField ? null : styles.fieldContainer}>
@@ -567,7 +572,7 @@ const NoteEditor = ({
           formData.authors = noteEditorData.authorids.map((p) => p.authorName)
           formData.authorids = noteEditorData.authorids.map((p) => p.authorId)
         }
-      } else {
+      } else if (!noteEditorData.authors) {
         formData.authors = { delete: true }
         formData.authorids = { delete: true }
       }
@@ -603,12 +608,16 @@ const NoteEditor = ({
       if (error.errors) {
         setErrors(
           error.errors.map((p) => {
-            const fieldName = getErrorFieldName(p.details.path)
+            const { fieldName, index } = getErrorFieldName(p.details.path)
             const fieldNameInError =
               fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
             if (isNonDeletableError(p.details.invalidValue))
-              return { fieldName, message: `${fieldNameInError} is not deletable` }
-            return { fieldName, message: p.message.replace(fieldName, fieldNameInError) }
+              return { fieldName, message: `${fieldNameInError} is not deletable`, index }
+            return {
+              fieldName,
+              message: p.message.replace(fieldName, fieldNameInError),
+              index,
+            }
           })
         )
         const hasOnlyMissingFieldsError = error.errors.every(
@@ -620,7 +629,7 @@ const NoteEditor = ({
             : 'Some info submitted are invalid.'
         )
       } else if (error.details?.path) {
-        const fieldName = getErrorFieldName(error.details.path)
+        const { fieldName, index } = getErrorFieldName(error.details.path)
         const fieldNameInError =
           fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
         const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
@@ -630,6 +639,7 @@ const NoteEditor = ({
           {
             fieldName,
             message: prettyErrorMessage,
+            index,
           },
         ])
         displayError(prettyErrorMessage)

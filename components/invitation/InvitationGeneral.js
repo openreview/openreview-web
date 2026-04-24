@@ -172,7 +172,7 @@ export const InvitationGeneralViewV2 = ({ invitation, isMetaInvitation }) => {
     <Descriptions
       column={1}
       size="small"
-      styles={{ label: invitationStyles.descriptionsLabel }}
+      styles={{ label: invitationStyles.descriptionsLabel, content: { display: 'block' } }}
       items={[
         {
           label: 'Parent Group',

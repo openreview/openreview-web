@@ -4,13 +4,14 @@
 
 import { useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
-import api from '../../../lib/api-client'
-import { prettyId } from '../../../lib/utils'
-import Compare from './Compare'
-import styles from './Compare.module.scss'
 import ErrorDisplay from '../../../components/ErrorDisplay'
-import CommonLayout from '../../CommonLayout'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import api from '../../../lib/api-client'
+import { getNoteAuthorIds, getNoteAuthors, prettyId } from '../../../lib/utils'
+import CommonLayout from '../../CommonLayout'
+import Compare from './Compare'
+
+import styles from './Compare.module.scss'
 
 const addMetadata = (profile, fieldName) => {
   const localProfile = { ...profile }
@@ -111,14 +112,10 @@ function Page() {
           publication.apiVersion === 1
             ? publication.content.title
             : publication.content.title.value,
-        authors:
-          publication.apiVersion === 1
-            ? publication.content.authors
-            : publication.content.authors.value,
-        authorids: (publication.apiVersion === 1
-          ? publication.content.authorids
-          : publication.content.authorids.value
-        ).filter((id) => id),
+        authors: getNoteAuthors(publication, publication.apiVersion !== 1),
+        authorids: getNoteAuthorIds(publication, publication.apiVersion !== 1).filter(
+          (id) => id
+        ),
       }))
     }
     return []
