@@ -19,6 +19,29 @@ const tokenizeTerm = (term) => {
     .map((s) => s.segment)
 }
 
+const truncateAroundMatch = (label, tokenizedTerm) => {
+  const maxCharLength = 80
+  if (label.length <= maxCharLength) return label
+  const emphasisRegex = new RegExp(tokenizedTerm.split(' ').join('|'), 'i')
+  const m = label.match(emphasisRegex)
+  const matchLen = m[0].length
+  const budget = maxCharLength - matchLen
+  const half = Math.floor(budget / 2)
+  let start = m.index - half
+  let end = m.index + matchLen + half
+  if (start < 0) {
+    end -= start
+    start = 0
+  }
+  if (end > label.length) {
+    start = Math.max(0, start - (end - label.length))
+    end = label.length
+  }
+  const prefix = start > 0 ? '…' : ''
+  const suffix = end < label.length ? '…' : ''
+  return `${prefix}${label.slice(start, end)}${suffix}`
+}
+
 const highlightMatch = (text, tokenizedTerm) => {
   if (!tokenizedTerm) return text
   const regex = new RegExp(`(${tokenizedTerm.split(' ').join('|')})`, 'gi')
@@ -97,7 +120,10 @@ export default function AllVenuesWithSearch() {
                   {matchedField && (
                     <div style={{ fontSize: '0.85em', color: '#666' }}>
                       {matchedField.field} -{' '}
-                      {highlightMatch(matchedField.fieldValue, tokenizedTerm)}
+                      {highlightMatch(
+                        truncateAroundMatch(matchedField.fieldValue, tokenizedTerm),
+                        tokenizedTerm
+                      )}
                     </div>
                   )}
                 </>
