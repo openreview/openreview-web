@@ -84,7 +84,7 @@ describe('AllVenuesWithSearch', () => {
   })
 
   test('navigates to /group when a result is selected', async () => {
-    api.get = jest.fn(() => ({ venues: [{ id: 'AAAA' }] }))
+    api.get = jest.fn(() => Promise.resolve({ venues: [{ id: 'AAAA' }] }))
     render(<AllVenuesWithSearch />)
 
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AAA')
@@ -96,7 +96,7 @@ describe('AllVenuesWithSearch', () => {
   })
 
   test('shows empty-state message when server returns no results', async () => {
-    api.get = jest.fn(() => ({ venues: [] }))
+    api.get = jest.fn(() => Promise.resolve({ venues: [] }))
     render(<AllVenuesWithSearch />)
 
     await userEvent.type(
@@ -109,8 +109,23 @@ describe('AllVenuesWithSearch', () => {
     })
   })
 
+  test('shows search unavailable message when es is down', async () => {
+    api.get = jest.fn(() => Promise.resolve({ venues: [], count: 0, searchUnavailable: true }))
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(
+          'OpenReview is experiencing degraded performance in search functionality. Please try again later.'
+        )
+      ).toBeInTheDocument()
+    })
+  })
+
   test('shows "View All Venues" link in the dropdown footer', async () => {
-    api.get = jest.fn(() => ({ venues: [{ id: 'AAAA' }] }))
+    api.get = jest.fn(() => Promise.resolve({ venues: [{ id: 'AAAA' }] }))
     render(<AllVenuesWithSearch />)
 
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AAA')
@@ -131,6 +146,167 @@ describe('AllVenuesWithSearch', () => {
 
     await waitFor(() => {
       expect(global.promptError).toHaveBeenCalledWith('some error')
+    })
+  })
+
+  test('show matching domain when it is domain instead of id match', async () => {
+    api.get = jest.fn(() =>
+      Promise.resolve({ venues: [{ id: 'AAAA', domain: 'some_test_domain' }] })
+    )
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+        'Domain - some_test_domain'
+      )
+    })
+  })
+
+  test('show matching title when it is title instead of id match', async () => {
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        venues: [{ id: 'AAAA', content: { title: { value: 'some test title' } } }],
+      })
+    )
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent('Title - some test title')
+    })
+  })
+
+  test('show matching subtitle when it is subtitle instead of id match', async () => {
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        venues: [
+          {
+            id: 'AAAA',
+            content: {
+              title: { value: 'irrelevant title' },
+              subtitle: { value: 'some test subtitle' },
+            },
+          },
+        ],
+      })
+    )
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+        'Subtitle - some test subtitle'
+      )
+    })
+  })
+
+  test('show matching location when it is location instead of id match', async () => {
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        venues: [
+          {
+            id: 'AAAA',
+            content: {
+              title: { value: 'irrelevant title' },
+              subtitle: { value: 'irrelevant subtitle' },
+              location: { value: 'some test location' },
+            },
+          },
+        ],
+      })
+    )
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+        'Location - some test location'
+      )
+    })
+  })
+
+  test('show matching website when it is website instead of id match', async () => {
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        venues: [
+          {
+            id: 'AAAA',
+            content: {
+              title: { value: 'irrelevant title' },
+              subtitle: { value: 'irrelevant subtitle' },
+              location: { value: 'irrelevant location' },
+              website: { value: 'some test website' },
+            },
+          },
+        ],
+      })
+    )
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+        'Website - some test website'
+      )
+    })
+  })
+
+  test('not to show fields when id match', async () => {
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        venues: [
+          {
+            id: 'AAAA',
+            content: {
+              title: { value: 'AAAA title' },
+              subtitle: { value: 'AAAA subtitle' },
+              location: { value: 'AAAA location' },
+              website: { value: 'AAAA website' },
+            },
+          },
+        ],
+      })
+    )
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AAAA')
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA')).toBeInTheDocument()
+      expect(screen.getByText('AAAA').nextSibling).toBeNull()
+    })
+  })
+
+  // when matching text is very long, it's possible that highlighted text is not visible
+  // so need to truncate the text
+  test('truncate text when matching text is in middle of long text', async () => {
+    const dummyText = 'X'.repeat(40)
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        venues: [
+          {
+            id: 'AAAA',
+            content: {
+              location: { value: `${dummyText}test location${dummyText}` },
+            },
+          },
+        ],
+      })
+    )
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+        /^Location - …X+test locationX+…$/
+      )
     })
   })
 })
