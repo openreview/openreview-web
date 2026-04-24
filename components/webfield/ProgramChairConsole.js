@@ -932,6 +932,15 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
   const areaChairUrlFormat = getRoleHashFragment(areaChairName)
   const reviewerUrlFormat = getRoleHashFragment(reviewerName)
 
+  const reviewerRoles = domainContent?.reviewer_roles?.value ?? [reviewerName]
+  const anonReviewerNamesByRole = Object.fromEntries(
+    reviewerRoles.map((role) => [role, `${getSingularRoleName(role)}_`])
+  )
+  const areaChairRoles = domainContent?.area_chair_roles?.value ?? [areaChairName]
+  const officialReviewNames = Array.isArray(officialReviewName)
+    ? officialReviewName
+    : [officialReviewName]
+
   const reviewersInvitedId = reviewersId ? `${reviewersId}/Invited` : null
   const areaChairsInvitedId = areaChairsId ? `${areaChairsId}/Invited` : null
   const seniorAreaChairsInvitedId = seniorAreaChairsId ? `${seniorAreaChairsId}/Invited` : null
@@ -1067,6 +1076,30 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       )
       // #endregion
 
+      // #region get extra reviewer / area chair roles (accepted + invited)
+      const fetchRoleStats = async (role) => {
+        const roleGroupId = `${venueId}/${role}`
+        const roleInvitedId = `${roleGroupId}/Invited`
+        const [acceptedGroup, invitedGroup] = await Promise.all([
+          api.getGroupById(roleGroupId, undefined, { select: 'members' }).catch(() => null),
+          api.getGroupById(roleInvitedId, undefined, { select: 'members' }).catch(() => null),
+        ])
+        return {
+          role,
+          acceptedCount: acceptedGroup?.members?.length ?? 0,
+          invitedCount: invitedGroup?.members?.length ?? 0,
+        }
+      }
+
+      const extraReviewerRoles = reviewerRoles.filter((role) => role !== reviewerName)
+      const extraReviewerRolesStatsP = Promise.all(extraReviewerRoles.map(fetchRoleStats))
+
+      const extraAreaChairRoles = areaChairRoles.filter((role) => role !== areaChairName)
+      const extraAreaChairRolesStatsP = areaChairsId
+        ? Promise.all(extraAreaChairRoles.map(fetchRoleStats))
+        : Promise.resolve([])
+      // #endregion
+
       // #region getSubmissions
       const notesP = api.getAllWithAfter(
         '/notes',
@@ -1148,6 +1181,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         perPaperGroupResultsP,
         ithenticateEdgesP,
         invitedGroupsP,
+        extraReviewerRolesStatsP,
+        extraAreaChairRolesStatsP,
       ])
 
       const committeeMemberResults = results[0]
@@ -1176,6 +1211,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       const bidCountResults = results[3]
       const perPaperGroupResults = results[4]
       const invitedGroupsResult = results[6]
+      const extraReviewerRolesStats = results[7]
+      const extraAreaChairRolesStats = results[8]
 
       // #region categorize result of per paper groups
       const reviewerGroups = []
@@ -1195,24 +1232,30 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         const number = getNumberFromGroup(p.id, submissionName)
         if (!number || !activeNoteNumbers.includes(number)) continue
 
-        if (p.id.endsWith(`/${reviewerName}`)) {
+        const matchedReviewerRole = reviewerRoles.find((role) => p.id.endsWith(`/${role}`))
+        if (matchedReviewerRole) {
           reviewerGroups.push({
             noteNumber: number,
+            role: matchedReviewerRole,
             ...p,
           })
+          const roleAnonPrefix = anonReviewerNamesByRole[matchedReviewerRole]
           for (let reviewerIndex = 0; reviewerIndex < p.members.length; reviewerIndex += 1) {
             const member = p.members[reviewerIndex]
             if (anonReviewerGroups[number] === undefined) anonReviewerGroups[number] = {}
             if (
               anonReviewerGroups[number][member] === undefined &&
-              member.includes(anonReviewerName)
+              member.includes(roleAnonPrefix)
             ) {
               anonReviewerGroups[number][member] = member
             }
           }
           continue
         }
-        if (p.id.includes(`/${anonReviewerName}`)) {
+        const matchedAnonReviewer = Object.values(anonReviewerNamesByRole).some((anonPrefix) =>
+          p.id.includes(`/${anonPrefix}`)
+        )
+        if (matchedAnonReviewer) {
           if (anonReviewerGroups[number] === undefined) anonReviewerGroups[number] = {}
           if (p.members.length) anonReviewerGroups[number][p.id] = p.members[0]
           for (
@@ -1343,7 +1386,9 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         const metaReviewAgreements = []
         const latestDisplayReplies = []
 
-        const officialReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialReviewName}`
+        const officialReviewInvitationIds = officialReviewNames.map(
+          (name) => `${venueId}/${submissionName}${note.number}/-/${name}`
+        )
         const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
         const decisionInvitationId = `${venueId}/${submissionName}${note.number}/-/${decisionName}`
         const customStageInvitationIds = customStageInvitations
@@ -1354,7 +1399,10 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
           : []
 
         replies.forEach((reply) => {
-          if (reply.invitations.includes(officialReviewInvitationId)) {
+          const matchedReviewInvitationIndex = officialReviewInvitationIds.findIndex((id) =>
+            reply.invitations.includes(id)
+          )
+          if (matchedReviewInvitationIndex !== -1) {
             let anonymousGroupId
             if (reply.signatures[0].startsWith('~')) {
               const idToAnonIdMap = Object.keys(anonReviewerGroups[note.number] ?? {}).reduce(
@@ -1376,12 +1424,17 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               anonymousGroupId = reply.signatures[0]
             }
 
+            const matchedAnonPrefix =
+              Object.values(anonReviewerNamesByRole).find((prefix) =>
+                anonymousGroupId.includes(`/${prefix}`)
+              ) ?? anonReviewerName
             officialReviews.push({
               content: reply.content,
               id: reply.id,
               signatures: reply.signatures,
               forum: reply.forum,
-              anonId: getIndentifierFromGroup(anonymousGroupId, anonReviewerName),
+              anonId: getIndentifierFromGroup(anonymousGroupId, matchedAnonPrefix),
+              reviewName: officialReviewNames[matchedReviewInvitationIndex],
             })
           }
           if (reply.invitations.includes(officialMetaReviewInvitationId)) {
@@ -1541,10 +1594,13 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                   )
                 }
                 if (!anonymizedGroup) return []
+                const roleAnonPrefix =
+                  anonReviewerNamesByRole[reviewerGroup.role] ?? anonReviewerName
                 return {
                   reviewerProfileId: deanonymizedGroup,
                   anonymizedGroup,
-                  anonymousId: getIndentifierFromGroup(anonymizedGroup, anonReviewerName),
+                  anonymousId: getIndentifierFromGroup(anonymizedGroup, roleAnonPrefix),
+                  role: reviewerGroup.role,
                 }
               }),
             }
@@ -1602,6 +1658,24 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         reviewersInvitedCount: invitedGroupsResult[0]?.members?.length ?? 0,
         areaChairsInvitedCount: invitedGroupsResult[1]?.members?.length ?? 0,
         seniorAreaChairsInvitedCount: invitedGroupsResult[2]?.members?.length ?? 0,
+        reviewerRolesStats: [
+          {
+            role: reviewerName,
+            acceptedCount: committeeMemberResults[0]?.members?.length ?? 0,
+            invitedCount: invitedGroupsResult[0]?.members?.length ?? 0,
+          },
+          ...extraReviewerRolesStats,
+        ],
+        areaChairRolesStats: areaChairsId
+          ? [
+              {
+                role: areaChairName,
+                acceptedCount: committeeMemberResults[1]?.members?.length ?? 0,
+                invitedCount: invitedGroupsResult[1]?.members?.length ?? 0,
+              },
+              ...extraAreaChairRolesStats,
+            ]
+          : [],
         timeStamp: dayjs().valueOf(),
       }
       setDataLoadingStatusMessage(null)
@@ -1639,7 +1713,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     const noteNumberSeniorAcGroupMembersMap = new Map()
 
     pcConsoleData.paperGroups.reviewerGroups?.forEach((p) => {
-      noteNumberReviewerGroupMembersMap.set(p.noteNumber, p.members)
+      const existing = noteNumberReviewerGroupMembersMap.get(p.noteNumber) ?? []
+      noteNumberReviewerGroupMembersMap.set(p.noteNumber, [...existing, ...p.members])
     })
     pcConsoleData.paperGroups.areaChairGroups?.forEach((p) => {
       noteNumberACGroupMembersSecondariesMap.set(p.noteNumber, {
@@ -1711,6 +1786,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             reviewLength: reviewValue?.length,
             forum: q.forum,
             id: q.id,
+            reviewName: q.reviewName,
           }
         }) ?? []
       const ratings = Object.fromEntries(

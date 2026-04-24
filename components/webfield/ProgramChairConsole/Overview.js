@@ -48,33 +48,56 @@ const RecruitmentStatsRow = ({ pcConsoleData }) => {
   const { reviewersInvitedCount, areaChairsInvitedCount, seniorAreaChairsInvitedCount } =
     pcConsoleData
 
+  const { reviewerRolesStats, areaChairRolesStats } = pcConsoleData
+
   return (
     <>
       <div className="row recruitment-stat-row">
-        <StatContainer
-          title={`${prettyField(singularReviewerName)} Recruitment`}
-          hint="accepted / invited"
-          value={
-            pcConsoleData.reviewers ? (
-              `${pcConsoleData.reviewers?.length} / ${reviewersInvitedCount}`
-            ) : (
-              <LoadingSpinner inline={true} text={null} />
-            )
-          }
-        />
-        {areaChairsId && (
+        {reviewerRolesStats?.length ? (
+          reviewerRolesStats.map((roleStats) => (
+            <StatContainer
+              key={roleStats.role}
+              title={`${prettyField(getSingularRoleName(roleStats.role))} Recruitment`}
+              hint="accepted / invited"
+              value={`${roleStats.acceptedCount} / ${roleStats.invitedCount}`}
+            />
+          ))
+        ) : (
           <StatContainer
-            title={`${prettyField(singularAreaChairName)} Recruitment`}
+            title={`${prettyField(singularReviewerName)} Recruitment`}
             hint="accepted / invited"
             value={
-              pcConsoleData.areaChairs ? (
-                `${pcConsoleData.areaChairs?.length} / ${areaChairsInvitedCount}`
+              pcConsoleData.reviewers ? (
+                `${pcConsoleData.reviewers?.length} / ${reviewersInvitedCount}`
               ) : (
                 <LoadingSpinner inline={true} text={null} />
               )
             }
           />
         )}
+        {areaChairsId &&
+          (areaChairRolesStats?.length ? (
+            areaChairRolesStats.map((roleStats) => (
+              <StatContainer
+                key={roleStats.role}
+                title={`${prettyField(getSingularRoleName(roleStats.role))} Recruitment`}
+                hint="accepted / invited"
+                value={`${roleStats.acceptedCount} / ${roleStats.invitedCount}`}
+              />
+            ))
+          ) : (
+            <StatContainer
+              title={`${prettyField(singularAreaChairName)} Recruitment`}
+              hint="accepted / invited"
+              value={
+                pcConsoleData.areaChairs ? (
+                  `${pcConsoleData.areaChairs?.length} / ${areaChairsInvitedCount}`
+                ) : (
+                  <LoadingSpinner inline={true} text={null} />
+                )
+              }
+            />
+          ))}
         {seniorAreaChairsId && (
           <StatContainer
             title={`${prettyField(singularSeniorAreaChairName)} Recruitment`}
@@ -509,23 +532,31 @@ const ReviewStatsRow = ({ pcConsoleData }) => {
     }
   }, [pcConsoleData.notes])
 
+  const officialReviewNames = Array.isArray(officialReviewName)
+    ? officialReviewName
+    : [officialReviewName]
+
   return (
     <>
       <div className="row">
-        <StatContainer
-          title={`${prettyField(officialReviewName)} Progress`}
-          hint={`% of all assigned reviews that have been submitted`}
-          value={
-            pcConsoleData.notes ? (
-              renderStat(
-                reviewStats.allOfficialReviews?.length,
-                reviewStats.assignedReviewsCount
+        {officialReviewNames.map((name) => (
+          <StatContainer
+            key={name}
+            title={`${prettyField(name)} Progress`}
+            hint={`% of all assigned reviews that have been submitted`}
+            value={
+              pcConsoleData.notes ? (
+                renderStat(
+                  reviewStats.allOfficialReviews?.filter((p) => p.reviewName === name)
+                    .length,
+                  reviewStats.assignedReviewsCount
+                )
+              ) : (
+                <LoadingSpinner inline={true} text={null} />
               )
-            ) : (
-              <LoadingSpinner inline={true} text={null} />
-            )
-          }
-        />
+            }
+          />
+        ))}
         <StatContainer
           title={`${prettyField(singularReviewerName)} Progress`}
           hint={`% of ${prettyField(
