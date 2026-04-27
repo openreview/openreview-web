@@ -6,6 +6,12 @@
   position: relative;
   width: 100%;
   margin-bottom: 0;
+
+  a {
+    &:focus {
+      outline: none;
+    }
+  }
 }
 
 .navMobile,
