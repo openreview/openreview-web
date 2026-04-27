@@ -1,6 +1,6 @@
 'use client'
 
-import DOMPurify from 'isomorphic-dompurify'
+import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { nanoid } from 'nanoid'
 import { useEffect, useState } from 'react'
