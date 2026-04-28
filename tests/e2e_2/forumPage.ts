@@ -65,7 +65,7 @@ test('show a valid forum', async (t) => {
     .expect(titleLabel.innerText)
     .eql('Paper Title 1')
     .expect(authorLabel.innerText)
-    .eql('FirstA LastA ')
+    .eql('FirstA LastA')
     .expect(abstractLabel.innerText)
     .eql('Paper Abstract')
 })

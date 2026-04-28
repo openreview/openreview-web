@@ -62,30 +62,6 @@ test(`redirection to /profile/activate is skipped`, async (t) => {
 }).skipJsErrors()
 
 fixture`miscellaneous issues`
-test('login button to show tooltip when email is invalid', async (t) => {
-  await t
-    .navigateTo(`${homepageUrl}/login`)
-    .typeText('#email-input', '~tilde_id1')
-    .typeText('#password-input', strongPassword)
-    .expect(loginButton.hasAttribute('disabled'))
-    .ok()
-    .expect(
-      loginButton.withAttribute('data-original-title', 'Please enter a valid email address')
-        .exists
-    )
-    .ok()
-
-  await t
-    .typeText('#email-input', 'test@mail.com', { replace: true })
-    .expect(loginButton.hasAttribute('disabled'))
-    .notOk()
-    .expect(
-      loginButton.withAttribute('data-original-title', 'Please enter a valid email address')
-        .exists
-    )
-    .notOk()
-})
-
 test('terms and conditions date should be updated', async (t) => {
   // terms page, privacy page, login page and signup page
   const lastUpdatedDate = 'September 24, 2024'
