@@ -2,8 +2,8 @@
 import { Selector, ClientFunction } from 'testcafe'
 import { strongPassword } from '../utils/api-helper'
 
-const openreviewLogo = Selector('a.navbar-brand')
-const loginLink = Selector('a').withText('Login')
+const openreviewLogo = Selector('nav a[href="/"]').filterVisible()
+const loginLink = Selector('a').withText('Login').filterVisible()
 const loginButton = Selector('button').withText('Login to OpenReview')
 
 const getLocation = ClientFunction(() => document.location.href)

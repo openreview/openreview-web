@@ -1,37 +1,17 @@
-import Link from 'next/link'
-import NavUserLinks from './NavUserLinks'
-import NavSearch from './NavSearch'
+import serverAuth from '../auth'
+import NavClient from './NavClient'
+import NavNotificationCount from './NavNotificationCount'
 
-function Nav() {
+import legacyNavStyles from '../../styles/components/legacy-bootstrap-nav.module.scss'
+import styles from '../../styles/components/nav.module.scss'
+
+export default async function Nav() {
+  const { user } = await serverAuth()
+  const notificationCountSlot = user ? <NavNotificationCount /> : null
+
   return (
-    <nav className="navbar navbar-inverse" role="navigation">
-      <div className="container">
-        <div className="navbar-header">
-          <button
-            type="button"
-            className="navbar-toggle collapsed"
-            data-toggle="collapse"
-            data-target="#navbar"
-            aria-expanded="false"
-            aria-controls="navbar"
-          >
-            <span className="sr-only">Toggle navigation</span>
-            <span className="icon-bar" />
-            <span className="icon-bar" />
-            <span className="icon-bar" />
-          </button>
-          <Link href="/" className="navbar-brand home push-link">
-            <strong>OpenReview</strong>.net
-          </Link>
-        </div>
-
-        <div id="navbar" className="navbar-collapse collapse">
-          <NavSearch />
-          <NavUserLinks />
-        </div>
-      </div>
+    <nav className={`${styles.navBar} ${legacyNavStyles.navBar}`} role="navigation">
+      <NavClient user={user ?? null} notificationCountSlot={notificationCountSlot} />
     </nav>
   )
 }
-
-export default Nav

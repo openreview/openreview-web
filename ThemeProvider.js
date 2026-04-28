@@ -61,11 +61,13 @@ const theme = {
     Modal: {
       contentBg: backgroundWhite,
     },
-    Menu: {
-      itemBg: orRed,
-      colorText: 'white',
-      horizontalItemSelectedColor: 'transparent',
-      popupBg: orRed,
+    Dropdown: {
+      controlItemBgHover: backgroundGray,
+      borderRadiusLG: 0,
+      paddingBlock: 4,
+    },
+    Drawer: {
+      colorBgElevated: orRed,
     },
     Alert: {
       colorInfoBg: backgroundGray,

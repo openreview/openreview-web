@@ -12,7 +12,7 @@ const confirmDeleteModal = Selector('#confirm-delete-modal')
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
@@ -20,7 +20,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
 })
 const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'a@a.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
@@ -28,7 +28,7 @@ const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =
 })
 const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'program_chair@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
