@@ -1126,7 +1126,11 @@ test('add expertise', async (t) => {
     // verify relation is added
     .expect(Selector('.ant-space-item').withText('other expertise').exists)
     .ok()
-    .expect(Selector('div').withText('some, correct, expertise').exists)
+    .expect(Selector('.ant-space-item').withText('some').exists)
+    .ok()
+    .expect(Selector('.ant-space-item').withText('correct').exists)
+    .ok()
+    .expect(Selector('.ant-space-item').withText('expertise').exists)
     .ok()
     .expect(Selector('em').withText('1999 – Present').exists)
     .ok()
