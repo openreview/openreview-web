@@ -1,15 +1,13 @@
-/* globals $, promptError, view2, DOMPurify: false */
-
-import { useState } from 'react'
-import Link from 'next/link'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import NoteEditor from '../NoteEditor'
+import Link from 'next/link'
+import { useState } from 'react'
+import getLicenseInfo from '../../lib/forum-utils'
+import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
+import Icon from '../Icon'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
-import Icon from '../Icon'
-import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
-import getLicenseInfo from '../../lib/forum-utils'
+import NoteEditor from '../NoteEditor'
 import OtherVersions from './OtherVersions'
 
 dayjs.extend(relativeTime)
@@ -92,7 +90,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
 
       <ForumTitle
         id={id}
-        title={DOMPurify.sanitize(content?.title?.value)}
+        title={content?.title?.value}
         pdf={canShowIcon('pdf')}
         html={canShowIcon('html')}
       />
