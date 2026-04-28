@@ -1050,7 +1050,7 @@ test('add relation', async (t) => {
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
-    .expect(Selector('span').withText('Some Relation Name').exists)
+    .expect(Selector('.ant-space-item').withText('Some Relation Name').exists)
     .ok()
     .expect(Selector('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent)
     .eql('FirstA LastA')
@@ -1124,13 +1124,13 @@ test('add expertise', async (t) => {
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
-    .expect(Selector('span').withText('other expertise').exists)
+    .expect(Selector('.ant-space-item').withText('other expertise').exists)
     .ok()
-    .expect(Selector('span').withText('some, correct, expertise').exists)
+    .expect(Selector('div').withText('some, correct, expertise').exists)
     .ok()
-    .expect(Selector('div.start-end-year').withText('1999 – Present').exists)
+    .expect(Selector('em').withText('1999 – Present').exists)
     .ok()
-    .expect(Selector('div.start-end-year').withText('1999 – 2000').exists)
+    .expect(Selector('em').withText('1999 – 2000').exists)
     .ok()
 })
 
