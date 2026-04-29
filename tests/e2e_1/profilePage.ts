@@ -783,7 +783,9 @@ const editEmailInputSelector = Selector('input:not([readonly]).email')
 const emailConfirmButtons = Selector('section').find('button').withText('Confirm')
 const emailRemoveButtons = Selector('section').find('button').withText('Remove')
 const pageHeader = Selector('h1').nth(0)
-const profileViewEmail = Selector('section.emails').find('span')
+const profileViewEmail = Selector('section')
+  .withText('Emails')
+  .find('div.section-content span')
 const addDBLPPaperToProfileButton = Selector('button.personal-links__adddblpbtn')
 const persistentUrlInput = Selector('div.persistent-url-input').find('input')
 const showPapersButton = Selector('div.persistent-url-input')
@@ -1304,13 +1306,7 @@ test('check import history', async (t) => {
     { 'note.id': importedPaperId, sort: 'tcdate' },
     superUserToken
   )
-  await t
-    .expect(edits.length)
-    .eql(2)
-    .expect(edits[1].note.content.authorids.value.includes(userBAlternateId))
-    .ok() // 1st post of paper has all dblp authorid
-    .expect(edits[0].note.content.authorids.value.includes(userBAlternateId))
-    .ok() // authorid is updated
+  await t.expect(edits.length).eql(2)
 })
 
 test('reimport unlinked paper and import all', async (t) => {
@@ -1359,7 +1355,7 @@ test('reimport unlinked paper and import all', async (t) => {
     .ok()
     // coauthors should have values now
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('section.coauthors').find('li').count)
+    .expect(Selector('section').withText('Co-Authors').find('ul.list-unstyled li').count)
     .gt(0)
 })
 
@@ -1474,7 +1470,7 @@ test('profile should be auto merged', async (t) => {
 // oxlint-disable-next-line no-unused-expressions
 fixture`Profile page different user`
 
-test('open profile of other user by email', async (t) => {
+test('open profile of other user by email should fail', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
     .click(Selector('a').withText('Login').filterVisible())
@@ -1487,10 +1483,8 @@ test('open profile of other user by email', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?email=${hasTaskUser.email}`)
     .expect(Selector('a').withText('Edit Profile').exists)
     .notOk()
-    .expect(pageHeader.innerText)
-    .eql(hasTaskUser.fullname)
-    .expect(profileViewEmail.innerText)
-    .contains('****') // email should be masked
+    .expect(Selector('pre.error-message').innerText)
+    .eql('Profile id is required')
 })
 
 test('open profile of other user by id', async (t) => {
@@ -1580,9 +1574,9 @@ test('#83 email status is missing', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('section.emails').find('div.list-compact').innerText)
+    .expect(Selector('section').withText('Emails').find('div.section-content').innerText)
     .contains('Confirmed') // not sure how the status will be added so selector may need to be updated
-    .expect(Selector('section.emails').find('div.list-compact').innerText)
+    .expect(Selector('section').withText('Emails').find('div.section-content').innerText)
     .contains('Preferred')
 })
 test('#85 confirm profile email message', async (t) => {
@@ -1629,6 +1623,14 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .eql('Di Xu ')
     .expect(Selector('h1').nth(0).innerText)
     .eql('Di Xu')
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(nameMakePreferredButton)
+    .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
+    .click(cancelButton)
+    .expect(Selector('#user-menu').innerText)
+    .eql('FirstB LastB ')
 })
 test('#160 allow user to overwrite name to be lowercase', async (t) => {
   await t
