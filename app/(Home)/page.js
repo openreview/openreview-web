@@ -97,7 +97,7 @@ export default async function page() {
       </div>
 
       <div className="col-xs-12" style={{ marginBottom: 150 }}>
-        <AllVenuesWithSearch />
+        <AllVenuesWithSearch activeVenues={activeVenues} openVenues={openVenues} />
       </div>
       <VersionChecker />
     </div>

@@ -73,13 +73,20 @@ describe('AllVenuesWithSearch', () => {
         expect.objectContaining({ term: 'AAA', limit: 10 })
       )
     })
+  })
+
+  test('call api when trimmed but untokenized term', async () => {
+    api.get = jest.fn(() => ({ venues: [] }))
+    render(<AllVenuesWithSearch />)
+
+    const url = '   https://cvpr.thecvf.com/Conferences/2026  '
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), url)
 
     await waitFor(() => {
-      const options = screen.getAllByRole('option')
-      expect(options).toHaveLength(3)
-      expect(options[0]).toHaveTextContent('AAAA')
-      expect(options[1]).toHaveTextContent('AAAB')
-      expect(options[2]).toHaveTextContent('AAAC')
+      expect(api.get).toHaveBeenCalledWith(
+        '/venues/search',
+        expect.objectContaining({ term: 'https://cvpr.thecvf.com/Conferences/2026' })
+      )
     })
   })
 
@@ -158,7 +165,7 @@ describe('AllVenuesWithSearch', () => {
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
 
     await waitFor(() => {
-      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+      expect(screen.getByText('AAAA').parentElement.nextSibling).toHaveTextContent(
         'Domain - some_test_domain'
       )
     })
@@ -175,7 +182,9 @@ describe('AllVenuesWithSearch', () => {
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
 
     await waitFor(() => {
-      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent('Title - some test title')
+      expect(screen.getByText('AAAA').parentElement.nextSibling).toHaveTextContent(
+        'Title - some test title'
+      )
     })
   })
 
@@ -198,7 +207,7 @@ describe('AllVenuesWithSearch', () => {
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
 
     await waitFor(() => {
-      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+      expect(screen.getByText('AAAA').parentElement.nextSibling).toHaveTextContent(
         'Subtitle - some test subtitle'
       )
     })
@@ -224,7 +233,7 @@ describe('AllVenuesWithSearch', () => {
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
 
     await waitFor(() => {
-      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+      expect(screen.getByText('AAAA').parentElement.nextSibling).toHaveTextContent(
         'Location - some test location'
       )
     })
@@ -251,7 +260,7 @@ describe('AllVenuesWithSearch', () => {
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
 
     await waitFor(() => {
-      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+      expect(screen.getByText('AAAA').parentElement.nextSibling).toHaveTextContent(
         'Website - some test website'
       )
     })
@@ -304,8 +313,51 @@ describe('AllVenuesWithSearch', () => {
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'test')
 
     await waitFor(() => {
-      expect(screen.getByText('AAAA').nextSibling).toHaveTextContent(
+      expect(screen.getByText('AAAA').parentElement.nextSibling).toHaveTextContent(
         /^Location - …X+test locationX+…$/
+      )
+    })
+  })
+
+  test('show active and open tag', async () => {
+    api.get = jest.fn(() => ({ venues: [{ id: 'AAAA' }] }))
+    render(
+      <AllVenuesWithSearch
+        activeVenues={[{ groupId: 'AAAA' }]}
+        openVenues={[{ groupId: 'AAAA' }]}
+      />
+    )
+
+    await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AAAA')
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA').parentElement.nextSibling).toHaveTextContent('Active')
+      expect(screen.getByText('AAAA').parentElement.nextSibling.nextSibling).toHaveTextContent(
+        'Open for Submission'
+      )
+    })
+  })
+
+  test('match immediate search term before tokenized term', async () => {
+    api.get = jest.fn(() => ({
+      venues: [
+        {
+          id: 'AAAA',
+          domain: 'someterm',
+          content: { website: { value: 'https://someterm.com' } },
+        },
+      ],
+    }))
+    render(<AllVenuesWithSearch />)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Type to search for venues...'),
+      'https://someterm.com' // should match website instead of domain
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('AAAA').parentElement.nextSibling).toHaveTextContent(
+        'Website - https://someterm.com'
       )
     })
   })

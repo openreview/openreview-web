@@ -1,6 +1,6 @@
 'use client'
 
-import { AutoComplete, Divider, Input } from 'antd'
+import { AutoComplete, Divider, Flex, Input, Tag } from 'antd'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -64,18 +64,28 @@ const searchFieldsConfig = [
 ]
 
 const findFieldMatch = (venue, term) => {
+  const lowerTerm = term.toLowerCase()
+  const fullMatch = searchFieldsConfig.find((fieldConfig) => {
+    const value = fieldConfig.getValue(venue)
+    return value && value.toLowerCase().includes(lowerTerm)
+  })
+  if (fullMatch) {
+    return { field: fullMatch.label, fieldValue: fullMatch.getValue(venue) }
+  }
   const tokens = tokenizeTerm(term).map((t) => t.toLowerCase())
   if (!tokens.length) return null
-  const result = searchFieldsConfig.find((fieldConfig) => {
+  const tokenMatch = searchFieldsConfig.find((fieldConfig) => {
     const value = fieldConfig.getValue(venue)
     if (!value) return false
     const lowerValue = value.toLowerCase()
     return tokens.some((token) => lowerValue.includes(token))
   })
-  return result ? { field: result.label, fieldValue: result.getValue(venue) } : null
+  return tokenMatch
+    ? { field: tokenMatch.label, fieldValue: tokenMatch.getValue(venue) }
+    : null
 }
 
-export default function AllVenuesWithSearch() {
+export default function AllVenuesWithSearch({ activeVenues, openVenues }) {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
   const [venueSearchResults, setVenueSearchResults] = useState([])
   const [loading, setLoading] = useState(false)
@@ -87,9 +97,10 @@ export default function AllVenuesWithSearch() {
     () => tokenizeTerm(immediateSearchTerm).join(' '),
     [immediateSearchTerm]
   )
+  const trimmedTerm = useMemo(() => immediateSearchTerm.trim(), [immediateSearchTerm])
 
   useEffect(() => {
-    latestTermRef.current = tokenizedTerm
+    latestTermRef.current = trimmedTerm
     if (tokenizedTerm.length < MIN_SEARCH_LENGTH) {
       setVenueSearchResults([])
       setSearchUnavailable(false)
@@ -101,10 +112,11 @@ export default function AllVenuesWithSearch() {
       setLoading(true)
       try {
         const result = await api.get('/venues/search', {
-          term: tokenizedTerm,
+          term: trimmedTerm,
           limit: 10,
+          select: 'id,domain,content.title,content.subtitle,content.location,content.website',
         })
-        if (tokenizedTerm !== latestTermRef.current) return
+        if (trimmedTerm !== latestTermRef.current) return
         if (result.searchUnavailable) {
           setVenueSearchResults([])
           setSearchUnavailable(true)
@@ -119,13 +131,19 @@ export default function AllVenuesWithSearch() {
             const nameMatches = tokenizeTerm(tokenizedTerm).some((t) =>
               lowerName.includes(t.toLowerCase())
             )
-            const matchedField = nameMatches ? null : findFieldMatch(venue, tokenizedTerm)
+            const matchedField = nameMatches ? null : findFieldMatch(venue, trimmedTerm)
+            const isActive = activeVenues?.some((v) => v?.groupId === venue.id)
+            const isOpen = openVenues?.some((v) => v?.groupId === venue.id)
 
             return {
               value: venue.id,
               label: (
                 <>
-                  <div>{highlightMatch(name, tokenizedTerm)}</div>
+                  <Flex align="center" gap={8}>
+                    <span>{highlightMatch(name, tokenizedTerm)}</span>
+                    {isActive && <Tag color="#3e6775">Active</Tag>}
+                    {isOpen && <Tag color="#8c1b13">Open for Submission</Tag>}
+                  </Flex>
                   {matchedField && (
                     <div style={{ fontSize: '0.85em', color: '#666' }}>
                       {matchedField.field} -{' '}
@@ -141,10 +159,10 @@ export default function AllVenuesWithSearch() {
           })
         )
       } catch (error) {
-        if (tokenizedTerm !== latestTermRef.current) return
+        if (trimmedTerm !== latestTermRef.current) return
         promptError(error.message)
       } finally {
-        if (tokenizedTerm === latestTermRef.current) setLoading(false)
+        if (trimmedTerm === latestTermRef.current) setLoading(false)
       }
     }, 300)
 
