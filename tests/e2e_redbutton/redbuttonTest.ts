@@ -49,20 +49,20 @@ test('login redirect works', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/messages`)
     .expect(getPageUrl())
     .contains(`http://localhost:${process.env.NEXT_PORT}/login`, { timeout: 10000 })
-    .expect(Selector('a').withText('Login').exists)
+    .expect(Selector('a').withText('Login').filterVisible().exists)
     .ok()
 })
 
 test('own profile shows correct user', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, hasTaskUser.email)
     .typeText(passwordInput, hasTaskUser.password)
     .wait(100)
     .click(loginButton)
     .wait(1000)
-    .click(Selector('a.dropdown-toggle'))
+    .click(Selector('#user-menu').filterVisible())
     .click(Selector('a').withText('Profile'))
     .click(Selector('#edit-banner').find('a'))
     .expect(Selector('input.full-name').value)
@@ -83,7 +83,7 @@ test('view other user profile by id', async (t) => {
 test('messages page loads for logged-in user', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, hasTaskUser.email)
     .typeText(passwordInput, hasTaskUser.password)
     .wait(100)
