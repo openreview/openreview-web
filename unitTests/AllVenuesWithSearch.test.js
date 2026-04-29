@@ -140,7 +140,7 @@ describe('AllVenuesWithSearch', () => {
     await waitFor(() => {
       expect(screen.getByRole('link', { name: /View All Venues/ })).toHaveAttribute(
         'href',
-        '/venues'
+        '/all-venues'
       )
     })
   })

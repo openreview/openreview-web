@@ -200,7 +200,7 @@ export default function AllVenuesWithSearch({ activeVenues, openVenues }) {
       {menu}
       <Divider style={{ margin: '4px 0' }} />
       <div style={{ padding: '6px 12px' }}>
-        <Link href="/venues">View All Venues →</Link>
+        <Link href="/all-venues">View All Venues →</Link>
       </div>
     </>
   )
@@ -223,7 +223,7 @@ export default function AllVenuesWithSearch({ activeVenues, openVenues }) {
         listHeight={150}
         getPopupContainer={(triggerNode) => triggerNode.parentElement}
       >
-        <Input size="large" placeholder="Type to search for venues..." />
+        <Input size="large" placeholder="Type to search for venues..." maxLength={200} />
       </AutoComplete>
     </section>
   )

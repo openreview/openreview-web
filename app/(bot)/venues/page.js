@@ -1,9 +1,9 @@
 import { headers } from 'next/headers'
 import Link from 'next/link'
-import ErrorDisplay from '../../components/ErrorDisplay'
-import api from '../../lib/api-client'
-import { deburrString, prettyId } from '../../lib/utils'
-import CommonLayout from '../CommonLayout'
+import ErrorDisplay from '../../../components/ErrorDisplay'
+import api from '../../../lib/api-client'
+import { deburrString, prettyId } from '../../../lib/utils'
+import CommonLayout from '../../CommonLayout'
 
 import styles from './Venues.module.scss'
 
