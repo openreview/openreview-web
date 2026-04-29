@@ -51,7 +51,7 @@ export default function NoteEntity(props) {
 
   let { authors, authorids } = content
 
-  if (!authorids) {
+  if (authors && !authorids) {
     authorids = authors.map((p) => p.username)
     authors = authors.map((p) => p.fullname)
   }

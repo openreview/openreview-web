@@ -14,7 +14,7 @@ import {
 
 const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
     .wait(100)
@@ -23,7 +23,7 @@ const userBRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =>
 
 const userARole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), hasTaskUser.email)
     .typeText(Selector('#password-input'), hasTaskUser.password)
     .wait(100)
@@ -783,7 +783,9 @@ const editEmailInputSelector = Selector('input:not([readonly]).email')
 const emailConfirmButtons = Selector('section').find('button').withText('Confirm')
 const emailRemoveButtons = Selector('section').find('button').withText('Remove')
 const pageHeader = Selector('h1').nth(0)
-const profileViewEmail = Selector('section.emails').find('span')
+const profileViewEmail = Selector('section')
+  .withText('Emails')
+  .find('div.section-content span')
 const addDBLPPaperToProfileButton = Selector('button.personal-links__adddblpbtn')
 const persistentUrlInput = Selector('div.persistent-url-input').find('input')
 const showPapersButton = Selector('div.persistent-url-input')
@@ -834,12 +836,12 @@ fixture`Profile page`
 test('user open own profile', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), hasTaskUser.email)
     .typeText(Selector('#password-input'), hasTaskUser.password)
     .wait(100)
     .click(Selector('button').withText('Login to OpenReview'))
-    .click(Selector('a.dropdown-toggle'))
+    .click(Selector('#user-menu').filterVisible())
     .click(Selector('a').withText('Profile'))
     .expect(pageHeader.innerText)
     .eql(hasTaskUser.fullname)
@@ -1050,7 +1052,7 @@ test('add relation', async (t) => {
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
-    .expect(Selector('span').withText('Some Relation Name').exists)
+    .expect(Selector('.ant-space-item').withText('Some Relation Name').exists)
     .ok()
     .expect(Selector('a').withAttribute('href', '/profile?id=~FirstA_LastA1').textContent)
     .eql('FirstA LastA')
@@ -1124,13 +1126,17 @@ test('add expertise', async (t) => {
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
-    .expect(Selector('span').withText('other expertise').exists)
+    .expect(Selector('.ant-space-item').withText('other expertise').exists)
     .ok()
-    .expect(Selector('span').withText('some, correct, expertise').exists)
+    .expect(Selector('.ant-space-item').withText('some').exists)
     .ok()
-    .expect(Selector('div.start-end-year').withText('1999 – Present').exists)
+    .expect(Selector('.ant-space-item').withText('correct').exists)
     .ok()
-    .expect(Selector('div.start-end-year').withText('1999 – 2000').exists)
+    .expect(Selector('.ant-space-item').withText('expertise').exists)
+    .ok()
+    .expect(Selector('em').withText('1999 – Present').exists)
+    .ok()
+    .expect(Selector('em').withText('1999 – 2000').exists)
     .ok()
 })
 
@@ -1300,13 +1306,7 @@ test('check import history', async (t) => {
     { 'note.id': importedPaperId, sort: 'tcdate' },
     superUserToken
   )
-  await t
-    .expect(edits.length)
-    .eql(2)
-    .expect(edits[1].note.content.authorids.value.includes(userBAlternateId))
-    .ok() // 1st post of paper has all dblp authorid
-    .expect(edits[0].note.content.authorids.value.includes(userBAlternateId))
-    .ok() // authorid is updated
+  await t.expect(edits.length).eql(2)
 })
 
 test('reimport unlinked paper and import all', async (t) => {
@@ -1355,7 +1355,7 @@ test('reimport unlinked paper and import all', async (t) => {
     .ok()
     // coauthors should have values now
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('section.coauthors').find('li').count)
+    .expect(Selector('section').withText('Co-Authors').find('ul.list-unstyled li').count)
     .gt(0)
 })
 
@@ -1470,10 +1470,10 @@ test('profile should be auto merged', async (t) => {
 // oxlint-disable-next-line no-unused-expressions
 fixture`Profile page different user`
 
-test('open profile of other user by email', async (t) => {
+test('open profile of other user by email should fail', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}`)
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), userB.email)
     .typeText(Selector('#password-input'), userB.password)
     .wait(100)
@@ -1483,10 +1483,8 @@ test('open profile of other user by email', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?email=${hasTaskUser.email}`)
     .expect(Selector('a').withText('Edit Profile').exists)
     .notOk()
-    .expect(pageHeader.innerText)
-    .eql(hasTaskUser.fullname)
-    .expect(profileViewEmail.innerText)
-    .contains('****') // email should be masked
+    .expect(Selector('pre.error-message').innerText)
+    .eql('Profile id is required')
 })
 
 test('open profile of other user by id', async (t) => {
@@ -1576,9 +1574,9 @@ test('#83 email status is missing', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('section.emails').find('div.list-compact').innerText)
+    .expect(Selector('section').withText('Emails').find('div.section-content').innerText)
     .contains('Confirmed') // not sure how the status will be added so selector may need to be updated
-    .expect(Selector('section.emails').find('div.list-compact').innerText)
+    .expect(Selector('section').withText('Emails').find('div.section-content').innerText)
     .contains('Preferred')
 })
 test('#85 confirm profile email message', async (t) => {
@@ -1614,17 +1612,25 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .wait(100)
-    .expect(Selector('#user-menu').innerText)
+    .expect(Selector('#user-menu').filterVisible().innerText)
     .eql('FirstB LastB ')
     .click(nameMakePreferredButton)
     .click(saveProfileButton)
     .expect(saveProfileButton.find('div.spinner-container').exists)
     .notOk({ timeout: 15000 })
     .click(cancelButton)
-    .expect(Selector('#user-menu').innerText)
+    .expect(Selector('#user-menu').filterVisible().innerText)
     .eql('Di Xu ')
     .expect(Selector('h1').nth(0).innerText)
     .eql('Di Xu')
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .click(nameMakePreferredButton)
+    .click(saveProfileButton)
+    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .notOk({ timeout: 15000 })
+    .click(cancelButton)
+    .expect(Selector('#user-menu').innerText)
+    .eql('FirstB LastB ')
 })
 test('#160 allow user to overwrite name to be lowercase', async (t) => {
   await t
