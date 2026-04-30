@@ -131,14 +131,14 @@ describe('AllVenuesWithSearch', () => {
     })
   })
 
-  test('shows "View All Venues" link in the dropdown footer', async () => {
+  test('shows "Browse All Venues" link in the dropdown footer', async () => {
     api.get = jest.fn(() => Promise.resolve({ venues: [{ id: 'AAAA' }] }))
     render(<AllVenuesWithSearch />)
 
     await userEvent.type(screen.getByPlaceholderText('Type to search for venues...'), 'AAA')
 
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: /View All Venues/ })).toHaveAttribute(
+      expect(screen.getByRole('link', { name: /Browse All Venues/ })).toHaveAttribute(
         'href',
         '/all-venues'
       )

@@ -200,7 +200,7 @@ export default function AllVenuesWithSearch({ activeVenues, openVenues }) {
       {menu}
       <Divider style={{ margin: '4px 0' }} />
       <div style={{ padding: '6px 12px' }}>
-        <Link href="/all-venues">View All Venues →</Link>
+        <Link href="/all-venues">Browse All Venues →</Link>
       </div>
     </>
   )
