@@ -149,7 +149,7 @@ const AutoCompleteInput = () => {
           name="term"
           className={legacyNavStyles.navSearchInput}
           value={immediateSearchTerm}
-          placeholder="Search OpenReview..."
+          placeholder="Search articles, authors and reviews..."
           autoComplete="off"
           autoCorrect="off"
           onChange={(e) => {
