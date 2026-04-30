@@ -1,15 +1,16 @@
 import { groupBy } from 'lodash'
-import Link from 'next/link'
 import { headers } from 'next/headers'
-import ErrorDisplay from '../../components/ErrorDisplay'
-import api from '../../lib/api-client'
-import serverAuth from '../auth'
-import { inflect, prettyId } from '../../lib/utils'
-import Accordion from '../../components/Accordion'
+import Link from 'next/link'
+import Accordion from '../../../components/Accordion'
+import Banner from '../../../components/Banner'
+import ErrorDisplay from '../../../components/ErrorDisplay'
+import api from '../../../lib/api-client'
+import { referrerLink } from '../../../lib/banner-links'
+import { inflect, prettyId } from '../../../lib/utils'
+import serverAuth from '../../auth'
+import CommonLayout from '../../CommonLayout'
+
 import styles from './Venue.module.scss'
-import CommonLayout from '../CommonLayout'
-import Banner from '../../components/Banner'
-import { referrerLink } from '../../lib/banner-links'
 
 export const metadata = {
   title: 'Venues | OpenReview',
