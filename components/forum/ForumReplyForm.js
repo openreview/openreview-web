@@ -37,31 +37,29 @@ const ForumReplyForm = ({
         {replyInvitations.map((inv) => {
           const expired = inv.expdate < Date.now()
           const isActive = activeInvitation?.id === inv.id
-          const button = (
-            <Button
-              key={inv.id}
-              type="primary"
-              size="small"
-              disabled={expired}
-              onClick={() => toggleReplyFormNoteEditor(inv)}
-              styles={{
-                root: {
-                  ...legacyStyles.replyInvitationButton,
-                  ...(isActive && legacyStyles.replyInvitationButtonActive),
-                },
-              }}
-            >
-              {prettyInvitationId(inv.id)}
-            </Button>
-          )
-          if (!expired) return button
           return (
             <Tooltip
               key={inv.id}
-              title={`${prettyInvitationId(inv.id)} expired ${dayjs(inv.expdate).fromNow()}`}
-              placement="top"
+              title={
+                expired
+                  ? `${prettyInvitationId(inv.id)} expired ${dayjs(inv.expdate).fromNow()}`
+                  : null
+              }
             >
-              <span>{button}</span>
+              <Button
+                type="primary"
+                size="small"
+                onClick={() => toggleReplyFormNoteEditor(inv)}
+                styles={{
+                  root: {
+                    ...legacyStyles.replyInvitationButton,
+                    ...(isActive && legacyStyles.replyInvitationButtonActive),
+                    ...(expired && legacyStyles.replyInvitationButtonExpired),
+                  },
+                }}
+              >
+                {prettyInvitationId(inv.id)}
+              </Button>
             </Tooltip>
           )
         })}
