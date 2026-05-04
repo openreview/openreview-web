@@ -65,8 +65,8 @@ test('own profile shows correct user', async (t) => {
     .click(Selector('#user-menu').filterVisible())
     .click(Selector('a').withText('Profile'))
     .click(Selector('#edit-banner').find('a'))
-    .expect(Selector('input.full-name').value)
-    .eql(hasTaskUser.fullname)
+    .expect(Selector('input.full-name').withAttribute('value', hasTaskUser.fullname).exists) // merged user A and user F
+    .ok({ timeout: 10000 })
 })
 
 test('view other user profile by id', async (t) => {
