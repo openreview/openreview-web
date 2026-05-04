@@ -1,4 +1,10 @@
 # This workflow deploys any branch, tag, or commit hash to the production environment.
+# Flow:
+#   1. Build Next.js and upload artifact to GCS (skipped if build already exists)
+#   2. Run Packer to bake the artifact into a new GCE image
+#   3. Terraform apply to update the instance template
+#   4. Rolling update — replace MIG instances one at a time with zero downtime
+#   5. Deploy static files to nginx (symlinks /_next and .html files into nginx html dir)
 
 name: Production Deployment
 
@@ -29,6 +35,24 @@ jobs:
         with:
           ref: ${{ env.TAG }}
           fetch-depth: 0
+
+      # Requires a GitHub App installed on openreview/openreview-cloud with contents:read permission.
+      # Set GH_APP_ID and GH_APP_PRIVATE_KEY secrets on this repo before running.
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+          repositories: openreview-cloud
+
+      - name: Checkout openreview-cloud
+        uses: actions/checkout@v6
+        with:
+          repository: openreview/openreview-cloud
+          path: openreview-cloud
+          token: ${{ steps.app-token.outputs.token }}
+
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v3
@@ -38,17 +62,21 @@ jobs:
           create_credentials_file: true
           cleanup_credentials: true
           export_environment_variables: true
+
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           skip_install: true
+
       - name: Run deploy script
+        id: build
         run: |
           cd $GITHUB_WORKSPACE
           gsutil cp gs://openreview-general/conf/production.env $GITHUB_WORKSPACE/.env.local
           config_hash="$(sha1sum $GITHUB_WORKSPACE/.env.local | cut -d " " -f 1)"
           build_id="$(git describe --tags)-$config_hash"
+          echo "build_id=$build_id" >> $GITHUB_OUTPUT
           echo "Build ID: $build_id"
 
           if gsutil ls "gs://openreview-general/openreview-web-builds/${build_id}.tar.gz" ; then
@@ -75,30 +103,60 @@ jobs:
           echo "BUILD_ID=\"$build_id\"" >> ./deployment.conf
           gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
 
-          instance_prefix='openreview-web-'
+      - name: Setup Packer
+        uses: hashicorp/setup-packer@main
+        with:
+          version: latest
 
-          instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
+      - name: Build GCE image with Packer
+        id: packer
+        working-directory: openreview-cloud/Images/openreview-web
+        env:
+          BUILD_ID: ${{ steps.build.outputs.build_id }}
+        run: |
+          packer init .
+          packer build \
+            -var="build_id=${BUILD_ID}" \
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}"  \
+            .
+          image=$(jq -r '.builds[-1].artifact_id' manifest.json | cut -d: -f2)
+          echo "image=$image" >> $GITHUB_OUTPUT
 
-          instances_arr=(${instances// / })
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
 
-          instance_names=()
-          zones=()
-          for i in ${!instances_arr[@]}; do
-            if echo "${instances_arr[$i]}" | grep -q "$instance_prefix"; then
-              instance_names+=(${instances_arr[$i]})
-            else
-              zones+=(${instances_arr[$i]})
-            fi
-          done
+      - name: Terraform apply — update instance template and roll MIG
+        working-directory: openreview-cloud/Terraform/prod/web
+        env:
+          IMAGE: ${{ steps.packer.outputs.image }}
+        run: |
+          terraform init
+          terraform apply -auto-approve \
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
+            -var="image=${IMAGE}"
 
-          for i in ${!instance_names[@]}; do
-            echo Deploying to ${instance_names[$i]}
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command "bash bin/deploy-web.sh ${TAG}"
-          done
+      - name: Start MIG rolling update
+        run: |
+          gcloud compute instance-groups managed rolling-action start-update openreview-web \
+            --region=us-central1 \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --max-surge=1 \
+            --max-unavailable=0
+
+      - name: Wait for rollout to complete
+        run: |
+          gcloud compute instance-groups managed wait-until openreview-web \
+            --version-target-reached \
+            --region=us-central1 \
+            --project=${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Deploy static files to nginx
+        run: |
+          nvm='export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&'
 
           nginx='nginx'
-
-          nvm='export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&'
 
           nginx=$(gcloud compute instances list | grep "$nginx" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
 
@@ -106,4 +164,4 @@ jobs:
           nginx_name=${nginx_arr[0]}
           nginx_zone=${nginx_arr[1]}
 
-          gcloud compute --project "sunlit-realm-131518" ssh --zone $nginx_zone --tunnel-through-iap openreview@$nginx_name --command "${nvm} bash bin/deploy-web.sh ${TAG}" --quiet
+          gcloud compute --project "${{ secrets.GCP_PROJECT_ID }}" ssh --zone $nginx_zone --tunnel-through-iap openreview@$nginx_name --command "${nvm} bash bin/deploy-web.sh ${TAG}" --quiet
