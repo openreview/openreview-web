@@ -1,20 +1,20 @@
 /* globals $,promptMessage,promptError: false */
 
+import copy from 'copy-to-clipboard'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import upperFirst from 'lodash/upperFirst'
 // modified from noteReviewStatus.hbs handlebar template
 import Link from 'next/link'
 import { useContext, useState } from 'react'
-import upperFirst from 'lodash/upperFirst'
-import copy from 'copy-to-clipboard'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import dayjs from 'dayjs'
 import api from '../../lib/api-client'
+import { pluralizeString, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
 import BasicModal from '../BasicModal'
 import Collapse from '../Collapse'
 import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
-import { pluralizeString, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
 import ProfileLink from './ProfileLink'
 
 dayjs.extend(relativeTime)
@@ -271,6 +271,7 @@ export const AcPcConsoleReviewerStatusRow = ({
             name={reviewer.preferredName}
             preferredEmailInvitationId={preferredEmailInvitationId}
           />
+          {reviewer.role && <span className="badge ml-1">{prettyField(reviewer.role)}</span>}
           <div>{reviewer.profile?.title}</div>
           {preferredEmailInvitationId && (
             <a
@@ -310,7 +311,8 @@ export const AcPcConsoleReviewerStatusRow = ({
             )}
             {completedReview.reviewLength && (
               <span>
-                {prettyField(officialReviewName)} length: {completedReview.reviewLength}
+                {prettyField(completedReview.reviewName ?? officialReviewName)} length:{' '}
+                {completedReview.reviewLength}
               </span>
             )}
             <a
@@ -318,7 +320,7 @@ export const AcPcConsoleReviewerStatusRow = ({
               target="_blank"
               rel="nofollow noreferrer"
             >
-              Read {prettyField(officialReviewName)}
+              Read {prettyField(completedReview.reviewName ?? officialReviewName)}
             </a>
           </>
         ) : (
@@ -362,14 +364,14 @@ export const AcPcConsoleReviewerStatusRow = ({
                 handleShowReviewerActivityClick(reviewer.anonymousId)
               }}
             >
-              Show {prettyField(reviewerName)} Activity
+              Show {prettyField(reviewer.role ?? reviewerName)} Activity
             </a>
             <AcPcConsoleReviewerActivityModal
               note={note}
               reviewer={reviewer}
               venueId={venueId}
               submissionName={submissionName}
-              reviewerName={reviewerName}
+              reviewerName={reviewer.role ?? reviewerName}
             />
           </>
         )}
@@ -469,8 +471,8 @@ export const AcPcConsoleNoteReviewStatus = ({
           {numReviewsDone} {pluralizeString(prettyField(officialReviewName))} Submitted
         </h4>
         <Collapse
-          showLabel={`Show ${prettyField(reviewerName)}`}
-          hideLabel={`Hide ${prettyField(reviewerName)}`}
+          showLabel="Show Reviewers"
+          hideLabel="Hide Reviewers"
           className="assigned-reviewers"
         >
           {officialReviews.map((review) => (
@@ -524,8 +526,8 @@ export const AcPcConsoleNoteReviewStatus = ({
       </h4>
       {reviewers.length > 0 && (
         <Collapse
-          showLabel={`Show ${prettyField(reviewerName)}`}
-          hideLabel={`Hide ${prettyField(reviewerName)}`}
+          showLabel="Show Reviewers"
+          hideLabel="Hide Reviewers"
           className="assigned-reviewers"
         >
           <div>

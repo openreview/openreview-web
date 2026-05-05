@@ -34,23 +34,27 @@ dayjs.extend(relativeTime)
 
 const workflowGroupKeys = [
   {
-    field: 'reviewers_id',
-    subGroupSuffixes: ['/Invited', '/Declined'],
-  },
-  {
     field: 'authors_id',
     subGroupSuffixes: ['/Accepted'],
   },
   {
+    field: 'reviewers_id',
+    rolesField: 'reviewer_roles',
+    subGroupSuffixes: ['/Invited', '/Declined'],
+  },
+  {
     field: 'area_chairs_id',
+    rolesField: 'area_chair_roles',
     subGroupSuffixes: ['/Invited', '/Declined'],
   },
   {
     field: 'senior_area_chairs_id',
+    rolesField: 'senior_area_chair_roles',
     subGroupSuffixes: ['/Invited', '/Declined'],
   },
   {
     field: 'ethics_reviewers_id',
+    rolesField: 'ethics_reviewer_roles',
     subGroupSuffixes: ['/Invited', '/Declined'],
   },
   {
@@ -952,6 +956,13 @@ const WorkFlowInvitations = ({ group }) => {
   const loadAllInvitations = async () => {
     setMissingValueInvitationIds([])
     const workflowGroupIds = workflowGroupKeys.flatMap((p) => {
+      const roles = p.rolesField ? group.content?.[p.rolesField]?.value : null
+      if (roles?.length) {
+        return roles.flatMap((role) => {
+          const roleGroupId = `${groupId}/${role}`
+          return [roleGroupId, ...p.subGroupSuffixes.map((q) => `${roleGroupId}${q}`)]
+        })
+      }
       const workflowGroupId = group.content?.[p.field]?.value
       if (!workflowGroupId) return []
       const subGroupIds = p.subGroupSuffixes.map((q) => `${workflowGroupId}${q}`)
@@ -992,8 +1003,21 @@ const WorkFlowInvitations = ({ group }) => {
 
       const mainGroups = groups.filter((p) => p.parent === group.id)
       const workflowGroupMap = new Map()
-      sortBy(mainGroups, 'cdate').forEach((p) => {
-        const subGroups = groups.filter((q) => q.parent === p.id)
+      const orderedMainGroupIds = workflowGroupKeys.flatMap((p) => {
+        const roles = p.rolesField ? group.content?.[p.rolesField]?.value : null
+        if (roles?.length) return roles.map((role) => `${groupId}/${role}`)
+        const workflowGroupId = group.content?.[p.field]?.value
+        return workflowGroupId ? [workflowGroupId] : []
+      })
+      const orderedMainGroups = [
+        ...orderedMainGroupIds.flatMap((id) => mainGroups.filter((p) => p.id === id)),
+        ...mainGroups.filter((p) => !orderedMainGroupIds.includes(p.id)),
+      ]
+      orderedMainGroups.forEach((p) => {
+        const subGroups = sortBy(
+          groups.filter((q) => q.parent === p.id),
+          'cdate'
+        )
         workflowGroupMap.set(p.id, { ...p, subGroups })
       })
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
