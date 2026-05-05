@@ -1,10 +1,8 @@
 import { headers } from 'next/headers'
-import api from '../../lib/api-client'
-import VenueList from './VenueList'
-import serverAuth from '../auth'
+import api from '../../../lib/api-client'
+import VenueList from '../VenueList'
 
-export default async function ActiveConsoles({ activeVenues, openVenues }) {
-  const { user, token } = await serverAuth()
+export default async function ActiveConsoles({ activeVenues, openVenues, user, token }) {
   const activeAndOpenVenues = activeVenues.concat(openVenues)
 
   if (!user) return null
