@@ -140,11 +140,14 @@ jobs:
             -var="image=${IMAGE}"
 
       - name: Start MIG rolling update
+        env:
+          IMAGE: ${{ steps.packer.outputs.image }}
         run: |
           gcloud compute instance-groups managed rolling-action start-update openreview-web \
             --region=us-central1 \
             --project=${{ secrets.GCP_PROJECT_ID }} \
-            --max-surge=1 \
+            --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/us-central1/instanceTemplates/openreview-web-template-${IMAGE} \
+            --max-surge=3 \
             --max-unavailable=0
 
       - name: Wait for rollout to complete
