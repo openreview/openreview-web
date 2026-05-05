@@ -1,9 +1,9 @@
+import { Col, Row } from 'antd'
 import { cookies, headers } from 'next/headers'
 import VersionChecker from '../../components/VersionChecker'
 import api from '../../lib/api-client'
 import { formatGroupResults } from '../../lib/utils'
-import ActiveConsoles from './ActiveConsoles'
-import ActiveVenues from './ActiveVenues'
+import ActiveVenueConsole from './_ActiveVenueConsole'
 import AllVenuesWithSearch from './AllVenuesWithSearch'
 import News from './News'
 import OpenVenues from './OpenVenues'
@@ -82,23 +82,23 @@ export default async function page() {
 
   return (
     <div className={styles.home}>
-      <div className="col-xs-12">
-        <News news={news} showNews={showNews} />
-      </div>
-      <div className="col-xs-12 col-sm-6">
-        <ActiveConsoles activeVenues={activeVenues} openVenues={openVenues} />
-        <div className="visible-xs">
-          <OpenVenues venues={openVenues} />
-        </div>
-        <ActiveVenues venues={activeVenues} />
-      </div>
-      <div className="col-xs-12 col-sm-6 hidden-xs">
-        <OpenVenues venues={openVenues} />
-      </div>
+      <Row>
+        <Col xs={24}>
+          <News news={news} showNews={showNews} />
+        </Col>
 
-      <div className="col-xs-12" style={{ marginBottom: 150 }}>
-        <AllVenuesWithSearch activeVenues={activeVenues} openVenues={openVenues} />
-      </div>
+        <Col xs={24} md={12}>
+          <ActiveVenueConsole activeVenues={activeVenues} openVenues={openVenues} />
+        </Col>
+
+        <Col xs={24} md={12}>
+          <OpenVenues venues={openVenues} />
+        </Col>
+
+        <Col xs={24} style={{ marginBottom: 150 }}>
+          <AllVenuesWithSearch activeVenues={activeVenues} openVenues={openVenues} />
+        </Col>
+      </Row>
       <VersionChecker />
     </div>
   )
