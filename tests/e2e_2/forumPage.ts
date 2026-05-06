@@ -12,7 +12,7 @@ const confirmDeleteModal = Selector('#confirm-delete-modal')
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
@@ -20,7 +20,7 @@ const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
 })
 const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'a@a.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
@@ -28,7 +28,7 @@ const authorRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) =
 })
 const pcRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'program_chair@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
@@ -65,7 +65,7 @@ test('show a valid forum', async (t) => {
     .expect(titleLabel.innerText)
     .eql('Paper Title 1')
     .expect(authorLabel.innerText)
-    .eql('FirstA LastA ')
+    .eql('FirstA LastA')
     .expect(abstractLabel.innerText)
     .eql('Paper Abstract')
 })

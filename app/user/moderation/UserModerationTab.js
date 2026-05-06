@@ -723,7 +723,7 @@ const UserModerationQueue = ({
         onChange={(page, size) => {
           setPageNumber(page)
         }}
-        showSizeChanger
+        showSizeChanger={!onlyModeration}
         onShowSizeChange={(current, size) => {
           setPageSize(size)
         }}

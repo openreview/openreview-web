@@ -1,19 +1,17 @@
-/* globals promptError: false */
-import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useContext, useEffect, useState } from 'react'
 import api from '../../../lib/api-client'
-import WebFieldContext from '../../WebFieldContext'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
   getProfileName,
 } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
-
-import Table from '../../Table'
 import PaginationLinks from '../../PaginationLinks'
-import NoteSummary from '../NoteSummary'
+import Table from '../../Table'
+import WebFieldContext from '../../WebFieldContext'
 import { EthicsReviewStatus } from '../NoteReviewStatus'
+import NoteSummary from '../NoteSummary'
 import EthicsChairMenuBar from './EthicsChairMenuBar'
 
 const EthicsSubmissionRow = ({ rowData }) => {
@@ -198,7 +196,13 @@ const EthicsChairPaperStatus = () => {
               return p.invitations.includes(ethicsMetaReviewInvitationId)
             })
           : null
-
+        if (typeof note.content?.authors?.value === 'object' && !note.content?.authorids) {
+          // eslint-disable-next-line no-param-reassign
+          note.authorSearchValue = note.content.authors.value.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          }))
+        }
         return {
           note,
           ethicsReviews,

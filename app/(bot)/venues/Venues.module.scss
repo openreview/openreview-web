@@ -1,4 +1,4 @@
-@use '../../styles/utils/constants';
+@use '../../../styles/utils/constants';
 
 .venues {
   :global {
@@ -22,5 +22,13 @@
       padding-right: 5px;
       word-wrap: break-word;
     }
+  }
+}
+
+.leadingVenue {
+  display: inline-block;
+  &:first-letter {
+    color: constants.$orRed;
+    font-weight: bold;
   }
 }

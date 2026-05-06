@@ -14,6 +14,7 @@ import {
   prettyId,
   inflect,
   pluralizeString,
+  getNoteAuthorIds,
 } from '../../lib/utils'
 import ErrorDisplay from '../ErrorDisplay'
 import Table from '../Table'
@@ -511,9 +512,8 @@ const AuthorConsole = ({ appContext }) => {
   const loadProfiles = async (notes, version) => {
     const authorIds = new Set()
     notes.forEach((note) => {
-      const ids = version === 2 ? note.content.authorids.value : note.content.authorids
+      const ids = getNoteAuthorIds(note, version === 2)
       if (!Array.isArray(ids)) return
-
       ids.forEach((id) => {
         if (!id.includes('@')) {
           authorIds.add(id)

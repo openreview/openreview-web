@@ -4,6 +4,7 @@ export default function MultiSelectorDropdown({
   selectedValues,
   setSelectedValues,
   disabled,
+  optionsDisabled = false,
   extraClass = undefined,
   displayTextFn = undefined,
 }) {
@@ -11,6 +12,7 @@ export default function MultiSelectorDropdown({
   const numOptions = allValues.length
 
   const handleSelectAllChange = () => {
+    if (optionsDisabled) return
     if (selectedValues?.length === numOptions) {
       setSelectedValues([])
     } else {
@@ -19,6 +21,7 @@ export default function MultiSelectorDropdown({
   }
 
   const handleSelectValueChange = (value) => {
+    if (optionsDisabled) return
     if (selectedValues?.includes(value)) {
       setSelectedValues(selectedValues?.filter((v) => v !== value))
     } else {
@@ -56,6 +59,7 @@ export default function MultiSelectorDropdown({
               type="checkbox"
               checked={selectedValues?.length === numOptions}
               onChange={(e) => handleSelectAllChange(e.target.value)}
+              disabled={optionsDisabled}
             />
             Select All
           </label>
@@ -68,6 +72,7 @@ export default function MultiSelectorDropdown({
                 type="checkbox"
                 checked={selectedValues?.includes(option.value)}
                 onChange={(e) => handleSelectValueChange(e.target.value)}
+                disabled={optionsDisabled}
               />
               {option.label}
             </label>

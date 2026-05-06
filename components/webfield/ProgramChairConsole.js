@@ -1475,6 +1475,13 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
         }
         note.replyCount = replies.length
         if (useCache) delete note.details?.replies
+        if (typeof note.content?.authors?.value === 'object' && !note.content?.authorids) {
+          // eslint-disable-next-line no-param-reassign
+          note.authorSearchValue = note.content.authors.value.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          }))
+        }
       })
 
       // map reviewer recommendation to ac id to calculate recommendation progress correctly
@@ -1797,15 +1804,19 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             preferredName: profile ? profile.preferredName : reviewer.reviewerProfileId,
           }
         }),
-        authors: note.content?.authorids?.value?.map((authorId, index) => {
-          const preferredName = note.content.authors?.value?.[index]
-          return {
-            preferredId: authorId,
-            preferredName,
-            noteNumber: note.number,
-            anonymizedGroup: authorId,
-          }
-        }),
+        authors: note.content?.authorids?.value
+          ? note.content.authorids.value.map((authorId, index) => ({
+              preferredId: authorId,
+              preferredName: note.content.authors?.value?.[index],
+              noteNumber: note.number,
+              anonymizedGroup: authorId,
+            }))
+          : note.content?.authors?.value?.map((author) => ({
+              preferredId: author.username,
+              preferredName: author.fullname,
+              noteNumber: note.number,
+              anonymizedGroup: author.username,
+            })),
         reviewerProfiles: assignedReviewerProfiles,
         officialReviews,
         reviewProgressData: {

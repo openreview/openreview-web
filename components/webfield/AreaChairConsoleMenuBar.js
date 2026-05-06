@@ -35,7 +35,11 @@ const AreaChairConsoleMenuBar = ({
     number: ['note.number'],
     id: ['note.id'],
     title: ['note.content.title.value'],
-    author: ['note.content.authors.value', 'note.content.authorids.value'],
+    author: [
+      'note.content.authors.value',
+      'note.content.authorids.value',
+      'note.authorSearchValue',
+    ],
     keywords: ['note.content.keywords.value'],
     venue: ['note.content.venue.value'],
     [formattedReviewerName]: ['reviewers'],

@@ -1,0 +1,56 @@
+@use '../utils/constants';
+
+.navBar {
+  background-color: constants.$orRed;
+  z-index: 1031;
+  position: relative;
+  width: 100%;
+  margin-bottom: 0;
+
+  a {
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+.navMobile,
+.navTablet,
+.navDesktop {
+  min-height: 50px;
+}
+
+// Default (< 768px): mobile visible, others hidden
+.navMobile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.navTablet,
+.navDesktop {
+  display: none;
+}
+
+// 768-991px: tablet layout
+@media (min-width: 768px) and (max-width: 991px) {
+  .navMobile {
+    display: none;
+  }
+  .navTablet {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+// >= 992px: desktop layout
+@media (min-width: 992px) {
+  .navMobile {
+    display: none;
+  }
+  .navDesktop {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}

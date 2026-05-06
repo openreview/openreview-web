@@ -1,0 +1,344 @@
+// Legacy Bootstrap-era navbar styles. Everything here matches Bootstrap 3
+// dimensions, padding, colors, and responsive behavior
+
+@use '../utils/constants';
+
+// ===== Navbar border (Bootstrap .navbar-inverse) =====
+.navBar {
+  border-bottom: 1px solid constants.$orRedDark;
+}
+
+// ===== Container widths (Bootstrap .container) =====
+.navContainer {
+  margin: 0 auto;
+  padding: 0 15px;
+  width: 100%;
+  max-width: 100%;
+}
+@media (min-width: 768px) {
+  .navContainer {
+    max-width: 750px;
+  }
+}
+@media (min-width: 992px) {
+  .navContainer {
+    max-width: 970px;
+  }
+}
+@media (min-width: 1200px) {
+  .navContainer {
+    max-width: 1170px;
+  }
+}
+
+// ===== Brand (Bootstrap .navbar-brand) =====
+.navBrand {
+  font-size: 1.375rem;
+  line-height: 20px;
+  padding: 15px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  color: #b8b8b8;
+  text-decoration: none;
+
+  strong {
+    color: #fff;
+  }
+
+  @media (max-width: 767px) {
+    font-size: 20px;
+  }
+
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+  &:hover {
+    color: constants.$mediumBlue;
+    text-shadow: 0px 1px 0px constants.$darkBlue;
+    strong {
+      color: constants.$mediumBlue;
+    }
+  }
+  &:focus {
+    color: #9d9d9d;
+    strong {
+      color: #fff;
+    }
+  }
+}
+
+// ===== Nav links in tablet/desktop right section (Bootstrap .navbar-nav li > a) =====
+.navLink {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 15px 0.5rem;
+  line-height: 20px;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    text-decoration: none;
+    background-color: constants.$orRedDark;
+    cursor: pointer;
+  }
+}
+@media (min-width: 1200px) {
+  .navLink {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+// ===== User menu trigger (Bootstrap .dropdown-toggle in navbar) =====
+.navUserTrigger {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 15px 0.5rem;
+  line-height: 20px;
+  text-overflow: ellipsis;
+  max-width: 295px;
+  white-space: nowrap;
+  overflow: hidden;
+  background: none;
+  border: none;
+  font-size: inherit;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    text-decoration: none;
+    background-color: constants.$orRedDark;
+  }
+
+  &.isOpen,
+  &.isOpen:hover,
+  &.isOpen:focus {
+    background-color: constants.$darkBlue;
+  }
+}
+@media (min-width: 1200px) {
+  .navUserTrigger {
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+}
+
+// ===== Bootstrap caret triangle =====
+.navCaret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  vertical-align: middle;
+  border-top: 4px solid;
+  border-right: 4px solid transparent;
+  border-left: 4px solid transparent;
+  transition: transform 0.15s ease;
+
+  &.isOpen {
+    transform: rotate(180deg);
+  }
+}
+
+// ===== Bootstrap badge =====
+.navBadge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 3px 7px;
+  font-size: 12px;
+  font-weight: bold;
+  line-height: 12px;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  background-color: #777;
+  border-radius: 10px;
+  margin-top: -3px;
+  margin-left: 4px;
+}
+.navDropdownItem .navBadge {
+  margin-left: 6px;
+}
+
+// ===== Dropdown menu item (Bootstrap .dropdown-menu li > a) =====
+.navDropdownItem {
+  display: block;
+  padding: 4px 20px;
+  color: constants.$darkBlue;
+  text-decoration: none;
+  line-height: 1.42857143;
+  white-space: nowrap;
+
+  &:hover,
+  &:focus {
+    color: constants.$darkBlue;
+    background-color: constants.$backgroundGray;
+    text-decoration: none;
+  }
+}
+
+// ===== Hamburger toggle button (Bootstrap .navbar-toggle) =====
+.navToggle {
+  background-color: constants.$mediumDarkBlue;
+  border: 1px solid constants.$orRedDark;
+  border-radius: 2px;
+  padding: 9px 10px;
+  margin: 8px 15px 8px 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  &:hover,
+  &:focus {
+    background-color: constants.$darkBlue;
+  }
+}
+
+.navToggleBar {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background-color: #fff;
+  border-radius: 1px;
+
+  & + .navToggleBar {
+    margin-top: 4px;
+  }
+}
+
+// ===== Search form (Bootstrap .navbar-form) =====
+.navSearchForm {
+  border-top: 0;
+  margin: 0;
+  padding-right: 0;
+}
+
+.navSearchFormDrawer {
+  margin: 10px 15px;
+}
+
+// ===== Search wrapper (Bootstrap .form-group.has-feedback) =====
+.navSearchWrapper {
+  position: relative;
+  display: inline-block;
+}
+.navSearchFormDrawer .navSearchWrapper {
+  display: block;
+}
+
+// ===== Search input (Bootstrap .form-control responsive) =====
+.navSearchInput {
+  background-color: #ddd;
+  width: 100%;
+  height: 30px;
+  border: 1px solid #ccc;
+  border-radius: 0;
+  padding: 4px 30px 4px 12px;
+  outline: none;
+  font-size: 14px;
+  line-height: 20px;
+  color: #555;
+  box-sizing: border-box;
+  transition:
+    background-color 0.5s linear,
+    box-shadow 0.4s 0.2s ease;
+
+  &:focus {
+    background-color: #fff;
+  }
+}
+@media (min-width: 768px) {
+  .navSearchForm:not(.navSearchFormDrawer) .navSearchInput {
+    width: 250px;
+  }
+}
+@media (min-width: 1200px) {
+  .navSearchForm:not(.navSearchFormDrawer) .navSearchInput {
+    width: 380px;
+  }
+}
+
+// ===== Search feedback icon (Bootstrap .form-control-feedback) =====
+.navSearchFeedback {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  color: #777;
+  position: absolute;
+  right: 0;
+  top: 0;
+  text-align: center;
+  pointer-events: none;
+}
+
+// ===== Drawer (mobile) links =====
+.navDrawerLink {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 10px 15px;
+  font-size: 1rem;
+  line-height: 20px;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    text-decoration: none;
+    background-color: constants.$orRedDark;
+  }
+}
+
+.navDrawerUserToggle {
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 10px 15px;
+  font-size: 1rem;
+  line-height: 20px;
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    background-color: constants.$orRedDark;
+    outline: none;
+  }
+}
+
+.navDrawerSubLink {
+  color: #fff;
+  text-decoration: none;
+  display: block;
+  padding: 10px 15px 10px 32px;
+  font-size: 1rem;
+  line-height: 20px;
+
+  &:hover,
+  &:focus {
+    color: #fff;
+    text-decoration: none;
+    background-color: constants.$orRedDark;
+  }
+}
+
+.navDrawerDivider {
+  border: none;
+  border-top: 1px solid constants.$darkBlue;
+  margin: 5px 0;
+}

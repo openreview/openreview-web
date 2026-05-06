@@ -2,6 +2,9 @@
 
 import Link from 'next/link'
 
+import legacyNavStyles from '../styles/components/legacy-bootstrap-nav.module.scss'
+import styles from '../styles/components/nav.module.scss'
+
 export default function GlobalError({ error }) {
   return (
     <html lang="en">
@@ -11,28 +14,14 @@ export default function GlobalError({ error }) {
       </head>
       <body>
         <div id="__next">
-          <nav className="navbar navbar-inverse" role="navigation">
-            <div className="container">
-              <div className="navbar-header">
-                <button
-                  type="button"
-                  className="navbar-toggle collapsed"
-                  data-toggle="collapse"
-                  data-target="#navbar"
-                  aria-expanded="false"
-                  aria-controls="navbar"
-                >
-                  <span className="sr-only">Toggle navigation</span>
-                  <span className="icon-bar" />
-                  <span className="icon-bar" />
-                  <span className="icon-bar" />
-                </button>
-                <Link href="/" className="navbar-brand home push-link">
-                  <strong>OpenReview</strong>.net
-                </Link>
-              </div>
-
-              <div id="navbar" className="navbar-collapse collapse" />
+          <nav className={`${styles.navBar} ${legacyNavStyles.navBar}`} role="navigation">
+            <div
+              className={`${styles.navDesktop} ${legacyNavStyles.navContainer}`}
+              style={{ display: 'flex' }}
+            >
+              <Link href="/" className={legacyNavStyles.navBrand}>
+                <strong>OpenReview</strong>.net
+              </Link>
             </div>
           </nav>
           <div id="or-banner" className="banner">
