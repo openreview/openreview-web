@@ -1,15 +1,19 @@
 # This workflow deploys any branch, tag, or commit hash to the production environment.
-# Flow:
+# Flow (normal deploy):
 #   1. Build Next.js and upload artifact to GCS (skipped if build already exists)
 #   2. Run Packer to bake the artifact into a new GCE image
 #   3. Terraform apply to update the instance template
 #   4. Rolling update — replace MIG instances one at a time with zero downtime
 #   5. Deploy static files to nginx (symlinks /_next and .html files into nginx html dir)
+#
+# Flow (rollback):
+#   1. Resolve tag to previously baked image via GCS mapping
+#   2. Rolling update directly — skips build, Packer, and Terraform
+#   3. Deploy static files to nginx
 
 name: Production Deployment
 
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       tag:
@@ -17,10 +21,14 @@ on:
         required: false
         default: master
         type: string
+      rollback:
+        description: "Roll back to a previously deployed tag (skips build and Packer)"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   deploy:
-    # Allow the job to fetch a GitHub ID token
     permissions:
       id-token: write
       contents: read
@@ -47,7 +55,6 @@ jobs:
           owner: openreview
           repositories: openreview-cloud
 
-
       - name: Checkout openreview-cloud
         uses: actions/checkout@v6
         with:
@@ -73,6 +80,7 @@ jobs:
 
       - name: Run deploy script
         id: build
+        if: ${{ !inputs.rollback }}
         run: |
           cd $GITHUB_WORKSPACE
           gsutil cp gs://openreview-general/conf/production.env $GITHUB_WORKSPACE/.env.local
@@ -106,12 +114,14 @@ jobs:
           gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
 
       - name: Setup Packer
+        if: ${{ !inputs.rollback }}
         uses: hashicorp/setup-packer@main
         with:
           version: latest
 
       - name: Build GCE image with Packer
         id: packer
+        if: ${{ !inputs.rollback }}
         working-directory: openreview-cloud/Images/openreview-web
         env:
           BUILD_ID: ${{ steps.build.outputs.build_id }}
@@ -125,16 +135,19 @@ jobs:
           echo "image=$image" >> $GITHUB_OUTPUT
 
       - name: Record image→tag mapping
+        if: ${{ !inputs.rollback }}
         env:
           IMAGE: ${{ steps.packer.outputs.image }}
         run: echo "$IMAGE" | gsutil cp - gs://openreview-general/web-image-map/${TAG}
 
       - name: Setup Terraform
+        if: ${{ !inputs.rollback }}
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
       - name: Terraform apply — update instance template and roll MIG
+        if: ${{ !inputs.rollback }}
         working-directory: openreview-cloud/Terraform/prod/web
         env:
           IMAGE: ${{ steps.packer.outputs.image }}
@@ -145,9 +158,13 @@ jobs:
             -var="image=${IMAGE}"
 
       - name: Start MIG rolling update
-        env:
-          IMAGE: ${{ steps.packer.outputs.image }}
         run: |
+          if [ "${{ inputs.rollback }}" = "true" ]; then
+            IMAGE=$(gsutil cat gs://openreview-general/web-image-map/${TAG})
+            echo "Rolling back to image: $IMAGE"
+          else
+            IMAGE="${{ steps.packer.outputs.image }}"
+          fi
           gcloud compute instance-groups managed rolling-action start-update openreview-web \
             --region=us-central1 \
             --project=${{ secrets.GCP_PROJECT_ID }} \
