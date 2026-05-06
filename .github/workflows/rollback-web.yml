@@ -1,0 +1,58 @@
+# Emergency rollback — resolves a tag to its golden image via GCS mapping and
+# points the MIG at the corresponding instance template without running Packer
+# or Terraform. Use when the current deployment is broken and you need to
+# restore a known-good image fast (~5 min).
+#
+# Only works for tags previously deployed via the immutable-web-deploy workflow.
+
+name: Web Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to roll back to (e.g. v1.15.15)"
+        required: true
+        type: string
+
+jobs:
+  rollback:
+    permissions:
+      id-token: write
+      contents: read
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate with Google Cloud
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+          create_credentials_file: true
+          cleanup_credentials: true
+          export_environment_variables: true
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v3
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          skip_install: true
+
+      - name: Roll MIG to previous image
+        run: |
+          IMAGE=$(gsutil cat gs://openreview-general/web-image-map/${{ github.event.inputs.tag }})
+          echo "Rolling back to image: $IMAGE"
+          gcloud compute instance-groups managed rolling-action start-update openreview-web \
+            --region=us-central1 \
+            --project=${{ secrets.GCP_PROJECT_ID }} \
+            --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/us-central1/instanceTemplates/openreview-web-template-${IMAGE} \
+            --max-surge=3 \
+            --max-unavailable=0
+
+      - name: Wait for rollout to complete
+        run: |
+          gcloud compute instance-groups managed wait-until openreview-web \
+            --version-target-reached \
+            --region=us-central1 \
+            --project=${{ secrets.GCP_PROJECT_ID }}

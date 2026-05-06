@@ -124,6 +124,11 @@ jobs:
           image=$(jq -r '.builds[-1].artifact_id' manifest.json | cut -d: -f2)
           echo "image=$image" >> $GITHUB_OUTPUT
 
+      - name: Record image→tag mapping
+        env:
+          IMAGE: ${{ steps.packer.outputs.image }}
+        run: echo "$IMAGE" | gsutil cp - gs://openreview-general/web-image-map/${TAG}
+
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
