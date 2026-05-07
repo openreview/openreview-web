@@ -17,7 +17,6 @@ import {
   superUserName,
   strongPassword,
 } from '../utils/api-helper'
-import api from '../../lib/api-client'
 
 const waitForJobs = (noteId, superUserToken, count = 1) =>
   new Promise((resolve, reject) => {
@@ -68,6 +67,11 @@ fixture`Set up test data`.before(async (ctx) => {
     password: strongPassword,
     history: undefined,
   })
+  await createUser(hasNoTaskUser)
+  await createUser(mergeUser)
+  const userRes = await createUser(hasTaskUser)
+  ctx.hasTaskUserTildeId = userRes.user.profile.id
+  ctx.hasTaskUserToken = userRes.token
   return ctx
 })
 
@@ -76,7 +80,7 @@ test('Set up TestVenue', async (t) => {
   const submissionDateString = `${submissionDate.getFullYear()}/${
     submissionDate.getMonth() + 1
   }/${submissionDate.getDate()}`
-  const { superUserToken } = t.fixtureCtx
+  const { superUserToken, hasTaskUserTildeId, hasTaskUserToken } = t.fixtureCtx
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
     signatures: ['~Super_User1'],
@@ -137,12 +141,6 @@ test('Set up TestVenue', async (t) => {
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
   await waitForJobs(deployId, superUserToken)
-
-  const userRes = await createUser(hasTaskUser)
-  const hasTaskUserTildeId = userRes.user.profile.id
-  const hasTaskUserToken = userRes.token
-  await createUser(hasNoTaskUser)
-  await createUser(mergeUser)
 
   // add a note
   const editJson = {
@@ -256,7 +254,7 @@ test('Set up AnotherTestVenue', async (t) => {
   const submissionDateString = `${submissionDate.getFullYear()}/${
     submissionDate.getMonth() + 1
   }/${submissionDate.getDate()}`
-  const { superUserToken } = t.fixtureCtx
+  const { superUserToken, hasTaskUserToken } = t.fixtureCtx
 
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
@@ -319,8 +317,6 @@ test('Set up AnotherTestVenue', async (t) => {
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
   await waitForJobs(deployId, superUserToken)
-
-  const hasTaskUserToken = await getToken(hasTaskUser.email, hasTaskUser.password)
 
   const editJson = {
     invitation: `Another${conferenceSubmissionInvitationId}`,
