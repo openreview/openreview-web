@@ -1,6 +1,7 @@
 import { headers } from 'next/headers'
 import api from '../../../lib/api-client'
 import VenueList from '../VenueList'
+import ActiveVenues from './ActiveVenues'
 
 export default async function ActiveConsoles({ activeVenues, openVenues, user, token }) {
   const activeAndOpenVenues = activeVenues.concat(openVenues)
@@ -34,7 +35,7 @@ export default async function ActiveConsoles({ activeVenues, openVenues, user, t
     })
   }
 
-  if (!venues?.length) return null
+  if (!venues?.length) return <ActiveVenues venues={activeVenues} />
 
   return (
     <section>
