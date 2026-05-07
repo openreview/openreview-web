@@ -6,7 +6,7 @@
 #   4. Rolling update — replace MIG instances one at a time with zero downtime
 #   5. Deploy static files to nginx (symlinks /_next and .html files into nginx html dir)
 #
-# Flow (rollback):
+# Flow (rollback — tag already has a GCS image mapping):
 #   1. Resolve tag to previously baked image via GCS mapping
 #   2. Rolling update directly — skips build, Packer, and Terraform
 #   3. Deploy static files to nginx
@@ -21,11 +21,6 @@ on:
         required: false
         default: master
         type: string
-      rollback:
-        description: "Roll back to a previously deployed tag (skips build and Packer)"
-        required: false
-        default: false
-        type: boolean
 
 jobs:
   deploy:
@@ -44,8 +39,6 @@ jobs:
           ref: ${{ env.TAG }}
           fetch-depth: 0
 
-      # Requires a GitHub App installed on openreview/openreview-cloud with contents:read permission.
-      # Set APP_CLIENT_ID and APP_PRIVATE_KEY secrets on this repo before running.
       - name: Generate GitHub App token
         id: app-token
         uses: actions/create-github-app-token@v3
@@ -78,9 +71,20 @@ jobs:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           skip_install: true
 
+      - name: Check for existing image mapping
+        id: check-mapping
+        run: |
+          if gsutil -q stat gs://openreview-general/web-image-map/${TAG}; then
+            echo "is_rollback=true" >> $GITHUB_OUTPUT
+            echo "Existing image mapping found for ${TAG} — rollback mode"
+          else
+            echo "is_rollback=false" >> $GITHUB_OUTPUT
+            echo "No image mapping found for ${TAG} — full deploy mode"
+          fi
+
       - name: Run deploy script
         id: build
-        if: ${{ !inputs.rollback }}
+        if: steps.check-mapping.outputs.is_rollback == 'false'
         run: |
           cd $GITHUB_WORKSPACE
           gsutil cp gs://openreview-general/conf/production.env $GITHUB_WORKSPACE/.env.local
@@ -114,14 +118,14 @@ jobs:
           gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
 
       - name: Setup Packer
-        if: ${{ !inputs.rollback }}
-        uses: hashicorp/setup-packer@main
+        if: steps.check-mapping.outputs.is_rollback == 'false'
+        uses: hashicorp/setup-packer@v3.2.0
         with:
           version: latest
 
       - name: Build GCE image with Packer
         id: packer
-        if: ${{ !inputs.rollback }}
+        if: steps.check-mapping.outputs.is_rollback == 'false'
         working-directory: openreview-cloud/Images/openreview-web
         env:
           BUILD_ID: ${{ steps.build.outputs.build_id }}
@@ -135,19 +139,19 @@ jobs:
           echo "image=$image" >> $GITHUB_OUTPUT
 
       - name: Record image→tag mapping
-        if: ${{ !inputs.rollback }}
+        if: steps.check-mapping.outputs.is_rollback == 'false'
         env:
           IMAGE: ${{ steps.packer.outputs.image }}
         run: echo "$IMAGE" | gsutil cp - gs://openreview-general/web-image-map/${TAG}
 
       - name: Setup Terraform
-        if: ${{ !inputs.rollback }}
+        if: steps.check-mapping.outputs.is_rollback == 'false'
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
       - name: Terraform apply — update instance template and roll MIG
-        if: ${{ !inputs.rollback }}
+        if: steps.check-mapping.outputs.is_rollback == 'false'
         working-directory: openreview-cloud/Terraform/prod/web
         env:
           IMAGE: ${{ steps.packer.outputs.image }}
@@ -159,7 +163,7 @@ jobs:
 
       - name: Start MIG rolling update
         run: |
-          if [ "${{ inputs.rollback }}" = "true" ]; then
+          if [ "${{ steps.check-mapping.outputs.is_rollback }}" = "true" ]; then
             IMAGE=$(gsutil cat gs://openreview-general/web-image-map/${TAG})
             echo "Rolling back to image: $IMAGE"
           else
