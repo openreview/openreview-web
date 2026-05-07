@@ -29,7 +29,7 @@ const DatePickerWidget = (props) => {
   }
 
   return (
-    <div className={`${styles.datePickerContainer} ${error ? styles.invalidValue : ''}`}>
+    <div className={styles.datePickerContainer}>
       <DatetimePicker
         existingValue={value}
         timeZone={timeZone}
@@ -39,6 +39,7 @@ const DatePickerWidget = (props) => {
         disabledDate={disabledDate}
         showTime={props.showTime}
         getPopupContainer={(trigger) => trigger.parentElement}
+        invalid={!!error}
       />
       {props.showTime !== false && (
         <div className={styles.timeZonePicker}>

@@ -9,6 +9,26 @@ import '@testing-library/jest-dom'
 dayjs.extend(utc)
 dayjs.extend(timezone)
 
+global.ResizeObserver =
+  global.ResizeObserver ||
+  class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+if (!window.matchMedia) {
+  window.matchMedia = (query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  })
+}
+
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 describe('DatetimePicker', () => {
