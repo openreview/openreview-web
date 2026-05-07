@@ -1,3 +1,4 @@
+import { screen, render } from '@testing-library/react'
 import {
   getDefaultTimezone,
   getTagDispayText,
@@ -9,8 +10,9 @@ import {
   stringToObject,
   buildNoteUrl,
   sanitizeRedirectUrl,
+  getNoteAuthorIds,
+  getNoteAuthors,
 } from '../lib/utils'
-import { screen, render } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -961,5 +963,182 @@ describe('utils', () => {
     redirect = 'javascript:alert("some alert")'
     expectedValue = '/'
     expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+  })
+
+  test('return authorids correctly', () => {
+    let note, isV2Note, expectedValue, edit
+
+    // v1 note
+    note = {
+      content: {
+        authorids: ['~Test_User1', '~Test_User2'],
+      },
+    }
+    isV2Note = false
+    expectedValue = ['~Test_User1', '~Test_User2']
+    expect(getNoteAuthorIds(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - authors+authorids schema
+    note = {
+      content: {
+        authors: { value: ['Test User1', 'Test User2'] },
+        authorids: { value: ['~Test_User1', '~Test_User2'] },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['~Test_User1', '~Test_User2']
+    expect(getNoteAuthorIds(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - object author schema
+    note = {
+      content: {
+        authors: {
+          value: [
+            { username: '~Test_User1', fullname: 'Test User1', institutions: [] },
+            { username: '~Test_User2', fullname: 'Test User2', institutions: [] },
+          ],
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['~Test_User1', '~Test_User2']
+    expect(getNoteAuthorIds(note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for authors+authorids schema
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authorids: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthorIds(edit.note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for object author schema (use authors instead of authorids)
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authors: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthorIds(edit.note, isV2Note)).toEqual(expectedValue)
+  })
+
+  test('return author names correctly', () => {
+    let note, isV2Note, expectedValue, edit
+
+    // v1 note
+    note = {
+      content: {
+        authors: ['Test User1', 'Test User2'],
+      },
+    }
+    isV2Note = false
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // v1 note with original
+    note = {
+      content: {
+        authors: ['submission authors'],
+      },
+      details: {
+        original: {
+          content: {
+            authors: ['Test User1', 'Test User2'],
+          },
+        },
+      },
+    }
+    isV2Note = false
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - authors+authorids schema
+    note = {
+      content: {
+        authors: { value: ['Test User1', 'Test User2'] },
+        authorids: { value: ['~Test_User1', '~Test_User2'] },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - object author schema
+    note = {
+      content: {
+        authors: {
+          value: [
+            { username: '~Test_User1', fullname: 'Test User1', institutions: [] },
+            { username: '~Test_User2', fullname: 'Test User2', institutions: [] },
+          ],
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for authors+authorids schema
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authorids: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthors(edit.note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for object author schema (use authors instead of authorids)
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authors: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthors(edit.note, isV2Note)).toEqual(expectedValue)
   })
 })

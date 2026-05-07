@@ -6,7 +6,7 @@ import React, { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { getNoteContentValues } from '../../lib/forum-utils'
-import { inflect, pluralizeString, prettyField } from '../../lib/utils'
+import { getNoteAuthors, inflect, pluralizeString, prettyField } from '../../lib/utils'
 import WebFieldContext from '../WebFieldContext'
 import ProfileLink from './ProfileLink'
 

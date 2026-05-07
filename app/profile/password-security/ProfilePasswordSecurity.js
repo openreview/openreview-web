@@ -34,6 +34,7 @@ const ProfilePasswordSecurity = ({ profile }) => {
       key: 'connectedApps',
       label: 'Third-party apps & services',
       children: <ConnectedAppsList />,
+      styles: { body: { maxWidth: 'none' } },
     },
   ]
 

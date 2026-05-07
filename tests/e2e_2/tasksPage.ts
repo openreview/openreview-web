@@ -4,7 +4,7 @@ import { hasTaskUser, hasNoTaskUser } from '../utils/api-helper'
 const confirmDeleteModal = Selector('#confirm-delete-modal')
 const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), 'test@mail.com')
     .typeText(Selector('#password-input'), hasTaskUser.password)
     .wait(100)
@@ -13,7 +13,7 @@ const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async 
 
 const hasNoTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), hasNoTaskUser.email)
     .typeText(Selector('#password-input'), hasNoTaskUser.password)
     .wait(300)

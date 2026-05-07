@@ -1,13 +1,14 @@
 import { cookies, headers } from 'next/headers'
-import AllVenues from './AllVenues'
-import ActiveVenues from './ActiveVenues'
-import styles from './Home.module.scss'
-import OpenVenues from './OpenVenues'
+import VersionChecker from '../../components/VersionChecker'
 import api from '../../lib/api-client'
 import { formatGroupResults } from '../../lib/utils'
 import ActiveConsoles from './ActiveConsoles'
-import VersionChecker from '../../components/VersionChecker'
+import ActiveVenues from './ActiveVenues'
+import AllVenuesWithSearch from './AllVenuesWithSearch'
 import News from './News'
+import OpenVenues from './OpenVenues'
+
+import styles from './Home.module.scss'
 
 export const metadata = {
   title: 'Venues | OpenReview',
@@ -95,8 +96,8 @@ export default async function page() {
         <OpenVenues venues={openVenues} />
       </div>
 
-      <div className="col-xs-12">
-        <AllVenues />
+      <div className="col-xs-12" style={{ marginBottom: 150 }}>
+        <AllVenuesWithSearch activeVenues={activeVenues} openVenues={openVenues} />
       </div>
       <VersionChecker />
     </div>

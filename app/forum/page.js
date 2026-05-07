@@ -1,19 +1,20 @@
-import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
-import { stringify } from 'query-string'
 import { pickBy, truncate } from 'lodash'
-import api from '../../lib/api-client'
-import serverAuth from '../auth'
-import { getConferenceName, getIssn, getJournalName } from '../../lib/utils'
-import Forum from '../../components/forum/Forum'
-import styles from './Forum.module.scss'
-import CommonLayout from '../CommonLayout'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { stringify } from 'query-string'
 import Banner from '../../components/Banner'
-import legacyStyles from './LegacyForum.module.scss'
-import LegacyForum from '../../components/forum/LegacyForum'
 import ErrorDisplay from '../../components/ErrorDisplay'
+import Forum from '../../components/forum/Forum'
+import LegacyForum from '../../components/forum/LegacyForum'
+import api from '../../lib/api-client'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import { getConferenceName, getIssn, getJournalName } from '../../lib/utils'
+import serverAuth from '../auth'
+import CommonLayout from '../CommonLayout'
 import ArxivForum from './ArxivForum'
+
+import styles from './Forum.module.scss'
+import legacyStyles from './LegacyForum.module.scss'
 
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
@@ -101,7 +102,7 @@ const getForumNote = async (
       }
 
       // Redirect to login, unless request is from a Google crawler
-      if (!token && !userAgent.includes('Googlebot')) {
+      if (!token && userAgent && !userAgent.includes('Googlebot')) {
         redirectPath = `/login?redirect=/forum?${encodeURIComponent(stringify(query))}`
         return { redirectPath }
       }

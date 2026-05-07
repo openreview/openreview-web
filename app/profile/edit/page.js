@@ -1,14 +1,13 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-/* globals promptMessage,promptError: false */
 import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfileEditor from '../../../components/profile/ProfileEditor'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
-import { getNoteAuthorIds, prettyId } from '../../../lib/utils'
+import { getNoteAuthorIds, getNoteAuthors } from '../../../lib/utils'
 import LimitedStateAlert from './LimitedStateAlert'
 
 import styles from './Edit.module.scss'
@@ -78,7 +77,7 @@ export default function Page() {
             author_id: { value: '' },
             ...(invitationMap[invitation] ===
               `${process.env.SUPER_USER}/Public_Article/-/Author_Removal` && {
-              author_name: { value: prettyId(profileId) },
+              author_name: { value: getNoteAuthors(note, true)[matchedIdx[0]] },
             }),
           },
         }
