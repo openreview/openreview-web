@@ -1,6 +1,6 @@
-import VenueList from './VenueList'
+import VenueList from '../VenueList'
 
-export default async function ActiveVenues({ venues }) {
+export default function ActiveVenues({ venues }) {
   return (
     <section id="active-venues">
       <h1>Active Venues</h1>
