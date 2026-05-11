@@ -183,6 +183,10 @@ jobs:
             --region=us-central1 \
             --project=${{ secrets.GCP_PROJECT_ID }}
 
+      - name: Sync error pages to GCS
+        run: |
+          gsutil -m rsync -r $GITHUB_WORKSPACE/public/html/ gs://openreview-public/error-pages/
+
       - name: Deploy static files to nginx
         run: |
           nvm='export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&'
