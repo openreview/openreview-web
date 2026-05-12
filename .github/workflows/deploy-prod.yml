@@ -6,7 +6,7 @@
 #   4. Rolling update — replace MIG instances one at a time with zero downtime
 #   5. Deploy static files to nginx (symlinks /_next and .html files into nginx html dir)
 #
-# Flow (rollback — tag already has a GCS image mapping):
+# Flow (rollback — tag already has a GCS image mapping and force_rebuild is false):
 #   1. Resolve tag to previously baked image via GCS mapping
 #   2. Rolling update directly — skips build, Packer, and Terraform
 #   3. Deploy static files to nginx
@@ -21,6 +21,11 @@ on:
         required: false
         default: master
         type: string
+      force_rebuild:
+        description: Force a full build even if an image mapping already exists for this tag
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   deploy:
@@ -74,7 +79,10 @@ jobs:
       - name: Check for existing image mapping
         id: check-mapping
         run: |
-          if gsutil -q stat gs://openreview-general/web-image-map/${TAG}; then
+          if [ "${{ inputs.force_rebuild }}" = "true" ]; then
+            echo "is_rollback=false" >> $GITHUB_OUTPUT
+            echo "Force rebuild requested — full deploy mode"
+          elif gsutil -q stat gs://openreview-general/web-image-map/${TAG}; then
             echo "is_rollback=true" >> $GITHUB_OUTPUT
             echo "Existing image mapping found for ${TAG} — rollback mode"
           else
