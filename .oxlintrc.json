@@ -1,6 +1,7 @@
 {
   "env": {
-    "builtin": true
+    "builtin": true,
+    "browser": true
   },
   "ignorePatterns": ["client/templates.js", "unitTests"],
   "plugins": ["react"],
@@ -25,7 +26,6 @@
     "promptError": "readonly",
     "promptLogin": "readonly",
     "promptRefresh": "readonly",
-    "clearMessage": "readonly",
-    "window": "readonly"
+    "clearMessage": "readonly"
   }
 }
