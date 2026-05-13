@@ -7,6 +7,7 @@ import AutoCompleteInput from '../../components/AutoCompleteInput'
 import legacyNavStyles from '../../styles/components/legacy-bootstrap-nav.module.scss'
 
 export default function NavSearch({ inDrawer = false }) {
+  return null
   const router = useRouter()
 
   const handleSearch = (e) => {

@@ -1,5 +1,16 @@
 @use '../../styles/utils/constants';
 
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  > section {
+    width: 100%;
+    max-width: 768px;
+  }
+}
+
 .home {
   :global {
     section {
@@ -92,6 +103,40 @@
       padding: 0.5rem;
       border-radius: 5px;
     }
+  }
+}
+
+.heroGuest {
+  justify-content: center;
+  min-height: max(420px, 65vh);
+
+  @media #{constants.$phone-only} {
+    align-items: stretch;
+
+    > section :global h1 {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+.modeSelect {
+  width: 110px;
+  flex: none;
+
+  @media #{constants.$phone-only} {
+    width: 100px;
+  }
+}
+
+// Aligns the browse link with the placeholder text of the input.
+// Desktop: Select width (110) + Input padding (10), minus Space.Compact's
+// 1-2px border overlap, ≈ 118px from the right-column's left edge.
+// Mobile: no Select prefix, just the default Input padding-left (10).
+.browseAlign {
+  padding-left: 118px;
+
+  @media #{constants.$phone-only} {
+    padding-left: 10px;
   }
 }
 
