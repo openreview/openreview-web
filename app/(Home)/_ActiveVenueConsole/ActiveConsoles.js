@@ -1,3 +1,4 @@
+import { Divider } from 'antd'
 import { headers } from 'next/headers'
 import api from '../../../lib/api-client'
 import VenueList from '../VenueList'
@@ -40,8 +41,8 @@ export default async function ActiveConsoles({ activeVenues, openVenues, user, t
   return (
     <section>
       <h1>Your Active Consoles</h1>
-      <hr className="small" />
-      <VenueList name="active consoles" venues={venues} />
+      <Divider style={{ marginTop: 0, minWidth: 0 }} />
+      <VenueList name="active consoles" venues={venues} maxVisible={10} />
     </section>
   )
 }

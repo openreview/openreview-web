@@ -1,5 +1,4 @@
-import { truncate } from 'lodash'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { setBannerContent } from '../../bannerSlice'
 import ErrorAlert from '../../components/ErrorAlert'
@@ -8,7 +7,7 @@ import NoteList from '../../components/NoteList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
-const displayOptions = {
+const baseDisplayOptions = {
   pdfLink: true,
   htmlLink: true,
   showContents: false,
@@ -16,7 +15,7 @@ const displayOptions = {
 }
 const limit = 20
 
-export default function Search({ searchQuery, sourceOptions }) {
+export default function Search({ searchQuery, sourceOptions, onResultCount }) {
   const [notes, setNotes] = useState(null)
   const [counts, setCounts] = useState({})
   const [offset, setOffset] = useState(0)
@@ -24,6 +23,14 @@ export default function Search({ searchQuery, sourceOptions }) {
   const [error, setError] = useState(null)
   const { isRefreshing } = useUser()
   const dispatch = useDispatch()
+
+  // Pass the term to NoteTitle/NoteTitleV2 so they wrap matched portions of
+  // the title in <strong>. Works for both v1 and v2 notes and preserves the
+  // pdf/html link siblings from the default title renderer.
+  const displayOptions = useMemo(
+    () => ({ ...baseDisplayOptions, highlight: searchQuery.term }),
+    [searchQuery.term]
+  )
 
   const loadSearchResults = async (query) => {
     try {
@@ -77,6 +84,7 @@ export default function Search({ searchQuery, sourceOptions }) {
         if (offset === 0) {
           // initial load with no results
           setNotes([])
+          onResultCount?.(0)
         } else {
           setEndOfResults(true)
         }
@@ -87,12 +95,15 @@ export default function Search({ searchQuery, sourceOptions }) {
           v1: v1Results.count,
           v2: v2Results.count,
         })
-        setNotes([...v2Results.notes, ...v1Results.notes])
+        const merged = [...v2Results.notes, ...v1Results.notes]
+        setNotes(merged)
+        onResultCount?.((v1Results.count ?? 0) + (v2Results.count ?? 0) || merged.length)
         return
       }
       setNotes([...(notes ?? []), ...v2Results.notes, ...v1Results.notes])
     } catch (apiError) {
       setError(apiError)
+      onResultCount?.(0)
     }
   }
 
@@ -115,12 +126,6 @@ export default function Search({ searchQuery, sourceOptions }) {
 
   return (
     <>
-      <h3>
-        Results for &quot;
-        {truncate(searchQuery.term, { length: 200, separator: /,? +/ })}
-        &quot;
-      </h3>
-      <hr className="small" />
       <NoteList notes={notes} displayOptions={displayOptions} />
       {notes.length > 0 ? (
         <div className="text-center mt-4">

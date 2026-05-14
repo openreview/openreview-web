@@ -1,5 +1,16 @@
 @use '../../styles/utils/constants';
 
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  > section {
+    width: 100%;
+    max-width: 768px;
+  }
+}
+
 .home {
   :global {
     section {
@@ -88,10 +99,88 @@
     }
 
     #news {
-      border: 1px solid constants.$backgroundGray;
-      padding: 0.5rem;
-      border-radius: 5px;
+      // Match the borderless h1 + Divider idiom used by other sections.
+      // Position-relative anchors the close button to this section instead
+      // of the viewport body.
+      position: relative;
     }
+  }
+}
+
+.heroGuest {
+  position: relative;
+  justify-content: center;
+  min-height: max(320px, 45vh);
+
+  @media #{constants.$phone-only} {
+    align-items: stretch;
+
+    > section :global h1 {
+      font-size: 1.25rem;
+    }
+  }
+}
+
+.modeSelect {
+  width: 110px;
+  flex: none;
+
+  @media #{constants.$phone-only} {
+    width: 100px;
+  }
+}
+
+// Aligns the browse link with the placeholder text of the input (one
+// input, no prefix, ~10–11px of internal padding depending on size).
+.browseAlign {
+  padding-left: 11px;
+
+  @media #{constants.$phone-only} {
+    padding-left: 10px;
+  }
+}
+
+// Hero brand logo image shown above the search bar for guest visitors.
+.heroLogo {
+  display: block;
+  margin: 0 auto 1.25rem;
+  border-radius: 6px;
+
+  @media #{constants.$phone-only} {
+    width: 88px;
+    height: 88px;
+    margin-bottom: 0.875rem;
+  }
+}
+
+// Subtle "more below" chevron at the bottom of the guest hero — bounces to
+// hint that scrolling reveals content (News / stats / deadlines).
+.scrollHint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: constants.$mediumBlue;
+  opacity: 0.6;
+  padding: 4px 12px;
+  animation: scrollHintBounce 2s ease-in-out infinite;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+@keyframes scrollHintBounce {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 6px);
   }
 }
 

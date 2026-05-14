@@ -58,10 +58,10 @@ const Note = ({ note, invitation, options }) => {
         }}
       />
 
-      {note.forumContent && note.id !== note.forum && (
+      {note.forumContent && note.id !== note.forum && note.forumContent.title && (
         <div className="note-parent-title">
           <Icon name="share-alt" />
-          <strong>{note.forumContent.title || 'No Title'}</strong>
+          <strong>{note.forumContent.title}</strong>
         </div>
       )}
 
@@ -161,10 +161,10 @@ export const NoteV2 = ({ note, options }) => {
         />
       )}
 
-      {note.forumContent && note.id !== note.forum && (
+      {note.forumContent && note.id !== note.forum && note.forumContent.title?.value && (
         <div className="note-parent-title">
           <Icon name="share-alt" />
-          <strong>{note.forumContent.title?.value || 'No Title'}</strong>
+          <strong>{note.forumContent.title.value}</strong>
         </div>
       )}
       <div className="note-authors">

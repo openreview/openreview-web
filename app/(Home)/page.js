@@ -3,10 +3,12 @@ import { cookies, headers } from 'next/headers'
 import VersionChecker from '../../components/VersionChecker'
 import api from '../../lib/api-client'
 import { formatGroupResults } from '../../lib/utils'
+import serverAuth from '../auth'
 import ActiveVenueConsole from './_ActiveVenueConsole'
-import AllVenuesWithSearch from './AllVenuesWithSearch'
+import HomeSearch from './HomeSearch'
 import News from './News'
-import OpenVenues from './OpenVenues'
+import PinnedVenues from './PinnedVenues'
+import UpcomingDeadlines from './UpcomingDeadlines'
 
 import styles from './Home.module.scss'
 
@@ -24,22 +26,26 @@ export default async function page() {
   const headersList = await headers()
   const cookieStore = await cookies()
   const remoteIpAddress = headersList.get('x-forwarded-for')
-  const [activeVenuesResult, openVenuesResult, newsResult] = await Promise.allSettled([
-    api.get('groups', { id: 'active_venues' }, { remoteIpAddress }).then(formatGroupResults),
-    api
-      .get('/invitations', { invitee: '~', pastdue: false, type: 'note' }, { remoteIpAddress })
-      .then(formatInvitationResults),
-    api.get(
-      '/notes',
-      {
-        invitation: `${process.env.SUPER_USER}/News/-/Article`,
-        select: 'id,cdate,content.title,content.paperhash',
-        limit: 3,
-        sort: 'cdate:desc',
-      },
-      { remoteIpAddress }
-    ),
-  ])
+  const { user } = await serverAuth()
+  const isLoggedIn = !!user
+  const [activeVenuesResult, openVenuesResult, newsResult, totalVenuesResult] =
+    await Promise.allSettled([
+      api.get('groups', { id: 'active_venues' }, { remoteIpAddress }).then(formatGroupResults),
+      api
+        .get('/invitations', { invitee: '~', pastdue: false, type: 'note' }, { remoteIpAddress })
+        .then(formatInvitationResults),
+      api.get(
+        '/notes',
+        {
+          invitation: `${process.env.SUPER_USER}/News/-/Article`,
+          select: 'id,cdate,content.title,content.paperhash',
+          limit: 3,
+          sort: 'cdate:desc',
+        },
+        { remoteIpAddress }
+      ),
+      api.get('/groups', { id: 'host', select: 'members' }, { remoteIpAddress }),
+    ])
 
   let activeVenues
   if (activeVenuesResult.status === 'fulfilled') {
@@ -74,6 +80,17 @@ export default async function page() {
     })
   }
 
+  let totalVenues = 0
+  if (totalVenuesResult.status === 'fulfilled') {
+    totalVenues = totalVenuesResult.value.groups?.[0]?.members?.length ?? 0
+  } else {
+    // oxlint-disable-next-line no-console
+    console.log('Error in page', {
+      page: 'Home',
+      totalVenuesResult,
+    })
+  }
+
   let showNews = false
   const hideNewsBeforeTimeStamp = cookieStore.get('hideNewsBeforeTimeStamp')?.value
   if (!hideNewsBeforeTimeStamp || hideNewsBeforeTimeStamp < news?.[0]?.cdate) {
@@ -82,23 +99,41 @@ export default async function page() {
 
   return (
     <div className={styles.home}>
-      <Row>
-        <Col xs={24}>
-          <News news={news} showNews={showNews} />
-        </Col>
-
-        <Col xs={24} md={12}>
-          <ActiveVenueConsole activeVenues={activeVenues} openVenues={openVenues} />
-        </Col>
-
-        <Col xs={24} md={12}>
-          <OpenVenues venues={openVenues} />
-        </Col>
-
-        <Col xs={24} style={{ marginBottom: 150 }}>
-          <AllVenuesWithSearch activeVenues={activeVenues} openVenues={openVenues} />
-        </Col>
-      </Row>
+      {isLoggedIn && (
+        <Row gutter={[24, 16]} style={{ marginBottom: '2rem' }}>
+          <Col xs={24} md={12}>
+            <ActiveVenueConsole activeVenues={activeVenues} openVenues={openVenues} />
+          </Col>
+          <Col xs={24} md={12}>
+            <PinnedVenues
+              userId={user.id}
+              openVenues={openVenues}
+              activeVenues={activeVenues}
+            />
+          </Col>
+        </Row>
+      )}
+      {isLoggedIn ? (
+        <HomeSearch
+          activeVenues={activeVenues}
+          openVenues={openVenues}
+          isLoggedIn={isLoggedIn}
+          userId={user?.id}
+          totalVenues={totalVenues}
+        />
+      ) : (
+        <div className={`${styles.hero} ${styles.heroGuest}`}>
+          <HomeSearch
+            activeVenues={activeVenues}
+            openVenues={openVenues}
+            isLoggedIn={isLoggedIn}
+            userId={user?.id}
+            totalVenues={totalVenues}
+          />
+        </div>
+      )}
+      <News news={news} showNews={showNews} />
+      <UpcomingDeadlines openVenues={openVenues} />
       <VersionChecker />
     </div>
   )
