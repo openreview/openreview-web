@@ -108,6 +108,7 @@
 }
 
 .heroGuest {
+  position: relative;
   justify-content: center;
   min-height: max(320px, 45vh);
 
@@ -149,6 +150,37 @@
     width: 88px;
     height: 88px;
     margin-bottom: 0.875rem;
+  }
+}
+
+// Subtle "more below" chevron at the bottom of the guest hero — bounces to
+// hint that scrolling reveals content (News / stats / deadlines).
+.scrollHint {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: constants.$mediumBlue;
+  opacity: 0.6;
+  padding: 4px 12px;
+  animation: scrollHintBounce 2s ease-in-out infinite;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+@keyframes scrollHintBounce {
+  0%,
+  100% {
+    transform: translate(-50%, 0);
+  }
+  50% {
+    transform: translate(-50%, 6px);
   }
 }
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { setBannerContent } from '../../bannerSlice'
 import ErrorAlert from '../../components/ErrorAlert'
@@ -7,7 +7,7 @@ import NoteList from '../../components/NoteList'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 
-const displayOptions = {
+const baseDisplayOptions = {
   pdfLink: true,
   htmlLink: true,
   showContents: false,
@@ -23,6 +23,14 @@ export default function Search({ searchQuery, sourceOptions, onResultCount }) {
   const [error, setError] = useState(null)
   const { isRefreshing } = useUser()
   const dispatch = useDispatch()
+
+  // Pass the term to NoteTitle/NoteTitleV2 so they wrap matched portions of
+  // the title in <strong>. Works for both v1 and v2 notes and preserves the
+  // pdf/html link siblings from the default title renderer.
+  const displayOptions = useMemo(
+    () => ({ ...baseDisplayOptions, highlight: searchQuery.term }),
+    [searchQuery.term]
+  )
 
   const loadSearchResults = async (query) => {
     try {

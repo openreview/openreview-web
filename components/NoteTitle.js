@@ -1,8 +1,16 @@
 import Link from 'next/link'
 import UnlinkPublicationButton from './UnlinkPublicationButton'
 import { buildNoteTitle, buildNoteUrl } from '../lib/utils'
+import { highlightMatch } from '../lib/searchHighlight'
 
-const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} }) => (
+// Returns the title text with matched portions wrapped in <strong>, when an
+// `options.highlight` term is provided. Otherwise returns the title as-is.
+const renderTitleText = (title, highlight) =>
+  highlight ? highlightMatch(title, highlight) : title
+
+const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} }) => {
+  const titleText = content.title || buildNoteTitle(invitation, signatures)
+  return (
   <h4>
     {options.openNoteInNewWindow ? (
       <a
@@ -10,7 +18,7 @@ const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} })
         target="_blank"
         rel="nofollow noreferrer"
       >
-        {content.title || buildNoteTitle(invitation, signatures)}
+        {renderTitleText(titleText, options.highlight)}
       </a>
     ) : (
       <Link
@@ -18,7 +26,7 @@ const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} })
           options.referrer ? `&referrer=${encodeURIComponent(options.referrer)}` : ''
         }`}
       >
-        {content.title || buildNoteTitle(invitation, signatures)}
+        {renderTitleText(titleText, options.highlight)}
       </Link>
     )}
 
@@ -66,7 +74,8 @@ const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} })
       />
     )}
   </h4>
-)
+  )
+}
 
 export const NoteTitleV2 = ({
   id,
@@ -75,7 +84,9 @@ export const NoteTitleV2 = ({
   content = {},
   signatures,
   options = {},
-}) => (
+}) => {
+  const titleText = content.title?.value || buildNoteTitle(invitation, signatures)
+  return (
   <h4>
     {options.openNoteInNewWindow ? (
       <a
@@ -83,11 +94,11 @@ export const NoteTitleV2 = ({
         target="_blank"
         rel="nofollow noreferrer"
       >
-        {content.title?.value || buildNoteTitle(invitation, signatures)}
+        {renderTitleText(titleText, options.highlight)}
       </a>
     ) : (
       <Link href={buildNoteUrl(id, forum, content, options)}>
-        {content.title?.value || buildNoteTitle(invitation, signatures)}
+        {renderTitleText(titleText, options.highlight)}
       </Link>
     )}
 
@@ -114,6 +125,7 @@ export const NoteTitleV2 = ({
       </a>
     )}
   </h4>
-)
+  )
+}
 
 export default NoteTitle

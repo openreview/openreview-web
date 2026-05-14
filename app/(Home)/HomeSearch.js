@@ -2,7 +2,7 @@
 
 /* globals promptError: false */
 
-import { PushpinFilled, PushpinOutlined } from '@ant-design/icons'
+import { DownOutlined, PushpinFilled, PushpinOutlined } from '@ant-design/icons'
 import { AutoComplete, Button, Divider, Flex, Input, Space, Tabs, Tag } from 'antd'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -10,6 +10,7 @@ import { stringify } from 'query-string'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import LoadingIcon from '../../components/LoadingIcon'
 import api from '../../lib/api-client'
+import { findVenueFieldMatch, highlightMatch, tokenizeTerm } from '../../lib/searchHighlight'
 import { getNoteAuthors, isValidEmail, prettyId } from '../../lib/utils'
 import usePinnedVenues from './usePinnedVenues'
 
@@ -35,18 +36,11 @@ const formatDeadline = (dueDate) => {
   return `Closes in ${days}d`
 }
 
-const wordSegmenter = new Intl.Segmenter(undefined, { granularity: 'word' })
-
-const tokenizeTerm = (term) => {
-  if (!term) return []
-  return Array.from(wordSegmenter.segment(term))
-    .filter((s) => s.isWordLike)
-    .map((s) => s.segment)
-}
-
+// Dropdown-specific truncation — narrower than the search results page, so
+// keep the snippet tighter (80 chars vs lib default 120).
 const truncateAroundMatch = (label, tokenizedTerm) => {
   const maxCharLength = 80
-  if (label.length <= maxCharLength) return label
+  if (!label || label.length <= maxCharLength) return label
   const emphasisRegex = new RegExp(tokenizedTerm.split(' ').join('|'), 'i')
   const m = label.match(emphasisRegex)
   if (!m) return label.slice(0, maxCharLength) + '…'
@@ -66,49 +60,6 @@ const truncateAroundMatch = (label, tokenizedTerm) => {
   const prefix = start > 0 ? '…' : ''
   const suffix = end < label.length ? '…' : ''
   return `${prefix}${label.slice(start, end)}${suffix}`
-}
-
-const highlightMatch = (text, tokenizedTerm) => {
-  if (!tokenizedTerm || !text) return text
-  const regex = new RegExp(`(${tokenizedTerm.split(' ').join('|')})`, 'gi')
-  const segments = text.split(regex)
-  return (
-    <>
-      {segments.map((segment, index) =>
-        index % 2 === 1 ? <strong key={index}>{segment}</strong> : segment
-      )}
-    </>
-  )
-}
-
-const venueFieldsConfig = [
-  { key: 'domain', label: 'Domain', getValue: (venue) => venue.domain },
-  { key: 'title', label: 'Title', getValue: (venue) => venue.content?.title?.value },
-  { key: 'subtitle', label: 'Subtitle', getValue: (venue) => venue.content?.subtitle?.value },
-  { key: 'location', label: 'Location', getValue: (venue) => venue.content?.location?.value },
-  { key: 'website', label: 'Website', getValue: (venue) => venue.content?.website?.value },
-]
-
-const findVenueFieldMatch = (venue, term) => {
-  const lowerTerm = term.toLowerCase()
-  const fullMatch = venueFieldsConfig.find((fieldConfig) => {
-    const value = fieldConfig.getValue(venue)
-    return value && value.toLowerCase().includes(lowerTerm)
-  })
-  if (fullMatch) {
-    return { field: fullMatch.label, fieldValue: fullMatch.getValue(venue) }
-  }
-  const tokens = tokenizeTerm(term).map((t) => t.toLowerCase())
-  if (!tokens.length) return null
-  const tokenMatch = venueFieldsConfig.find((fieldConfig) => {
-    const value = fieldConfig.getValue(venue)
-    if (!value) return false
-    const lowerValue = value.toLowerCase()
-    return tokens.some((token) => lowerValue.includes(token))
-  })
-  return tokenMatch
-    ? { field: tokenMatch.label, fieldValue: tokenMatch.getValue(venue) }
-    : null
 }
 
 const getProfilePreferredName = (profile) =>
@@ -319,7 +270,13 @@ const CATEGORIES = {
 const initialMap = () => ({ venues: [], notes: [], profiles: [] })
 const initialBoolMap = () => ({ venues: false, notes: false, profiles: false })
 
-export default function HomeSearch({ activeVenues, openVenues, isLoggedIn, userId }) {
+export default function HomeSearch({
+  activeVenues,
+  openVenues,
+  isLoggedIn,
+  userId,
+  totalVenues = 0,
+}) {
   const categoryKeys = useMemo(
     () => (isLoggedIn ? ['venues', 'notes', 'profiles'] : ['venues', 'notes']),
     [isLoggedIn]
@@ -565,6 +522,9 @@ export default function HomeSearch({ activeVenues, openVenues, isLoggedIn, userI
     </Space.Compact>
   )
 
+  const browseLabel = totalVenues > 0
+    ? `Browse all ${totalVenues.toLocaleString()} venues →`
+    : 'Browse all venues →'
   const browseArea = (
     <div
       className={styles.browseAlign}
@@ -572,16 +532,30 @@ export default function HomeSearch({ activeVenues, openVenues, isLoggedIn, userI
     >
       <Link href="/all-venues">
         <Button type="link" style={{ padding: 0 }}>
-          Browse all venues →
+          {browseLabel}
         </Button>
       </Link>
     </div>
   )
 
+  if (isLoggedIn) {
+    // Logged-in: normal section idiom (h1 + Divider + content), left-aligned,
+    // matches Active Consoles / Pinned Items / News / Deadlines.
+    return (
+      <section id="home-search" style={{ maxWidth: 768 }}>
+        <h1>Search</h1>
+        <Divider style={{ marginTop: 0, minWidth: 0 }} />
+        {searchWidget}
+        {browseArea}
+      </section>
+    )
+  }
+
+  // Guest: hero treatment — logo + centered search + scroll hint.
   return (
     <section id="home-search">
-      {/* Visually-hidden heading for semantics/SEO; the input placeholder
-          carries the same meaning visually. */}
+      {/* Visually-hidden heading for semantics/SEO; the logo above carries the
+          brand visually. */}
       <h1
         style={{
           position: 'absolute',
@@ -597,17 +571,28 @@ export default function HomeSearch({ activeVenues, openVenues, isLoggedIn, userI
       >
         Search OpenReview
       </h1>
-      {!isLoggedIn && (
-        <img
-          src="/images/openreview_logo_256.png"
-          alt="OpenReview"
-          width={112}
-          height={112}
-          className={styles.heroLogo}
-        />
-      )}
+      <img
+        src="/images/openreview_logo_256.png"
+        alt="OpenReview"
+        width={112}
+        height={112}
+        className={styles.heroLogo}
+      />
       {searchWidget}
       {browseArea}
+      <button
+        type="button"
+        className={styles.scrollHint}
+        aria-label="Scroll for more"
+        onClick={() => {
+          const section = document.querySelector('#home-search')
+          const next = section?.parentElement?.nextElementSibling
+          const target = next ?? section?.nextElementSibling
+          target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }}
+      >
+        <DownOutlined />
+      </button>
     </section>
   )
 }

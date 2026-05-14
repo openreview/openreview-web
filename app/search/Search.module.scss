@@ -41,3 +41,19 @@
   font-size: 0.875rem;
   color: #666;
 }
+
+// "Matched-field" hint shown beneath the title when the term hit a field
+// other than the title or subtitle (e.g. domain, location, website).
+.resultMatch {
+  margin-top: 2px;
+  font-size: 0.8125rem;
+  color: #666;
+}
+
+.resultMatchLabel {
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.6875rem;
+  color: #999;
+  margin-right: 4px;
+}

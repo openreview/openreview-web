@@ -8,8 +8,8 @@ import api from '../../lib/api-client'
 import useUser from '../../hooks/useUser'
 import { isValidEmail, prettyId } from '../../lib/utils'
 
+import { highlightMatch } from '../../lib/searchHighlight'
 import styles from './Search.module.scss'
-import { highlightMatch } from './searchHighlight'
 
 const LIMIT = 25
 const TILDE_ID_PATTERN = /^~.*\d+$/

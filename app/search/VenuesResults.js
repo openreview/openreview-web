@@ -7,6 +7,7 @@ import LoadingSpinner from '../../components/LoadingSpinner'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
+import { findVenueFieldMatch, highlightMatch, truncateAroundMatch } from '../../lib/searchHighlight'
 import styles from './Search.module.scss'
 
 const LIMIT = 50
@@ -114,25 +115,48 @@ export default function VenuesResults({
         </p>
       ) : (
         <ul className={styles.resultList}>
-          {filteredVenues.map((venue) => (
-            <li key={venue.id} className={styles.resultRow}>
-              <Flex align="baseline" gap={8} wrap="wrap">
-                <Link
-                  href={`/group?id=${venue.id}&referrer=${encodeURIComponent('[Search](/search?term=' + term + ')')}`}
-                  className={styles.resultTitle}
-                >
-                  {prettyId(venue.id)}
-                </Link>
-                {venue.isOpen && <Tag color="#8c1b13">Open for Submission</Tag>}
-                {venue.isActive && !venue.isOpen && <Tag>Active</Tag>}
-                {venue.content?.subtitle?.value && (
-                  <span className={styles.resultMeta}>
-                    {venue.content.subtitle.value}
-                  </span>
+          {filteredVenues.map((venue) => {
+            const name = prettyId(venue.id)
+            const subtitle = venue.content?.subtitle?.value
+            const lowerTerm = term.toLowerCase()
+            const nameHasTerm = name.toLowerCase().includes(lowerTerm)
+            const subtitleHasTerm = subtitle?.toLowerCase().includes(lowerTerm) ?? false
+            // If the term didn't surface in the visible title/subtitle, fall
+            // back to other searchable fields (domain, location, website,
+            // full title) so the row still shows *why* it matched — same
+            // affordance the homepage dropdown provides.
+            const matchedField =
+              nameHasTerm || subtitleHasTerm ? null : findVenueFieldMatch(venue, term)
+            return (
+              <li key={venue.id} className={styles.resultRow}>
+                <Flex align="baseline" gap={8} wrap="wrap">
+                  <Link
+                    href={`/group?id=${venue.id}&referrer=${encodeURIComponent('[Search](/search?term=' + term + ')')}`}
+                    className={styles.resultTitle}
+                  >
+                    {highlightMatch(name, term)}
+                  </Link>
+                  {venue.isOpen && <Tag color="#8c1b13">Open for Submission</Tag>}
+                  {venue.isActive && !venue.isOpen && <Tag>Active</Tag>}
+                  {subtitle && (
+                    <span className={styles.resultMeta}>
+                      {highlightMatch(subtitle, term)}
+                    </span>
+                  )}
+                </Flex>
+                {matchedField && (
+                  <div className={styles.resultMatch}>
+                    <span className={styles.resultMatchLabel}>{matchedField.field}</span>
+                    {' — '}
+                    {highlightMatch(
+                      truncateAroundMatch(matchedField.fieldValue, term),
+                      term
+                    )}
+                  </div>
                 )}
-              </Flex>
-            </li>
-          ))}
+              </li>
+            )
+          })}
         </ul>
       )}
     </div>
