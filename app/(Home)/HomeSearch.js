@@ -3,7 +3,7 @@
 /* globals promptError: false */
 
 import { PushpinFilled, PushpinOutlined } from '@ant-design/icons'
-import { AutoComplete, Button, Divider, Flex, Input, Segmented, Select, Space, Tag } from 'antd'
+import { AutoComplete, Button, Divider, Flex, Input, Space, Tabs, Tag } from 'antd'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
@@ -120,6 +120,26 @@ const getProfileSecondary = (profile) => {
   return profile.content?.history?.[0]?.institution?.name ?? null
 }
 
+const renderPinButton = ({ type, id, displayName, snapshot, isPinned, togglePin }) => {
+  if (!togglePin) return null
+  const pinned = isPinned?.(type, id) ?? false
+  return (
+    <Button
+      type="text"
+      size="small"
+      icon={pinned ? <PushpinFilled /> : <PushpinOutlined />}
+      onMouseDown={(e) => e.stopPropagation()}
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        togglePin(type, id, snapshot)
+      }}
+      aria-label={pinned ? `Unpin ${displayName}` : `Pin ${displayName}`}
+      style={{ color: pinned ? '#8c1b13' : undefined }}
+    />
+  )
+}
+
 const buildVenueOptions = (venues, ctx) => {
   const { tokenizedTerm, trimmedTerm, activeVenues, openVenues, isPinned, togglePin } = ctx
   return venues.map((venue) => {
@@ -133,7 +153,6 @@ const buildVenueOptions = (venues, ctx) => {
     const openVenue = openVenues?.find((v) => v?.groupId === venue.id)
     const isOpen = !!openVenue
     const deadline = isOpen ? formatDeadline(openVenue.dueDate) : null
-    const pinned = isPinned?.(venue.id) ?? false
     return {
       value: venue.id,
       label: (
@@ -159,21 +178,13 @@ const buildVenueOptions = (venues, ctx) => {
               </div>
             )}
           </div>
-          {togglePin && (
-            <Button
-              type="text"
-              size="small"
-              icon={pinned ? <PushpinFilled /> : <PushpinOutlined />}
-              onMouseDown={(e) => e.stopPropagation()}
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                togglePin(venue.id)
-              }}
-              aria-label={pinned ? `Unpin ${name}` : `Pin ${name}`}
-              style={{ color: pinned ? '#8c1b13' : undefined }}
-            />
-          )}
+          {renderPinButton({
+            type: 'venue',
+            id: venue.id,
+            displayName: name,
+            isPinned,
+            togglePin,
+          })}
         </Flex>
       ),
     }
@@ -181,7 +192,7 @@ const buildVenueOptions = (venues, ctx) => {
 }
 
 const buildNoteOptions = (notes, ctx) => {
-  const { tokenizedTerm } = ctx
+  const { tokenizedTerm, isPinned, togglePin } = ctx
   return notes.map((note) => {
     const isV2 = note.version === 2
     const title = isV2 ? note.content?.title?.value : note.content?.title
@@ -192,19 +203,29 @@ const buildNoteOptions = (notes, ctx) => {
       noteId: note.id,
       forum: note.forum,
       label: (
-        <>
-          <div>
-            {highlightMatch(truncateAroundMatch(displayTitle, tokenizedTerm), tokenizedTerm)}
-          </div>
-          {authors?.length ? (
-            <div style={{ fontSize: '0.85em', color: '#666' }}>
-              {highlightMatch(
-                truncateAroundMatch(authors.join(', '), tokenizedTerm),
-                tokenizedTerm
-              )}
+        <Flex align="center" gap={8}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div>
+              {highlightMatch(truncateAroundMatch(displayTitle, tokenizedTerm), tokenizedTerm)}
             </div>
-          ) : null}
-        </>
+            {authors?.length ? (
+              <div style={{ fontSize: '0.85em', color: '#666' }}>
+                {highlightMatch(
+                  truncateAroundMatch(authors.join(', '), tokenizedTerm),
+                  tokenizedTerm
+                )}
+              </div>
+            ) : null}
+          </div>
+          {renderPinButton({
+            type: 'note',
+            id: note.id,
+            displayName: displayTitle,
+            snapshot: { title: displayTitle, forum: note.forum, authors: authors?.join(', ') },
+            isPinned,
+            togglePin,
+          })}
+        </Flex>
       ),
     }
   })
@@ -233,9 +254,9 @@ const buildProfileOptions = (profiles, ctx) => {
   })
 }
 
-const MODES = {
+const CATEGORIES = {
   venues: {
-    placeholder: 'Type to search for venues...',
+    label: 'Venues',
     fetch: async (term) => {
       const result = await api.get('/venues/search', {
         term,
@@ -248,11 +269,10 @@ const MODES = {
     onSelect: (value, option, router) => {
       router.push(`/group?id=${value}`)
     },
-    onEnter: () => {},
-    footer: () => <Link href="/all-venues">Browse all venues →</Link>,
+    emptyMessage: (term) => `No venues match "${term}".`,
   },
   notes: {
-    placeholder: 'Type to search for papers, comments, and reviews...',
+    label: 'Notes',
     fetch: async (term) => {
       const result = await api.getCombined(
         '/notes/search',
@@ -277,28 +297,10 @@ const MODES = {
           : { id: option.forum ?? option.noteId }
       router.push(`/forum?${stringify(query)}`)
     },
-    onEnter: (term, router) => {
-      if (term.length < MIN_SEARCH_LENGTH) return
-      router.push(
-        `/search?${stringify({ term, content: 'all', group: 'all', source: 'all' })}`
-      )
-    },
-    footer: ({ trimmedTerm }) =>
-      trimmedTerm.length >= MIN_SEARCH_LENGTH ? (
-        <Link
-          href={`/search?${stringify({
-            term: trimmedTerm,
-            content: 'all',
-            group: 'all',
-            source: 'all',
-          })}`}
-        >
-          View all results →
-        </Link>
-      ) : null,
+    emptyMessage: (term) => `No papers, comments, or reviews match "${term}".`,
   },
   profiles: {
-    placeholder: 'Type a name or OpenReview profile ID (~Name1)...',
+    label: 'Profiles',
     fetch: async (term) => {
       const params = term.startsWith('~')
         ? { id: term, es: true, limit: 10 }
@@ -310,37 +312,25 @@ const MODES = {
     onSelect: (value, option, router) => {
       router.push(`/profile?${stringify({ id: value })}`)
     },
-    onEnter: () => {},
-    footer: () => null,
+    emptyMessage: (term) => `No profiles match "${term}".`,
   },
 }
 
-const ALL_MODE_OPTIONS = [
-  { label: 'Venues', value: 'venues' },
-  { label: 'Notes', value: 'notes' },
-  { label: 'Profiles', value: 'profiles' },
-]
+const initialMap = () => ({ venues: [], notes: [], profiles: [] })
+const initialBoolMap = () => ({ venues: false, notes: false, profiles: false })
 
 export default function HomeSearch({ activeVenues, openVenues, isLoggedIn, userId }) {
-  const modeOptions = useMemo(
-    () => (isLoggedIn ? ALL_MODE_OPTIONS : ALL_MODE_OPTIONS.filter((o) => o.value !== 'profiles')),
+  const categoryKeys = useMemo(
+    () => (isLoggedIn ? ['venues', 'notes', 'profiles'] : ['venues', 'notes']),
     [isLoggedIn]
   )
-  const [mode, setMode] = useState('venues')
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
-    const update = () => setIsMobile(mq.matches)
-    update()
-    mq.addEventListener('change', update)
-    return () => mq.removeEventListener('change', update)
-  }, [])
+
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
-  const [rawItems, setRawItems] = useState([])
-  const [loading, setLoading] = useState(false)
-  const [searchUnavailable, setSearchUnavailable] = useState(false)
-  const [modeError, setModeError] = useState(null)
-  const [forceOpen, setForceOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('venues')
+  const [rawItemsMap, setRawItemsMap] = useState(initialMap)
+  const [loadingMap, setLoadingMap] = useState(initialBoolMap)
+  const [unavailableMap, setUnavailableMap] = useState(initialBoolMap)
+  const [profileError, setProfileError] = useState(null)
   const latestTermRef = useRef('')
   const inputRef = useRef(null)
   const router = useRouter()
@@ -352,87 +342,88 @@ export default function HomeSearch({ activeVenues, openVenues, isLoggedIn, userI
   )
   const trimmedTerm = useMemo(() => immediateSearchTerm.trim(), [immediateSearchTerm])
 
-  // forceOpen is released either by antd reporting a close (user clicked
-  // away) or by an explicit selection. This keeps the dropdown open until the
-  // user dismisses it, then hands control back to antd's natural behavior.
-
-  const previousModeRef = useRef(mode)
+  // Single effect — fires all categories in parallel when the term changes.
   useEffect(() => {
-    const requestKey = `${mode}::${trimmedTerm}`
-    latestTermRef.current = requestKey
-
-    const modeChanged = previousModeRef.current !== mode
-    previousModeRef.current = mode
-    if (modeChanged) {
-      setRawItems([])
-      setSearchUnavailable(false)
-      setModeError(null)
-      inputRef.current?.focus()
-      // Re-open the dropdown so the user sees results under the new mode even
-      // if the dropdown had collapsed (e.g. they clicked away after seeing
-      // "No venues match" before switching to Profiles). forceOpen briefly
-      // overrides antd's internal state; once cleared, antd manages naturally.
-      if (trimmedTerm) {
-        setForceOpen(true)
-      }
-    }
-
-    if (mode === 'profiles' && trimmedTerm && isValidEmail(trimmedTerm)) {
-      setModeError('Search profile by name or OpenReview profile ID.')
-      setRawItems([])
-      setSearchUnavailable(false)
-      setLoading(false)
-      return undefined
-    }
-    // Suppress search for partial tilde IDs — the API rejects ids that don't
-    // match ^~.*\d+$ and would spam error toasts on every keystroke. The
-    // search auto-fires once the user finishes typing a valid tilde ID; Enter
-    // routes to /profile directly.
-    if (
-      mode === 'profiles' &&
-      trimmedTerm.startsWith('~') &&
-      !TILDE_ID_PATTERN.test(trimmedTerm)
-    ) {
-      setRawItems([])
-      setSearchUnavailable(false)
-      setModeError(null)
-      setLoading(false)
-      return undefined
-    }
-    setModeError(null)
+    latestTermRef.current = trimmedTerm
 
     if (tokenizedTerm.length < MIN_SEARCH_LENGTH) {
-      setRawItems([])
-      setSearchUnavailable(false)
-      setLoading(false)
+      setRawItemsMap(initialMap())
+      setLoadingMap(initialBoolMap())
+      setUnavailableMap(initialBoolMap())
+      setProfileError(null)
       return undefined
     }
 
-    setLoading(true)
+    // Profile-specific guards — determine if we should skip the profiles call.
+    let profileSkip = null
+    if (!isLoggedIn) {
+      profileSkip = 'guest'
+    } else if (isValidEmail(trimmedTerm)) {
+      profileSkip = 'email'
+    } else if (trimmedTerm.startsWith('~') && !TILDE_ID_PATTERN.test(trimmedTerm)) {
+      profileSkip = 'partial-tilde'
+    }
+    setProfileError(profileSkip === 'email' ? 'Search profile by name or OpenReview profile ID.' : null)
+
+    setLoadingMap({
+      venues: true,
+      notes: true,
+      profiles: !profileSkip,
+    })
+
     const timer = setTimeout(async () => {
-      try {
-        const { items, searchUnavailable: unavailable } = await MODES[mode].fetch(trimmedTerm)
-        if (latestTermRef.current !== requestKey) return
-        if (unavailable) {
-          setSearchUnavailable(true)
-          setRawItems([])
-          return
+      const requestTerm = trimmedTerm
+      const fetches = categoryKeys
+        .filter((key) => key !== 'profiles' || !profileSkip)
+        .map((key) =>
+          CATEGORIES[key]
+            .fetch(requestTerm)
+            .then((r) => ({ key, ...r, error: null }))
+            .catch((err) => ({ key, items: [], searchUnavailable: false, error: err }))
+        )
+
+      const responses = await Promise.all(fetches)
+      if (latestTermRef.current !== requestTerm) return
+
+      const nextItems = initialMap()
+      const nextUnavailable = initialBoolMap()
+      responses.forEach(({ key, items, searchUnavailable, error }) => {
+        if (error) {
+          // oxlint-disable-next-line no-console
+          console.error(`Search error in ${key}:`, error)
+          nextUnavailable[key] = true
+        } else if (searchUnavailable) {
+          nextUnavailable[key] = true
+        } else {
+          nextItems[key] = items
         }
-        setSearchUnavailable(false)
-        setRawItems(items)
-      } catch (error) {
-        if (latestTermRef.current !== requestKey) return
-        promptError(error.message)
-      } finally {
-        if (latestTermRef.current === requestKey) setLoading(false)
-      }
+      })
+      setRawItemsMap(nextItems)
+      setUnavailableMap(nextUnavailable)
+      setLoadingMap(initialBoolMap())
     }, 300)
 
     return () => clearTimeout(timer)
-  }, [mode, tokenizedTerm, trimmedTerm, activeVenues, openVenues])
+  }, [tokenizedTerm, trimmedTerm, isLoggedIn, categoryKeys])
+
+  const optionsMap = useMemo(() => {
+    const ctx = {
+      tokenizedTerm,
+      trimmedTerm,
+      activeVenues,
+      openVenues,
+      isPinned: userId ? isPinned : undefined,
+      togglePin: userId ? togglePin : undefined,
+    }
+    return {
+      venues: CATEGORIES.venues.buildOptions(rawItemsMap.venues, ctx),
+      notes: CATEGORIES.notes.buildOptions(rawItemsMap.notes, ctx),
+      profiles: isLoggedIn ? CATEGORIES.profiles.buildOptions(rawItemsMap.profiles, ctx) : [],
+    }
+  }, [rawItemsMap, tokenizedTerm, trimmedTerm, activeVenues, openVenues, isPinned, togglePin, userId, isLoggedIn])
 
   const displayedOptions = useMemo(() => {
-    if (loading && rawItems.length === 0) {
+    if (loadingMap[activeTab] && optionsMap[activeTab].length === 0) {
       return [
         {
           value: LOADING_VALUE,
@@ -445,111 +436,132 @@ export default function HomeSearch({ activeVenues, openVenues, isLoggedIn, userI
         },
       ]
     }
-    return MODES[mode].buildOptions(rawItems, {
-      tokenizedTerm,
-      trimmedTerm,
-      activeVenues,
-      openVenues,
-      isPinned,
-      togglePin,
-    })
-  }, [loading, rawItems, mode, tokenizedTerm, trimmedTerm, activeVenues, openVenues, isPinned, togglePin])
+    return optionsMap[activeTab]
+  }, [loadingMap, optionsMap, activeTab])
 
   const handleSelect = (value, option) => {
     if (value === LOADING_VALUE) return
-    setImmediateSearchTerm('')
-    setRawItems([])
-    MODES[mode].onSelect(value, option, router)
+    // Same as submitToSearch: avoid clearing state since we're navigating away.
+    CATEGORIES[activeTab].onSelect(value, option, router)
+  }
+
+  const submitToSearch = () => {
+    const term = trimmedTerm
+    if (!term || term.length < MIN_SEARCH_LENGTH) return
+    // Don't clear the input — the component unmounts on navigation, so any
+    // visible clear during the transition is a UX flash.
+    router.push(`/search?${stringify({ term })}`)
   }
 
   const handleKeyDown = (e) => {
     if (e.key !== 'Enter') return
-    const term = trimmedTerm
-    if (!term) return
     e.preventDefault()
-    setImmediateSearchTerm('')
-    setRawItems([])
-    MODES[mode].onEnter(term, router)
+    submitToSearch()
   }
 
+  // Build tab labels with result counts / loading state per category.
+  const tabItems = categoryKeys.map((key) => {
+    const count = rawItemsMap[key].length
+    return {
+      key,
+      label: (
+        <span>
+          {CATEGORIES[key].label}
+          {loadingMap[key] ? (
+            <span style={{ opacity: 0.5, marginLeft: 6 }}>…</span>
+          ) : tokenizedTerm.length >= MIN_SEARCH_LENGTH ? (
+            <span
+              style={{
+                marginLeft: 6,
+                color: count > 0 ? '#3e6775' : '#999',
+                fontWeight: count > 0 ? 600 : 400,
+              }}
+            >
+              ({count})
+            </span>
+          ) : null}
+        </span>
+      ),
+      children: null,
+    }
+  })
+
   let notFoundContent
-  if (loading) {
+  if (loadingMap[activeTab]) {
     notFoundContent = (
       <span style={{ color: '#8c1b13' }}>
         <LoadingIcon />
       </span>
     )
-  } else if (searchUnavailable) {
+  } else if (unavailableMap[activeTab]) {
     notFoundContent = (
       <span style={{ color: '#8c1b13' }}>
         OpenReview is experiencing degraded performance in search functionality. Please try
         again later.
       </span>
     )
-  } else if (modeError) {
-    notFoundContent = <span style={{ color: '#8c1b13' }}>{modeError}</span>
+  } else if (activeTab === 'profiles' && profileError) {
+    notFoundContent = <span style={{ color: '#8c1b13' }}>{profileError}</span>
   } else if (tokenizedTerm.length < MIN_SEARCH_LENGTH) {
     notFoundContent = `Type at least ${MIN_SEARCH_LENGTH} characters to search.`
-  } else if (mode === 'profiles') {
-    notFoundContent = `No profiles match "${trimmedTerm}".`
-  } else if (mode === 'notes') {
-    notFoundContent = `No papers, comments, or reviews match "${trimmedTerm}".`
   } else {
-    notFoundContent = `No venues match "${trimmedTerm}".`
+    notFoundContent = CATEGORIES[activeTab].emptyMessage(trimmedTerm)
   }
 
   const popupRender = (menu) => {
-    const footer = MODES[mode].footer({ trimmedTerm })
+    const showViewAll = tokenizedTerm.length >= MIN_SEARCH_LENGTH
     return (
       <>
+        {tokenizedTerm.length >= MIN_SEARCH_LENGTH && (
+          <Tabs
+            activeKey={activeTab}
+            onChange={setActiveTab}
+            items={tabItems}
+            size="small"
+            tabBarStyle={{ margin: '0 12px', minHeight: 32 }}
+          />
+        )}
         {menu}
-        {footer && (
+        {showViewAll && (
           <>
             <Divider style={{ margin: '4px 0' }} />
-            <div style={{ padding: '6px 12px' }}>{footer}</div>
+            <div style={{ padding: '6px 12px' }}>
+              <Link href={`/search?${stringify({ term: trimmedTerm })}`}>
+                View all results →
+              </Link>
+            </div>
           </>
         )}
       </>
     )
   }
 
-  const autoComplete = (
-    <AutoComplete
-      value={immediateSearchTerm}
-      options={displayedOptions}
-      onChange={setImmediateSearchTerm}
-      onSelect={handleSelect}
-      popupRender={popupRender}
-      notFoundContent={notFoundContent}
-      allowClear
-      virtual={false}
-      style={{ flex: 1, width: '100%' }}
-      popupMatchSelectWidth
-      listHeight={250}
-      open={forceOpen ? true : undefined}
-      onDropdownVisibleChange={(open) => {
-        if (!open && forceOpen) setForceOpen(false)
-      }}
-    >
-      <Input
-        ref={inputRef}
-        placeholder={MODES[mode].placeholder}
-        maxLength={200}
-        onKeyDown={handleKeyDown}
-        style={{ background: '#fff' }}
-      />
-    </AutoComplete>
-  )
-
-  const compactWidget = (
-    <Space.Compact size="large" style={{ flex: 1, minWidth: 240 }}>
-      <Select
-        value={mode}
-        onChange={setMode}
-        options={modeOptions}
-        className={styles.modeSelect}
-      />
-      {autoComplete}
+  const searchWidget = (
+    <Space.Compact size="large" style={{ width: '100%' }}>
+      <AutoComplete
+        value={immediateSearchTerm}
+        options={displayedOptions}
+        onChange={setImmediateSearchTerm}
+        onSelect={handleSelect}
+        popupRender={popupRender}
+        notFoundContent={notFoundContent}
+        allowClear
+        virtual={false}
+        style={{ flex: 1 }}
+        popupMatchSelectWidth
+        listHeight={250}
+      >
+        <Input
+          ref={inputRef}
+          placeholder="Search venues, papers, profiles..."
+          maxLength={200}
+          onKeyDown={handleKeyDown}
+          style={{ background: '#fff' }}
+        />
+      </AutoComplete>
+      <Button type="primary" onClick={submitToSearch}>
+        Search
+      </Button>
     </Space.Compact>
   )
 
@@ -558,44 +570,44 @@ export default function HomeSearch({ activeVenues, openVenues, isLoggedIn, userI
       className={styles.browseAlign}
       style={{ marginTop: 16, width: '100%', maxWidth: 768, height: 32 }}
     >
-      {mode === 'venues' && (
-        <Link href="/all-venues">
-          <Button type="link" style={{ padding: 0 }}>
-            Browse all venues →
-          </Button>
-        </Link>
-      )}
+      <Link href="/all-venues">
+        <Button type="link" style={{ padding: 0 }}>
+          Browse all venues →
+        </Button>
+      </Link>
     </div>
   )
 
-  if (isMobile) {
-    return (
-      <section id="home-search">
-        <Flex vertical gap={12} style={{ width: '100%' }}>
-          <h1 style={{ margin: 0 }}>Search</h1>
-          <Segmented
-            size="large"
-            value={mode}
-            onChange={setMode}
-            options={modeOptions}
-            block
-          />
-          {autoComplete}
-        </Flex>
-        {browseArea}
-      </section>
-    )
-  }
-
   return (
     <section id="home-search">
-      <Flex align="flex-start" gap={16} style={{ width: '100%', maxWidth: 768 }}>
-        <h1 style={{ margin: 0, flex: 'none', lineHeight: '40px' }}>Search</h1>
-        <Flex vertical style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: 'flex' }}>{compactWidget}</div>
-          {browseArea}
-        </Flex>
-      </Flex>
+      {/* Visually-hidden heading for semantics/SEO; the input placeholder
+          carries the same meaning visually. */}
+      <h1
+        style={{
+          position: 'absolute',
+          width: 1,
+          height: 1,
+          padding: 0,
+          margin: -1,
+          overflow: 'hidden',
+          clip: 'rect(0, 0, 0, 0)',
+          whiteSpace: 'nowrap',
+          border: 0,
+        }}
+      >
+        Search OpenReview
+      </h1>
+      {!isLoggedIn && (
+        <img
+          src="/images/openreview_logo_256.png"
+          alt="OpenReview"
+          width={112}
+          height={112}
+          className={styles.heroLogo}
+        />
+      )}
+      {searchWidget}
+      {browseArea}
     </section>
   )
 }

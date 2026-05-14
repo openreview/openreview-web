@@ -99,16 +99,17 @@
     }
 
     #news {
-      border: 1px solid constants.$backgroundGray;
-      padding: 0.5rem;
-      border-radius: 5px;
+      // Match the borderless h1 + Divider idiom used by other sections.
+      // Position-relative anchors the close button to this section instead
+      // of the viewport body.
+      position: relative;
     }
   }
 }
 
 .heroGuest {
   justify-content: center;
-  min-height: max(420px, 65vh);
+  min-height: max(320px, 45vh);
 
   @media #{constants.$phone-only} {
     align-items: stretch;
@@ -128,15 +129,26 @@
   }
 }
 
-// Aligns the browse link with the placeholder text of the input.
-// Desktop: Select width (110) + Input padding (10), minus Space.Compact's
-// 1-2px border overlap, ≈ 118px from the right-column's left edge.
-// Mobile: no Select prefix, just the default Input padding-left (10).
+// Aligns the browse link with the placeholder text of the input (one
+// input, no prefix, ~10–11px of internal padding depending on size).
 .browseAlign {
-  padding-left: 118px;
+  padding-left: 11px;
 
   @media #{constants.$phone-only} {
     padding-left: 10px;
+  }
+}
+
+// Hero brand logo image shown above the search bar for guest visitors.
+.heroLogo {
+  display: block;
+  margin: 0 auto 1.25rem;
+  border-radius: 6px;
+
+  @media #{constants.$phone-only} {
+    width: 88px;
+    height: 88px;
+    margin-bottom: 0.875rem;
   }
 }
 

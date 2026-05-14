@@ -2,6 +2,7 @@
 
 /* globals promptMessage:false */
 
+import { Button, Divider } from 'antd'
 import Cookies from 'universal-cookie'
 import { useEffect, useState } from 'react'
 import NoteList from '../../components/NoteList'
@@ -61,7 +62,7 @@ export default function News({ news, showNews: serverShowNews }) {
       >
         ×
       </button>
-      <hr className="small" />
+      <Divider style={{ marginTop: 0, minWidth: 0 }} />
       <NoteList
         notes={news.map((p) => ({ ...p, version: 2 }))}
         displayOptions={{
@@ -73,15 +74,9 @@ export default function News({ news, showNews: serverShowNews }) {
           customAuthor,
         }}
       />
-      <button type="button" className="btn-link">
-        <a
-          href={`/group?id=${process.env.SUPER_USER}/News&referrer=[Homepage](/)`}
-          target="_blank"
-          rel="nofollow noreferrer"
-        >
-          View all OpenReview news
-        </a>
-      </button>
+      <Button type="link" style={{ padding: 0, marginTop: 8 }} href={`/group?id=${process.env.SUPER_USER}/News&referrer=[Homepage](/)`} target="_blank" rel="nofollow noreferrer">
+        View all OpenReview news →
+      </Button>
     </section>
   )
 }
