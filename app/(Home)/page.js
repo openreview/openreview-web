@@ -96,9 +96,9 @@ export default async function page() {
           <OpenVenues venues={openVenues} />
         </Col>
 
-        <div className="col-xs-12">
+        <Col xs={24}>
           <AllVenues />
-        </div>
+        </Col>
         {/* <Col xs={24} style={{ marginBottom: 150 }}>
           <AllVenuesWithSearch activeVenues={activeVenues} openVenues={openVenues} />
         </Col> */}
