@@ -47,6 +47,14 @@ const theme = {
       lineWidth: 2,
       colorTextPlaceholder: '#999',
     },
+    Checkbox: {
+      colorPrimary: primaryColor,
+      colorPrimaryHover: '#4f7a8a',
+      colorBorder: primaryColor,
+      colorBgContainer: '#fffaf4',
+      lineWidth: 2,
+      borderRadiusSM: 2,
+    },
     Layout: {
       footerPadding: 0,
       bodyBg: backgroundWhite,
