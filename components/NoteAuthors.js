@@ -189,7 +189,7 @@ export const NoteAuthorsV2 = ({
           key="private-label"
           name="eye-open"
           extraClasses="private-contents-icon"
-          tooltip={`Identities privately revealed to ${authorIds?.readers
+          tooltip={`Identities privately revealed to ${authorIdsProp?.readers
             ?.map((p) => prettyId(p))
             .join(', ')}`}
         />
