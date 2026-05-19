@@ -12,6 +12,7 @@ import {
   sanitizeRedirectUrl,
   getNoteAuthorIds,
   getNoteAuthors,
+  normalizeName,
 } from '../lib/utils'
 import '@testing-library/jest-dom'
 
@@ -1140,5 +1141,48 @@ describe('utils', () => {
     isV2Note = true
     expectedValue = undefined
     expect(getNoteAuthors(edit.note, isV2Note)).toEqual(expectedValue)
+  })
+
+  test('return normalized name', () => {
+    let fullname, expectedNormalizedName
+
+    // normal name
+    fullname = 'Test User'
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with extra spaces
+    fullname = '  Test   User  '
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with fullwidth characters
+    fullname = 'Ｔｅｓｔ　Ｕｓｅｒ'
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with Diacritical Marks
+    fullname = 'Tést Üsér'
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+    fullname = 'Test O’Connor'
+    expectedNormalizedName = 'Test O Connor'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with chinese characters
+    fullname = '用户全名'
+    expectedNormalizedName = '用户全名'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with different kinds of hyphen,dot,underscore
+    fullname = 'Some-differnt–kind—First Some.kind•of‧Middle Some_kinds＿of﹏last◌̲Name'
+    expectedNormalizedName =
+      'Some differnt kind First Some kind of Middle Some kinds of last Name'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // some other special characters
+    fullname = 'ﬁle ﬂow Ⅻ ①'
+    expectedNormalizedName = 'file flow XII 1'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
   })
 })
