@@ -103,7 +103,7 @@ export const NoteAuthorsV2 = ({
   noteReaders,
   showAuthorInstitutions,
 }) => {
-  if (showAuthorInstitutions && !authorIdsProp?.value) {
+  if (showAuthorInstitutions && authorsProp?.value && !authorIdsProp?.value) {
     return <NoteAuthorsWithInstitutions authors={authorsProp} noteReaders={noteReaders} />
   }
 
@@ -114,8 +114,11 @@ export const NoteAuthorsV2 = ({
 
   let showPrivateLabel = false
   const sortedReaders = noteReaders ? [...noteReaders].sort() : []
-  if (Array.isArray(authorIds?.readers) && !isEqual(sortedReaders, authorIds.readers.sort())) {
-    showPrivateLabel = !authorIds.readers.includes('everyone')
+  if (
+    Array.isArray(authorIdsProp?.readers) &&
+    !isEqual(sortedReaders, authorIdsProp.readers.sort())
+  ) {
+    showPrivateLabel = !authorIdsProp.readers.includes('everyone')
   }
 
   let authorsList
