@@ -135,6 +135,11 @@ describe('NoteAuthorsV2', () => {
         noteReaders={['everyone']}
       />
     )
-    expect(container.querySelector('.private-contents-icon')).toBeInTheDocument()
+    const icon = container.querySelector('.private-contents-icon')
+    expect(icon).toBeInTheDocument()
+    expect(icon).toHaveAttribute(
+      'title',
+      'Identities privately revealed to Conference Submission1 Reviewers'
+    )
   })
 })
