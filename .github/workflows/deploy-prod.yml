@@ -120,11 +120,25 @@ jobs:
           fi
 
           gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
-          prev_build_id=$(grep '^BUILD_ID=' ./deployment.conf | cut -d'"' -f2)
-          echo "prev_build_id=$prev_build_id" >> $GITHUB_OUTPUT
           sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
           sed -i '/^BUILD_ID=/d' ./deployment.conf
           echo "BUILD_ID=\"$build_id\"" >> ./deployment.conf
+
+      - name: Sync static assets to GCS
+        if: steps.check-mapping.outputs.is_rollback == 'false'
+        env:
+          BUILD_ID: ${{ steps.build.outputs.build_id }}
+        run: |
+          if [ -d "$GITHUB_WORKSPACE/.next/static" ]; then
+            echo "$BUILD_ID" | gsutil cp - gs://openreview-general/static-upload-pending/${BUILD_ID}
+            gsutil -m rsync -r $GITHUB_WORKSPACE/.next/static/ gs://openreview-web-static/_next/static/
+            gsutil rm gs://openreview-general/static-upload-pending/${BUILD_ID}
+          elif gsutil -q stat "gs://openreview-general/static-upload-pending/${BUILD_ID}"; then
+            echo "ERROR: Static upload pending for ${BUILD_ID} from a previous failed run. Re-run with force_rebuild=true."
+            exit 1
+          else
+            echo "Build skipped and no pending upload — static files already in bucket."
+          fi
 
       - name: Setup Packer
         if: steps.check-mapping.outputs.is_rollback == 'false'
@@ -138,12 +152,10 @@ jobs:
         working-directory: openreview-cloud/Images/openreview-web
         env:
           BUILD_ID: ${{ steps.build.outputs.build_id }}
-          PREV_BUILD_ID: ${{ steps.build.outputs.prev_build_id }}
         run: |
           packer init .
           packer build \
             -var="build_id=${BUILD_ID}" \
-            -var="prev_build_id=${PREV_BUILD_ID}" \
             -var="project_id=${{ secrets.GCP_PROJECT_ID }}"  \
             .
           image=$(jq -r '.builds[-1].artifact_id' manifest.json | cut -d: -f2)
