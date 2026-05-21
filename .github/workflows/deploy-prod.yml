@@ -123,7 +123,22 @@ jobs:
           sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
           sed -i '/^BUILD_ID=/d' ./deployment.conf
           echo "BUILD_ID=\"$build_id\"" >> ./deployment.conf
-          gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
+
+      - name: Sync static assets to GCS
+        if: steps.check-mapping.outputs.is_rollback == 'false'
+        env:
+          BUILD_ID: ${{ steps.build.outputs.build_id }}
+        run: |
+          if [ -d "$GITHUB_WORKSPACE/.next/static" ]; then
+            echo "$BUILD_ID" | gsutil cp - gs://openreview-general/static-upload-pending/${BUILD_ID}
+            gsutil -m rsync -r $GITHUB_WORKSPACE/.next/static/ gs://openreview-web-static/_next/static/
+            gsutil rm gs://openreview-general/static-upload-pending/${BUILD_ID}
+          elif gsutil -q stat "gs://openreview-general/static-upload-pending/${BUILD_ID}"; then
+            echo "ERROR: Static upload pending for ${BUILD_ID} from a previous failed run. Re-run with force_rebuild=true."
+            exit 1
+          else
+            echo "Build skipped and no pending upload — static files already in bucket."
+          fi
 
       - name: Setup Packer
         if: steps.check-mapping.outputs.is_rollback == 'false'
@@ -150,7 +165,9 @@ jobs:
         if: steps.check-mapping.outputs.is_rollback == 'false'
         env:
           IMAGE: ${{ steps.packer.outputs.image }}
-        run: echo "$IMAGE" | gsutil cp - gs://openreview-general/web-image-map/${TAG}
+        run: |
+          echo "$IMAGE" | gsutil cp - gs://openreview-general/web-image-map/${TAG}
+          gsutil cp $GITHUB_WORKSPACE/deployment.conf gs://openreview-general/conf/deployment.conf
 
       - name: Setup Terraform
         if: steps.check-mapping.outputs.is_rollback == 'false'
