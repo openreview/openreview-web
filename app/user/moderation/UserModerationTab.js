@@ -518,6 +518,16 @@ const UserModerationQueue = ({
     }
   }
 
+  const showPreviousProfile = (currentProfileId) => {
+    const previousProfile =
+      profiles[profiles.findIndex((p) => p.id === currentProfileId) - 1]
+    if (previousProfile) {
+      setProfileToPreview(
+        formatProfileData(cloneDeep(previousProfile), { includePastStates: true })
+      )
+    }
+  }
+
   useEffect(() => {
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
@@ -826,6 +836,7 @@ const UserModerationQueue = ({
           'tags',
         ]}
         showNextProfile={showNextProfile}
+        showPreviousProfile={showPreviousProfile}
         acceptUser={acceptUser}
         rejectUser={rejectUser}
       />
