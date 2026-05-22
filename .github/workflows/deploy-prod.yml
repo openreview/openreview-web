@@ -207,8 +207,7 @@ jobs:
             --project=${{ secrets.GCP_PROJECT_ID }} \
             --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/us-central1/instanceTemplates/openreview-web-template-${IMAGE} \
             --max-surge=3 \
-            --max-unavailable=0 \
-            --type=OPPORTUNISTIC
+            --max-unavailable=0
 
       - name: Wait for rollout to complete
         run: |
