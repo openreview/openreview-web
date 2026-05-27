@@ -119,10 +119,10 @@ jobs:
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
           fi
 
-          gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
-          sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
-          sed -i '/^BUILD_ID=/d' ./deployment.conf
-          echo "BUILD_ID=\"$build_id\"" >> ./deployment.conf
+          gsutil cp gs://openreview-general/conf/deployment.conf $GITHUB_WORKSPACE/deployment.conf
+          sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" $GITHUB_WORKSPACE/deployment.conf
+          sed -i '/^BUILD_ID=/d' $GITHUB_WORKSPACE/deployment.conf
+          echo "BUILD_ID=\"$build_id\"" >> $GITHUB_WORKSPACE/deployment.conf
 
       - name: Sync static assets to GCS
         if: steps.check-mapping.outputs.is_rollback == 'false'
