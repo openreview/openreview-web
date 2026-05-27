@@ -381,7 +381,7 @@ const UserModerationQueue = ({
     setFilters({ term: cleanSearchTerm })
   }
 
-  const acceptUser = async (profileId) => {
+  const acceptUser = async (profileId, showSuccessMessage = true) => {
     try {
       setIdsLoading((p) => [...p, profileId])
       await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
@@ -389,7 +389,9 @@ const UserModerationQueue = ({
         setPageNumber((p) => p - 1)
       }
       reload()
-      promptMessage(`${prettyId(profileId)} is now active`)
+      if (showSuccessMessage) {
+        promptMessage(`${prettyId(profileId)} is now active`)
+      }
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileId))
@@ -514,6 +516,16 @@ const UserModerationQueue = ({
     if (nextProfile) {
       setProfileToPreview(
         formatProfileData(cloneDeep(nextProfile), { includePastStates: true })
+      )
+    }
+  }
+
+  const showPreviousProfile = (currentProfileId) => {
+    const previousProfile =
+      profiles[profiles.findIndex((p) => p.id === currentProfileId) - 1]
+    if (previousProfile) {
+      setProfileToPreview(
+        formatProfileData(cloneDeep(previousProfile), { includePastStates: true })
       )
     }
   }
@@ -826,6 +838,7 @@ const UserModerationQueue = ({
           'tags',
         ]}
         showNextProfile={showNextProfile}
+        showPreviousProfile={showPreviousProfile}
         acceptUser={acceptUser}
         rejectUser={rejectUser}
       />
