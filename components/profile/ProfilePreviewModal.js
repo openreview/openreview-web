@@ -264,7 +264,7 @@ const ProfilePreviewModal = ({
                   type="primary"
                   onClick={() => {
                     showNextProfile(profileToPreview.id)
-                    acceptUser(profileToPreview.id)
+                    acceptUser(profileToPreview.id, false)
                   }}
                 >
                   Accept
