@@ -16,3 +16,19 @@
 .statefilter {
   flex: 2 1 150px;
 }
+
+.copyid {
+  display: inline-flex;
+  align-items: center;
+  width: 100%;
+}
+
+.copyid button {
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.profilerow:hover .copyid button,
+.profilerow:focus-within .copyid button {
+  opacity: 1;
+}

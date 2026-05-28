@@ -1,11 +1,24 @@
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
+  CopyOutlined,
   PlusOutlined,
   StopOutlined,
   UndoOutlined,
 } from '@ant-design/icons'
-import { Button, Col, Flex, Input, Modal, Pagination, Row, Select, Space, Tag } from 'antd'
+import {
+  Button,
+  Col,
+  Flex,
+  Input,
+  Modal,
+  Pagination,
+  Row,
+  Select,
+  Space,
+  Tag,
+  Typography,
+} from 'antd'
 import dayjs from 'dayjs'
 import { cloneDeep, uniqBy } from 'lodash'
 import { useEffect, useReducer, useState } from 'react'
@@ -308,6 +321,35 @@ const UserModerationQueue = ({
     if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
 
     try {
+      const searchTokens = cleanSearchTerm ? cleanSearchTerm.split(/\s+/) : []
+      if (
+        profileStateOption === 'All' &&
+        searchTokens.length > 1 &&
+        searchTokens.every((t) => t.startsWith('~') || t.includes('@'))
+      ) {
+        const results = await Promise.all(
+          searchTokens.map((token) =>
+            api.get(
+              '/profiles/search',
+              {
+                ...(token.startsWith('~') ? { id: token } : { email: token.toLowerCase() }),
+                es: true,
+                withBlocked: true,
+                trash: true,
+              },
+              { cachePolicy: 'no-cache' }
+            )
+          )
+        )
+        const merged = uniqBy(
+          results.flatMap((r) => r.profiles ?? []),
+          'id'
+        )
+        setTotalCount(merged.length)
+        setProfiles(merged)
+        return
+      }
+
       const result = await api.get(
         shouldSearchProfile ? '/profiles/search' : '/profiles',
         {
@@ -339,7 +381,7 @@ const UserModerationQueue = ({
     setFilters({ term: cleanSearchTerm })
   }
 
-  const acceptUser = async (profileId) => {
+  const acceptUser = async (profileId, showSuccessMessage = true) => {
     try {
       setIdsLoading((p) => [...p, profileId])
       await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
@@ -347,7 +389,9 @@ const UserModerationQueue = ({
         setPageNumber((p) => p - 1)
       }
       reload()
-      promptMessage(`${prettyId(profileId)} is now active`)
+      if (showSuccessMessage) {
+        promptMessage(`${prettyId(profileId)} is now active`)
+      }
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileId))
@@ -476,6 +520,16 @@ const UserModerationQueue = ({
     }
   }
 
+  const showPreviousProfile = (currentProfileId) => {
+    const previousProfile =
+      profiles[profiles.findIndex((p) => p.id === currentProfileId) - 1]
+    if (previousProfile) {
+      setProfileToPreview(
+        formatProfileData(cloneDeep(previousProfile), { includePastStates: true })
+      )
+    }
+  }
+
   useEffect(() => {
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
@@ -512,6 +566,7 @@ const UserModerationQueue = ({
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onPressEnter={filterProfiles}
+            allowClear
           />
           <Select
             className={styles.statefilter}
@@ -540,17 +595,43 @@ const UserModerationQueue = ({
             const state =
               profile.ddate && profile.state !== 'Merged' ? 'Deleted' : profile.state
             return (
-              <Row key={profile.id} align="middle" gutter={[15, 15]}>
+              <Row
+                key={profile.id}
+                align="middle"
+                gutter={[15, 15]}
+                className={styles.profilerow}
+              >
                 <Col xs={24} sm={12} md={6} lg={3} xl={3}>
-                  <a
-                    href={`/profile?id=${profile.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={profile.id}
-                    className={styles.profilenamelink}
-                  >
-                    {name?.fullname}
-                  </a>
+                  {onlyModeration ? (
+                    <a
+                      href={`/profile?id=${profile.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={profile.id}
+                      className={styles.profilenamelink}
+                    >
+                      {name?.fullname}
+                    </a>
+                  ) : (
+                    <Typography.Text
+                      copyable={{
+                        text: profile.id,
+                        tooltips: ['Copy tilde id', 'Tilde id copied'],
+                        icon: [<CopyOutlined key="copy" />, <CopyOutlined key="copied" />],
+                      }}
+                      className={styles.copyid}
+                    >
+                      <a
+                        href={`/profile?id=${profile.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={profile.id}
+                        className={styles.profilenamelink}
+                      >
+                        {name?.fullname}
+                      </a>
+                    </Typography.Text>
+                  )}
                 </Col>
                 <Col
                   xs={24}
@@ -757,6 +838,7 @@ const UserModerationQueue = ({
           'tags',
         ]}
         showNextProfile={showNextProfile}
+        showPreviousProfile={showPreviousProfile}
         acceptUser={acceptUser}
         rejectUser={rejectUser}
       />

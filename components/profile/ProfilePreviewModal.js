@@ -16,6 +16,7 @@ const ProfilePreviewModal = ({
   contentToShow,
   sortFn,
   showNextProfile,
+  showPreviousProfile,
   acceptUser,
   rejectUser,
 }) => {
@@ -117,6 +118,9 @@ const ProfilePreviewModal = ({
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         showNextProfile(profileToPreview.id)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        showPreviousProfile(profileToPreview.id)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -260,7 +264,7 @@ const ProfilePreviewModal = ({
                   type="primary"
                   onClick={() => {
                     showNextProfile(profileToPreview.id)
-                    acceptUser(profileToPreview.id)
+                    acceptUser(profileToPreview.id, false)
                   }}
                 >
                   Accept

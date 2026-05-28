@@ -4,42 +4,40 @@
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { flushSync } from 'react-dom'
-import { useRouter } from 'next/navigation'
-import isEmpty from 'lodash/isEmpty'
-import truncate from 'lodash/truncate'
-import debounce from 'lodash/debounce'
-import groupBy from 'lodash/groupBy'
-import escapeRegExp from 'lodash/escapeRegExp'
-import List from 'rc-virtual-list'
-
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import ForumNote from './ForumNote'
-import NoteEditor from '../NoteEditor'
-import ChatEditorForm from './ChatEditorForm'
-import FilterForm from './FilterForm'
-import ChatFilterForm from './ChatFilterForm'
-import FilterTabs from './FilterTabs'
-import ForumReply from './ForumReply'
-import ChatReply from './ChatReply'
-import LoadingSpinner from '../LoadingSpinner'
-import ForumReplyContext from './ForumReplyContext'
-import ConfirmDeleteModal from './ConfirmDeleteModal'
-
+import debounce from 'lodash/debounce'
+import escapeRegExp from 'lodash/escapeRegExp'
+import groupBy from 'lodash/groupBy'
+import isEmpty from 'lodash/isEmpty'
+import truncate from 'lodash/truncate'
+import { useRouter } from 'next/navigation'
+import List from 'rc-virtual-list'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { flushSync } from 'react-dom'
+import useLocalStorage from '../../hooks/useLocalStorage'
+import useSocket from '../../hooks/useSocket'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import {
   formatNote,
   addTagToReactionsList,
   parseFilterQuery,
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
-import useLocalStorage from '../../hooks/useLocalStorage'
+import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import Icon from '../Icon'
-import useSocket from '../../hooks/useSocket'
+import LoadingSpinner from '../LoadingSpinner'
+import NoteEditor from '../NoteEditor'
+import ChatEditorForm from './ChatEditorForm'
+import ChatFilterForm from './ChatFilterForm'
+import ChatReply from './ChatReply'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
+import FilterForm from './FilterForm'
+import FilterTabs from './FilterTabs'
+import ForumNote from './ForumNote'
+import ForumReply from './ForumReply'
+import ForumReplyContext from './ForumReplyContext'
 
 dayjs.extend(relativeTime)
 
@@ -562,6 +560,10 @@ export default function Forum({
   }
 
   const renderReplies = () => {
+    setTimeout(() => {
+      typesetMathJax()
+    }, 200)
+
     const replies =
       layout === 'chat' || cutoffIndex.current >= orderedReplies.length
         ? orderedReplies
@@ -598,10 +600,6 @@ export default function Forum({
         </List>
       )
     }
-
-    setTimeout(() => {
-      typesetMathJax()
-    }, 200)
 
     return replies.map((reply) => (
       <ForumReply
