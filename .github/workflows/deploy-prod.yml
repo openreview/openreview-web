@@ -119,11 +119,34 @@ jobs:
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
           fi
 
-          gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
-          sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
-          sed -i '/^BUILD_ID=/d' ./deployment.conf
-          echo "BUILD_ID=\"$build_id\"" >> ./deployment.conf
-          gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
+          gsutil cp gs://openreview-general/conf/deployment.conf $GITHUB_WORKSPACE/deployment.conf
+          sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" $GITHUB_WORKSPACE/deployment.conf
+          sed -i '/^BUILD_ID=/d' $GITHUB_WORKSPACE/deployment.conf
+          echo "BUILD_ID=\"$build_id\"" >> $GITHUB_WORKSPACE/deployment.conf
+
+      - name: Sync static assets to GCS
+        if: steps.check-mapping.outputs.is_rollback == 'false'
+        env:
+          BUILD_ID: ${{ steps.build.outputs.build_id }}
+        run: |
+          if [ -d "$GITHUB_WORKSPACE/.next/static" ]; then
+            echo "$BUILD_ID" | gsutil cp - gs://openreview-general/static-upload-pending/${BUILD_ID}
+            gsutil -m rsync -r $GITHUB_WORKSPACE/.next/static/ gs://openreview-web-static/_next/static/
+            gsutil rm gs://openreview-general/static-upload-pending/${BUILD_ID}
+          elif gsutil -q stat "gs://openreview-general/static-upload-pending/${BUILD_ID}"; then
+            if [ "${{ inputs.force_rebuild }}" = "true" ]; then
+              echo "Marker found with force_rebuild — extracting static files from existing artifact and retrying sync..."
+              gsutil cp "gs://openreview-general/openreview-web-builds/${BUILD_ID}.tar.gz" /tmp/${BUILD_ID}.tar.gz
+              tar -xzf /tmp/${BUILD_ID}.tar.gz -C /tmp/ "${BUILD_ID}/.next/static/"
+              gsutil -m rsync -r /tmp/${BUILD_ID}/.next/static/ gs://openreview-web-static/_next/static/
+              gsutil rm gs://openreview-general/static-upload-pending/${BUILD_ID}
+            else
+              echo "ERROR: Static upload pending for ${BUILD_ID} from a previous failed run. Re-run with force_rebuild=true."
+              exit 1
+            fi
+          else
+            echo "Build skipped and no pending upload — static files already in bucket."
+          fi
 
       - name: Setup Packer
         if: steps.check-mapping.outputs.is_rollback == 'false'
@@ -150,7 +173,9 @@ jobs:
         if: steps.check-mapping.outputs.is_rollback == 'false'
         env:
           IMAGE: ${{ steps.packer.outputs.image }}
-        run: echo "$IMAGE" | gsutil cp - gs://openreview-general/web-image-map/${TAG}
+        run: |
+          echo "$IMAGE" | gsutil cp - gs://openreview-general/web-image-map/${TAG}
+          gsutil cp $GITHUB_WORKSPACE/deployment.conf gs://openreview-general/conf/deployment.conf
 
       - name: Setup Terraform
         if: steps.check-mapping.outputs.is_rollback == 'false'
