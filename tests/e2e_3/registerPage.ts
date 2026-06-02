@@ -1,10 +1,12 @@
-import { Selector, ClientFunction, RequestLogger } from 'testcafe'
+import { Selector, ClientFunction, RequestLogger, Role } from 'testcafe'
 import {
   inactiveUser,
   inActiveUserNoPassword,
   inActiveUserNoPasswordNoEmail,
   getToken,
   getMessages,
+  createPasswordResetRequest,
+  hasTaskUser,
   superUserName,
   strongPassword,
 } from '../utils/api-helper'
@@ -493,6 +495,116 @@ test('reset password of active profile', async (t) => {
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/user/password?token=')
 }).skipJsErrors()
+
+test('complete password reset for logged-out user redirects to login with new-session message', async (t) => {
+  const baseUrl = `http://localhost:${process.env.NEXT_PORT}`
+  const getPageUrl = ClientFunction(() => window.location.href.toString())
+  await createPasswordResetRequest(hasTaskUser.email)
+
+  await t
+    .useRole(Role.anonymous())
+    .navigateTo(`${baseUrl}/user/password?token=${hasTaskUser.email}`)
+    .expect(Selector('input[type="checkbox"]').exists)
+    .notOk()
+    .typeText(Selector('input[type="password"]').nth(0), strongPassword, { replace: true })
+    .typeText(Selector('input[type="password"]').nth(1), strongPassword, { replace: true })
+    .click(Selector('button').withText('Reset Password'))
+    .expect(messageSelector.innerText)
+    .eql('Your password has been updated. Please log in with your new password to continue.')
+    .expect(getPageUrl())
+    .contains('/login', { timeout: 10000 })
+})
+
+test('logged-in password reset with checkbox unchecked leaves other sessions intact', async (t) => {
+  const baseUrl = `http://localhost:${process.env.NEXT_PORT}`
+  const getPageUrl = ClientFunction(() => window.location.href.toString())
+  const otherSession = Role(`${baseUrl}/login`, async (roleT) => {
+    await roleT
+      .typeText(Selector('#email-input'), hasTaskUser.email)
+      .typeText(Selector('#password-input'), hasTaskUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  })
+  const currentSession = Role(`${baseUrl}/login`, async (roleT) => {
+    await roleT
+      .typeText(Selector('#email-input'), hasTaskUser.email)
+      .typeText(Selector('#password-input'), hasTaskUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  })
+
+  await t
+    .useRole(otherSession)
+    .navigateTo(`${baseUrl}/profile`)
+    .expect(Selector('#user-menu').filterVisible().exists)
+    .ok()
+
+  await createPasswordResetRequest(hasTaskUser.email)
+
+  await t
+    .useRole(currentSession)
+    .navigateTo(`${baseUrl}/user/password?token=${hasTaskUser.email}`)
+    .expect(Selector('input[type="checkbox"]').exists)
+    .ok({ timeout: 15000 })
+    .click(Selector('input[type="checkbox"]'))
+    .typeText(Selector('input[type="password"]').nth(0), strongPassword, { replace: true })
+    .typeText(Selector('input[type="password"]').nth(1), strongPassword, { replace: true })
+    .click(Selector('button').withText('Reset Password'))
+    .expect(messageSelector.innerText)
+    .eql('Your password has been updated.')
+    .expect(getPageUrl())
+    .notContains('/login', { timeout: 10000 })
+
+  await t
+    .useRole(otherSession)
+    .navigateTo(`${baseUrl}/profile`)
+    .expect(getPageUrl())
+    .notContains('/login')
+    .expect(Selector('#user-menu').filterVisible().exists)
+    .ok()
+})
+
+test('logged-in password reset with checkbox checked invalidates other sessions', async (t) => {
+  const baseUrl = `http://localhost:${process.env.NEXT_PORT}`
+  const getPageUrl = ClientFunction(() => window.location.href.toString())
+  const otherSession = Role(`${baseUrl}/login`, async (roleT) => {
+    await roleT
+      .typeText(Selector('#email-input'), hasTaskUser.email)
+      .typeText(Selector('#password-input'), hasTaskUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  })
+  const currentSession = Role(`${baseUrl}/login`, async (roleT) => {
+    await roleT
+      .typeText(Selector('#email-input'), hasTaskUser.email)
+      .typeText(Selector('#password-input'), hasTaskUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  })
+
+  await t
+    .useRole(otherSession)
+    .navigateTo(`${baseUrl}/profile`)
+    .expect(Selector('#user-menu').filterVisible().exists)
+    .ok()
+
+  await createPasswordResetRequest(hasTaskUser.email)
+
+  await t
+    .useRole(currentSession)
+    .navigateTo(`${baseUrl}/user/password?token=${hasTaskUser.email}`)
+    .expect(Selector('input[type="checkbox"]').exists)
+    .ok({ timeout: 15000 })
+    .typeText(Selector('input[type="password"]').nth(0), strongPassword, { replace: true })
+    .typeText(Selector('input[type="password"]').nth(1), strongPassword, { replace: true })
+    .click(Selector('button').withText('Reset Password'))
+    .expect(messageSelector.innerText)
+    .eql('Your password has been updated and all other sessions have been logged out.')
+    .expect(getPageUrl())
+    .notContains('/login', { timeout: 10000 })
+
+  await t
+    .useRole(otherSession)
+    .navigateTo(`${baseUrl}/profile`)
+    .expect(Selector('div').withText('Profile not found').exists)
+    .ok({ timeout: 10000 })
+})
 
 fixture`Edit profile`.page`http://localhost:${process.env.NEXT_PORT}/login`.before(
   async (ctx) => {
