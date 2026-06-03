@@ -8,10 +8,7 @@ import { prettyList } from '../../lib/utils'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 
-import {
-  colors,
-  profile as profileStyles,
-} from '../../lib/legacy-bootstrap-styles'
+import { colors, profile as profileStyles } from '../../lib/legacy-bootstrap-styles'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -93,9 +90,7 @@ const ProfileLink = ({ link, showLinkText }) => {
         {link.name}
       </a>
       {showLinkText && (
-        <span
-          style={profileStyles.linkText}
-        >{`(${linkUrlWithProtocol})`}</span>
+        <span style={profileStyles.linkText}>{`(${linkUrlWithProtocol})`}</span>
       )}
     </ProfileItem>
   )
@@ -131,9 +126,7 @@ const ProfileHistory = ({ history }) => (
                 .filter(Boolean)
                 .join(', ')}
             >
-              <EnvironmentFilled
-                style={profileStyles.geolocationIcon}
-              />
+              <EnvironmentFilled style={profileStyles.geolocationIcon} />
             </Tooltip>
           </>
         )}
@@ -191,7 +184,7 @@ const ProfileRelation = ({ relation }) => (
 
 const ProfileExpertise = ({ expertise }) => (
   <Row align="top" gutter={[15, 15]}>
-    <Col xs={12} sm={20}>
+    <Col xs={12} sm={20} style={{ overflowWrap: 'anywhere' }}>
       <Space wrap separator={<span>{`,\u00a0`}</span>} size={0}>
         {expertise.keywords.map((p) => p)}
       </Space>
