@@ -1,11 +1,16 @@
-import { useEffect, useReducer, useState } from 'react'
+import { CheckOutlined, SafetyCertificateOutlined } from '@ant-design/icons'
+import { Button, Input, Tooltip } from 'antd'
+import { uniqBy } from 'lodash'
 import { nanoid } from 'nanoid'
 import dynamic from 'next/dynamic'
-import { uniqBy } from 'lodash'
-import Icon from '../Icon'
+import { useEffect, useReducer, useState } from 'react'
 import useBreakpoint from '../../hooks/useBreakPoint'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { colors } from '../../lib/legacy-bootstrap-styles'
 import { getStartEndYear } from '../../lib/utils'
 import ProfileSearchWidget from '../EditorComponents/ProfileSearchWidget'
+import Icon from '../Icon'
 import { EditButton, SearchButton } from '../IconButton'
 
 const CreatableDropdown = dynamic(
@@ -80,15 +85,47 @@ const RelationRow = ({
   relationOptions,
   relationReaderOptions,
   isMobile,
+  voucherId,
 }) => {
   const relationPlaceholder = 'Choose or type a relation'
   const [relationClicked, setRelationClicked] = useState(false)
+  const [isVouching, setIsVouching] = useState(false)
+  const [hasVouched, setHasVouched] = useState(false)
   const relationReadersOptionWithExistingRelation = uniqBy(
     relationReaderOptions.concat(
       (relation.readers ?? []).map((r) => ({ value: r, label: r }))
     ),
     (p) => p.value
   )
+  const isPublicRelation = !relation.readers?.length || relation.readers.includes('everyone')
+  const relationInvalid =
+    profileRelation?.find((q) => q.key === relation.key)?.valid === false
+  // Keep the error border the legacy OR red so it matches the relation dropdown
+  // and the rest of the form, instead of antd's default error red.
+  const invalidInputStyle = relationInvalid ? { borderColor: colors.orRed } : undefined
+
+  const handleVouch = async () => {
+    if (!voucherId || !relation.username) return
+    setIsVouching(true)
+    try {
+      await api.post('/tags', {
+        profile: relation.username,
+        signature: voucherId,
+        invitation: `${process.env.SUPER_USER}/Support/-/Vouch`,
+      })
+      setHasVouched(true)
+      promptMessage(`You have vouched for ${relation.name}.`)
+    } catch (error) {
+      promptError(error.message)
+    } finally {
+      setIsVouching(false)
+    }
+  }
+
+  let vouchTooltip = "Vouch to help verify this user's OpenReview account"
+  if (!isPublicRelation) {
+    vouchTooltip = "Set 'Visible to' to everyone to vouch for this user"
+  }
 
   const getReaderText = (selectedValues) => {
     if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone'))
@@ -110,14 +147,39 @@ const RelationRow = ({
               >
                 {relation.name}
               </a>
-              <EditButton
-                onClick={() =>
-                  setRelation({
-                    type: nameType,
-                    data: { value: undefined, key: relation.key },
-                  })
-                }
-              />
+              <span className="relation-name-container__actions">
+                <EditButton
+                  onClick={() =>
+                    setRelation({
+                      type: nameType,
+                      data: { value: undefined, key: relation.key },
+                    })
+                  }
+                />
+                {hasVouched ? (
+                  <Tooltip title="You've vouched for this user">
+                    <span className="relation__vouched" role="img" aria-label="vouched">
+                      <CheckOutlined />
+                    </span>
+                  </Tooltip>
+                ) : (
+                  <Tooltip title={vouchTooltip}>
+                    <span className="relation__vouch">
+                      <Button
+                        type="primary"
+                        size="small"
+                        icon={<SafetyCertificateOutlined />}
+                        loading={isVouching}
+                        disabled={!isPublicRelation || !voucherId}
+                        onClick={handleVouch}
+                        style={{ height: '100%', borderRadius: 0 }}
+                      >
+                        Vouch
+                      </Button>
+                    </span>
+                  </Tooltip>
+                )}
+              </span>
             </div>
           </div>
         )
@@ -236,12 +298,8 @@ const RelationRow = ({
 
       <div className="col-md-1 relation__value">
         {isMobile && <div className="small-heading col-md-1">Start</div>}
-        <input
-          className={`form-control ${
-            profileRelation?.find((q) => q.key === relation.key)?.valid === false
-              ? 'invalid-value'
-              : ''
-          }`}
+        <Input
+          style={invalidInputStyle}
           value={relation.start ?? ''}
           placeholder="year"
           onChange={(e) =>
@@ -255,12 +313,8 @@ const RelationRow = ({
       </div>
       <div className="col-md-1 relation__value">
         {isMobile && <div className="small-heading col-md-1">End</div>}
-        <input
-          className={`form-control ${
-            profileRelation?.find((q) => q.key === relation.key)?.valid === false
-              ? 'invalid-value'
-              : ''
-          }`}
+        <Input
+          style={invalidInputStyle}
           value={relation.end ?? ''}
           placeholder="year"
           onChange={(e) =>
@@ -306,6 +360,7 @@ const RelationsSection = ({
   updateRelations,
 }) => {
   const isMobile = !useBreakpoint('lg')
+  const { user } = useUser()
   const relationOptions = prefixedRelations?.map((p) => ({ value: p, label: p })) ?? []
   const relationReaderOptions = relationReaders?.map((p) => ({ value: p, label: p })) ?? []
 
@@ -447,6 +502,7 @@ const RelationsSection = ({
           relationOptions={relationOptions}
           relationReaderOptions={relationReaderOptions}
           isMobile={isMobile}
+          voucherId={user?.profile?.id}
         />
       ))}
       <div className="row">
