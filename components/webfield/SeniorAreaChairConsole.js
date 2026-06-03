@@ -1,15 +1,9 @@
-/* globals promptError: false */
-import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { camelCase, chunk, orderBy } from 'lodash'
-import WebFieldContext from '../WebFieldContext'
-import BasicHeader from './BasicHeader'
-import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
-import PaperStatus from './SeniorAreaChairConsole/PaperStatus'
-import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
-import ErrorDisplay from '../ErrorDisplay'
+import { useSearchParams } from 'next/navigation'
+import { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import { formatProfileContent } from '../../lib/edge-utils'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
@@ -21,9 +15,14 @@ import {
   getRoleHashFragment,
   pluralizeString,
 } from '../../lib/utils'
-import { formatProfileContent } from '../../lib/edge-utils'
-import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
+import ErrorDisplay from '../ErrorDisplay'
+import WebFieldContext from '../WebFieldContext'
+import BasicHeader from './BasicHeader'
 import ConsoleTabs from './ConsoleTabs'
+import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
+import AreaChairStatus from './SeniorAreaChairConsole/AreaChairStatus'
+import PaperStatus from './SeniorAreaChairConsole/PaperStatus'
+import SeniorAreaChairTasks from './SeniorAreaChairConsole/SeniorAreaChairTasks'
 
 const SeniorAreaChairConsole = ({ appContext }) => {
   const {
@@ -320,12 +319,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       // #region get all profiles
       const allIds = [...new Set(assignedAreaChairIds.concat(allGroupMembers))]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const getProfilesByIdsP = ids.length
-        ? api.post('/profiles/search', {
-            ids,
-          })
-        : Promise.resolve([])
-      const profileResults = await getProfilesByIdsP
+      const profileResults = await api.getAllProfilesByIds(ids)
       const allProfiles = (profileResults.profiles ?? []).map((profile) => ({
         ...profile,
         preferredName: getProfileName(profile),
