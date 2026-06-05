@@ -110,6 +110,52 @@ export default async function page({ searchParams }) {
   ) : null
 
   const formattedProfile = formatProfileData(profile)
+
+  try {
+    const result = await api.get(
+      '/tags',
+      {
+        invitation: `${process.env.SUPER_USER}/Support/-/Vouch`,
+        signature: profile.id,
+      },
+      { accessToken: token, remoteIpAddress }
+    )
+    const vouchByUsername = new Map(
+      result.tags.map((tag) => {
+        let decoded = {}
+        try {
+          decoded = JSON.parse(tag.label ?? '') ?? {}
+        } catch {
+          decoded = {}
+        }
+        return [
+          tag.profile,
+          {
+            relation: decoded.relation ?? '',
+            username: tag.profile,
+            start: decoded.start ?? null,
+            end: decoded.end ?? null,
+            readers: ['everyone'],
+          },
+        ]
+      })
+    )
+    if (vouchByUsername.size) {
+      const relations = (formattedProfile.relations ?? []).map((relation) => {
+        const vouch = vouchByUsername.get(relation.username)
+        if (!vouch) return relation
+        vouchByUsername.delete(relation.username)
+        return { ...relation, ...vouch, name: relation.name ?? prettyId(vouch.username) }
+      })
+
+      const reconstructed = [...vouchByUsername.values()].map((vouch) => ({
+        ...vouch,
+        name: prettyId(vouch.username),
+      }))
+      formattedProfile.relations = [...relations, ...reconstructed]
+    }
+  } catch {}
+
   const { preferredId } = formattedProfile
   const shouldRedirect = email || id !== preferredId || (!email && !id)
 
