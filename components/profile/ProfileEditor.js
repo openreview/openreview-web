@@ -42,7 +42,7 @@ export default function ProfileEditor({
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
-  const [currentStepKey, setCurrentStepKey] = useState('relations')
+  const [currentStepKey, setCurrentStepKey] = useState('names')
   const [invalidStepKeys, setInvalidStepKeys] = useState([])
   const stepRef = useRef(null)
   const renderPublicationsEditor = useCallback(() => {
