@@ -559,36 +559,12 @@
           border-color: #8c1b13;
         }
 
-        button:not(.ant-btn) {
+        button {
           margin-right: 0;
           border-radius: 0;
           border-color: #4d8093;
           background-color: #4d8093;
           height: 100%;
-        }
-
-        .relation-name-container__actions {
-          display: flex;
-          align-items: center;
-          height: 100%;
-          // gap: 1px;
-
-          .relation__vouch {
-            display: inline-flex;
-            height: 100%;
-          }
-
-          // "Vouched" confirmation: a compact success check that matches the
-          // edit button's footprint, instead of a grayed-out disabled button.
-          .relation__vouched {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            padding: 0 0.5rem;
-            background-color: #449d44;
-            color: #fff;
-          }
         }
 
         .search-input {

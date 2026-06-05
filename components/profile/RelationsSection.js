@@ -580,8 +580,13 @@ const RelationsSection = ({
 
   const loadVouchCandidateProfiles = async (usernames) => {
     try {
-      const result = await api.getAllProfilesByIds(usernames)
-      setRelationProfileStates(result.profiles)
+      const { profiles } = await api.getAllProfilesByIds(usernames)
+      setRelationProfileStates(
+        Object.fromEntries(profiles.map((candidateProfile) => [
+          candidateProfile.id,
+          candidateProfile.state,
+        ]))
+      )
     } catch {}
   }
 
