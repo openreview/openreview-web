@@ -175,19 +175,17 @@ const RelationRow = ({
         return (
           <div className="col-md-6 relation__value">
             <Space.Compact block>
-              <Tooltip>
-                <Input
-                  style={invalidInputStyle}
-                  value={`${relation.name} (${relation.username})`}
-                  allowClear={{ clearIcon: <CloseOutlined /> }}
-                  onClear={() =>
-                    setRelation({
-                      type: nameType,
-                      data: { value: undefined, key: relation.key },
-                    })
-                  }
-                />
-              </Tooltip>
+              <Input
+                style={invalidInputStyle}
+                value={`${relation.name} (${relation.username})`}
+                allowClear={{ clearIcon: <CloseOutlined /> }}
+                onClear={() =>
+                  setRelation({
+                    type: nameType,
+                    data: { value: undefined, key: relation.key },
+                  })
+                }
+              />
 
               {showVouchButton && (
                 <Popconfirm
@@ -582,10 +580,9 @@ const RelationsSection = ({
     try {
       const { profiles } = await api.getAllProfilesByIds(usernames)
       setRelationProfileStates(
-        Object.fromEntries(profiles.map((candidateProfile) => [
-          candidateProfile.id,
-          candidateProfile.state,
-        ]))
+        Object.fromEntries(
+          profiles.map((candidateProfile) => [candidateProfile.id, candidateProfile.state])
+        )
       )
     } catch {}
   }
@@ -646,7 +643,7 @@ const RelationsSection = ({
         const isSavedPublicRelation =
           relation.username &&
           savedRelations?.find(
-            (p) => p.username === relation.username && p.readers.includes('everyone')
+            (p) => p.username === relation.username && p.readers?.includes('everyone')
           )
 
         return (
