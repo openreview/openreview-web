@@ -111,7 +111,7 @@ const CustomProfileSearchForm = ({
   </div>
 )
 
-const RelationRow = ({
+export const RelationRow = ({
   relation,
   setRelation,
   profileRelation,

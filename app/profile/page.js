@@ -136,6 +136,7 @@ export default async function page({ searchParams }) {
             start: decoded.start ?? null,
             end: decoded.end ?? null,
             readers: ['everyone'],
+            vouched: true,
           },
         ]
       })

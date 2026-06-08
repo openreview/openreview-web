@@ -1,4 +1,4 @@
-import { EnvironmentFilled } from '@ant-design/icons'
+import { EnvironmentFilled, SafetyCertificateOutlined } from '@ant-design/icons'
 import { Col, Flex, Row, Space, Tooltip } from 'antd'
 import copy from 'copy-to-clipboard'
 import { nanoid } from 'nanoid'
@@ -8,10 +8,7 @@ import { prettyList } from '../../lib/utils'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 
-import {
-  colors,
-  profile as profileStyles,
-} from '../../lib/legacy-bootstrap-styles'
+import { colors, profile as profileStyles } from '../../lib/legacy-bootstrap-styles'
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -93,9 +90,7 @@ const ProfileLink = ({ link, showLinkText }) => {
         {link.name}
       </a>
       {showLinkText && (
-        <span
-          style={profileStyles.linkText}
-        >{`(${linkUrlWithProtocol})`}</span>
+        <span style={profileStyles.linkText}>{`(${linkUrlWithProtocol})`}</span>
       )}
     </ProfileItem>
   )
@@ -131,9 +126,7 @@ const ProfileHistory = ({ history }) => (
                 .filter(Boolean)
                 .join(', ')}
             >
-              <EnvironmentFilled
-                style={profileStyles.geolocationIcon}
-              />
+              <EnvironmentFilled style={profileStyles.geolocationIcon} />
             </Tooltip>
           </>
         )}
@@ -168,6 +161,13 @@ const ProfileRelation = ({ relation }) => (
           {relation.name}
           <small style={{ color: colors.orRed }}>{relation.email}</small>
         </Space>
+      )}
+      {relation.vouched && (
+        <Tooltip title="Vouched relation">
+          <span style={profileStyles.vouchedRelationIcon}>
+            <SafetyCertificateOutlined />
+          </span>
+        </Tooltip>
       )}
     </Col>
     <Col xs={12} sm={4}>
