@@ -79,6 +79,7 @@ export const RejectionModal = ({
       onOk={() => {
         setRejectionMessage('')
         rejectUser(rejectionMessage, profileToReject.id)
+        setProfileToReject(null)
       }}
       width={{
         xs: '90%',
@@ -521,8 +522,7 @@ const UserModerationQueue = ({
   }
 
   const showPreviousProfile = (currentProfileId) => {
-    const previousProfile =
-      profiles[profiles.findIndex((p) => p.id === currentProfileId) - 1]
+    const previousProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) - 1]
     if (previousProfile) {
       setProfileToPreview(
         formatProfileData(cloneDeep(previousProfile), { includePastStates: true })
