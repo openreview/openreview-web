@@ -191,6 +191,7 @@ const RelationRow = ({
         {relationClicked ? (
           <CreatableDropdown
             autofocus
+            clientOnly
             defaultMenuIsOpen
             hideArrow
             disableMouseMove

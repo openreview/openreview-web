@@ -1,12 +1,12 @@
+import { nanoid } from 'nanoid'
+import dynamic from 'next/dynamic'
 /* globals promptError,$: false */
 import { useEffect, useReducer, useState } from 'react'
-import dynamic from 'next/dynamic'
-import { nanoid } from 'nanoid'
-import Icon from '../Icon'
 import useBreakpoint from '../../hooks/useBreakPoint'
+import api from '../../lib/api-client'
 import { getStartEndYear } from '../../lib/utils'
 import Dropdown from '../Dropdown'
-import api from '../../lib/api-client'
+import Icon from '../Icon'
 
 const CreatableDropdown = dynamic(
   () => import('../Dropdown').then((mod) => mod.CreatableDropdown),
@@ -53,6 +53,7 @@ const EducationHistoryRow = ({
   const [isDomainClicked, setIsDomainClicked] = useState(false)
   const [isRegionClicked, setIsRegionClicked] = useState(false)
   const invalidFields = profileHistory?.find((q) => q.key === p.key)?.invalidFields
+  const isIndependentResearcher = p.position === 'Independent Researcher'
 
   const updateDomain = async (domain, key) => {
     if (!domain) {
@@ -96,6 +97,7 @@ const EducationHistoryRow = ({
         {isPositionClicked ? (
           <CreatableDropdown
             autofocus
+            clientOnly
             defaultMenuIsOpen
             hideArrow
             disableMouseMove
@@ -192,9 +194,10 @@ const EducationHistoryRow = ({
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-3">Institution Domain</div>}
-        {isDomainClicked ? (
+        {isDomainClicked && !isIndependentResearcher ? (
           <CreatableDropdown
             autofocus
+            clientOnly
             defaultMenuIsOpen
             hideArrow
             disableMouseMove
@@ -227,6 +230,7 @@ const EducationHistoryRow = ({
             }`}
             placeholder={institutionPlaceholder}
             value={p.institution?.domain}
+            disabled={isIndependentResearcher}
             onClick={() => setIsDomainClicked(true)}
             onFocus={() => setIsDomainClicked(true)}
             onChange={() => {}}
@@ -252,6 +256,7 @@ const EducationHistoryRow = ({
           }`}
           placeholder="Institution Name"
           value={p.institution?.name ?? ''}
+          disabled={isIndependentResearcher}
           onChange={(e) =>
             setHistory({
               type: institutionNameType,
@@ -402,7 +407,24 @@ const EducationHistorySection = ({
       case posititonType:
         return state.map((p) => {
           const recordCopy = { ...p }
-          if (p.key === action.data.key) recordCopy.position = action.data.value
+          if (p.key === action.data.key) {
+            recordCopy.position = action.data.value
+            if (action.data.value.toLowerCase().includes('independent')) {
+              recordCopy.position = 'Independent Researcher'
+              recordCopy.institution = {
+                domain: 'independent-researcher.org',
+                name: 'Independent',
+              }
+            } else if (
+              p.position === 'Independent Researcher' &&
+              p.institution?.domain === 'independent-researcher.org'
+            ) {
+              recordCopy.institution = {
+                domain: '',
+                name: '',
+              }
+            }
+          }
           return recordCopy
         })
       case institutionNameType:

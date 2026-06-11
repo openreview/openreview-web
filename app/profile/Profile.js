@@ -26,9 +26,14 @@ export default async function Profile({
     return (
       <div>
         {currentHistories?.map((history, index) => {
+          const isIndependentResearcher = history.position === 'Independent Researcher'
           const posititon = upperFirst(history.position).trim()
-          const department = history.institution.department?.trim()
-          const institutionName = history.institution.name?.trim()
+          const department = isIndependentResearcher
+            ? undefined
+            : history.institution.department?.trim()
+          const institutionName = isIndependentResearcher
+            ? undefined
+            : history.institution.name?.trim()
 
           return (
             <div
