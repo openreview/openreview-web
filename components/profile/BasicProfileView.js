@@ -191,7 +191,7 @@ const ProfileRelation = ({ relation }) => (
 
 const ProfileExpertise = ({ expertise }) => (
   <Row align="top" gutter={[15, 15]}>
-    <Col xs={12} sm={20}>
+    <Col xs={12} sm={20} style={{ overflowWrap: 'anywhere' }}>
       <Space wrap separator={<span>{`,\u00a0`}</span>} size={0}>
         {expertise.keywords.map((p) => p)}
       </Space>

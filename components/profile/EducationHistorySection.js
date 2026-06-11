@@ -409,10 +409,19 @@ const EducationHistorySection = ({
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
             recordCopy.position = action.data.value
-            if (action.data.value === 'Independent Researcher') {
+            if (action.data.value.toLowerCase().includes('independent')) {
+              recordCopy.position = 'Independent Researcher'
               recordCopy.institution = {
-                domain: 'independent.openreview.net',
+                domain: 'independent-researcher.org',
                 name: 'Independent',
+              }
+            } else if (
+              p.position === 'Independent Researcher' &&
+              p.institution?.domain === 'independent-researcher.org'
+            ) {
+              recordCopy.institution = {
+                domain: '',
+                name: '',
               }
             }
           }
