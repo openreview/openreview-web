@@ -55,6 +55,7 @@ export default function AppInit() {
     // Set required constants for api call in view
     window.OR_API_URL = process.env.API_URL
     window.OR_API_V2_URL = process.env.API_V2_URL
+    window.OR_GUEST_API_URL = process.env.GUEST_API_URL
 
     window.typesetMathJax = () => {
       const runTypeset = () => {
