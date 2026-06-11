@@ -415,6 +415,14 @@ const EducationHistorySection = ({
                 domain: 'independent-researcher.org',
                 name: 'Independent',
               }
+            } else if (
+              p.position === 'Independent Researcher' &&
+              p.institution?.domain === 'independent-researcher.org'
+            ) {
+              recordCopy.institution = {
+                domain: '',
+                name: '',
+              }
             }
           }
           return recordCopy
