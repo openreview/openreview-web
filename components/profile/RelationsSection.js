@@ -1,12 +1,22 @@
-import { useEffect, useReducer, useState } from 'react'
+import {
+  CloseOutlined,
+  SafetyCertificateOutlined,
+  SearchOutlined,
+  WarningOutlined,
+} from '@ant-design/icons'
+import { Button, Input, Popconfirm, Space, Tooltip } from 'antd'
+import { uniq, uniqBy } from 'lodash'
 import { nanoid } from 'nanoid'
 import dynamic from 'next/dynamic'
-import { uniqBy } from 'lodash'
-import Icon from '../Icon'
+import { useEffect, useReducer, useState } from 'react'
 import useBreakpoint from '../../hooks/useBreakPoint'
-import { getStartEndYear } from '../../lib/utils'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { getStartEndYear, prettyId } from '../../lib/utils'
 import ProfileSearchWidget from '../EditorComponents/ProfileSearchWidget'
-import { EditButton, SearchButton } from '../IconButton'
+import Icon from '../Icon'
+
+import { colors } from '../../lib/legacy-bootstrap-styles'
 
 const CreatableDropdown = dynamic(
   () => import('../Dropdown').then((mod) => mod.CreatableDropdown),
@@ -28,7 +38,31 @@ const profileType = 'updateProfile'
 const customProfileType = 'updateCustomProfile'
 const addRelationType = 'addRelation'
 const removeRelationType = 'removeRelation'
+const vouchRelationType = 'vouchRelation'
+const mergeVouchTagsType = 'mergeVouchTags'
 // #endregion
+
+const vouchInvitationId = `${process.env.SUPER_USER}/Support/-/Vouch`
+
+const encodeVouchLabel = (relation) =>
+  JSON.stringify({
+    relation: relation.relation ?? '',
+    start: relation.start ?? null,
+    end: relation.end ?? null,
+  })
+
+const decodeVouchLabel = (label) => {
+  try {
+    const parsed = JSON.parse(label ?? '')
+    return {
+      relation: parsed.relation || 'Vouchee',
+      start: parsed.start ?? null,
+      end: parsed.end ?? null,
+    }
+  } catch {
+    return { relation: 'Vouchee', start: null, end: null }
+  }
+}
 
 const CustomProfileSearchForm = ({
   error,
@@ -40,55 +74,85 @@ const CustomProfileSearchForm = ({
   searchProfiles,
   setPageNumber,
 }) => (
-  <div className={`relation-name-container${error ? ' invalid-value' : ''}`}>
-    <input
-      type="text"
-      className={`search-input ${error ? styles.invalidValue : ''}`}
-      value={searchTerm ?? ''}
-      placeholder="Search relation by name or OpenReview profile ID"
-      onChange={(e) => {
-        setSearchTerm(e.target.value)
-        setProfileSearchResults(null)
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') {
-          e.preventDefault()
-          setShowCustomAuthorForm(false)
-          searchProfiles(searchTerm, 1)
-          setPageNumber(null)
-        }
-      }}
-      aria-label="Search relation by name or OpenReview profile ID"
-    />
-
-    <SearchButton
-      disableButton={!searchTerm?.trim()}
-      onClick={(e) => {
-        e.preventDefault()
-        setShowCustomAuthorForm(false)
-        searchProfiles(searchTerm, 1)
-        setPageNumber(null)
-      }}
-    />
+  <div>
+    <Space.Compact block>
+      <Input
+        style={error ? { borderColor: colors.orRed } : undefined}
+        placeholder="Search relation by name or OpenReview profile ID"
+        allowClear={{ clearIcon: <CloseOutlined /> }}
+        value={searchTerm ?? ''}
+        onChange={(e) => {
+          setSearchTerm(e.target.value)
+          setProfileSearchResults(null)
+        }}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault()
+            setShowCustomAuthorForm(false)
+            searchProfiles(searchTerm, 1)
+            setPageNumber(null)
+          }
+        }}
+      />
+      <Tooltip title="Search relation by name or OpenReview profile ID">
+        <Button
+          type="primary"
+          icon={<SearchOutlined />}
+          onClick={(e) => {
+            e.preventDefault()
+            setShowCustomAuthorForm(false)
+            searchProfiles(searchTerm, 1)
+            setPageNumber(null)
+          }}
+          disabled={!searchTerm?.trim()}
+        />
+      </Tooltip>
+    </Space.Compact>
   </div>
 )
 
-const RelationRow = ({
+export const RelationRow = ({
   relation,
   setRelation,
   profileRelation,
   relationOptions,
   relationReaderOptions,
   isMobile,
+  user,
+  showVouchButton,
 }) => {
   const relationPlaceholder = 'Choose or type a relation'
   const [relationClicked, setRelationClicked] = useState(false)
+  const [isVouching, setIsVouching] = useState(false)
+  const [vouchConfirmOpen, setVouchConfirmOpen] = useState(false)
+  const isVouched = relation.vouched
   const relationReadersOptionWithExistingRelation = uniqBy(
     relationReaderOptions.concat(
       (relation.readers ?? []).map((r) => ({ value: r, label: r }))
     ),
     (p) => p.value
   )
+  const relationInvalid = profileRelation?.find((q) => q.key === relation.key)?.valid === false
+
+  const invalidInputStyle = relationInvalid ? { borderColor: colors.orRed } : undefined
+
+  const handleVouch = async () => {
+    setIsVouching(true)
+    try {
+      await api.post('/tags', {
+        profile: relation.username,
+        signature: user.profile.id,
+        invitation: vouchInvitationId,
+        label: encodeVouchLabel(relation),
+      })
+      setRelation({ type: vouchRelationType, data: { key: relation.key } })
+      promptMessage(`You have vouched for ${relation.name}.`)
+    } catch (error) {
+      promptError(error.message)
+    } finally {
+      setIsVouching(false)
+    }
+  }
 
   const getReaderText = (selectedValues) => {
     if (!selectedValues || !selectedValues.length || selectedValues.includes('everyone'))
@@ -97,56 +161,99 @@ const RelationRow = ({
   }
 
   const renderRelationName = (relation) => {
-    if (relation.name) {
+    if (isVouched) {
+      return (
+        <div className="col-md-6 relation__value">
+          <Tooltip title="This relation has been vouched for and cannot be edited">
+            <Input value={`${relation.name} (${relation.username})`} disabled />
+          </Tooltip>
+        </div>
+      )
+    } else if (relation.name) {
       if (relation.username) {
-        // existing with id show profile search
+        // added using tilde id
         return (
           <div className="col-md-6 relation__value">
-            <div className="relation-name-container">
-              <a
-                href={`/profile?id=${relation.username}`}
-                target="_blank"
-                rel="nofollow noreferrer"
-              >
-                {relation.name}
-              </a>
-              <EditButton
-                onClick={() =>
+            <Space.Compact block>
+              <Input
+                style={invalidInputStyle}
+                value={`${relation.name} (${relation.username})`}
+                allowClear={{ clearIcon: <CloseOutlined /> }}
+                onClear={() =>
                   setRelation({
                     type: nameType,
                     data: { value: undefined, key: relation.key },
                   })
                 }
               />
-            </div>
+
+              {showVouchButton && (
+                <Popconfirm
+                  title={`You are about to vouch for ${relation.name}`}
+                  icon={<WarningOutlined style={{ color: '#8c1b13' }} />}
+                  styles={{
+                    container: {
+                      backgroundColor: colors.inputBackground,
+                      border: `1px solid ${colors.mediumDarkBlue}`,
+                      minWidth: 340,
+                    },
+                  }}
+                  description={
+                    <ul style={{ paddingLeft: 18, margin: '4px 0 0' }}>
+                      <li>Only vouch for people you personally know.</li>
+                      <li>
+                        This relation stays on your profile{' '}
+                        <strong>permanently, visible to everyone</strong>.
+                      </li>
+                      <li style={{ margin: '2px 0' }}>
+                        Vouching <strong>can&apos;t be undone or deleted</strong>.
+                      </li>
+                    </ul>
+                  }
+                  okText="Vouch"
+                  cancelText="Cancel"
+                  okButtonProps={{ size: 'middle' }}
+                  cancelButtonProps={{ size: 'middle' }}
+                  onConfirm={handleVouch}
+                  onOpenChange={setVouchConfirmOpen}
+                >
+                  <Tooltip
+                    title="Vouch to help verify this user's OpenReview account"
+                    open={vouchConfirmOpen ? false : undefined}
+                  >
+                    <Button
+                      style={invalidInputStyle}
+                      type="primary"
+                      icon={<SafetyCertificateOutlined />}
+                      loading={isVouching}
+                      aria-label="Vouch for this user"
+                    />
+                  </Tooltip>
+                </Popconfirm>
+              )}
+            </Space.Compact>
           </div>
         )
       }
-      // existing without id show name and email
+      // added using email or name only
       return (
         <>
           <div className="col-md-6 relation__value">
             {isMobile && <div className="small-heading col-md-3">Name</div>}
-            <div className="relation-name-container">
-              <div>
-                <span>{relation.name}</span>
-                {relation.email && <span>{` <${relation.email}>`}</span>}
-              </div>
-
-              <EditButton
-                onClick={() =>
-                  setRelation({
-                    type: nameType,
-                    data: { value: undefined, key: relation.key },
-                  })
-                }
-              />
-            </div>
+            <Input
+              value={`${relation.name}${relation.email ? ` <${relation.email}>` : ''}`}
+              allowClear={{ clearIcon: <CloseOutlined /> }}
+              onClear={() =>
+                setRelation({
+                  type: nameType,
+                  data: { value: undefined, key: relation.key },
+                })
+              }
+            />
           </div>
         </>
       )
     }
-    // empty relation show profile search
     return (
       <div className="col-md-6 relation__value">
         {isMobile && <div className="small-heading col-md-3">Name</div>}
@@ -188,7 +295,7 @@ const RelationRow = ({
     <div className="row">
       <div className="col-md-2 relation__value">
         {isMobile && <div className="small-heading col-md-2">Relation</div>}
-        {relationClicked ? (
+        {relationClicked && !isVouched ? (
           <CreatableDropdown
             autofocus
             clientOnly
@@ -220,14 +327,11 @@ const RelationRow = ({
             isInvalid={profileRelation?.find((q) => q.key === relation.key)?.valid === false}
           />
         ) : (
-          <input
-            className="form-control relation__placeholder"
+          <Input
             placeholder={relationPlaceholder}
             value={relation.relation}
+            disabled={isVouched}
             onClick={() => setRelationClicked(true)}
-            onFocus={() => setRelationClicked(true)}
-            onChange={() => {}}
-            aria-label="Relation"
           />
         )}
       </div>
@@ -236,14 +340,11 @@ const RelationRow = ({
 
       <div className="col-md-1 relation__value">
         {isMobile && <div className="small-heading col-md-1">Start</div>}
-        <input
-          className={`form-control ${
-            profileRelation?.find((q) => q.key === relation.key)?.valid === false
-              ? 'invalid-value'
-              : ''
-          }`}
+        <Input
+          style={invalidInputStyle}
           value={relation.start ?? ''}
-          placeholder="year"
+          placeholder={isVouched ? '' : 'year'}
+          disabled={isVouched}
           onChange={(e) =>
             setRelation({
               type: startType,
@@ -255,14 +356,11 @@ const RelationRow = ({
       </div>
       <div className="col-md-1 relation__value">
         {isMobile && <div className="small-heading col-md-1">End</div>}
-        <input
-          className={`form-control ${
-            profileRelation?.find((q) => q.key === relation.key)?.valid === false
-              ? 'invalid-value'
-              : ''
-          }`}
+        <Input
+          style={invalidInputStyle}
           value={relation.end ?? ''}
-          placeholder="year"
+          placeholder={isVouched ? '' : 'year'}
+          disabled={isVouched}
           onChange={(e) =>
             setRelation({ type: endType, data: { value: e.target.value, key: relation.key } })
           }
@@ -271,29 +369,35 @@ const RelationRow = ({
       </div>
       <div className="col-md-1 relation__value additional-width-col">
         {isMobile && <div className="small-heading col-md-1">Visible to</div>}
-        <MultiSelectorDropdown
-          extraClass={`relation__multiple-select${
-            isMobile ? ' relation__multiple-select-mobile' : ''
-          }`}
-          options={relationReadersOptionWithExistingRelation}
-          selectedValues={relation.readers ?? []}
-          setSelectedValues={(values) =>
-            setRelation({ type: readersType, data: { value: values, key: relation.key } })
-          }
-          displayTextFn={getReaderText}
-        />
+        {isVouched ? (
+          <Input value={getReaderText(relation.readers)} disabled />
+        ) : (
+          <MultiSelectorDropdown
+            extraClass={`relation__multiple-select${
+              isMobile ? ' relation__multiple-select-mobile' : ''
+            }`}
+            options={relationReadersOptionWithExistingRelation}
+            selectedValues={relation.readers ?? []}
+            setSelectedValues={(values) =>
+              setRelation({ type: readersType, data: { value: values, key: relation.key } })
+            }
+            displayTextFn={getReaderText}
+          />
+        )}
       </div>
       <div className="col-md-1 relation__value fixed-width-col">
-        <div
-          role="button"
-          aria-label="remove relation"
-          tabIndex={0}
-          onClick={() =>
-            setRelation({ type: removeRelationType, data: { key: relation.key } })
-          }
-        >
-          <Icon name="minus-sign" tooltip="remove relation" />
-        </div>
+        {!isVouched && (
+          <div
+            role="button"
+            aria-label="remove relation"
+            tabIndex={0}
+            onClick={() =>
+              setRelation({ type: removeRelationType, data: { key: relation.key } })
+            }
+          >
+            <Icon name="minus-sign" tooltip="remove relation" />
+          </div>
+        )}
       </div>
     </div>
   )
@@ -301,13 +405,16 @@ const RelationRow = ({
 
 const RelationsSection = ({
   profileRelation,
+  savedRelations,
   prefixedRelations,
   relationReaders,
   updateRelations,
 }) => {
   const isMobile = !useBreakpoint('lg')
+  const { user } = useUser()
   const relationOptions = prefixedRelations?.map((p) => ({ value: p, label: p })) ?? []
   const relationReaderOptions = relationReaders?.map((p) => ({ value: p, label: p })) ?? []
+  const [relationProfileStates, setRelationProfileStates] = useState({})
 
   const relationReducer = (state, action) => {
     switch (action.type) {
@@ -398,6 +505,46 @@ const RelationsSection = ({
                 readers: ['everyone'],
               },
             ]
+      case vouchRelationType:
+        return state.map((p) =>
+          p.key === action.data.key ? { ...p, vouched: true, readers: ['everyone'] } : p
+        )
+      case mergeVouchTagsType: {
+        const vouchedRelations = action.data ?? []
+
+        const updatedRelationsWithVouchInfo = state.map((p) => {
+          const vouch = p.username && vouchedRelations.find((v) => v.username === p.username)
+          return vouch
+            ? {
+                ...p,
+                relation: vouch.relation ?? '',
+                start: vouch.start ?? null,
+                end: vouch.end ?? null,
+                readers: ['everyone'],
+                vouched: true,
+              }
+            : p
+        })
+
+        const existingUsernames = new Set(
+          updatedRelationsWithVouchInfo.map((p) => p.username).filter(Boolean)
+        )
+        const reconstructed = vouchedRelations
+          .filter((v) => !existingUsernames.has(v.username))
+          .map((v) => ({
+            key: nanoid(),
+            relation: v.relation ?? '',
+            name: v.name ?? prettyId(v.username),
+            email: undefined,
+            username: v.username,
+            start: v.start ?? null,
+            end: v.end ?? null,
+            readers: ['everyone'],
+            vouched: true,
+            reconstructed: true,
+          }))
+        return [...updatedRelationsWithVouchInfo, ...reconstructed]
+      }
       default:
         return state
     }
@@ -423,9 +570,62 @@ const RelationsSection = ({
         }))
   )
 
+  const savedPublicUsernamesKey = uniq(
+    (savedRelations ?? [])
+      .filter((relation) => relation.username && relation.readers?.includes('everyone'))
+      .map((relation) => relation.username)
+  ).join(',')
+
+  const loadVouchCandidateProfiles = async (usernames) => {
+    try {
+      const { profiles } = await api.getAllProfilesByIds(usernames)
+      setRelationProfileStates(
+        Object.fromEntries(
+          profiles.map((candidateProfile) => [candidateProfile.id, candidateProfile.state])
+        )
+      )
+    } catch {}
+  }
+
+  const loadVouchTags = async () => {
+    try {
+      const { tags } = await api.get('/tags', {
+        invitation: vouchInvitationId,
+        signature: user.profile.id,
+      })
+      const vouchTags = (tags ?? []).filter((tag) => tag.profile)
+      if (!vouchTags.length) return
+      const vouchedRelations = vouchTags.map((tag) => {
+        const decoded = decodeVouchLabel(tag.label)
+        return {
+          username: tag.profile,
+          name: prettyId(tag.profile),
+          relation: decoded.relation,
+          start: decoded.start,
+          end: decoded.end,
+        }
+      })
+      setRelation({ type: mergeVouchTagsType, data: vouchedRelations })
+    } catch {}
+  }
+
   useEffect(() => {
-    updateRelations(relations)
+    updateRelations(relations.filter((relation) => !relation.reconstructed))
   }, [relations])
+
+  useEffect(() => {
+    const usernames = savedPublicUsernamesKey ? savedPublicUsernamesKey.split(',') : []
+    if (!usernames.length) {
+      setRelationProfileStates({})
+      return
+    }
+    loadVouchCandidateProfiles(usernames)
+  }, [savedPublicUsernamesKey])
+
+  useEffect(() => {
+    if (!user?.profile?.id) return
+    loadVouchTags()
+  }, [user])
 
   return (
     <div className="container relation relation-new">
@@ -438,17 +638,28 @@ const RelationsSection = ({
           <div className="small-heading col-md-1">Visible to</div>
         </div>
       )}
-      {relations.map((relation) => (
-        <RelationRow
-          key={relation.key}
-          relation={relation}
-          setRelation={setRelation}
-          profileRelation={profileRelation}
-          relationOptions={relationOptions}
-          relationReaderOptions={relationReaderOptions}
-          isMobile={isMobile}
-        />
-      ))}
+      {relations.map((relation) => {
+        const isRejected = relationProfileStates?.[relation.username] === 'Rejected'
+        const isSavedPublicRelation =
+          relation.username &&
+          savedRelations?.find(
+            (p) => p.username === relation.username && p.readers?.includes('everyone')
+          )
+
+        return (
+          <RelationRow
+            key={relation.key}
+            relation={relation}
+            setRelation={setRelation}
+            profileRelation={profileRelation}
+            relationOptions={relationOptions}
+            relationReaderOptions={relationReaderOptions}
+            isMobile={isMobile}
+            user={user}
+            showVouchButton={isRejected && isSavedPublicRelation}
+          />
+        )
+      })}
       <div className="row">
         <div
           role="button"
