@@ -1,6 +1,6 @@
 import { screen, render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { RelationRow } from '../components/profile/RelationsSection'
+import RelationsSection, { RelationRow } from '../components/profile/RelationsSection'
 import api from '../lib/api-client'
 import '@testing-library/jest-dom'
 
@@ -27,6 +27,9 @@ if (!window.matchMedia) {
 global.promptMessage = jest.fn()
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+jest.mock('../hooks/useUser', () => () => ({
+  user: { profile: { id: '~The_Voucher1' } },
+}))
 jest.mock('../components/EditorComponents/ProfileSearchWidget', () => () => {
   return <span>ProfileSearchWidget</span>
 })
@@ -152,6 +155,79 @@ describe('RelationRow', () => {
         data: { key: 'test' },
       })
       expect(global.promptMessage).toHaveBeenCalledWith('You have vouched for Test User.')
+    })
+  })
+})
+
+describe('RelationsSection', () => {
+  test('default relation to Vouchee when vouch tag label is missing', async () => {
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        tags: [{ profile: '~Vouched_User1', label: undefined }], // existing relation with no label
+      })
+    )
+
+    render(
+      <RelationsSection
+        profileRelation={[]}
+        savedRelations={[]}
+        prefixedRelations={[]}
+        relationReaders={['everyone']}
+        updateRelations={jest.fn()}
+      />
+    )
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Vouchee')).toBeDisabled()
+      expect(screen.getByDisplayValue('Vouched User (~Vouched_User1)')).toBeDisabled()
+    })
+  })
+
+  test('decode label and lock matching relation when vouch tag is added through vouch action', async () => {
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        tags: [
+          {
+            profile: '~Test_User1',
+            label: JSON.stringify({
+              relation: 'Some relation at vouch time',
+              start: 1999,
+              end: 2000,
+            }), // tag added by vouch has relation start and end
+          },
+        ],
+      })
+    )
+
+    render(
+      <RelationsSection
+        profileRelation={[
+          {
+            relation: 'Some modified relation after vouch is done',
+            name: 'Test User',
+            username: '~Test_User1',
+            start: null,
+            end: null,
+            readers: ['subset readers'],
+          },
+        ]}
+        savedRelations={[]}
+        prefixedRelations={[]}
+        relationReaders={['everyone']}
+        updateRelations={jest.fn()}
+      />
+    )
+
+    // saved relation is overwritten with vouch-time values and locked
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('Some relation at vouch time')).toBeDisabled()
+      expect(screen.getByDisplayValue('Test User (~Test_User1)')).toBeDisabled()
+      expect(screen.getByDisplayValue('1999')).toBeDisabled()
+      expect(screen.getByDisplayValue('2000')).toBeDisabled()
+      expect(screen.getByDisplayValue('everyone')).toBeDisabled()
+      expect(
+        screen.queryByDisplayValue('Some modified relation after vouch is done')
+      ).not.toBeInTheDocument()
     })
   })
 })

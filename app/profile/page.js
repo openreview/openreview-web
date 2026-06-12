@@ -131,7 +131,7 @@ export default async function page({ searchParams }) {
         return [
           tag.profile,
           {
-            relation: decoded.relation ?? '',
+            relation: decoded.relation || 'Vouchee',
             username: tag.profile,
             start: decoded.start ?? null,
             end: decoded.end ?? null,

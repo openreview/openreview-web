@@ -55,12 +55,12 @@ const decodeVouchLabel = (label) => {
   try {
     const parsed = JSON.parse(label ?? '')
     return {
-      relation: parsed.relation ?? '',
+      relation: parsed.relation || 'Vouchee',
       start: parsed.start ?? null,
       end: parsed.end ?? null,
     }
   } catch {
-    return { relation: '', start: null, end: null }
+    return { relation: 'Vouchee', start: null, end: null }
   }
 }
 
