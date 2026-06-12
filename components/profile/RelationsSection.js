@@ -164,7 +164,7 @@ export const RelationRow = ({
     if (isVouched) {
       return (
         <div className="col-md-6 relation__value">
-          <Tooltip title="This relation is vouched and can't be edited">
+          <Tooltip title="This relation has been vouched for and cannot be edited">
             <Input value={`${relation.name} (${relation.username})`} disabled />
           </Tooltip>
         </div>
