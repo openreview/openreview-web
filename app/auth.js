@@ -28,11 +28,14 @@ export function getTokenPayload(token) {
 export default async function serverAuth() {
   const cookie = await cookies()
   const token = cookie.get(process.env.ACCESS_TOKEN_NAME)
+  // Guest scraping mitigation: forward the challenge-clearance cookie on SSR
+  // fetches even for guests, so the API gate can verify cleared requests.
+  const clearanceToken = cookie.get(process.env.CLEARANCE_COOKIE_NAME || 'openreview.clearanceToken')?.value
 
   const payload = getTokenPayload(token?.value)
   if (!payload || !payload.user?.profile?.id) {
-    return {}
+    return { clearanceToken }
   }
 
-  return { token: token.value, user: payload.user }
+  return { token: token.value, user: payload.user, clearanceToken }
 }
