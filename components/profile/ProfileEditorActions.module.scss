@@ -1,0 +1,13 @@
+@use '../../styles/utils/constants';
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-top: 2.5rem;
+  padding: 1rem 0;
+  background: constants.$backgroundWhite;
+  border-top: 1px solid constants.$borderGray;
+}
