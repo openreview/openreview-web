@@ -1,4 +1,5 @@
 import { Button } from 'antd'
+import LoadingIcon from '../LoadingIcon'
 
 import styles from './ProfileEditorActions.module.scss'
 
@@ -20,7 +21,12 @@ export default function ProfileEditorActions({
         </Button>
       ) : (
         <>
-          <Button type="primary" loading={loading} onClick={onSubmit}>
+          <Button
+            type="primary"
+            iconPlacement="end"
+            loading={loading ? { icon: <LoadingIcon /> } : false}
+            onClick={onSubmit}
+          >
             {submitLabel}
           </Button>
           {showCancel && <Button onClick={onCancel}>{cancelLabel}</Button>}
