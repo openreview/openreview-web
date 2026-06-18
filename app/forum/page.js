@@ -255,9 +255,8 @@ export default async function page({ searchParams }) {
     errorMessage,
   } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress, clearanceToken)
   if (challengeRequired) {
-    const apiBase = process.env.API_V2_URL || ''
-    // Pass the user-facing forum path; the API resolves it against frontendUrl.
-    redirect(`${apiBase}/challenge?redirect=${encodeURIComponent(`/forum?${stringify(query)}`)}`)
+    // Frontend-served challenge page (same origin); return to this forum page after solving.
+    redirect(`/challenge?redirect=${encodeURIComponent(`/forum?${stringify(query)}`)}`)
   }
   if (errorMessage) return <ErrorDisplay message={errorMessage} />
   if (pathToRedirectTo) redirect(pathToRedirectTo)
