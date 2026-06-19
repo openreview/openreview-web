@@ -59,6 +59,9 @@ const TEMPLATE = `<!DOCTYPE html>
     .card h2 { font-size: 15px; font-weight: 400; color: #777; margin-bottom: 24px; }
     .widget { display: flex; justify-content: center; min-height: 65px; margin-bottom: 16px; }
     .status { font-size: 14px; color: #555; line-height: 1.5; }
+    .login-hint { font-size: 13px; color: #777; margin-top: 14px; }
+    .login-hint a { color: #4d8093; text-decoration: none; }
+    .login-hint a:hover { color: #3f6978; text-decoration: underline; }
     .status.error { color: #8c1b13; }
     .status.success { color: #388e3c; }
     .footer { text-align: center; padding: 16px 15px; font-size: 12px; color: #999; border-top: 1px solid #eee; }
@@ -74,6 +77,7 @@ const TEMPLATE = `<!DOCTYPE html>
       <h2>Complete the check below to continue to OpenReview</h2>
       <div class="widget"><div class="cf-turnstile" data-sitekey="{{SITE_KEY}}" data-callback="onSolve" data-error-callback="onError"></div></div>
       <p id="status" class="status">Please complete the verification above.</p>
+      <p class="login-hint">Have an OpenReview account? <a href="{{LOGIN_URL}}">Sign in</a> to skip this check.</p>
     </div>
   </div>
   <footer class="footer"><a href="/">OpenReview</a> &mdash; Open Peer Review. Open Publishing. Open Access.</footer>
@@ -83,8 +87,23 @@ const TEMPLATE = `<!DOCTYPE html>
       var statusEl = document.getElementById('status');
       var apiBase = {{API_BASE}};
       var redirectTarget = {{REDIRECT}};
+      var errorRetries = 0;
       function showError(msg) { statusEl.className = 'status error'; statusEl.textContent = msg; }
-      window.onError = function () { showError('Verification failed to load. Please refresh the page and try again.'); };
+      function resetWidget() {
+        if (window.turnstile && typeof window.turnstile.reset === 'function') { window.turnstile.reset(); return true; }
+        return false;
+      }
+      // Turnstile load/handshake failures are usually transient (network blip or
+      // an iframe init race) — reset and retry a couple of times before giving up.
+      window.onError = function () {
+        if (errorRetries < 2 && resetWidget()) {
+          errorRetries += 1;
+          statusEl.className = 'status';
+          statusEl.textContent = 'Verification hiccup, retrying...';
+          return;
+        }
+        showError('Verification failed to load. Please refresh the page and try again.');
+      };
       window.onSolve = function (token) {
         statusEl.className = 'status';
         statusEl.textContent = 'Verifying...';
@@ -99,7 +118,7 @@ const TEMPLATE = `<!DOCTYPE html>
             showError('Verification failed. Please try again.');
             // The solved token is single-use and now spent; reset the widget so
             // the user gets a fresh token to retry (handles transient failures).
-            if (window.turnstile && typeof window.turnstile.reset === 'function') { window.turnstile.reset(); }
+            resetWidget();
           });
       };
     })();
@@ -111,12 +130,16 @@ export async function GET(request) {
   const url = new URL(request.url)
   const redirect = safeRedirect(url.searchParams.get('redirect'), url.origin)
   const siteKey = process.env.TURNSTILE_SITEKEY || ''
+  // Registered users bypass the gate, so offer a sign-in link that returns them
+  // to where they were headed. (redirect is already origin-sanitized above.)
+  const loginUrl = `/login?redirect=${encodeURIComponent(redirect)}`
 
   // Substitute via replacement functions so "$" in values isn't interpreted by
   // String.replace, and JSON-encode the JS values to prevent script breakout.
   const html = TEMPLATE.replace(/\{\{SITE_KEY\}\}/g, () => siteKey)
     .replace(/\{\{API_BASE\}\}/g, () => JSON.stringify(apiBase))
     .replace(/\{\{REDIRECT\}\}/g, () => JSON.stringify(redirect).replace(/</g, '\\u003c'))
+    .replace(/\{\{LOGIN_URL\}\}/g, () => loginUrl)
 
   return new Response(html, {
     headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': CSP },
