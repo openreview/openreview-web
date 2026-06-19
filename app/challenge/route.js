@@ -95,7 +95,12 @@ const TEMPLATE = `<!DOCTYPE html>
             statusEl.textContent = 'Verified. Redirecting...';
             window.location = redirectTarget;
           })
-          .catch(function () { showError('Verification failed. Please try again.'); });
+          .catch(function () {
+            showError('Verification failed. Please try again.');
+            // The solved token is single-use and now spent; reset the widget so
+            // the user gets a fresh token to retry (handles transient failures).
+            if (window.turnstile && typeof window.turnstile.reset === 'function') { window.turnstile.reset(); }
+          });
       };
     })();
   </script>
