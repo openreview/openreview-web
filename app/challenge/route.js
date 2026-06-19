@@ -88,6 +88,7 @@ const TEMPLATE = `<!DOCTYPE html>
       var apiBase = {{API_BASE}};
       var redirectTarget = {{REDIRECT}};
       var errorRetries = 0;
+      var verifyRetries = 0;
       function showError(msg) { statusEl.className = 'status error'; statusEl.textContent = msg; }
       function resetWidget() {
         if (window.turnstile && typeof window.turnstile.reset === 'function') { window.turnstile.reset(); return true; }
@@ -115,10 +116,15 @@ const TEMPLATE = `<!DOCTYPE html>
             window.location = redirectTarget;
           })
           .catch(function () {
-            showError('Verification failed. Please try again.');
-            // The solved token is single-use and now spent; reset the widget so
-            // the user gets a fresh token to retry (handles transient failures).
-            resetWidget();
+            // The solved token is single-use and now spent. Reset for a fresh
+            // token on a transient failure, but cap retries so a persistent
+            // failure (e.g. a 401) doesn't loop forever.
+            if (verifyRetries < 2 && resetWidget()) {
+              verifyRetries += 1;
+              showError('Verification failed, retrying...');
+            } else {
+              showError('Verification failed. Please refresh the page or sign in.');
+            }
           });
       };
     })();
