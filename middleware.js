@@ -15,6 +15,17 @@ export async function middleware(request) {
 
   const decodedRefreshToken = getTokenPayload(refreshToken.value)
 
+  // TEMP DEBUG — remove after diagnosing staging refresh issue
+  // oxlint-disable-next-line no-console
+  console.log('refresh debug OUT', {
+    envName: process.env.REFRESH_TOKEN_NAME,
+    cookieName: refreshToken?.name,
+    valueLen: refreshToken?.value?.length,
+    valuePreview: refreshToken?.value?.slice(0, 12),
+    apiV2Url: process.env.API_V2_URL,
+    allCookies: request.cookies.getAll().map((c) => `${c.name}(${c.value?.length})`),
+  })
+
   try {
     const tokenRefreshResponse = await fetch(`${process.env.API_V2_URL}/refreshToken`, {
       method: 'POST',
@@ -30,6 +41,13 @@ export async function middleware(request) {
     })
 
     const data = await tokenRefreshResponse.json()
+    // TEMP DEBUG — remove after diagnosing staging refresh issue
+    // oxlint-disable-next-line no-console
+    console.log('refresh debug IN', {
+      status: tokenRefreshResponse.status,
+      hasToken: !!data.token,
+      data,
+    })
     if (!data.token) {
       // oxlint-disable-next-line no-console
       console.error('middleware.js refresh token failed', data)
@@ -45,6 +63,9 @@ export async function middleware(request) {
     newResponse.headers.set('Set-Cookie', tokenRefreshResponse.headers.get('set-cookie'))
     return newResponse
   } catch (error) {
+    // TEMP DEBUG — remove after diagnosing staging refresh issue
+    // oxlint-disable-next-line no-console
+    console.error('refresh debug CATCH', error)
     return response
   }
 }
