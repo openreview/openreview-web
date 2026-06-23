@@ -120,6 +120,7 @@ export const RelationRow = ({
   isMobile,
   user,
   showVouchButton,
+  vouchLimit,
 }) => {
   const relationPlaceholder = 'Choose or type a relation'
   const [relationClicked, setRelationClicked] = useState(false)
@@ -201,11 +202,17 @@ export const RelationRow = ({
                   description={
                     <ul style={{ paddingLeft: 18, margin: '4px 0 0' }}>
                       <li>Only vouch for people you personally know.</li>
+                      {vouchLimit && (
+                        <li>
+                          You can vouch for at most <strong>{vouchLimit}</strong> people in
+                          total.
+                        </li>
+                      )}
                       <li>
                         This relation stays on your profile{' '}
                         <strong>permanently, visible to everyone</strong>.
                       </li>
-                      <li style={{ margin: '2px 0' }}>
+                      <li>
                         Vouching <strong>can&apos;t be undone or deleted</strong>.
                       </li>
                     </ul>
@@ -415,6 +422,7 @@ const RelationsSection = ({
   const relationOptions = prefixedRelations?.map((p) => ({ value: p, label: p })) ?? []
   const relationReaderOptions = relationReaders?.map((p) => ({ value: p, label: p })) ?? []
   const [relationProfileStates, setRelationProfileStates] = useState({})
+  const [lifetimeVouchLimit, setLifetimeVouchLimit] = useState(null)
 
   const relationReducer = (state, action) => {
     switch (action.type) {
@@ -609,6 +617,13 @@ const RelationsSection = ({
     } catch {}
   }
 
+  const loadVouchInvitation = async () => {
+    try {
+      const vouchInvitation = await api.getInvitationById(vouchInvitationId)
+      setLifetimeVouchLimit(vouchInvitation.content?.lifetimeLimit?.value)
+    } catch {}
+  }
+
   useEffect(() => {
     updateRelations(relations.filter((relation) => !relation.reconstructed))
   }, [relations])
@@ -620,6 +635,7 @@ const RelationsSection = ({
       return
     }
     loadVouchCandidateProfiles(usernames)
+    loadVouchInvitation()
   }, [savedPublicUsernamesKey])
 
   useEffect(() => {
@@ -657,6 +673,7 @@ const RelationsSection = ({
             isMobile={isMobile}
             user={user}
             showVouchButton={isRejected && isSavedPublicRelation}
+            vouchLimit={lifetimeVouchLimit}
           />
         )
       })}
