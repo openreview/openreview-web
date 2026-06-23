@@ -1,14 +1,13 @@
 'use client'
 
-/* globals promptError,$ */
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import api from '../../lib/api-client'
+import { useState, useEffect } from 'react'
 import BasicModal from '../../components/BasicModal'
-import { isInstitutionEmail, isValidEmail, isValidPassword } from '../../lib/utils'
 import Icon from '../../components/Icon'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
+import api from '../../lib/api-client'
+import { isInstitutionEmail, isValidEmail, isValidPassword } from '../../lib/utils'
 
 const SignupForm = ({ setSignupConfirmation }) => {
   const [fullName, setFullName] = useState('')
@@ -120,9 +119,9 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
       Please note: Your email address could not be automatically verified.
       <br />
       Accounts that cannot be automatically verified may take up to 2 weeks to be activated. To
-      expedite the process, we recommend using an email address from a recognized institution,
-      or completing your profile information as thoroughly as possible to help us verify your
-      affiliation.
+      expedite the process, we recommend using an email address from a recognized company or
+      institution (for example, your employer, university, or research lab), or completing your
+      profile information as thoroughly as possible to help us verify your affiliation.
     </span>
   )
 
