@@ -28,8 +28,6 @@ export function getTokenPayload(token) {
 export default async function serverAuth() {
   const cookie = await cookies()
   const token = cookie.get(process.env.ACCESS_TOKEN_NAME)
-  // Guest scraping mitigation: forward the challenge-clearance cookie on SSR
-  // fetches even for guests, so the API gate can verify cleared requests.
   const clearanceToken = cookie.get(process.env.CLEARANCE_COOKIE_NAME || 'openreview.clearanceToken')?.value
 
   const payload = getTokenPayload(token?.value)
@@ -38,6 +36,6 @@ export default async function serverAuth() {
     return { clearanceToken }
   }
 
-  // Logged-in users bypass the challenge gate, so they never need clearance.
+  // Logged-in users bypass the gate, so they never need clearance.
   return { token: token.value, user: payload.user }
 }

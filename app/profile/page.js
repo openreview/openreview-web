@@ -59,8 +59,7 @@ export default async function page({ searchParams }) {
       clearanceToken,
     })
   } catch (error) {
-    // Guest scraping mitigation: send guests to the challenge page instead of
-    // silently rendering "not found" when the API gate requires verification.
+    // Send guests to the challenge page rather than silently rendering "not found".
     if (error.name === 'ChallengeRequiredError') {
       redirect(`/challenge?redirect=${encodeURIComponent(`/profile?${stringify(query)}`)}`)
     }

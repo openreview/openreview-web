@@ -33,7 +33,7 @@ function safeRedirect(raw, frontendOrigin) {
     if (url.origin === frontendOrigin) return url.pathname + url.search + url.hash
     if (apiOrigin && url.origin === apiOrigin) return url.href
   } catch (_) {
-    // fall through
+    // not a valid URL
   }
   return '/'
 }
@@ -94,8 +94,6 @@ const TEMPLATE = `<!DOCTYPE html>
         if (window.turnstile && typeof window.turnstile.reset === 'function') { window.turnstile.reset(); return true; }
         return false;
       }
-      // Turnstile load/handshake failures are usually transient (network blip or
-      // an iframe init race) — reset and retry a couple of times before giving up.
       window.onError = function () {
         if (errorRetries < 2 && resetWidget()) {
           errorRetries += 1;
@@ -116,9 +114,7 @@ const TEMPLATE = `<!DOCTYPE html>
             window.location = redirectTarget;
           })
           .catch(function () {
-            // The solved token is single-use and now spent. Reset for a fresh
-            // token on a transient failure, but cap retries so a persistent
-            // failure (e.g. a 401) doesn't loop forever.
+            // The solved token is single-use; reset for a fresh one, capping retries.
             if (verifyRetries < 2 && resetWidget()) {
               verifyRetries += 1;
               showError('Verification failed, retrying...');
@@ -136,12 +132,10 @@ export async function GET(request) {
   const url = new URL(request.url)
   const redirect = safeRedirect(url.searchParams.get('redirect'), url.origin)
   const siteKey = process.env.TURNSTILE_SITEKEY || ''
-  // Registered users bypass the gate, so offer a sign-in link that returns them
-  // to where they were headed. (redirect is already origin-sanitized above.)
   const loginUrl = `/login?redirect=${encodeURIComponent(redirect)}`
 
-  // Substitute via replacement functions so "$" in values isn't interpreted by
-  // String.replace, and JSON-encode the JS values to prevent script breakout.
+  // JSON-encode the injected values to prevent script breakout (XSS); the
+  // replacement functions keep "$" sequences in the values from being special.
   const html = TEMPLATE.replace(/\{\{SITE_KEY\}\}/g, () => siteKey)
     .replace(/\{\{API_BASE\}\}/g, () => JSON.stringify(apiBase))
     .replace(/\{\{REDIRECT\}\}/g, () => JSON.stringify(redirect).replace(/</g, '\\u003c'))
@@ -151,8 +145,7 @@ export async function GET(request) {
     headers: {
       'Content-Type': 'text/html; charset=utf-8',
       'Content-Security-Policy': CSP,
-      // This is a transient verification interstitial (with unbounded
-      // ?redirect= variants) — keep it out of search engine indexes.
+      // Keep this transient interstitial (and its ?redirect= variants) out of search indexes.
       'X-Robots-Tag': 'noindex, nofollow',
     },
   })

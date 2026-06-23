@@ -91,8 +91,7 @@ const getForumNote = async (
     }
     return { forumNote: note, version: 1 }
   } catch (error) {
-    // Guest scraping mitigation: signal that this guest must solve the challenge.
-    // The caller builds the redirect from the real page URL.
+    // Signal that this guest must solve the challenge; the caller builds the redirect.
     if (error.name === 'ChallengeRequiredError') {
       return { challengeRequired: true }
     }
@@ -255,7 +254,6 @@ export default async function page({ searchParams }) {
     errorMessage,
   } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress, clearanceToken)
   if (challengeRequired) {
-    // Frontend-served challenge page (same origin); return to this forum page after solving.
     redirect(`/challenge?redirect=${encodeURIComponent(`/forum?${stringify(query)}`)}`)
   }
   if (errorMessage) return <ErrorDisplay message={errorMessage} />
