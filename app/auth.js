@@ -34,8 +34,10 @@ export default async function serverAuth() {
 
   const payload = getTokenPayload(token?.value)
   if (!payload || !payload.user?.profile?.id) {
+    // Guests forward the clearance token so the API gate can verify them.
     return { clearanceToken }
   }
 
-  return { token: token.value, user: payload.user, clearanceToken }
+  // Logged-in users bypass the challenge gate, so they never need clearance.
+  return { token: token.value, user: payload.user }
 }

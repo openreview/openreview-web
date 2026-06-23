@@ -24,7 +24,7 @@ export async function generateMetadata({ searchParams }) {
 }
 
 export default async function page({ searchParams }) {
-  const { user, token } = await serverAuth()
+  const { user, token, clearanceToken } = await serverAuth()
   const query = await searchParams
   const { id, email } = query
 
@@ -56,8 +56,14 @@ export default async function page({ searchParams }) {
     profileResult = await api.get('/profiles', profileQuery, {
       accessToken: token,
       remoteIpAddress,
+      clearanceToken,
     })
   } catch (error) {
+    // Guest scraping mitigation: send guests to the challenge page instead of
+    // silently rendering "not found" when the API gate requires verification.
+    if (error.name === 'ChallengeRequiredError') {
+      redirect(`/challenge?redirect=${encodeURIComponent(`/profile?${stringify(query)}`)}`)
+    }
     return <ErrorDisplay message="Profile not found" />
   }
   const profile = profileResult?.profiles?.[0]

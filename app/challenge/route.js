@@ -148,6 +148,12 @@ export async function GET(request) {
     .replace(/\{\{LOGIN_URL\}\}/g, () => loginUrl)
 
   return new Response(html, {
-    headers: { 'Content-Type': 'text/html; charset=utf-8', 'Content-Security-Policy': CSP },
+    headers: {
+      'Content-Type': 'text/html; charset=utf-8',
+      'Content-Security-Policy': CSP,
+      // This is a transient verification interstitial (with unbounded
+      // ?redirect= variants) — keep it out of search engine indexes.
+      'X-Robots-Tag': 'noindex, nofollow',
+    },
   })
 }
