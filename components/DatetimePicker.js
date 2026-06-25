@@ -1,9 +1,9 @@
 import dayjs from 'dayjs'
-import Picker from 'rc-picker'
-import { useState } from 'react'
-import locale from 'rc-picker/lib/locale/en_US'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
+import Picker from 'rc-picker'
+import locale from 'rc-picker/lib/locale/en_US'
+import { useState } from 'react'
 import dayjsGenerator from '../lib/dayjsGenerator'
 import { getDefaultTimezone } from '../lib/utils'
 
@@ -41,7 +41,7 @@ const DatetimePicker = ({
       return
     }
     if (showTime === false) {
-      onChange(date.tz('UTC').startOf('date').toISOString())
+      onChange(date.tz('UTC', true).startOf('date').toISOString())
     } else {
       onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
     }
