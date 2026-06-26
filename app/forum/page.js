@@ -52,7 +52,8 @@ const getForumNote = async (
   queryId,
   invitationId,
   query,
-  remoteIpAddress
+  remoteIpAddress,
+  clearanceToken
 ) => {
   let redirectPath = null
   try {
@@ -61,7 +62,8 @@ const getForumNote = async (
       token,
       { trash: true, details: 'writable,presentation' },
       { trash: true, details: 'original,replyCount,writable' },
-      remoteIpAddress
+      remoteIpAddress,
+      clearanceToken
     )
     if (note?.ddate && !note?.details?.writable) {
       throw new Error('Not Found')
@@ -89,6 +91,10 @@ const getForumNote = async (
     }
     return { forumNote: note, version: 1 }
   } catch (error) {
+    // Signal that this guest must solve the challenge; the caller builds the redirect.
+    if (error.name === 'ChallengeRequiredError') {
+      return { challengeRequired: true }
+    }
     if (error.name === 'ForbiddenError') {
       const redirectNote = await shouldRedirect(queryId, token, remoteIpAddress)
       if (redirectNote) {
@@ -123,16 +129,17 @@ export async function generateMetadata({ searchParams }) {
   const queryId = id || noteId
   if (!queryId || arxivid) return fallbackMetadata
 
-  const { token } = await serverAuth()
+  const { token, clearanceToken } = await serverAuth()
 
   try {
     const {
       forumNote,
       version,
       redirectPath: pathToRedirectTo,
+      challengeRequired,
       errorMessage,
-    } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress)
-    if (errorMessage) return fallbackMetadata
+    } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress, clearanceToken)
+    if (errorMessage || challengeRequired || !forumNote) return fallbackMetadata
     if (pathToRedirectTo) return {}
 
     // #region Metadata
@@ -237,14 +244,18 @@ export default async function page({ searchParams }) {
     return <ArxivForum id={arxivid} />
   }
 
-  const { token, user } = await serverAuth()
+  const { token, user, clearanceToken } = await serverAuth()
 
   const {
     forumNote,
     version,
     redirectPath: pathToRedirectTo,
+    challengeRequired,
     errorMessage,
-  } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress)
+  } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress, clearanceToken)
+  if (challengeRequired) {
+    redirect(`/challenge?redirect=${encodeURIComponent(`/forum?${stringify(query)}`)}`)
+  }
   if (errorMessage) return <ErrorDisplay message={errorMessage} />
   if (pathToRedirectTo) redirect(pathToRedirectTo)
 
