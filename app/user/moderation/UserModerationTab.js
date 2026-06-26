@@ -27,7 +27,13 @@ import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
-import { formatDateTime, getRejectionReasons, inflect, prettyId } from '../../../lib/utils'
+import {
+  formatDateTime,
+  getRejectionReasons,
+  inflect,
+  isValidDomain,
+  prettyId,
+} from '../../../lib/utils'
 
 import styles from './moderation.module.scss'
 import {
@@ -79,6 +85,7 @@ export const RejectionModal = ({
       onOk={() => {
         setRejectionMessage('')
         rejectUser(rejectionMessage, profileToReject.id)
+        setProfileToReject(null)
       }}
       width={{
         xs: '90%',
@@ -88,12 +95,14 @@ export const RejectionModal = ({
       <Flex vertical gap="small" align="flex-start">
         <Select
           allowClear
+          mode="multiple"
           style={{ width: '100%' }}
-          placeholder="Choose a common reject reason..."
+          placeholder="Choose rejection reason(s)..."
           options={rejectionReasons}
+          getPopupContainer={(triggerNode) => triggerNode.parentElement}
           onChange={(value) => {
-            const rejectOption = rejectionReasons.find((r) => r.value === value)
-            setRejectionMessage(rejectOption?.rejectionText || '')
+            const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+            setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
           }}
         />
         <Space wrap>
@@ -287,6 +296,7 @@ const UserModerationQueue = ({
   showSortButton = false,
 }) => {
   const [profiles, setProfiles] = useState(null)
+  const [isMultiTermSearch, setIsMultiTermSearch] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
   const [pageNumber, setPageNumber] = useState(1)
   const [filters, setFilters] = useState({})
@@ -311,28 +321,36 @@ const UserModerationQueue = ({
   ].map((p) => ({ label: p, value: p }))
   const twoWeeksAgo = dayjs().subtract(2, 'week').valueOf()
 
+  const buildSearchQuery = (token) => {
+    if (token.startsWith('~')) return { id: token }
+    if (token.includes('@')) return { email: token.toLowerCase() }
+    if (isValidDomain(token.toLowerCase())) return { affiliationDomain: token.toLowerCase() }
+    return { fullname: token.toLowerCase() }
+  }
+
+  const isStructuredToken = (token) =>
+    token.startsWith('~') || token.includes('@') || isValidDomain(token.toLowerCase())
+
   const getProfiles = async () => {
     const queryOptions = onlyModeration ? { needsModeration: true } : {}
     const cleanSearchTerm = filters.term?.trim()
     const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
     const sortKey = onlyModeration ? 'tmdate' : 'tcdate'
-    let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
-    if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
-    if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
+    const searchQuery = cleanSearchTerm ? buildSearchQuery(cleanSearchTerm) : {}
 
     try {
       const searchTokens = cleanSearchTerm ? cleanSearchTerm.split(/\s+/) : []
       if (
         profileStateOption === 'All' &&
         searchTokens.length > 1 &&
-        searchTokens.every((t) => t.startsWith('~') || t.includes('@'))
+        searchTokens.every(isStructuredToken)
       ) {
         const results = await Promise.all(
           searchTokens.map((token) =>
             api.get(
               '/profiles/search',
               {
-                ...(token.startsWith('~') ? { id: token } : { email: token.toLowerCase() }),
+                ...buildSearchQuery(token),
                 es: true,
                 withBlocked: true,
                 trash: true,
@@ -347,6 +365,7 @@ const UserModerationQueue = ({
         )
         setTotalCount(merged.length)
         setProfiles(merged)
+        setIsMultiTermSearch(true)
         return
       }
 
@@ -368,6 +387,7 @@ const UserModerationQueue = ({
       )
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
+      setIsMultiTermSearch(false)
     } catch (error) {
       promptError(error.message)
     }
@@ -381,7 +401,7 @@ const UserModerationQueue = ({
     setFilters({ term: cleanSearchTerm })
   }
 
-  const acceptUser = async (profileId) => {
+  const acceptUser = async (profileId, showSuccessMessage = true) => {
     try {
       setIdsLoading((p) => [...p, profileId])
       await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
@@ -389,7 +409,9 @@ const UserModerationQueue = ({
         setPageNumber((p) => p - 1)
       }
       reload()
-      promptMessage(`${prettyId(profileId)} is now active`)
+      if (showSuccessMessage) {
+        promptMessage(`${prettyId(profileId)} is now active`)
+      }
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileId))
@@ -518,9 +540,23 @@ const UserModerationQueue = ({
     }
   }
 
+  const showPreviousProfile = (currentProfileId) => {
+    const previousProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) - 1]
+    if (previousProfile) {
+      setProfileToPreview(
+        formatProfileData(cloneDeep(previousProfile), { includePastStates: true })
+      )
+    }
+  }
+
   useEffect(() => {
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
+
+  const profilesToDisplay =
+    isMultiTermSearch && profiles
+      ? profiles.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
+      : profiles
 
   return (
     <div style={{ marginBottom: '1.75rem' }}>
@@ -551,6 +587,7 @@ const UserModerationQueue = ({
           <Input
             type="text"
             className={styles.searchinput}
+            placeholder="Search by name, email, tilde id, or domain"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onPressEnter={filterProfiles}
@@ -578,7 +615,7 @@ const UserModerationQueue = ({
 
       {profiles ? (
         <Flex vertical gap="small" style={{ marginBottom: '1.5rem' }}>
-          {profiles.map((profile) => {
+          {profilesToDisplay.map((profile) => {
             const name = profile.content.names?.[0]
             const state =
               profile.ddate && profile.state !== 'Merged' ? 'Deleted' : profile.state
@@ -826,6 +863,7 @@ const UserModerationQueue = ({
           'tags',
         ]}
         showNextProfile={showNextProfile}
+        showPreviousProfile={showPreviousProfile}
         acceptUser={acceptUser}
         rejectUser={rejectUser}
       />

@@ -4,7 +4,8 @@ import VersionChecker from '../../components/VersionChecker'
 import api from '../../lib/api-client'
 import { formatGroupResults } from '../../lib/utils'
 import ActiveVenueConsole from './_ActiveVenueConsole'
-import AllVenuesWithSearch from './AllVenuesWithSearch'
+import AllVenues from './AllVenues'
+// import AllVenuesWithSearch from './AllVenuesWithSearch'
 import News from './News'
 import OpenVenues from './OpenVenues'
 
@@ -95,9 +96,12 @@ export default async function page() {
           <OpenVenues venues={openVenues} />
         </Col>
 
-        <Col xs={24} style={{ marginBottom: 150 }}>
-          <AllVenuesWithSearch activeVenues={activeVenues} openVenues={openVenues} />
+        <Col xs={24}>
+          <AllVenues />
         </Col>
+        {/* <Col xs={24} style={{ marginBottom: 150 }}>
+          <AllVenuesWithSearch activeVenues={activeVenues} openVenues={openVenues} />
+        </Col> */}
       </Row>
       <VersionChecker />
     </div>

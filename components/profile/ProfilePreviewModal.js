@@ -16,6 +16,7 @@ const ProfilePreviewModal = ({
   contentToShow,
   sortFn,
   showNextProfile,
+  showPreviousProfile,
   acceptUser,
   rejectUser,
 }) => {
@@ -117,6 +118,9 @@ const ProfilePreviewModal = ({
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         showNextProfile(profileToPreview.id)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        showPreviousProfile(profileToPreview.id)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -260,7 +264,7 @@ const ProfilePreviewModal = ({
                   type="primary"
                   onClick={() => {
                     showNextProfile(profileToPreview.id)
-                    acceptUser(profileToPreview.id)
+                    acceptUser(profileToPreview.id, false)
                   }}
                 >
                   Accept
@@ -289,13 +293,14 @@ const ProfilePreviewModal = ({
             <Flex vertical gap="small" align="flex-start">
               <Select
                 allowClear
+                mode="multiple"
                 style={{ width: '100%' }}
-                placeholder="Choose a common reject reason..."
+                placeholder="Choose rejection reason(s)..."
                 options={rejectionReasons}
                 getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 onChange={(value) => {
-                  const rejectOption = rejectionReasons.find((r) => r.value === value)
-                  setRejectionMessage(rejectOption?.rejectionText || '')
+                  const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+                  setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
                 }}
               />
               <Space wrap>
