@@ -1,6 +1,3 @@
-/* globals promptError, $: false */
-
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import {
   DndContext,
   PointerSensor,
@@ -9,18 +6,21 @@ import {
   useSensor,
   useSensors,
 } from '@dnd-kit/core'
-import { throttle, maxBy } from 'lodash'
 import { arrayMove, SortableContext, useSortable } from '@dnd-kit/sortable'
+import { throttle, maxBy } from 'lodash'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import useUser from '../../hooks/useUser'
-import EditorComponentContext from '../EditorComponentContext'
-import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 import api from '../../lib/api-client'
 import { getProfileName, inflect, isValidEmail } from '../../lib/utils'
+import EditorComponentContext from '../EditorComponentContext'
 import Icon from '../Icon'
 import IconButton from '../IconButton'
-import MultiSelectorDropdown from '../MultiSelectorDropdown'
 import LoadingSpinner from '../LoadingSpinner'
+import MultiSelectorDropdown from '../MultiSelectorDropdown'
 import PaginationLinks from '../PaginationLinks'
+import SpinnerButton from '../SpinnerButton'
+
+import styles from '../../styles/components/ProfileSearchWidget.module.scss'
 
 const mapDisplayAuthorsToEditorValue = (displayAuthors, hasInstitutionProperty) =>
   displayAuthors.map((p) => ({
@@ -143,17 +143,28 @@ const Author = ({
           </div>
         )}
         <div className={styles.authorName}>
-          <a
-            href={`/profile?id=${profile.username}`}
-            data-original-title={isDragging ? null : username}
-            data-toggle="tooltip"
-            data-placement="top"
-            target="_blank"
-            rel="noreferrer"
-            className={styles.authorNameLink}
-          >
-            {profile.fullname}
-          </a>
+          {username?.startsWith('~') ? (
+            <a
+              href={`/profile?id=${profile.username}`}
+              data-original-title={isDragging ? null : username}
+              data-toggle="tooltip"
+              data-placement="top"
+              target="_blank"
+              rel="noreferrer"
+              className={styles.authorNameLink}
+            >
+              {profile.fullname}
+            </a>
+          ) : (
+            <span
+              className={styles.authorNameLink}
+              data-original-title={isDragging ? null : username}
+              data-toggle="tooltip"
+              data-placement="top"
+            >
+              {profile.fullname}
+            </span>
+          )}
         </div>
         <div className={styles.actionButtons}>
           {allowAddRemove && (
@@ -299,12 +310,14 @@ const ProfileSearchFormAndResults = ({
   onChange,
   clearError,
   hasInstitutionProperty,
+  allowEmailAuthor,
 }) => {
   const [searchTerm, setSearchTerm] = useState(null)
   const [isLoading, setIsLoading] = useState(false)
   const [pageNumber, setPageNumber] = useState(null)
   const [totalCount, setTotalCount] = useState(0)
   const [profileSearchResults, setProfileSearchResults] = useState(null)
+  const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
   const { accessToken } = useUser()
   const pageSize = 20
 
@@ -340,9 +353,8 @@ const ProfileSearchFormAndResults = ({
     if (showLoadingSpinner) setIsLoading(false)
   }
 
-  const displayResults = () => {
-    if (!profileSearchResults) return null
-    if (!profileSearchResults.length)
+  const displayCustomAuthorForm = (isEmptyResult) => {
+    if (!allowEmailAuthor && isEmptyResult)
       return (
         <div className={styles.noMatchingProfile}>
           <div className={styles.noMatchingProfileMessage}>
@@ -350,6 +362,43 @@ const ProfileSearchFormAndResults = ({
           </div>
         </div>
       )
+    if (!allowEmailAuthor) return null
+    return (
+      <div className={styles.noMatchingProfile}>
+        {showCustomAuthorForm ? (
+          <CustomAuthorForm
+            setTotalCount={setTotalCount}
+            setProfileSearchResults={setProfileSearchResults}
+            setSearchTerm={setSearchTerm}
+            displayAuthors={displayAuthors}
+            setDisplayAuthors={setDisplayAuthors}
+            fieldName={Object.keys(field ?? {})[0]}
+            onChange={onChange}
+            clearError={clearError}
+            hasInstitutionProperty={hasInstitutionProperty}
+          />
+        ) : (
+          <>
+            <div className={styles.noMatchingProfileMessage}>
+              {isEmptyResult
+                ? 'No results found for your search query.'
+                : 'Profile not found? Provide their information by clicking button below.'}
+            </div>
+            <button
+              className={`btn btn-xs ${styles.enterAuthorButton}`}
+              onClick={() => setShowCustomAuthorForm(true)}
+            >
+              Manually Enter Author Info
+            </button>
+          </>
+        )}
+      </div>
+    )
+  }
+
+  const displayResults = () => {
+    if (!profileSearchResults) return null
+    if (!profileSearchResults.length) return displayCustomAuthorForm(true)
 
     return (
       <div className={styles.searchResults}>
@@ -376,6 +425,8 @@ const ProfileSearchFormAndResults = ({
             options={{ noScroll: true, showCount: false }}
           />
         </>
+
+        {(pageNumber ?? 1) * pageSize >= totalCount && displayCustomAuthorForm(false)}
       </div>
     )
   }
@@ -397,6 +448,7 @@ const ProfileSearchFormAndResults = ({
         className={styles.searchForm}
         onSubmit={(e) => {
           e.preventDefault()
+          setShowCustomAuthorForm(false)
           searchProfiles(searchTerm, 1)
           setPageNumber(null)
         }}
@@ -425,6 +477,77 @@ const ProfileSearchFormAndResults = ({
   )
 }
 
+const CustomAuthorForm = ({
+  setTotalCount,
+  setProfileSearchResults,
+  setSearchTerm,
+  displayAuthors,
+  setDisplayAuthors,
+  fieldName,
+  onChange,
+  clearError,
+  hasInstitutionProperty,
+}) => {
+  const [customAuthorName, setCustomAuthorName] = useState('')
+  const [customAuthorEmail, setCustomAuthorEmail] = useState('')
+
+  const disableAddButton =
+    !(customAuthorName.trim() && isValidEmail(customAuthorEmail)) ||
+    displayAuthors?.some((p) => p.username === customAuthorEmail.trim().toLowerCase())
+
+  const handleAddCustomAuthor = () => {
+    const cleanAuthorName = customAuthorName.trim()
+    const cleanAuthorEmail = customAuthorEmail.trim().toLowerCase()
+
+    clearError?.()
+    const updatedAuthors = displayAuthors.concat({
+      username: cleanAuthorEmail,
+      fullname: cleanAuthorName,
+      selectedInstitutions: [],
+      institutionOptions: [],
+    })
+    setDisplayAuthors(updatedAuthors)
+    onChange({
+      fieldName,
+      value: mapDisplayAuthorsToEditorValue(updatedAuthors, hasInstitutionProperty),
+    })
+
+    setTotalCount(0)
+    setProfileSearchResults(null)
+    setSearchTerm('')
+  }
+
+  return (
+    <form className={styles.customAuthorForm}>
+      <label htmlFor="fullName">Full Name:</label>
+      <input
+        type="text"
+        name="fullName"
+        className="form-control"
+        value={customAuthorName}
+        placeholder="Full name of the author to add"
+        onChange={(e) => setCustomAuthorName(e.target.value)}
+      />
+      <label htmlFor="email">Email:</label>
+      <input
+        type="email"
+        name="email"
+        className="form-control"
+        value={customAuthorEmail}
+        placeholder="Email of the author to add"
+        onChange={(e) => setCustomAuthorEmail(e.target.value)}
+      />
+      <SpinnerButton
+        className="btn btn-sm"
+        disabled={disableAddButton}
+        onClick={handleAddCustomAuthor}
+      >
+        Add
+      </SpinnerButton>
+    </form>
+  )
+}
+
 const ProfileSearchWithInstitutionWidget = () => {
   const { user, accessToken, isRefreshing } = useUser()
   const {
@@ -444,6 +567,12 @@ const ProfileSearchWithInstitutionWidget = () => {
     field?.authors?.value?.param?.properties?.institutions || // add institution
     field?.authors?.value?.param?.elements || // reorder with institution change
     (reorderOnly && field.authors.value?.[0]?.institutions) // reorder only institution exists
+
+  const allowEmailAuthor =
+    ((!hasInstitutionProperty ||
+      field?.authors?.value?.param?.properties?.institutions?.param?.optional) && // email author won't have institution
+      field?.authors?.value?.param?.properties?.username?.param?.regex?.includes('|')) ?? // username need to allow email
+    false
 
   const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor))
   const [displayAuthors, setDisplayAuthors] = useState(null)
@@ -473,11 +602,13 @@ const ProfileSearchWithInstitutionWidget = () => {
   }
 
   const getProfiles = async (authorIds) => {
+    const ids = authorIds.filter((p) => p.startsWith('~'))
+    if (!ids.length) return []
     try {
       const { profiles } = await api.post(
         '/profiles/search',
         {
-          ids: authorIds,
+          ids,
         },
         { accessToken }
       )
@@ -522,23 +653,25 @@ const ProfileSearchWithInstitutionWidget = () => {
         p.content.names.find((q) => q.username === author.username)
       )
       const institutionOptionsFromProfile = getCurrentInstitutionOptionsFromProfile(profile)
-      const institutionOptionsFromValue = author.institutions.flatMap((institution) => {
-        if (institutionOptionsFromProfile.find((p) => p.domain === institution.domain))
-          // institution selected before still exist in profile
-          return []
-        return {
-          label: `${institution.name} (${institution.domain})`,
-          value: institution.domain,
-          name: institution.name,
-          domain: institution.domain,
-          country: institution.country,
+      const institutionOptionsFromValue = (author.institutions ?? []).flatMap(
+        (institution) => {
+          if (institutionOptionsFromProfile.find((p) => p.domain === institution.domain))
+            // institution selected before still exist in profile
+            return []
+          return {
+            label: `${institution.name} (${institution.domain})`,
+            value: institution.domain,
+            name: institution.name,
+            domain: institution.domain,
+            country: institution.country,
+          }
         }
-      })
+      )
 
       return {
         username: author.username,
         fullname: author.fullname,
-        selectedInstitutions: author.institutions,
+        selectedInstitutions: author.institutions ?? [],
         institutionOptions: [...institutionOptionsFromValue, ...institutionOptionsFromProfile],
       }
     })
@@ -609,6 +742,7 @@ const ProfileSearchWithInstitutionWidget = () => {
           onChange={onChange}
           clearError={clearError}
           hasInstitutionProperty={hasInstitutionProperty}
+          allowEmailAuthor={allowEmailAuthor}
         />
       )}
     </div>

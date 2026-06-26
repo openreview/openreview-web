@@ -246,14 +246,18 @@ export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
         key={`${author.fullname} ${author.username}`}
         className="note-author-with-institutions"
       >
-        <Link
-          href={`/profile?id=${encodeURIComponent(author.username)}`}
-          title={author.username}
-          data-toggle="tooltip"
-          data-placement="top"
-        >
-          {author.fullname}
-        </Link>
+        {author.username.includes('@') ? (
+          <span>{author.fullname}</span>
+        ) : (
+          <Link
+            href={`/profile?id=${encodeURIComponent(author.username)}`}
+            title={author.username}
+            data-toggle="tooltip"
+            data-placement="top"
+          >
+            {author.fullname}
+          </Link>
+        )}
         {institutionNumbers.length > 0 && <sup>{institutionNumbers.join(',')}</sup>}
       </span>
     )
