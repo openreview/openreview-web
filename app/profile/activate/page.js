@@ -1,15 +1,15 @@
 'use client'
 
-/* globals promptMessage,promptError: false */
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ErrorDisplay from '../../../components/ErrorDisplay'
-import api from '../../../lib/api-client'
-import ProfileEditor from '../../../components/profile/ProfileEditor'
-import { formatProfileData } from '../../../lib/profiles'
 import LoadingSpinner from '../../../components/LoadingSpinner'
-import styles from './Activate.module.scss'
+import ProfileEditor from '../../../components/profile/ProfileEditor'
+import api from '../../../lib/api-client'
+import { formatProfileData } from '../../../lib/profiles'
 import CommonLayout from '../../CommonLayout'
+
+import styles from './Activate.module.scss'
 
 export default function Page() {
   const searchParams = useSearchParams()
@@ -27,7 +27,12 @@ export default function Page() {
         return
       }
 
-      setProfile(formatProfileData(apiRes.profile, { useLinkObjectFormat: true }))
+      setProfile(
+        formatProfileData(apiRes.profile, {
+          useLinkObjectFormat: true,
+          includeDocuments: true,
+        })
+      )
     } catch (apiError) {
       setError(apiError.message)
     }

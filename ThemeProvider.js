@@ -84,6 +84,10 @@ const theme = {
     Descriptions: {
       paddingXs: 4,
     },
+    Steps: {
+      iconSize: 26,
+      iconFontSize: 14,
+    },
     Notification: {
       colorErrorBg: '#f2dede',
       colorSuccessBg: '#dff0d8',
