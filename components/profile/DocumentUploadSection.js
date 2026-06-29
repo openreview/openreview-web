@@ -5,6 +5,7 @@ import useTurnstileToken from '../../hooks/useTurnstileToken'
 import api from '../../lib/api-client'
 import { inflect } from '../../lib/utils'
 import { TrashButton } from '../IconButton'
+import LoadingIcon from '../LoadingIcon'
 import LoadingSpinner from '../LoadingSpinner'
 
 import styles from '../../styles/components/DocumentUploadSection.module.scss'
@@ -249,9 +250,10 @@ const DocumentUploadSection = ({ profileDocuments, updateDocuments }) => {
         })}
         <Button
           type="primary"
+          iconPlacement="end"
+          loading={isUploading ? { icon: <LoadingIcon /> } : false}
           onClick={() => uploadPendingFiles(turnstileToken)}
-          disabled={!pendingCount || isUploading || hasHumanVerificationError}
-          loading={isUploading}
+          disabled={!pendingCount || hasHumanVerificationError}
         >
           {pendingCount ? `Upload ${inflect(pendingCount, 'file', 'files', true)}` : 'Upload'}
         </Button>
