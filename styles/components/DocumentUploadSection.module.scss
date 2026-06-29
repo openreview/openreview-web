@@ -1,0 +1,28 @@
+@use '../utils/constants';
+
+.fileUploadContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: 100%;
+  @media #{constants.$large} {
+    max-width: 80%;
+  }
+}
+
+.fileRow {
+  display: block;
+
+  button {
+    margin-left: 0.25rem;
+  }
+}
+
+.fileUrl {
+  font-size: 0.75rem;
+
+  a {
+    cursor: pointer;
+  }
+}
