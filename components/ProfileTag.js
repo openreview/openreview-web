@@ -17,6 +17,7 @@ const ProfileTag = ({ tag, onDelete, showProfileId, borderless }) => {
 
   const getColorClass = () => {
     if (label === 'require vouch') return styles.requireVouch
+    if (label === 'user sent document') return styles.userSentDocument
     if (label === 'potential spam') return styles.potentialSpam
     if (parentInvitations?.endsWith('_Role')) return styles.serviceRole
     return ''
