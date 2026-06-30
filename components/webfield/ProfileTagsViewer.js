@@ -1,15 +1,15 @@
-import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
-import WebFieldContext from '../WebFieldContext'
-import useUser from '../../hooks/useUser'
-import api from '../../lib/api-client'
-import LoadingSpinner from '../LoadingSpinner'
-import ErrorDisplay from '../ErrorDisplay'
-import BasicHeader from './BasicHeader'
-import { prettyId, prettyInvitationId } from '../../lib/utils'
-import ProfileLink from './ProfileLink'
 import { Col, Flex, Pagination, Row, Space, Tooltip } from 'antd'
 import dayjs from 'dayjs'
+import { useSearchParams } from 'next/navigation'
+import { useContext, useEffect, useState } from 'react'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { prettyId, prettyInvitationId } from '../../lib/utils'
+import ErrorDisplay from '../ErrorDisplay'
+import LoadingSpinner from '../LoadingSpinner'
+import WebFieldContext from '../WebFieldContext'
+import BasicHeader from './BasicHeader'
+import ProfileLink from './ProfileLink'
 
 const ellipsisStyle = {
   display: 'inline-block',
@@ -18,6 +18,17 @@ const ellipsisStyle = {
   whiteSpace: 'nowrap',
   textOverflow: 'ellipsis',
   verticalAlign: 'bottom',
+}
+const formatTagLabel = (label) => {
+  if (typeof label !== 'string' || !label.startsWith('{')) return label
+  try {
+    const parsed = JSON.parse(label)
+    if (parsed && typeof parsed === 'object' && 'relation' in parsed) {
+      const years = [parsed.start, parsed.end].filter(Boolean).join('–')
+      return [parsed.relation, years ? `(${years})` : ''].filter(Boolean).join(' ')
+    }
+  } catch {}
+  return label
 }
 
 const MembershipsList = ({ membershipIds, domain }) => {
@@ -51,6 +62,7 @@ const MembershipsList = ({ membershipIds, domain }) => {
 
 const TagRow = ({ tag, membershipIds, domain }) => {
   const { profileId, label, weight, cdate, signature } = tag
+  const displayLabel = formatTagLabel(label)
   return (
     <Row style={{ borderBottom: '1px solid #f0f0f0', paddingBottom: 8 }}>
       <Col xs={24} md={3}>
@@ -61,8 +73,8 @@ const TagRow = ({ tag, membershipIds, domain }) => {
         </Tooltip>
       </Col>
       <Col xs={24} md={3}>
-        <Tooltip title={label}>
-          <span style={ellipsisStyle}>{label}</span>
+        <Tooltip title={displayLabel}>
+          <span style={ellipsisStyle}>{displayLabel}</span>
         </Tooltip>
       </Col>
       <Col xs={24} md={2}>

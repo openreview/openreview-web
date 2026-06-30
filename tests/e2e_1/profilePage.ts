@@ -1008,7 +1008,12 @@ test('add relation', async (t) => {
     // add a relation by name
     .click(firstRelationRow.find('div.relation__value').nth(0)) // relation dropdown
     .click(Selector('div.relation-dropdown__option').nth(3))
-    .typeText(firstRelationRow.find('input.search-input'), 'FirstA')
+    .typeText(
+      firstRelationRow
+        .find('input')
+        .withAttribute('placeholder', 'Search relation by name or OpenReview profile ID'),
+      'FirstA'
+    )
     .pressKey('enter')
     .expect(
       firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1').exists
@@ -1026,7 +1031,12 @@ test('add relation', async (t) => {
     // add a custom relation
     .click(secondRelationRow.find('div.relation__value').nth(0)) // relation dropdown
     .click(Selector('div.relation-dropdown__option').nth(3))
-    .typeText(secondRelationRow.find('input.search-input'), 'Some Relation Name')
+    .typeText(
+      secondRelationRow
+        .find('input')
+        .withAttribute('placeholder', 'Search relation by name or OpenReview profile ID'),
+      'Some Relation Name'
+    )
     .pressKey('enter')
     .expect(
       secondRelationRow.find('div').withText('No results found for your search query.').exists
@@ -1065,28 +1075,23 @@ test('add relation', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .wait(100)
     .click(step5Relations)
-    .expect(
-      firstRelationRow.find('a').withAttribute('href', '/profile?id=~FirstA_LastA1')
-        .textContent
-    )
-    .eql('FirstA LastA')
-    .expect(secondRelationRow.find('span').withText('Some Relation Name').exists)
-    .ok()
-    .expect(secondRelationRow.find('span').withText('<test@relation.test>').exists)
-    .ok()
+    .expect(firstRelationRow.find('div.relation__value').nth(1).find('input').value)
+    .eql('FirstA LastA (~FirstA_LastA1)')
+    .expect(secondRelationRow.find('div.relation__value').nth(1).find('input').value)
+    .eql('Some Relation Name <test@relation.test>')
     // clear value
-    .click(firstRelationRow.find('.glyphicon-edit'))
+    .click(firstRelationRow.find('div.relation__value').nth(1).find('.ant-input-clear-icon'))
     .expect(
       firstRelationRow
-        .find('input.search-input')
+        .find('input')
         .withAttribute('placeholder', 'Search relation by name or OpenReview profile ID')
         .exists
     )
     .ok()
-    .click(secondRelationRow.find('.glyphicon-edit'))
+    .click(secondRelationRow.find('div.relation__value').nth(1).find('.ant-input-clear-icon'))
     .expect(
       secondRelationRow
-        .find('input.search-input')
+        .find('input')
         .withAttribute('placeholder', 'Search relation by name or OpenReview profile ID')
         .exists
     )
