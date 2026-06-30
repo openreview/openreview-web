@@ -5,13 +5,6 @@ import api from '../lib/api-client'
 import '@testing-library/jest-dom'
 
 // required by autocomplete component
-global.ResizeObserver =
-  global.ResizeObserver ||
-  class {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-  }
 global.MessageChannel =
   global.MessageChannel ||
   class {
@@ -20,18 +13,6 @@ global.MessageChannel =
       this.port2 = { postMessage: () => {}, close: () => {}, onmessage: null }
     }
   }
-if (!window.matchMedia) {
-  window.matchMedia = (query) => ({
-    matches: false,
-    media: query,
-    onchange: null,
-    addListener: () => {},
-    removeListener: () => {},
-    addEventListener: () => {},
-    removeEventListener: () => {},
-    dispatchEvent: () => false,
-  })
-}
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 

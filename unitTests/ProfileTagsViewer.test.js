@@ -1,15 +1,9 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom'
-import { renderWithWebFieldContext } from './util'
 import ProfileTagsViewer from '../components/webfield/ProfileTagsViewer'
 import api from '../lib/api-client'
-
-Object.defineProperty(window, 'matchMedia', {
-  value: jest.fn((query) => ({
-    matches: false,
-  })),
-})
+import { renderWithWebFieldContext } from './util'
+import '@testing-library/jest-dom'
 
 let basicHeaderProps
 
