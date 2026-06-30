@@ -1,11 +1,11 @@
+import { DatePicker } from 'antd'
 import dayjs from 'dayjs'
-import Picker from 'rc-picker'
-import { useState } from 'react'
-import locale from 'rc-picker/lib/locale/en_US'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
-import dayjsGenerator from '../lib/dayjsGenerator'
+import { useState } from 'react'
 import { getDefaultTimezone } from '../lib/utils'
+
+import { datePicker as datePickerStyles } from '../lib/legacy-bootstrap-styles'
 
 dayjs.extend(timezone)
 dayjs.extend(utc)
@@ -24,9 +24,10 @@ const DatetimePicker = ({
     showSecond: false,
   },
   getPopupContainer,
+  invalid = false,
 }) => {
   const [value, setValue] = useState(
-    existingValue && dayjs(existingValue).isValid() ? dayjs(existingValue) : ''
+    existingValue && dayjs(existingValue).isValid() ? dayjs(existingValue) : null
   )
 
   const handleOkClick = (e) => {
@@ -41,28 +42,31 @@ const DatetimePicker = ({
       return
     }
     if (showTime === false) {
-      onChange(date.tz('UTC').startOf('date').toISOString())
+      onChange(date.tz('UTC', true).startOf('date').toISOString())
     } else {
       onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
     }
   }
 
   return (
-    <Picker
-      generateConfig={dayjsGenerator}
-      showTime={showTime}
-      locale={locale}
+    <DatePicker
+      showTime={
+        showTime === false ? false : { ...showTime, use12Hours: true, format: 'hh:mm A' }
+      }
       format={showTime === false ? 'YYYY-MM-DD' : 'YYYY-MM-DD hh:mm A'}
       value={value}
       onOk={handleOkClick}
       onChange={handleChange}
       onBlur={onBlur}
       placeholder={placeholder ?? 'Select datetime'}
-      use12Hours
       autoFocus={autoFocus}
       allowClear={allowClear}
       disabledDate={disabledDate}
       getPopupContainer={getPopupContainer}
+      status={invalid ? 'error' : undefined}
+      suffixIcon={null}
+      style={datePickerStyles.root}
+      styles={{ input: datePickerStyles.input }}
     />
   )
 }

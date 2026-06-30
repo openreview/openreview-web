@@ -5,17 +5,6 @@ import api from '../lib/api-client'
 import { formatDateTime } from '../lib/utils'
 import '@testing-library/jest-dom'
 
-window.matchMedia = jest.fn().mockImplementation((query) => ({
-  matches: false,
-  media: query,
-  onchange: null,
-  addListener: jest.fn(),
-  removeListener: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  dispatchEvent: jest.fn(),
-}))
-
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/LoadingSpinner', () => () => <span>loading spinner</span>)
 
