@@ -1,10 +1,10 @@
+import get from 'lodash/get'
 /* globals DOMPurify,marked,$,promptError,promptMessage: false */
 import { useState } from 'react'
-import get from 'lodash/get'
-import BasicModal from '../BasicModal'
-import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import api from '../../lib/api-client'
 import { isValidEmail, prettyId } from '../../lib/utils'
+import BasicModal from '../BasicModal'
+import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import Signatures from '../Signatures'
 
 const MessageMemberModal = ({
@@ -69,6 +69,7 @@ const MessageMemberModal = ({
               subject,
               message: sanitizedMessage,
               groups: membersToMessage,
+              parentGroup: groupId,
               invitation: messageMemberInvitation.id,
               signature,
               ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),

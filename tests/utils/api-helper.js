@@ -1,5 +1,5 @@
-import fetch from 'node-fetch-cjs'
 import { loadEnvConfig } from '@next/env'
+import fetch from 'node-fetch-cjs'
 import api from '../../lib/api-client'
 
 loadEnvConfig(process.cwd())
@@ -300,6 +300,10 @@ export async function createEmptyProfile(fullname, tildeId, superUserToken) {
 
 export function getMessages(params, token) {
   return api.get('/messages', params, { accessToken: token }).then((result) => result.messages)
+}
+
+export function createPasswordResetRequest(email) {
+  return api.post('/resettable', { id: email })
 }
 
 export function getNotes(params, token, version = 1) {

@@ -1,5 +1,3 @@
-/* globals $,promptMessage,promptError,typesetMathJax: false */
-
 import { camelCase, chunk, orderBy } from 'lodash'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
@@ -1018,13 +1016,7 @@ const AreaChairConsole = ({ appContext }) => {
         ]),
       ]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const getProfilesByIdsP = ids.length
-        ? api.post('/profiles/search', {
-            ids,
-          })
-        : Promise.resolve([])
-
-      const profileResult = await getProfilesByIdsP
+      const profileResult = await api.getAllProfilesByIds(ids)
       // #endregion
 
       // #region calculate reviewProgressData and metaReviewData
