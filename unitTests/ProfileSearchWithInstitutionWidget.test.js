@@ -1,10 +1,9 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import ProfileSearchWithInstitutionWidget from '../components/EditorComponents/ProfileSearchWithInstitutionWidget'
+import api from '../lib/api-client'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
-
-import api from '../lib/api-client'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({
@@ -1476,5 +1475,474 @@ describe('ProfileSearchWithInstitutionWidget', () => {
         })
       )
     })
+  })
+
+  test('allow custom author when username regex allows email and institution does not exist', async () => {
+    api.post = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [],
+            },
+          },
+        ],
+      })
+    )
+    api.get = jest.fn(() => Promise.resolve({ count: 0, profiles: [] }))
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: { param: { type: 'string' } },
+                  username: {
+                    param: {
+                      type: 'string',
+                      regex: '^~\\S+$|^.+@.+$',
+                    },
+                  },
+
+                  institutions: undefined,
+                },
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    // current user is added on mount
+    await waitFor(() => expect(screen.getByText('Test First Test Last')).toBeInTheDocument())
+
+    // a search that returns nothing
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'Nonexistent Author'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    // manual entry is offered because the username regex allows email
+    const manualButton = await screen.findByRole('button', {
+      name: 'Manually Enter Author Info',
+    })
+    await userEvent.click(manualButton)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Full name of the author to add'),
+      'New Author'
+    )
+    await userEvent.type(
+      screen.getByPlaceholderText('Email of the author to add'),
+      'New@Author.com'
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+    await waitFor(() => {
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          fieldName: 'authors',
+          value: expect.arrayContaining([
+            { username: 'new@author.com', fullname: 'New Author' },
+          ]),
+        })
+      )
+    })
+  })
+
+  test('allow custom author when username regex allows email and institution is optional', async () => {
+    api.post = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [],
+            },
+          },
+        ],
+      })
+    )
+    api.get = jest.fn(() => Promise.resolve({ count: 0, profiles: [] }))
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: { param: { type: 'string' } },
+                  username: {
+                    param: {
+                      type: 'string',
+                      regex: '^~\\S+$|^.+@.+$',
+                    },
+                  },
+
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      optional: true,
+                      properties: {
+                        name: { param: { type: 'string' } },
+                        domain: { param: { type: 'string' } },
+                        country: { param: { type: 'string' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    // current user is added on mount
+    await waitFor(() => expect(screen.getByText('Test First Test Last')).toBeInTheDocument())
+
+    // a search that returns nothing
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'Nonexistent Author'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    // manual entry is offered because the username regex allows email
+    const manualButton = await screen.findByRole('button', {
+      name: 'Manually Enter Author Info',
+    })
+    await userEvent.click(manualButton)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Full name of the author to add'),
+      'New Author'
+    )
+    await userEvent.type(
+      screen.getByPlaceholderText('Email of the author to add'),
+      'New@Author.com'
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Add' }))
+
+    await waitFor(() => {
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          fieldName: 'authors',
+          value: expect.arrayContaining([
+            { username: 'new@author.com', fullname: 'New Author', institutions: [] },
+          ]),
+        })
+      )
+    })
+  })
+
+  test('do not show custom author form when email author is not allowed', async () => {
+    api.post = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [],
+            },
+          },
+        ],
+      })
+    )
+    api.get = jest.fn(() => Promise.resolve({ count: 0, profiles: [] }))
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            order: 2,
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                      regex: '|',
+                    },
+                  },
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      optional: false,
+                      properties: {
+                        name: {
+                          param: {
+                            type: 'string',
+                          },
+                        },
+                        domain: {
+                          param: {
+                            type: 'string',
+                          },
+                        },
+                        country: {
+                          param: {
+                            type: 'string',
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            description: 'Authors of paper.',
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => expect(screen.getByText('Test First Test Last')).toBeInTheDocument())
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'Nonexistent Author'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    expect(
+      await screen.findByText('No results found for your search query.')
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByRole('button', { name: 'Manually Enter Author Info' })
+    ).not.toBeInTheDocument()
+  })
+
+  test('show email author as text without a profile link', async () => {
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: { param: { type: 'string' } },
+                  username: {
+                    param: {
+                      type: 'string',
+                      regex: '^~\\S+$|^.+@.+$',
+                    },
+                  },
+
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      optional: true,
+                      properties: {
+                        name: { param: { type: 'string' } },
+                        domain: { param: { type: 'string' } },
+                        country: { param: { type: 'string' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        value: [{ username: 'email@author.com', fullname: 'Email Author', institutions: [] }],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => expect(screen.getByText('Email Author')).toBeInTheDocument())
+
+    // rendered as a span, not a /profile link
+    expect(screen.getByText('Email Author')).not.toHaveAttribute('href')
+    // email is kept as the tooltip
+    expect(screen.getByText('Email Author')).toHaveAttribute(
+      'data-original-title',
+      'email@author.com'
+    )
+    // no institution to choose for an email-only author
+    expect(screen.getByRole('button', { name: 'No Active Institution' })).toBeDisabled()
+  })
+
+  test('load existing authors with a mix of tilde id and email', async () => {
+    global.promptError = jest.fn()
+    const apiPost = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [],
+            },
+          },
+        ],
+      })
+    )
+    api.post = apiPost
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: { param: { type: 'string' } },
+                  username: {
+                    param: {
+                      type: 'string',
+                      regex: '^~\\S+$|^.+@.+$',
+                    },
+                  },
+
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      optional: true,
+                      properties: {
+                        name: { param: { type: 'string' } },
+                        domain: { param: { type: 'string' } },
+                        country: { param: { type: 'string' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        value: [
+          { username: '~test_id1', fullname: 'Test First Test Last', institutions: [] },
+          { username: 'email@author.com', fullname: 'Email Author', institutions: [] },
+        ],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => {
+      expect(screen.getByText('Test First Test Last')).toBeInTheDocument()
+      expect(screen.getByText('Email Author')).toBeInTheDocument()
+    })
+
+    // tilde author keeps the profile link, email author is plain text
+    expect(screen.getByText('Test First Test Last')).toHaveAttribute(
+      'href',
+      '/profile?id=~test_id1'
+    )
+    expect(screen.getByText('Email Author')).not.toHaveAttribute('href')
+
+    // only the tilde id is sent to /profiles/search; the email is filtered out
+    expect(apiPost).toHaveBeenCalledWith(
+      '/profiles/search',
+      { ids: ['~test_id1'] },
+      expect.anything()
+    )
+    expect(global.promptError).not.toHaveBeenCalled()
+  })
+
+  test('disable add button for a duplicate email author', async () => {
+    // it's possible to duplicate by mixing tildeId and email though because can't get profile by email
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
+    api.get = jest.fn(() => Promise.resolve({ count: 0, profiles: [] }))
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: { param: { type: 'string' } },
+                  username: {
+                    param: {
+                      type: 'string',
+                      regex: '^~\\S+$|^.+@.+$',
+                    },
+                  },
+
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      optional: true,
+                      properties: {
+                        name: { param: { type: 'string' } },
+                        domain: { param: { type: 'string' } },
+                        country: { param: { type: 'string' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        value: [{ username: 'email@author.com', fullname: 'Email Author', institutions: [] }],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => expect(screen.getByText('Email Author')).toBeInTheDocument())
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by email or name'),
+      'Nonexistent Author'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    const manualButton = await screen.findByRole('button', {
+      name: 'Manually Enter Author Info',
+    })
+    await userEvent.click(manualButton)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('Full name of the author to add'),
+      'Email Author'
+    )
+    await userEvent.type(
+      screen.getByPlaceholderText('Email of the author to add'),
+      'Email@Author.com'
+    )
+
+    expect(screen.getByRole('button', { name: 'Add' })).toBeDisabled()
   })
 })

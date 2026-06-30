@@ -49,6 +49,24 @@ describe('NoteAuthorsV2', () => {
     expect(screen.getByText(/Test Domain/)).toBeInTheDocument()
   })
 
+  // email author added with object author schema has no profile link
+  test('renders institution email author as plain text', () => {
+    const authors = {
+      value: [{ fullname: 'Custom Author', username: 'custom@author.com', institutions: [] }],
+      readers: ['everyone'],
+    }
+    render(
+      <NoteAuthorsV2
+        authors={authors}
+        authorIds={undefined}
+        noteReaders={['everyone']}
+        showAuthorInstitutions
+      />
+    )
+    expect(screen.getByText('Custom Author')).toBeInTheDocument()
+    expect(screen.queryByRole('link')).not.toBeInTheDocument()
+  })
+
   test('builds profile link with id param for ~ ids', () => {
     render(<NoteAuthorsV2 authors={['First Last']} authorIds={['~First_Last1']} />)
     expect(screen.getByRole('link', { name: 'First Last' })).toHaveAttribute(
