@@ -1,15 +1,16 @@
-import { useContext, useState } from 'react'
 import { get, set, unset } from 'lodash'
+import { useContext, useState } from 'react'
+import { convertToType } from '../../lib/webfield-utils'
+import Dropdown from '../Dropdown'
 import EditorComponentContext from '../EditorComponentContext'
+import Form from '../Form'
+import Icon from '../Icon'
+import NoteEditor from '../NoteEditor'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import CodeEditorWidget from './CodeEditorWidget'
-import Dropdown from '../Dropdown'
-import Form from '../Form'
-import NoteEditor from '../NoteEditor'
 import EditorComponentHeader from './EditorComponentHeader'
+
 import styles from '../../styles/components/ContentFieldEditor.module.scss'
-import Icon from '../Icon'
-import { convertToType } from '../../lib/webfield-utils'
 
 const JsonEditor = ({ existingFields, onFieldChange }) => {
   const [mode, setMode] = useState('empty')
@@ -233,23 +234,23 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       },
       valuePath: 'value.param.regex',
     },
-    range: {
-      order: 9,
-      description: 'Range of the field, for exmaple 1,99',
-      value: {
-        param: {
-          input: 'text',
-          type: 'string',
-          optional: true,
-        },
-      },
-      shouldBeShown: (formData) =>
-        ['integer', 'float'].includes(formData.dataType) && formData.inputType === 'text',
-      getValue: function (existingValue) {
-        return get(existingValue, this.valuePath)
-      },
-      valuePath: 'value.param.range',
-    },
+    // range: {
+    //   order: 9,
+    //   description: 'Range of the field, for exmaple 1,99',
+    //   value: {
+    //     param: {
+    //       input: 'text',
+    //       type: 'string',
+    //       optional: true,
+    //     },
+    //   },
+    //   shouldBeShown: (formData) =>
+    //     ['integer', 'float'].includes(formData.dataType) && formData.input === 'text',
+    //   getValue: function (existingValue) {
+    //     return get(existingValue, this.valuePath)
+    //   },
+    //   valuePath: 'value.param.range',
+    // },
     fieldName: {
       order: 9,
       description: 'The Text to display as name of the field',
@@ -272,7 +273,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       value: {
         param: {
           input: 'text',
-          type: 'string',
+          type: 'integer',
           optional: true,
         },
       },
@@ -288,7 +289,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       value: {
         param: {
           input: 'text',
-          type: 'string',
+          type: 'integer',
           optional: true,
         },
       },
@@ -304,7 +305,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       value: {
         param: {
           input: 'text',
-          type: 'string',
+          type: 'integer',
           optional: true,
         },
       },
@@ -323,7 +324,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       value: {
         param: {
           input: 'text',
-          type: 'string',
+          type: 'integer',
           optional: true,
         },
       },
@@ -390,7 +391,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       description: 'The max file size allowed for user to upload',
       value: {
         param: {
-          type: 'number',
+          type: 'integer',
           input: 'text',
           optional: true,
         },
