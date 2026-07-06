@@ -26,17 +26,9 @@ const ProfilePreviewModal = ({
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
   const [error, setError] = useState(null)
-  const tagInvitationOptions = [
-    {
-      label: 'General Moderation Tag',
-      value: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
-    },
-    {
-      label: 'Vouched by Tag',
-      value: `${process.env.SUPER_USER}/Support/-/Vouch`,
-    },
-  ]
-  const [tagInvitation, setTagInvitation] = useState(tagInvitationOptions[0].value)
+  const [isLoadingTags, setIsLoadingTags] = useState(false)
+  const [openTagOptions, setOpenTagOptions] = useState(false)
+
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
@@ -78,6 +70,7 @@ const ProfilePreviewModal = ({
   }
 
   const deleteTag = async (tag) => {
+    setIsLoadingTags(true)
     try {
       await api.post('/tags', {
         id: tag.id,
@@ -92,22 +85,23 @@ const ProfilePreviewModal = ({
     } catch (apiError) {
       setError(apiError)
     }
+    setIsLoadingTags(false)
   }
 
   const addTag = async (tagLabel) => {
-    const isVouchInvitation = tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
-
+    setIsLoadingTags(true)
     try {
       await api.post('/tags', {
         profile: profileToPreview.id,
-        ...(!isVouchInvitation && { label: tagLabel }),
-        signature: isVouchInvitation ? tagLabel : `${process.env.SUPER_USER}/Support`,
-        invitation: tagInvitation,
+        label: tagLabel,
+        signature: `${process.env.SUPER_USER}/Support`,
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
       })
       await loadTags()
     } catch (apiError) {
       setError(apiError)
     }
+    setIsLoadingTags(false)
   }
 
   useEffect(() => {
@@ -131,7 +125,6 @@ const ProfilePreviewModal = ({
     setRejectionMessage('')
     setIsRejecting(false)
     setTags([])
-    setTagInvitation(tagInvitationOptions[0].value)
     setError(null)
     const currentInstitutionName = profileToPreview?.history?.find(
       (p) => !p.end || p.end >= new Date().getFullYear()
@@ -203,7 +196,7 @@ const ProfilePreviewModal = ({
           </ProfileViewSection>
         )}
         <Flex vertical gap="small">
-          <Space wrap={true}>
+          <Space wrap={true} style={isLoadingTags ? { opacity: 0.5 } : {}}>
             {tags.map((tag, index) => (
               <ProfileTag
                 key={index}
@@ -216,34 +209,23 @@ const ProfilePreviewModal = ({
           {profileToPreview.state !== 'Merged' && (
             <Flex>
               <Select
-                options={tagInvitationOptions}
-                getPopupContainer={(triggerNode) => triggerNode.parentElement}
-                value={tagInvitation}
-                onChange={(e) => setTagInvitation(e)}
-              />
-              <Select
                 allowClear
                 showSearch={false}
                 style={{ flex: 1, minWidth: 0 }}
                 mode="tags"
                 notFoundContent={null}
                 value={null}
-                placeholder={
-                  tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
-                    ? 'enter tilde id of the user vouching for this user'
-                    : 'select or create tag label'
-                }
-                options={
-                  tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
-                    ? []
-                    : [
-                        { label: 'require vouch', value: 'require vouch' },
-                        { label: 'potential spam', value: 'potential spam' },
-                      ]
-                }
+                open={openTagOptions}
+                onOpenChange={setOpenTagOptions}
+                placeholder="select or create tag label"
+                options={[
+                  { label: 'require vouch', value: 'require vouch' },
+                  { label: 'potential spam', value: 'potential spam' },
+                ]}
                 getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 onChange={(values) => {
                   addTag(values[0])
+                  setOpenTagOptions(false)
                 }}
                 onInputKeyDown={(e) => {
                   if (e.key !== 'Enter') return
