@@ -1,22 +1,22 @@
 /* globals promptError: false */
 
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import pick from 'lodash/pick'
 import Steps from 'rc-steps'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import api from '../../lib/api-client'
+import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
+import LoadingSpinner from '../LoadingSpinner'
+import BirthDateSection from './BirthDateSection'
 import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
 import ExpertiseSection from './ExpertiseSection'
 import GenderSection from './GenderSection'
-import PronounSection from './PronounSection'
 import ImportedPublicationsSection from './ImportedPublicationsSection'
-import LoadingSpinner from '../LoadingSpinner'
 import NamesSection from './NameSection'
 import PersonalLinksSection from './PersonalLinksSection'
 import ProfileSection from './ProfileSection'
+import PronounSection from './PronounSection'
 import RelationsSection from './RelationsSection'
-import api from '../../lib/api-client'
-import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
-import BirthDateSection from './BirthDateSection'
 
 export default function ProfileEditor({
   loadedProfile,
@@ -630,6 +630,7 @@ export default function ProfileEditor({
           >
             <RelationsSection
               profileRelation={profile?.relations}
+              savedRelations={loadedProfile?.relations}
               prefixedRelations={prefixedRelations}
               relationReaders={relationReaders}
               updateRelations={(relations) =>
