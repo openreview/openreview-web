@@ -28,11 +28,14 @@ export function getTokenPayload(token) {
 export default async function serverAuth() {
   const cookie = await cookies()
   const token = cookie.get(process.env.ACCESS_TOKEN_NAME)
+  const clearanceToken = cookie.get(process.env.CLEARANCE_COOKIE_NAME || 'openreview.clearanceToken')?.value
 
   const payload = getTokenPayload(token?.value)
   if (!payload || !payload.user?.profile?.id) {
-    return {}
+    // Guests forward the clearance token so the API gate can verify them.
+    return { clearanceToken }
   }
 
+  // Logged-in users bypass the gate, so they never need clearance.
   return { token: token.value, user: payload.user }
 }

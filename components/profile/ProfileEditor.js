@@ -1,5 +1,3 @@
-/* globals promptError: false */
-
 import pick from 'lodash/pick'
 import Steps from 'rc-steps'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
@@ -630,6 +628,7 @@ export default function ProfileEditor({
           >
             <RelationsSection
               profileRelation={profile?.relations}
+              savedRelations={loadedProfile?.relations}
               prefixedRelations={prefixedRelations}
               relationReaders={relationReaders}
               updateRelations={(relations) =>
