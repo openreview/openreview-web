@@ -32,6 +32,27 @@ dayjs.extend(timezone)
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 
+const isDateInFuture = (cdate) => cdate > Date.now()
+const isDateInPast = (expDateOrCDate) => expDateOrCDate <= Date.now()
+
+const getStageStatus = (invitationsOfWorkflowStage) => {
+  if (invitationsOfWorkflowStage.every((p) => isDateInFuture(p.cdate))) {
+    return 'Not Started'
+  }
+
+  const stageInvitations = invitationsOfWorkflowStage.filter((p) => p.isStageInvitation)
+  const runInvitations = invitationsOfWorkflowStage.filter((p) => !p.isStageInvitation)
+
+  if (
+    stageInvitations.every((p) => isDateInPast(p.expdate)) &&
+    runInvitations.every((p) => isDateInPast(p.cdate))
+  ) {
+    return 'Completed'
+  }
+
+  return 'Running'
+}
+
 const workflowGroupKeys = [
   {
     field: 'reviewers_id',
