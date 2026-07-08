@@ -1,5 +1,5 @@
+import { Steps } from 'antd'
 import pick from 'lodash/pick'
-import Steps from 'rc-steps'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import api from '../../lib/api-client'
 import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
