@@ -1,9 +1,9 @@
-/* globals promptError, promptMessage: false */
-import { sortBy } from 'lodash'
-import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
+import { sortBy } from 'lodash'
 import Link from 'next/link'
+import { useContext, useEffect, useState } from 'react'
 import api from '../../../lib/api-client'
+import { formatProfileContent } from '../../../lib/edge-utils'
 import {
   getProfileName,
   inflect,
@@ -13,13 +13,12 @@ import {
 } from '../../../lib/utils'
 import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
+import { NoteContentV2 } from '../../NoteContent'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
-import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
-import { NoteContentV2 } from '../../NoteContent'
-import { formatProfileContent } from '../../../lib/edge-utils'
 import ProfileLink from '../ProfileLink'
+import ReviewerStatusMenuBar from './ReviewerStatusMenuBar'
 
 const ReviewerSummary = ({ rowData, bidEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.reviewerProfile ?? {}
@@ -333,12 +332,7 @@ const ReviewerStatusTab = ({
           (reviewerProfileId) => !pcConsoleData.allProfilesMap.get(reviewerProfileId)
         )
         const ids = reviewerWithoutAssignmentIds.filter((p) => p.startsWith('~'))
-        const getProfilesByIdsP = ids.length
-          ? api.post('/profiles/search', {
-              ids,
-            })
-          : Promise.resolve([])
-        const reviewerProfileResults = await getProfilesByIdsP
+        const reviewerProfileResults = await api.getAllProfilesByIds(ids)
         const reviewerProfilesWithoutAssignment = (reviewerProfileResults.profiles ?? []).map(
           (profile) => ({
             ...profile,

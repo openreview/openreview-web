@@ -1,0 +1,21 @@
+@use '../styles/utils/constants';
+
+.minimal {
+  padding: 10px 15px;
+}
+
+.text {
+  color: constants.$subtleGray;
+  font-size: 0.75rem;
+  margin-bottom: 0;
+  text-align: center;
+}
+
+.link {
+  color: constants.$subtleGray;
+  text-decoration: underline;
+
+  &:hover {
+    color: #666;
+  }
+}

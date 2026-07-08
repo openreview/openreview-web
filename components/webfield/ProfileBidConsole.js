@@ -1,21 +1,19 @@
-/* globals promptError: false */
-
-import { useCallback, useContext, useEffect, useState } from 'react'
 import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
 import { useSearchParams } from 'next/navigation'
+import { useCallback, useContext, useEffect, useState } from 'react'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { prettyInvitationId } from '../../lib/utils'
+import Dropdown from '../Dropdown'
+import ErrorDisplay from '../ErrorDisplay'
+import Icon from '../Icon'
+import LoadingSpinner from '../LoadingSpinner'
+import PaginationLinks from '../PaginationLinks'
+import ProfileListWithBidWidget from '../ProfileListWithBidWidget'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
-import useUser from '../../hooks/useUser'
-import api from '../../lib/api-client'
-import Icon from '../Icon'
-import Dropdown from '../Dropdown'
-import { prettyInvitationId } from '../../lib/utils'
-import LoadingSpinner from '../LoadingSpinner'
-import PaginationLinks from '../PaginationLinks'
-import ErrorDisplay from '../ErrorDisplay'
-import ProfileListWithBidWidget from '../ProfileListWithBidWidget'
 
 const getDdate = (existingBidToDelete) => {
   if (existingBidToDelete) return Date.now()
@@ -97,7 +95,7 @@ const AllSubmissionsTab = ({
         if (edgesResult.count) {
           setScoreEdges(edgesResult.edges)
           const profileIds = edgesResult.edges.map((p) => p.head)
-          const profilesResult = await api.post('/profiles/search', { ids: profileIds })
+          const profilesResult = await api.getAllProfilesByIds(profileIds)
           const filteredProfiles = profileIds.flatMap((profileId) => {
             const matchingProfile = profilesResult.profiles.find((p) => p.id === profileId)
             if (matchingProfile && !conflictIds.includes(profileId)) {

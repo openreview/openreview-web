@@ -1,15 +1,40 @@
 'use client'
 
 import { PlusOutlined } from '@ant-design/icons'
-import { Button, Col, Flex, Input, Modal, Pagination, Row, Select, Space } from 'antd'
+import {
+  Button,
+  Col,
+  Collapse,
+  Flex,
+  Input,
+  Modal,
+  Pagination,
+  Row,
+  Select,
+  Space,
+} from 'antd'
 import { useMemo, useState } from 'react'
 import Icon from '../../../../components/Icon'
 import api from '../../../../lib/api-client'
+import DomainListSection from './DomainListSection'
 
 import { moderation as legacyStyles } from '../../../../lib/legacy-bootstrap-styles'
 
 const pageSize = 25
 const modalWidth = { xs: '90%', sm: '70%', md: '50%' }
+
+const domainModerationConfig = [
+  {
+    key: 'moderate',
+    label: 'Domains to Moderate',
+    children: <DomainListSection type="moderate" />,
+  },
+  {
+    key: 'disallowed',
+    label: 'Disallowed Domains',
+    children: <DomainListSection type="disallowed" />,
+  },
+]
 
 export default function InstitutionTab() {
   const [institutions, setInstitutions] = useState(null)
@@ -142,7 +167,13 @@ export default function InstitutionTab() {
 
   return (
     <>
-      <Row gutter={[8, 8]} align="middle" style={{ marginBottom: '0.75rem' }}>
+      <Collapse
+        size="small"
+        style={{ marginBottom: '1.25rem' }}
+        items={domainModerationConfig}
+      />
+
+      <Row gutter={[8, 8]} style={{ marginBottom: '0.75rem' }}>
         <Col xs={24} sm={12} md={10}>
           <Input
             allowClear

@@ -3,7 +3,7 @@
     "chrome-devtools": {
       "command": "npx",
       "args": [
-        "chrome-devtools-mcp@0.20.3"
+        "chrome-devtools-mcp@1.1.1"
       ]
     },
     "antd": {

@@ -4505,12 +4505,12 @@ module.exports = (function () {
         .text('<img src="' + href + '" alt="' + text + '" title="' + title + '">')
         .html()
     }
-    renderer.checkbox = function (checked) {
+    renderer.checkbox = function ({ checked }) {
       if (checked) return '[x]'
       return '[ ]'
     }
-    renderer.html = function (html) {
-      return $('<div />').text(html).html()
+    renderer.html = function ({ text }) {
+      return $('<div />').text(text).html()
     }
 
     // For details on options see https://marked.js.org/#/USING_ADVANCED.md#options

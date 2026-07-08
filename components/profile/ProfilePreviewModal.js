@@ -293,13 +293,14 @@ const ProfilePreviewModal = ({
             <Flex vertical gap="small" align="flex-start">
               <Select
                 allowClear
+                mode="multiple"
                 style={{ width: '100%' }}
-                placeholder="Choose a common reject reason..."
+                placeholder="Choose rejection reason(s)..."
                 options={rejectionReasons}
                 getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 onChange={(value) => {
-                  const rejectOption = rejectionReasons.find((r) => r.value === value)
-                  setRejectionMessage(rejectOption?.rejectionText || '')
+                  const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+                  setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
                 }}
               />
               <Space wrap>

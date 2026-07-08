@@ -151,12 +151,7 @@ const EthicsChairPaperStatus = () => {
 
       const allIds = [...new Set(allGroupMembers)]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const getProfilesByIdsP = ids.length
-        ? api.post('/profiles/search', {
-            ids,
-          })
-        : Promise.resolve([])
-      const profileResults = await getProfilesByIdsP
+      const profileResults = await api.getAllProfilesByIds(ids)
       const allProfiles = (profileResults.profiles ?? []).map((profile) => ({
         ...profile,
         preferredName: getProfileName(profile),
