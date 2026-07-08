@@ -1527,7 +1527,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
 
     // a search that returns nothing
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'Nonexistent Author'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1620,7 +1620,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
 
     // a search that returns nothing
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'Nonexistent Author'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1728,7 +1728,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     await waitFor(() => expect(screen.getByText('Test First Test Last')).toBeInTheDocument())
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'Nonexistent Author'
     )
     await userEvent.click(screen.getByText('Search'))
@@ -1924,7 +1924,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     await waitFor(() => expect(screen.getByText('Email Author')).toBeInTheDocument())
 
     await userEvent.type(
-      screen.getByPlaceholderText('search profiles by email or name'),
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
       'Nonexistent Author'
     )
     await userEvent.click(screen.getByText('Search'))

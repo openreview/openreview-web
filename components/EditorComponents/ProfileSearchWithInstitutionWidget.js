@@ -457,7 +457,7 @@ const ProfileSearchFormAndResults = ({
           type="text"
           className={`form-control ${error ? styles.invalidValue : ''}`}
           value={searchTerm ?? ''}
-          placeholder="search profiles by email or name"
+          placeholder="search profiles by name or OpenReview profile ID"
           onChange={(e) => {
             setSearchTerm(e.target.value)
             setProfileSearchResults(null)
