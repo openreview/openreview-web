@@ -1,8 +1,3 @@
-
-import { Steps } from 'antd'
-import pick from 'lodash/pick'
-/* globals promptError: false */
-
 import pick from 'lodash/pick'
 import Steps from 'rc-steps'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
@@ -27,7 +22,6 @@ import {
   getProfileEditorStepItemStyles,
   profileEditorStepsRailStyle,
 } from '../../lib/legacy-bootstrap-styles'
-
 
 export default function ProfileEditor({
   loadedProfile,
