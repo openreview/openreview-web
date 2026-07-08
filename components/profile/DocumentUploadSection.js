@@ -1,5 +1,6 @@
 import { Button, Tag, Tooltip, Upload } from 'antd'
 import { nanoid } from 'nanoid'
+import { useSearchParams } from 'next/navigation'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
 import api from '../../lib/api-client'
@@ -59,6 +60,8 @@ const DocumentUploadSection = ({ profileDocuments, updateDocuments }) => {
   )
   const [identityVerificationInvitation, setIdentityVerificationInvitation] = useState(null)
   const pendingUploadsRef = useRef(new Map())
+  const searchParams = useSearchParams()
+  const activationToken = searchParams.get('token')
 
   const acceptedFileTypes =
     identityVerificationInvitation?.edit?.profile?.content?.identityDocuments?.value?.param
@@ -82,7 +85,7 @@ const DocumentUploadSection = ({ profileDocuments, updateDocuments }) => {
     )
   }
 
-  const runUpload = async (file, token) => {
+  const uploadFile = async (file, turnstileToken, uploadToken) => {
     try {
       const data = new FormData()
       data.append('invitationId', identityVerificationInvitaitonId)
@@ -90,7 +93,8 @@ const DocumentUploadSection = ({ profileDocuments, updateDocuments }) => {
       data.append('file', file.originFileObj)
       const result = await api.put('/attachment', data, {
         contentType: 'unset',
-        'cf-turnstile-token': token,
+        guestToken: uploadToken,
+        'cf-turnstile-token': turnstileToken,
       })
       pendingUploadsRef.current.delete(file.id)
       updateDocumentState(file.id, { status: 'done', url: result.url })
@@ -105,12 +109,28 @@ const DocumentUploadSection = ({ profileDocuments, updateDocuments }) => {
     }
   }
 
-  const uploadPendingFiles = (token) => {
+  const runUploadWithUploadToken = async (files, turnstileToken) => {
+    let uploadToken
+    try {
+      ;({ uploadToken } = await api.post('/identityUploadToken', { activationToken }))
+      if (!uploadToken) throw new Error('Failed to get upload token. Please try again later.')
+    } catch (error) {
+      promptError(error.message)
+      files.forEach((file) =>
+        updateDocumentState(file.id, { status: 'error', errorMessage: error.message })
+      )
+      return
+    }
+
+    files.forEach((file) => uploadFile(file, turnstileToken, uploadToken))
+  }
+
+  const uploadPendingFiles = async (turnstileToken) => {
     const pendingFiles = documents.filter((file) => !file.url && file.status !== 'uploading')
     pendingFiles.forEach((file) =>
       updateDocumentState(file.id, { status: 'uploading', errorMessage: undefined })
     )
-    pendingFiles.forEach((file) => runUpload(file, token))
+    runUploadWithUploadToken(pendingFiles, turnstileToken)
   }
 
   const beforeUpload = (file) => {
@@ -175,7 +195,7 @@ const DocumentUploadSection = ({ profileDocuments, updateDocuments }) => {
       return
     setHasHumanVerificationError(false)
     const pendingFiles = Array.from(pendingUploadsRef.current.values())
-    pendingFiles.forEach((file) => runUpload(file, turnstileToken))
+    runUploadWithUploadToken(pendingFiles, turnstileToken)
   }, [turnstileToken, hasHumanVerificationError])
 
   if (!identityVerificationInvitation) return <LoadingSpinner inline />

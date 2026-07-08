@@ -454,9 +454,6 @@ export default function ProfileEditor({
       linkedin: profileContent.linkedin?.value?.trim(),
       semanticScholar: profileContent.semanticScholar?.value?.trim(),
       aclanthology: profileContent.aclanthology?.value?.trim(),
-      identityDocuments: profileContent.documents?.length
-        ? profileContent.documents
-        : undefined,
     }
     return { isValid: true, profileContent, profileReaders: profile.readers }
   }
@@ -685,7 +682,7 @@ export default function ProfileEditor({
             <DocumentUploadSection
               profileDocuments={profile?.documents}
               updateDocuments={(documents) =>
-                setProfile({ type: 'documents', data: documents })
+                setProfile({ type: 'identityDocuments', data: documents })
               }
             />
           </ProfileSection>
