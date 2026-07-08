@@ -1,5 +1,10 @@
+
 import { Steps } from 'antd'
 import pick from 'lodash/pick'
+/* globals promptError: false */
+
+import pick from 'lodash/pick'
+import Steps from 'rc-steps'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import api from '../../lib/api-client'
 import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
@@ -22,6 +27,7 @@ import {
   getProfileEditorStepItemStyles,
   profileEditorStepsRailStyle,
 } from '../../lib/legacy-bootstrap-styles'
+
 
 export default function ProfileEditor({
   loadedProfile,
@@ -645,6 +651,7 @@ export default function ProfileEditor({
           >
             <RelationsSection
               profileRelation={profile?.relations}
+              savedRelations={loadedProfile?.relations}
               prefixedRelations={prefixedRelations}
               relationReaders={relationReaders}
               updateRelations={(relations) =>
