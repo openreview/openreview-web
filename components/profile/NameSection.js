@@ -1,13 +1,11 @@
-/* globals promptError,clearMessage,$, promptMessage,view2: false */
-import { useCallback, useEffect, useReducer, useState } from 'react'
-import { nanoid } from 'nanoid'
 import debounce from 'lodash/debounce'
-import Icon from '../Icon'
+import { nanoid } from 'nanoid'
+import { useCallback, useEffect, useReducer, useState } from 'react'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import api from '../../lib/api-client'
-import BasicModal from '../BasicModal'
 import { getNameString } from '../../lib/utils'
-import useUser from '../../hooks/useUser'
+import BasicModal from '../BasicModal'
+import Icon from '../Icon'
 
 const NamesButton = ({
   newRow,
@@ -131,7 +129,7 @@ const NameDeleteRequestModal = ({
   )
 }
 
-const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
+const NamesSection = ({ profileNames, updateNames, preferredUsername, isNewProfile }) => {
   const [nameToRequestDelete, setNameToRequestDelete] = useState(null)
   const [pendingNameDeletionRequests, setPendingNameDeletionRequests] = useState(null)
   const namesReducer = (names, action) => {
@@ -248,6 +246,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
   }
 
   useEffect(() => {
+    if (isNewProfile) return
     loadPendingNameDeletionNotes()
   }, [])
 

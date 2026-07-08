@@ -481,6 +481,7 @@ export default function ProfileEditor({
               profileNames={profile?.names}
               updateNames={(names) => setProfile({ type: 'names', data: names })}
               preferredUsername={loadedProfile?.names?.find((p) => p.preferred)?.username}
+              isNewProfile={isNewProfile}
             />
           </ProfileSection>
         )
@@ -680,7 +681,7 @@ export default function ProfileEditor({
         return (
           <ProfileSection title="Verification document upload">
             <DocumentUploadSection
-              profileDocuments={profile?.documents}
+              profileDocuments={profile?.identityDocuments}
               updateDocuments={(documents) =>
                 setProfile({ type: 'identityDocuments', data: documents })
               }

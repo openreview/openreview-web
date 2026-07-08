@@ -44,12 +44,20 @@ const getFormatSeparator = (index, total) => {
 }
 
 const formatProfileDocuments = (profileDocuments) =>
-  (Array.isArray(profileDocuments) ? profileDocuments : [])
-    .filter((doc) => doc?.url)
-    .map((doc, index) => {
-      const uid = String(doc.id ?? `existing-${index}`)
-      return { id: uid, uid, name: doc.name ?? doc.url, url: doc.url, status: 'done' }
-    })
+  (Array.isArray(profileDocuments) ? profileDocuments : []).flatMap((doc, index) => {
+    const normalized = typeof doc === 'string' ? { url: doc } : doc
+    if (!normalized?.url) return []
+    const uid = String(normalized.id ?? `existing-${index}`)
+    return [
+      {
+        id: uid,
+        uid,
+        name: normalized.name ?? normalized.url,
+        url: normalized.url,
+        status: 'done',
+      },
+    ]
+  })
 
 const DocumentUploadSection = ({ profileDocuments, updateDocuments }) => {
   const [documents, setDocuments] = useState(() => formatProfileDocuments(profileDocuments))
