@@ -52,7 +52,7 @@ const formatProfileDocuments = (profileDocuments) =>
       {
         id: uid,
         uid,
-        name: normalized.name ?? normalized.url,
+        name: normalized.name,
         url: normalized.url,
         status: 'done',
       },
@@ -250,12 +250,10 @@ const DocumentUploadSection = ({ profileDocuments, updateDocuments }) => {
           return (
             <div key={file.id} className={styles.fileRow}>
               <span className={styles.fileUrl}>
-                {file.originFileObj instanceof Blob ? (
+                {file.originFileObj instanceof Blob && (
                   <a onClick={() => handlePreview(file)}>{file.name}</a>
-                ) : (
-                  file.name
                 )}
-                {file.url ? ` (${file.url})` : ''}
+                {file.url ? ` ${file.url}` : ''}
               </span>
               <Tooltip title={fileStatus.tooltip}>
                 <Tag

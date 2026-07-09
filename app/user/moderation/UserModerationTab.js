@@ -535,7 +535,10 @@ const UserModerationQueue = ({
     const nextProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) + 1]
     if (nextProfile) {
       setProfileToPreview(
-        formatProfileData(cloneDeep(nextProfile), { includePastStates: true })
+        formatProfileData(cloneDeep(nextProfile), {
+          includePastStates: true,
+          includeIdentityDocuments: true,
+        })
       )
     }
   }
@@ -544,7 +547,10 @@ const UserModerationQueue = ({
     const previousProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) - 1]
     if (previousProfile) {
       setProfileToPreview(
-        formatProfileData(cloneDeep(previousProfile), { includePastStates: true })
+        formatProfileData(cloneDeep(previousProfile), {
+          includePastStates: true,
+          includeIdentityDocuments: true,
+        })
       )
     }
   }
@@ -718,7 +724,10 @@ const UserModerationQueue = ({
                       variant="solid"
                       onClick={() =>
                         setProfileToPreview(
-                          formatProfileData(cloneDeep(profile), { includePastStates: true })
+                          formatProfileData(cloneDeep(profile), {
+                            includePastStates: true,
+                            includeIdentityDocuments: true,
+                          })
                         )
                       }
                       styles={{ root: { ...legacyStyles.statusTag, cursor: 'pointer' } }}
@@ -861,6 +870,7 @@ const UserModerationQueue = ({
           'publications',
           'pastStates',
           'tags',
+          'identityDocuments',
         ]}
         showNextProfile={showNextProfile}
         showPreviousProfile={showPreviousProfile}

@@ -30,7 +30,7 @@ export default function Page() {
       setProfile(
         formatProfileData(apiRes.profile, {
           useLinkObjectFormat: true,
-          includeDocuments: true,
+          includeIdentityDocuments: true,
         })
       )
     } catch (apiError) {
