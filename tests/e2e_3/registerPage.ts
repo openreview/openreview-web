@@ -5,6 +5,7 @@ import {
   inActiveUserNoPasswordNoEmail,
   getToken,
   getMessages,
+  getProfile,
   createPasswordResetRequest,
   hasTaskUser,
   superUserName,
@@ -27,6 +28,11 @@ const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 const messageSelector = Selector('.ant-notification-notice-content').nth(-1)
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
+const registerButtonSelector = Selector('button').withText('Register for OpenReview')
+const fileUploadStepSelector = Selector('.ant-steps-item-title').withText('File Upload')
+const expertiseStepSelector = Selector('.ant-steps-item-title').withText('Expertise')
+const uploadDocumentsButtonSelector = Selector('button').withText('Upload 1 file')
+const uploadedTagSelector = Selector('.ant-tag').withText('Uploaded')
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -369,15 +375,43 @@ test('update profile', async (t) => {
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
 
-    .click(nextSectiomButtonSelector) // last section expertise
+    .click(nextSectiomButtonSelector) // expertise
     .expect(Selector('p').withText('last updated September 24, 2024').exists)
     .ok()
-    .click(Selector('button').withText('Register for OpenReview'))
+
+    // reach the File Upload step (new final step of new-profile registration)
+    .click(nextSectiomButtonSelector)
+    .expect(fileUploadStepSelector.exists)
+    .ok()
+    // upload an identity document and save it to the server
+    .setFilesToUpload(Selector('input[type="file"]'), ['../setup/paper.pdf'])
+    .click(uploadDocumentsButtonSelector)
+    .expect(uploadedTagSelector.exists)
+    .ok({ timeout: 30000 })
+
+  // the saved /attachment URL is rendered next to the file name once uploaded
+  const documentRowText = await Selector('span').withText('/attachment/').innerText
+  const uploadedDocumentUrl = documentRowText.match(/\/attachment\/[a-z0-9]{40}\.pdf/)?.[0]
+  await t.expect(uploadedDocumentUrl).ok('an /attachment URL should be shown after upload')
+
+  await t
+    // navigate away and back to confirm the uploaded file is retrieved from the profile
+    .click(expertiseStepSelector)
+    .click(fileUploadStepSelector)
+    .expect(uploadedTagSelector.exists)
+    .ok({ timeout: 15000 })
+
+    .click(registerButtonSelector)
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?id=~Melisa_Bok1`)
     .expect(Selector('h4.pronouns').nth(0).exists)
     .notOk()
+
+  // verify via API that the uploaded document URL was persisted to the profile
+  const superUserToken = await getToken(superUserName, strongPassword)
+  const melisaProfile = await getProfile({ id: '~Melisa_Bok1' }, superUserToken)
+  await t.expect(melisaProfile.content.identityDocuments).eql([uploadedDocumentUrl])
 })
 
 // oxlint-disable-next-line no-unused-expressions
@@ -434,8 +468,9 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
 
-    .click(nextSectiomButtonSelector)
-    .click(Selector('button').withText('Register for OpenReview'))
+    .click(nextSectiomButtonSelector) // expertise
+    .click(nextSectiomButtonSelector) // File Upload
+    .click(registerButtonSelector)
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
 })
