@@ -208,6 +208,7 @@ const ProfilePreviewModal = ({
             <ProfileViewSection title="Identity Documents">
               <IdentityDocumentsSection
                 identityDocuments={profileToPreview.identityDocuments}
+                profileId={profileToPreview.id}
               />
             </ProfileViewSection>
           )}

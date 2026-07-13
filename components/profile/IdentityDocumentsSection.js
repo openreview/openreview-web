@@ -3,7 +3,7 @@ import Icon from '../Icon'
 
 const getFileExtension = (documentUrl) => documentUrl?.split('.').pop()?.toLowerCase() ?? ''
 
-const IdentityDocumentsSection = ({ identityDocuments }) => {
+const IdentityDocumentsSection = ({ identityDocuments, profileId }) => {
   const documents = Array.isArray(identityDocuments) ? identityDocuments : []
   if (!documents.length) return null
 
@@ -11,7 +11,7 @@ const IdentityDocumentsSection = ({ identityDocuments }) => {
     <Image.PreviewGroup>
       <Flex vertical gap="small" align="flex-start">
         {documents.map((documentUrl, index) => {
-          const src = `${process.env.API_V2_URL}/profiles${documentUrl}`
+          const src = `${process.env.API_V2_URL}/profiles/attachment?id=${profileId}&name=identityDocuments&index=${index}`
 
           if (getFileExtension(documentUrl) === 'pdf') {
             return (
