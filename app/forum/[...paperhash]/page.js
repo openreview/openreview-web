@@ -1,5 +1,7 @@
 import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
 import { pickBy, truncate } from 'lodash'
+import { stringify } from 'query-string'
 import api from '../../../lib/api-client'
 import serverAuth from '../../auth'
 import { getConferenceName, getIssn, getJournalName } from '../../../lib/utils'
@@ -13,7 +15,7 @@ import ErrorDisplay from '../../../components/ErrorDisplay'
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
 // #region data fetching
-const getForumNote = async (token, paperhash, remoteIpAddress) => {
+const getForumNote = async (token, paperhash, remoteIpAddress, clearanceToken) => {
   try {
     const result = await api.get(
       '/notes',
@@ -21,7 +23,7 @@ const getForumNote = async (token, paperhash, remoteIpAddress) => {
         paperhash,
         details: 'writable',
       },
-      { accessToken: token, remoteIpAddress }
+      { accessToken: token, remoteIpAddress, clearanceToken }
     )
     const note = result.notes?.[0]
     if (!note || (note.ddate && !note.details?.writable)) {
@@ -30,6 +32,10 @@ const getForumNote = async (token, paperhash, remoteIpAddress) => {
 
     return { forumNote: note }
   } catch (error) {
+    // Signal that this guest must solve the challenge; the caller builds the redirect.
+    if (error.name === 'ChallengeRequiredError') {
+      return { challengeRequired: true }
+    }
     return { errorMessage: error.message }
   }
 }
@@ -47,11 +53,16 @@ export async function generateMetadata({ params }) {
   const headersList = await headers()
   const remoteIpAddress = headersList.get('x-forwarded-for')
 
-  const { token } = await serverAuth()
+  const { token, clearanceToken } = await serverAuth()
 
   try {
-    const { forumNote, errorMessage } = await getForumNote(token, paperhash, remoteIpAddress)
-    if (errorMessage) return fallbackMetadata
+    const { forumNote, errorMessage, challengeRequired } = await getForumNote(
+      token,
+      paperhash,
+      remoteIpAddress,
+      clearanceToken
+    )
+    if (errorMessage || challengeRequired || !forumNote) return fallbackMetadata
 
     // #region Metadata
     const metaData = {}
@@ -148,10 +159,24 @@ export default async function page({ params, searchParams }) {
   const headersList = await headers()
   const remoteIpAddress = headersList.get('x-forwarded-for')
 
-  const { token } = await serverAuth()
+  const { token, clearanceToken } = await serverAuth()
   const { referrer } = query
 
-  const { forumNote, errorMessage } = await getForumNote(token, paperhash, remoteIpAddress)
+  const { forumNote, errorMessage, challengeRequired } = await getForumNote(
+    token,
+    paperhash,
+    remoteIpAddress,
+    clearanceToken
+  )
+  if (challengeRequired) {
+    const forumPath = `/forum/${paperhash}`
+    const queryString = stringify(query)
+    redirect(
+      `/challenge?redirect=${encodeURIComponent(
+        queryString ? `${forumPath}?${queryString}` : forumPath
+      )}`
+    )
+  }
   if (errorMessage) return <ErrorDisplay message={errorMessage} />
 
   const content = Object.keys(forumNote.content ?? {}).reduce((translatedContent, key) => {
