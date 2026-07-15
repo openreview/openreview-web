@@ -153,7 +153,7 @@ jobs:
           wait_for_service() {
             local url=$1
             local service_name=$2
-            local max_attempts=3
+            local max_attempts=5
             local attempt=0
 
             echo "Checking $service_name at $url"
