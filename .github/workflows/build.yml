@@ -184,7 +184,7 @@ jobs:
         run: |
           cd openreview-web
           mkdir -p logs
-          NODE_ENV=production SUPER_USER=openreview.net npm run start > logs/web.log 2>&1 &
+          NODE_ENV=production SUPER_USER=openreview.net npm run start -- --keepAliveTimeout 620000 > logs/web.log 2>&1 &
       - name: Pin Firefox Version
         id: setup-firefox
         uses: browser-actions/setup-firefox@v1
