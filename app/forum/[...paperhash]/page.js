@@ -1,16 +1,17 @@
+import { pickBy, truncate } from 'lodash'
 import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { pickBy, truncate } from 'lodash'
 import { stringify } from 'query-string'
-import api from '../../../lib/api-client'
-import serverAuth from '../../auth'
-import { getConferenceName, getIssn, getJournalName } from '../../../lib/utils'
-import Forum from '../../../components/forum/Forum'
-import styles from '../Forum.module.scss'
-import CommonLayout from '../../CommonLayout'
-import { referrerLink, venueHomepageLink } from '../../../lib/banner-links'
 import Banner from '../../../components/Banner'
 import ErrorDisplay from '../../../components/ErrorDisplay'
+import Forum from '../../../components/forum/Forum'
+import api from '../../../lib/api-client'
+import { referrerLink, venueHomepageLink } from '../../../lib/banner-links'
+import { getConferenceName, getIssn, getJournalName } from '../../../lib/utils'
+import serverAuth from '../../auth'
+import CommonLayout from '../../CommonLayout'
+
+import styles from '../Forum.module.scss'
 
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
