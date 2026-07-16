@@ -630,7 +630,7 @@ test('add alternate email', async (t) => {
     .ok()
     .click(Selector('a').withText('Profile'))
     .click(Selector('a').withAttribute('href', '/profile/edit'))
-    .click(Selector('div[step="2"]').find('div[role="button"]')) // go to email section
+    .click(Selector('.ant-steps-item').withText('Emails')) // go to email section
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
     .click(Selector('section').find('.glyphicon-plus-sign')) // add button
