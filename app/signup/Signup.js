@@ -81,7 +81,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
             />
             I confirm that this name is typed exactly as it would appear as an author in my
             publications. I understand that any future changes to my name will require
-            moderation by the OpenReview.net Staff, and may require two weeks processing time.
+            moderation by the OpenReview.net Staff.
           </label>
         </div>
       </form>
@@ -118,7 +118,7 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
     <span>
       Please note: Your email address could not be automatically verified.
       <br />
-      Accounts that cannot be automatically verified may take up to 2 weeks to be activated. To
+      Accounts that cannot be automatically verified will need to be manually activated. To
       expedite the process, we recommend using an email address from a recognized company or
       institution (for example, your employer, university, or research lab), or completing your
       profile information as thoroughly as possible to help us verify your affiliation.
