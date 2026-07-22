@@ -120,7 +120,6 @@ export default function Page() {
       signatures: [profile.id],
       readers: profileReaders,
     }
-    let shouldCheckHistoryLock = false
     try {
       const apiRes = await api.post('/profiles', dataToSubmit)
       const prefName = apiRes.content?.names?.find((name) => name.preferred === true)
@@ -135,7 +134,6 @@ export default function Page() {
       )
       promptMessage('Your profile information has been successfully updated', 2)
       loadProfile()
-      shouldCheckHistoryLock = true
     } catch (apiError) {
       promptError(apiError.message)
       setSaveProfileErrors(
@@ -143,7 +141,6 @@ export default function Page() {
       )
     }
     setLoading(false)
-    return shouldCheckHistoryLock
   }
 
   useEffect(() => {

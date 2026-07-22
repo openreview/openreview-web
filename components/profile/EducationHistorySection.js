@@ -1,11 +1,10 @@
-import { Tooltip } from 'antd'
-import { uniq } from 'lodash'
 import { nanoid } from 'nanoid'
 import dynamic from 'next/dynamic'
+/* globals promptError,$: false */
 import { useEffect, useReducer, useState } from 'react'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import api from '../../lib/api-client'
-import { getStartEndYear, isInstitutionEmail } from '../../lib/utils'
+import { getStartEndYear } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import Icon from '../Icon'
 
@@ -26,8 +25,6 @@ const CreatableDropdown = dynamic(
 const positionPlaceholder = 'Choose or type a position'
 const institutionPlaceholder = 'Choose or type an institution'
 const regionPlaceholder = 'Institution Country/Region'
-const lockedDomainMessage =
-  'This affiliation is verified by a confirmed institutional email in your profile and can no longer be changed or removed'
 // #region action type constants
 const posititonType = 'updatePosition'
 const startType = 'updateStart'
@@ -40,7 +37,6 @@ const institutionStateProvinceType = 'updateInstitutionStateProvince'
 const institutionDepartmentType = 'updateInstitutionDepartment'
 const addHistoryType = 'addHistory'
 const removeHistoryType = 'removeHistory'
-const checkHistoryLockType = 'checkHistoryLock'
 // #endregion
 
 const EducationHistoryRow = ({
@@ -52,7 +48,6 @@ const EducationHistoryRow = ({
   institutionDomainOptions,
   countryOptions,
   isMobile,
-  isLocked,
 }) => {
   const [isPositionClicked, setIsPositionClicked] = useState(false)
   const [isDomainClicked, setIsDomainClicked] = useState(false)
@@ -199,7 +194,7 @@ const EducationHistoryRow = ({
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-3">Institution Domain</div>}
-        {isDomainClicked && !isIndependentResearcher && !isLocked ? (
+        {isDomainClicked && !isIndependentResearcher ? (
           <CreatableDropdown
             autofocus
             clientOnly
@@ -229,21 +224,18 @@ const EducationHistoryRow = ({
             options={institutionDomainOptions}
           />
         ) : (
-          <Tooltip title={isLocked ? lockedDomainMessage : null}>
-            <input
-              className={`form-control institution-dropdown__placeholder ${
-                invalidFields?.institutionDomain ? 'invalid-value' : ''
-              }`}
-              placeholder={institutionPlaceholder}
-              value={p.institution?.domain}
-              disabled={isIndependentResearcher}
-              readOnly={isLocked}
-              onClick={() => setIsDomainClicked(true)}
-              onFocus={() => setIsDomainClicked(true)}
-              onChange={() => {}}
-              aria-label="Institution Domain"
-            />
-          </Tooltip>
+          <input
+            className={`form-control institution-dropdown__placeholder ${
+              invalidFields?.institutionDomain ? 'invalid-value' : ''
+            }`}
+            placeholder={institutionPlaceholder}
+            value={p.institution?.domain}
+            disabled={isIndependentResearcher}
+            onClick={() => setIsDomainClicked(true)}
+            onFocus={() => setIsDomainClicked(true)}
+            onChange={() => {}}
+            aria-label="Institution Domain"
+          />
         )}
         {invalidFields?.institutionDomain && (
           <span
@@ -285,7 +277,7 @@ const EducationHistoryRow = ({
         )}
       </div>
       <div className="col-md-1 history__value">
-        {history.length > 1 && !isLocked && (
+        {history.length > 1 && (
           <div
             role="button"
             aria-label="remove history"
@@ -394,15 +386,12 @@ const EducationHistoryRow = ({
 
 const EducationHistorySection = ({
   profileHistory,
-  confirmedEmails = [],
   positions,
   institutionDomains,
   countries,
   updateHistory,
-  shouldCheckHistoryLock,
 }) => {
   const isMobile = !useBreakpoint('lg')
-  const [institutionDomainsMap, setInstitutionDomainsMap] = useState({})
   const institutionDomainOptions = institutionDomains?.map((p) => ({
     value: p,
     label: p,
@@ -522,7 +511,6 @@ const EducationHistorySection = ({
             position: '',
             start: null,
             end: null,
-            savedDomain: null,
             institution: {
               domain: '',
               name: '',
@@ -531,8 +519,6 @@ const EducationHistorySection = ({
         ]
       case removeHistoryType:
         return state.filter((p) => p.key !== action.data.key)
-      case checkHistoryLockType:
-        return state.map((p) => ({ ...p, savedDomain: p.institution?.domain ?? null }))
       default:
         return state
     }
@@ -545,8 +531,6 @@ const EducationHistorySection = ({
           ...p,
           start: getStartEndYear(p.start),
           end: getStartEndYear(p.end),
-          savedDomain:
-            p.savedDomain === undefined ? (p.institution?.domain ?? null) : p.savedDomain,
           key: nanoid(),
         }))
       : [...Array(3).keys()].map(() => ({
@@ -554,7 +538,6 @@ const EducationHistorySection = ({
           position: '',
           start: null,
           end: null,
-          savedDomain: null,
           institution: {
             domain: '',
             name: '',
@@ -562,50 +545,9 @@ const EducationHistorySection = ({
         }))
   )
 
-  const savedDomains = uniq(history.map((p) => p.savedDomain).filter(Boolean))
-    .sort()
-    .join(',')
-
-  const loadAllDomainAliases = async (domains) => {
-    const results = await Promise.all(
-      domains.map((domain) => api.get('/settings/institutions', { domain }).catch(() => null))
-    )
-    setInstitutionDomainsMap(
-      Object.fromEntries(
-        domains.map((domain, index) => {
-          const institution = results[index]?.institutions?.[0]
-          return [domain, institution ? institution.domains : [domain]]
-        })
-      )
-    )
-  }
-
-  const isLockedRow = (historyRow) => {
-    const aliases = historyRow.savedDomain
-      ? institutionDomainsMap[historyRow.savedDomain]
-      : null
-    if (!aliases) return false
-    return confirmedEmails.some((email) => isInstitutionEmail(email, aliases))
-  }
-
   useEffect(() => {
     updateHistory(history)
   }, [history])
-
-  useEffect(() => {
-    const domains = savedDomains ? savedDomains.split(',') : []
-    if (!domains.length) {
-      setInstitutionDomainsMap({})
-      return
-    }
-    loadAllDomainAliases(domains)
-  }, [savedDomains])
-
-  useEffect(() => {
-    if (shouldCheckHistoryLock) {
-      setHistory({ type: checkHistoryLockType })
-    }
-  }, [shouldCheckHistoryLock])
 
   useEffect(() => {
     $('[data-toggle="tooltip"]').tooltip()
@@ -632,7 +574,6 @@ const EducationHistorySection = ({
           institutionDomainOptions={institutionDomainOptions}
           countryOptions={countryOptions}
           isMobile={isMobile}
-          isLocked={isLockedRow(p)}
         />
       ))}
       <div className="row">
