@@ -42,6 +42,7 @@ export default function ProfileEditor({
   const [dropdownOptions, setDropdownOptions] = useState(null)
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
+  const [shouldCheckHistoryLock, setShouldCheckHistoryLock] = useState(0)
   const [currentStepKey, setCurrentStepKey] = useState('names')
   const [invalidStepKeys, setInvalidStepKeys] = useState([])
   const stepRef = useRef(null)
@@ -450,7 +451,12 @@ export default function ProfileEditor({
     setInvalidStepKeys([])
     const { isValid, profileContent, profileReaders } = validateCleanProfile()
     if (isValid) {
-      await submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
+      const shouldCheckHistoryLock = await submitHandler(
+        profileContent,
+        profileReaders,
+        publicationIdsToUnlink
+      )
+      if (shouldCheckHistoryLock) setShouldCheckHistoryLock((current) => current + 1)
     }
     if (currentStepKey === 'history') {
       setRenderPublicationEditor((current) => !current)
@@ -607,10 +613,12 @@ export default function ProfileEditor({
           >
             <EducationHistorySection
               profileHistory={profile?.history}
+              confirmedEmails={profile?.emails?.flatMap((p) => (p.confirmed ? [p.email] : []))}
               positions={positions}
               institutionDomains={institutionDomains}
               countries={countries}
               updateHistory={(history) => setProfile({ type: 'history', data: history })}
+              shouldCheckHistoryLock={shouldCheckHistoryLock}
             />
           </ProfileSection>
         )
