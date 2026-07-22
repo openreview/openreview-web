@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 
-const Markdown = ({ text, disableMathjaxFormula = false }) => {
+const Markdown = ({ text, disableMathjaxFormula = false, disableGfm = false }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const containerEl = useRef(null)
 
@@ -15,8 +15,8 @@ const Markdown = ({ text, disableMathjaxFormula = false }) => {
       setSanitizedHtml(DOMPurify.sanitize(text))
       return
     }
-    setSanitizedHtml(DOMPurify.sanitize(marked(text)))
-  }, [text])
+    setSanitizedHtml(DOMPurify.sanitize(marked(text, disableGfm ? { gfm: false } : undefined)))
+  }, [text, disableGfm])
 
   useEffect(() => {
     if (disableMathjaxFormula) return
