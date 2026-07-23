@@ -15,7 +15,9 @@ const Markdown = ({ text, disableMathjaxFormula = false, disableGfm = false }) =
       setSanitizedHtml(DOMPurify.sanitize(text))
       return
     }
-    setSanitizedHtml(DOMPurify.sanitize(marked(text, disableGfm ? { gfm: false } : undefined)))
+    setSanitizedHtml(
+      DOMPurify.sanitize(disableGfm ? marked(text, { gfm: false }) : marked(text))
+    )
   }, [text, disableGfm])
 
   useEffect(() => {
