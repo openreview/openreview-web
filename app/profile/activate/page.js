@@ -52,7 +52,7 @@ export default function Page() {
       } else {
         // If user moderation is enabled, PUT /activate/${token} will return an empty response
         promptMessage(
-          'Your OpenReview profile has been created. Please allow up to two weeks for your profile to be processed.'
+          'Your OpenReview profile has been created and is now in the moderation queue. You will receive an email once moderation is complete.'
         )
         router.push('/')
       }

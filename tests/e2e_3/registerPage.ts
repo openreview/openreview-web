@@ -46,7 +46,7 @@ test('create new profile', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff.'
       ).exists
     )
     .ok()
@@ -122,7 +122,7 @@ test('create another new profile', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff.'
       ).exists
     )
     .ok()
@@ -171,7 +171,7 @@ test('create a new profile with an institutional email', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff.'
       ).exists
     )
     .ok()
