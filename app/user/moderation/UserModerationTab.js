@@ -332,7 +332,7 @@ const UserModerationQueue = ({
     token.startsWith('~') || token.includes('@') || isValidDomain(token.toLowerCase())
 
   const getProfiles = async () => {
-    const queryOptions = onlyModeration ? { needsModeration: true } : {}
+    const queryOptions = onlyModeration ? { state: 'Needs Moderation' } : {}
     const cleanSearchTerm = filters.term?.trim()
     const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
     const sortKey = onlyModeration ? 'tmdate' : 'tcdate'

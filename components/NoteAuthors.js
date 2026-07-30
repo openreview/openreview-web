@@ -1,3 +1,4 @@
+import { Tooltip } from 'antd'
 import isEqual from 'lodash/isEqual'
 /* globals $: false */
 import uniqBy from 'lodash/uniqBy'
@@ -223,17 +224,11 @@ export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
     if (!author.username) return <span key={author.fullname}>{author.fullname}</span>
     if (author.username.startsWith('https://dblp.org')) {
       return (
-        <a
-          key={`${author.fullname} ${author.username}`}
-          href={author.username}
-          title={author.username}
-          data-toggle="tooltip"
-          data-placement="top"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {author.fullname}
-        </a>
+        <Tooltip key={`${author.fullname} ${author.username}`} title={author.username}>
+          <a href={author.username} target="_blank" rel="noopener noreferrer">
+            {author.fullname}
+          </a>
+        </Tooltip>
       )
     }
 
@@ -246,14 +241,15 @@ export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
         key={`${author.fullname} ${author.username}`}
         className="note-author-with-institutions"
       >
-        <Link
-          href={`/profile?id=${encodeURIComponent(author.username)}`}
-          title={author.username}
-          data-toggle="tooltip"
-          data-placement="top"
-        >
-          {author.fullname}
-        </Link>
+        <Tooltip title={author.username}>
+          {author.username.includes('@') ? (
+            <span>{author.fullname}</span>
+          ) : (
+            <Link href={`/profile?id=${encodeURIComponent(author.username)}`}>
+              {author.fullname}
+            </Link>
+          )}
+        </Tooltip>
         {institutionNumbers.length > 0 && <sup>{institutionNumbers.join(',')}</sup>}
       </span>
     )
