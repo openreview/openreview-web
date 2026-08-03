@@ -5,6 +5,7 @@ import { getRejectionReasons } from '../../lib/utils'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
+import IdentityDocumentsSection from './IdentityDocumentsSection'
 import MessagesSection from './MessagesSection'
 import PastStatesSection from './PastStatesSection'
 import ProfilePublications from './ProfilePublications'
@@ -22,6 +23,7 @@ const ProfilePreviewModal = ({
 }) => {
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
+  const [profileDocuments, setProfileDocuments] = useState(null)
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
@@ -72,6 +74,17 @@ const ProfilePreviewModal = ({
         profile: profileToPreview.id,
       })
       setTags(result.tags)
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
+  const loadIdentityDocuments = async () => {
+    try {
+      const { profileDocuments } = await api.get('/profile-documents', {
+        profileId: profileToPreview.id,
+      })
+      setProfileDocuments(profileDocuments)
     } catch (apiError) {
       setError(apiError)
     }
@@ -139,6 +152,8 @@ const ProfilePreviewModal = ({
     setRejectReasons(getRejectionReasons(currentInstitutionName))
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
     if (profileToPreview && contentToShow?.includes('tags')) loadTags()
+    if (profileToPreview && contentToShow?.includes('identityDocuments'))
+      loadIdentityDocuments()
   }, [profileToPreview?.id])
 
   if (!profileToPreview) return null
@@ -199,6 +214,15 @@ const ProfilePreviewModal = ({
             <PastStatesSection
               email={profileToPreview.preferredEmail}
               pastStates={profileToPreview.pastStates}
+            />
+          </ProfileViewSection>
+        )}
+        {contentToShow?.includes('identityDocuments') && (
+          <ProfileViewSection title="Identity Documents">
+            <IdentityDocumentsSection
+              profileId={profileToPreview.id}
+              profileDocuments={profileDocuments}
+              loadIdentityDocuments={loadIdentityDocuments}
             />
           </ProfileViewSection>
         )}

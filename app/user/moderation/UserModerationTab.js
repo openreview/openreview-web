@@ -457,11 +457,42 @@ const UserModerationQueue = ({
   }
 
   const rejectUser = async (rejectionMessage, id) => {
+    let interpretedRejectionMessage = rejectionMessage
+    if (interpretedRejectionMessage.includes('{{documentVerificationLink}}')) {
+      try {
+        const { url } = await api.post('/profile-documents/upload-link', {
+          profileId: id,
+          type: 'identity',
+        })
+        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
+          '{{documentVerificationLink}}',
+          url
+        )
+      } catch (error) {
+        promptError(error.message)
+        return
+      }
+    }
+    if (interpretedRejectionMessage.includes('{{underageConsentLink}}')) {
+      try {
+        const { url } = await api.post('/profile-documents/upload-link', {
+          profileId: id,
+          type: 'parentalConsent',
+        })
+        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
+          '{{underageConsentLink}}',
+          url
+        )
+      } catch (error) {
+        promptError(error.message)
+        return
+      }
+    }
     try {
       await api.post('/profile/moderate', {
         id,
         decision: 'reject',
-        reason: rejectionMessage,
+        reason: interpretedRejectionMessage,
       })
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
@@ -861,6 +892,7 @@ const UserModerationQueue = ({
           'publications',
           'pastStates',
           'tags',
+          'identityDocuments',
         ]}
         showNextProfile={showNextProfile}
         showPreviousProfile={showPreviousProfile}
