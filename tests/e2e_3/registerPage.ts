@@ -503,6 +503,10 @@ test('register a profile with an institution which is not the one of the email',
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .typeText(institutionDomainInput, institutionEmailDomain)
     .click(Selector('div.institution-dropdown__option').withExactText(institutionEmailDomain))
+    .pressKey('tab')
+    // add mandatory region again as selecting an institution resets country/region
+    .click(Selector('input.region-dropdown__placeholder'))
+    .click(Selector('div.country-dropdown__option').nth(3))
     .click(nextSectiomButtonSelector)
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
