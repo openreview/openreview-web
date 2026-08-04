@@ -6,6 +6,7 @@ import { AntdTabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import NewVenueRequestCount from './(VenueRequests)/NewVenueRequestCount'
+import IdentityDocumentsTab from './IdentityDocumentsTab'
 import UserModerationTab from './UserModerationTab'
 
 const EmailDeletionTab = dynamic(() => import('./(EmailDeletion)/EmailDeletionTab'))
@@ -23,6 +24,11 @@ export default function Moderation() {
         key: 'profiles',
         label: 'Moderation',
         children: <UserModerationTab />,
+      },
+      {
+        key: 'documents',
+        label: 'Identity Documents',
+        children: <IdentityDocumentsTab />,
       },
       {
         key: 'email',
