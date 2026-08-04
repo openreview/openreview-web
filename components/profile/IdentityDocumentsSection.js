@@ -18,7 +18,7 @@ const DocumentMetadata = ({ item, loadIdentityDocuments }) => {
       value: item.tcdate ? formatDateTime(item.tcdate, { second: undefined }) : null,
     },
   ]
-  const isDeletable = item.type !== 'parental-consent'
+  const isDeletable = item.type !== 'parentalConsent'
 
   const deleteDocument = async () => {
     try {
@@ -152,7 +152,7 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
         </Flex>
       </Image.PreviewGroup>
       <Button type="primary" style={{ marginTop: '.25rem' }} onClick={deleteAllDocuments}>
-        Delete All Documents
+        Delete All Identity Documents
       </Button>
     </div>
   )

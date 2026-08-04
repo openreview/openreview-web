@@ -31,12 +31,16 @@ const getFileLocationStatus = (file) => {
   }
 }
 
-const DocumentUploadSection = ({ type, token }) => {
+const DocumentUploadSection = ({
+  type,
+  token,
+  maxSize = 3,
+  maxFileCount = 5,
+  instructions = 'Upload any files that you think are necessary to support your profile creation request.',
+}) => {
   const [documents, setDocuments] = useState([])
 
   const acceptedFileTypes = ['pdf', 'jpg', 'jpeg', 'png']
-  const maxSize = 2
-  const maxFileCount = 5
 
   const isUploading = documents.some((file) => file.status === 'uploading')
   const pendingCount = documents.filter((file) => !file.url).length
@@ -108,10 +112,7 @@ const DocumentUploadSection = ({ type, token }) => {
   return (
     <>
       <div className={styles.instructions}>
-        <div>
-          Upload any files that you think are necessary to support your profile creation
-          request.
-        </div>
+        <div>{instructions}</div>
         <div>You may upload up to {maxFileCount} files.</div>
         <div>
           Accepted formats: <strong>PDF</strong>, <strong>JPG</strong>, <strong>JPEG</strong>,
