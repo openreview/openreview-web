@@ -91,6 +91,7 @@ export const RejectionModal = ({
         xs: '90%',
         sm: '50%',
       }}
+      styles={{ wrapper: { overscrollBehavior: 'contain' } }}
     >
       <Flex vertical gap="small" align="flex-start">
         <Select
