@@ -30,6 +30,7 @@ const BaseMenuBar = ({
   querySearchInfoModal,
   searchPlaceHolder,
   extraClasses,
+  uniqueIdentifier = 'note.id',
   enablePDFDownload = false,
 }) => {
   const disabledMessageButton = selectedIds?.length === 0
@@ -69,7 +70,7 @@ const BaseMenuBar = ({
       cleanImmediateSearchTerm.slice(1),
       filterOperators,
       propertiesAllowed,
-      'note.id'
+      uniqueIdentifier
     )
     if (queryIsInvalid) {
       setQueryIsInvalidStatus(true)
