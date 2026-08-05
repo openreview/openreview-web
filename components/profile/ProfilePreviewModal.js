@@ -40,6 +40,17 @@ const ProfilePreviewModal = ({
   ]
   const [tagInvitation, setTagInvitation] = useState(tagInvitationOptions[0].value)
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
+  const isRejectedProfile = profileToPreview?.state === 'Rejected'
+
+  const tagAndActivateProfile = async () => {
+    await api.post('/tags', {
+      profile: profileToPreview.id,
+      label: 'user sent document',
+      signature: `${process.env.SUPER_USER}/Support`,
+      invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+    })
+    await api.post('/profile/moderate', { id: profileToPreview.id, decision: 'accept' })
+  }
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
     setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
@@ -224,8 +235,9 @@ const ProfilePreviewModal = ({
               profileId={profileToPreview.id}
               profileDocuments={profileDocuments}
               loadIdentityDocuments={loadIdentityDocuments}
-              isRejectedProfile={profileToPreview.state === 'Rejected'}
-              setProfileToPreview={setProfileToPreview}
+              deleteAllLabel={isRejectedProfile ? 'Activate with ID check' : undefined}
+              onBeforeDeleteAll={isRejectedProfile ? tagAndActivateProfile : undefined}
+              onAfterDeleteAll={isRejectedProfile ? loadTags : undefined}
             />
           </ProfileViewSection>
         )}

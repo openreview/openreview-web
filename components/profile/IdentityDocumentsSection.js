@@ -62,8 +62,9 @@ const IdentityDocumentsSection = ({
   profileId,
   profileDocuments,
   loadIdentityDocuments,
-  isRejectedProfile,
-  setProfileToPreview,
+  deleteAllLabel = 'Delete All Identity Documents',
+  onBeforeDeleteAll,
+  onAfterDeleteAll,
 }) => {
   if (!profileDocuments) return <LoadingSpinner inline />
   if (!profileDocuments.length) return 'No Identity Documents'
@@ -95,19 +96,7 @@ const IdentityDocumentsSection = ({
     )
     if (!confirmDelete) return
     try {
-      if (isRejectedProfile) {
-        // post tag and activate profile
-        await api.post('/tags', {
-          profile: profileId,
-          label: 'user sent document',
-          signature: `${process.env.SUPER_USER}/Support`,
-          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
-        })
-
-        await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
-
-        setProfileToPreview(null)
-      }
+      await onBeforeDeleteAll?.()
       const { deletedCount } = await api.delete(
         `/profile-documents/identity/profiles/${profileId}`
       )
@@ -115,6 +104,7 @@ const IdentityDocumentsSection = ({
         `${inflect(deletedCount, 'document has', 'documents have', true)} been deleted`
       )
       loadIdentityDocuments()
+      onAfterDeleteAll?.()
     } catch (error) {
       promptError(error.message)
     }
@@ -245,7 +235,7 @@ const IdentityDocumentsSection = ({
       </Image.PreviewGroup>
       {shouldShowActionButton && (
         <Button type="primary" style={{ marginTop: '.25rem' }} onClick={deleteAllDocuments}>
-          {isRejectedProfile ? 'Activate with ID check' : 'Delete All Identity Documents'}
+          {deleteAllLabel}
         </Button>
       )}
     </div>
