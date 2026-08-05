@@ -66,7 +66,10 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
     ({ id, type, extension, filename, size, tcdate, ddate }, index) => ({
       key: id ?? index,
       id,
-      src: `${process.env.API_V2_URL}/profile-documents/${id}`,
+
+      src: ddate
+        ? `${deletedThumbnail}#${id ?? index}`
+        : `${process.env.API_V2_URL}/profile-documents/${id}`,
       isPdf: extension === 'pdf',
       type,
       extension,
@@ -98,6 +101,7 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
   return (
     <div>
       <Image.PreviewGroup
+        items={items.map((item) => ({ src: item.src }))}
         preview={{
           imageRender: (originalNode, { current }) => {
             const item = items[current]
@@ -157,7 +161,7 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
               return (
                 <div key={item.key} style={{ position: 'relative' }}>
                   <Image
-                    src={deletedThumbnail}
+                    src={item.src}
                     alt={`Identity document ${index + 1} (deleted)`}
                     width={76}
                     height={100}
@@ -189,6 +193,7 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
                 <Image
                   key={item.key}
                   src={pdfThumbnail}
+                  preview={{ src: item.src }}
                   alt={`Identity document ${index + 1} (PDF)`}
                   width={76}
                   height={100}
