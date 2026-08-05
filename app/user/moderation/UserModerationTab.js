@@ -21,6 +21,7 @@ import {
 } from 'antd'
 import dayjs from 'dayjs'
 import { cloneDeep, uniqBy } from 'lodash'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useReducer, useState } from 'react'
 import Icon from '../../../components/Icon'
 import LoadingSpinner from '../../../components/LoadingSpinner'
@@ -296,11 +297,16 @@ const UserModerationQueue = ({
   shouldReload,
   showSortButton = false,
 }) => {
+  const searchParams = useSearchParams()
+  const idParam = searchParams.get('id')
+  const profileIdToSerach = idParam?.startsWith('~') ? idParam : ''
   const [profiles, setProfiles] = useState(null)
   const [isMultiTermSearch, setIsMultiTermSearch] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
   const [pageNumber, setPageNumber] = useState(1)
-  const [filters, setFilters] = useState({})
+  const [filters, setFilters] = useState(
+    !onlyModeration && profileIdToSerach ? { term: profileIdToSerach } : {}
+  )
   const [profileToReject, setProfileToReject] = useState(null)
   const [profileToBlockUnblock, setProfileToBlockUnblock] = useState(null)
   const [signedNotes, setSignedNotes] = useState(0)
@@ -308,7 +314,7 @@ const UserModerationQueue = ({
   const [descOrder, setDescOrder] = useState(true)
   const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 10)
   const [profileToPreview, setProfileToPreview] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(profileIdToSerach)
   const [profileStateOption, setProfileStateOption] = useState('All')
   const profileStateOptions = [
     'All',
@@ -580,6 +586,16 @@ const UserModerationQueue = ({
       )
     }
   }
+
+  useEffect(() => {
+    if (onlyModeration || !profileIdToSerach) return
+    setSearchTerm(profileIdToSerach)
+    setPageNumber(1)
+    setProfileStateOption('All')
+    setFilters((currentFilters) =>
+      currentFilters.term === profileIdToSerach ? currentFilters : { term: profileIdToSerach }
+    )
+  }, [onlyModeration, profileIdToSerach])
 
   useEffect(() => {
     getProfiles()

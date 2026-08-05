@@ -2,6 +2,7 @@ import { Col, Flex, Row, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { sortBy } from 'lodash'
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
@@ -73,7 +74,7 @@ const IdentityDocumentsTab = () => {
           ({ profileId, documentCount, minTcdate, maxTcdate }) => (
             <Row key={profileId} align="middle" gutter={[8, 8]}>
               <Col xs={6} lg={8}>
-                {profileId}
+                <Link href={`/user/moderation?id=${profileId}`}>{profileId}</Link>
               </Col>
               <Col xs={6} lg={4}>
                 {documentCount}

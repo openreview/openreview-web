@@ -1,7 +1,8 @@
 'use client'
 
 import dynamic from 'next/dynamic'
-import { useMemo } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
 import { AntdTabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
@@ -18,6 +19,14 @@ const VenueRequestTab = dynamic(() => import('./(VenueRequests)/VenueRequestTab'
 const VenuesTab = dynamic(() => import('./(VenueRequests)/VenuesTab'))
 
 export default function Moderation() {
+  const searchParams = useSearchParams()
+  const idParam = searchParams.get('id')
+  const [activeKey, setActiveKey] = useState('profiles')
+
+  useEffect(() => {
+    if (idParam) setActiveKey('profiles')
+  }, [idParam])
+
   const items = useMemo(
     () => [
       {
@@ -69,5 +78,15 @@ export default function Moderation() {
     []
   )
 
-  return <AntdTabs type="card" items={items} />
+  return (
+    <AntdTabs
+      type="card"
+      items={items}
+      activeKey={activeKey}
+      onChange={(key) => {
+        setActiveKey(key)
+        if (idParam) window.history.replaceState(null, '', window.location.pathname)
+      }}
+    />
+  )
 }
