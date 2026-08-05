@@ -53,23 +53,22 @@ const DocumentUploadSection = ({
     )
   }
 
-  const uploadPendingFiles = () => {
-    documents
-      .filter((file) => !file.url && file.status !== 'uploading')
-      .forEach(async (file) => {
-        updateDocumentState(file.id, { status: 'uploading', errorMessage: undefined })
-        try {
-          const data = new FormData()
-          data.append('file', file.originFileObj)
-          const result = await api.post(`/profile-documents/${type}/${token}`, data, {
-            contentType: 'unset',
-          })
-          updateDocumentState(file.id, { status: 'done', url: result.id })
-        } catch (apiError) {
-          updateDocumentState(file.id, { status: 'error', errorMessage: apiError.message })
-          promptError(apiError.message)
-        }
-      })
+  const uploadPendingFiles = async () => {
+    const pendingFiles = documents.filter((file) => !file.url && file.status !== 'uploading')
+    for (const file of pendingFiles) {
+      updateDocumentState(file.id, { status: 'uploading', errorMessage: undefined })
+      try {
+        const data = new FormData()
+        data.append('file', file.originFileObj)
+        const result = await api.post(`/profile-documents/${type}/${token}`, data, {
+          contentType: 'unset',
+        })
+        updateDocumentState(file.id, { status: 'done', url: result.id })
+      } catch (apiError) {
+        updateDocumentState(file.id, { status: 'error', errorMessage: apiError.message })
+        promptError(apiError.message)
+      }
+    }
   }
 
   const beforeUpload = (file) => {
