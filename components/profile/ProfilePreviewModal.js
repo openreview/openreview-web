@@ -83,6 +83,7 @@ const ProfilePreviewModal = ({
     try {
       const { profileDocuments } = await api.get('/profile-documents', {
         profileId: profileToPreview.id,
+        trash: true,
       })
       setProfileDocuments(profileDocuments)
     } catch (apiError) {

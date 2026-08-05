@@ -6,8 +6,10 @@ import LoadingSpinner from '../LoadingSpinner'
 import styles from '../../styles/components/IdentityDocumentsSection.module.scss'
 
 const pdfThumbnail = '/images/pdf_icon_blue.svg'
+const deletedThumbnail =
+  'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="76" height="100"><rect width="76" height="100" fill="%23f5f5f5"/></svg>'
 
-const DocumentMetadata = ({ item, loadIdentityDocuments }) => {
+const DocumentMetadata = ({ item, loadIdentityDocuments, inline = false }) => {
   const properties = [
     { label: 'File Name', value: item.filename },
     { label: 'Document Type', value: item.type },
@@ -17,8 +19,12 @@ const DocumentMetadata = ({ item, loadIdentityDocuments }) => {
       label: 'Uploaded',
       value: item.tcdate ? formatDateTime(item.tcdate, { second: undefined }) : null,
     },
+    {
+      label: 'Deleted',
+      value: item.ddate ? formatDateTime(item.ddate, { second: undefined }) : null,
+    },
   ]
-  const isDeletable = item.type !== 'parentalConsent'
+  const isDeletable = item.type !== 'parentalConsent' && !item.ddate
 
   const deleteDocument = async () => {
     try {
@@ -31,7 +37,10 @@ const DocumentMetadata = ({ item, loadIdentityDocuments }) => {
   }
 
   return (
-    <div className={styles.documentMetadata} onMouseDown={(e) => e.stopPropagation()}>
+    <div
+      className={inline ? undefined : styles.documentMetadata}
+      onMouseDown={(e) => e.stopPropagation()}
+    >
       <Space vertical>
         {properties.map(({ label, value }) => (
           <div key={label} className={styles.fileMeta}>
@@ -54,7 +63,7 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
   if (!profileDocuments.length) return 'No Identity Documents'
 
   const items = profileDocuments.map(
-    ({ id, type, extension, filename, size, tcdate }, index) => ({
+    ({ id, type, extension, filename, size, tcdate, ddate }, index) => ({
       key: id ?? index,
       id,
       src: `${process.env.API_V2_URL}/profile-documents/${id}`,
@@ -64,6 +73,7 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
       filename,
       size,
       tcdate,
+      ddate,
     })
   )
 
@@ -92,22 +102,43 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
           imageRender: (originalNode, { current }) => {
             const item = items[current]
             if (!item) return originalNode
-            const content = item.isPdf ? (
-              <iframe
-                title={`Identity document ${current + 1}`}
-                src={item.src}
-                onMouseDown={(e) => e.stopPropagation()}
-                style={{
-                  width: '80vw',
-                  height: '90vh',
-                  border: 'none',
-                  borderRadius: 4,
-                  background: '#fff',
-                }}
-              />
-            ) : (
-              originalNode
-            )
+            if (item.ddate) {
+              return (
+                <div
+                  onMouseDown={(e) => e.stopPropagation()}
+                  style={{
+                    background: '#fff',
+                    borderRadius: 4,
+                    padding: '2.5rem 3rem',
+                    maxWidth: 480,
+                    textAlign: 'left',
+                  }}
+                >
+                  <DocumentMetadata
+                    item={item}
+                    loadIdentityDocuments={loadIdentityDocuments}
+                    inline
+                  />
+                </div>
+              )
+            }
+            let content = originalNode
+            if (item.isPdf) {
+              content = (
+                <iframe
+                  title={`Identity document ${current + 1}`}
+                  src={item.src}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  style={{
+                    width: '80vw',
+                    height: '90vh',
+                    border: 'none',
+                    borderRadius: 4,
+                    background: '#fff',
+                  }}
+                />
+              )
+            }
             return (
               <>
                 {content}
@@ -117,29 +148,63 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
           },
 
           actionsRender: (originalNode, { current }) =>
-            items[current]?.isPdf ? null : originalNode,
+            items[current]?.isPdf || items[current]?.ddate ? null : originalNode,
         }}
       >
         <Flex gap="small" wrap align="flex-start">
-          {items.map((item, index) =>
-            item.isPdf ? (
-              <Image
-                key={item.key}
-                src={pdfThumbnail}
-                alt={`Identity document ${index + 1} (PDF)`}
-                width={76}
-                height={100}
-                style={{
-                  boxSizing: 'border-box',
-                  padding: 18,
-                  background: '#fafafa',
-                  border: '1px solid #f0f0f0',
-                  borderRadius: 4,
-                  objectFit: 'contain',
-                  cursor: 'pointer',
-                }}
-              />
-            ) : (
+          {items.map((item, index) => {
+            if (item.ddate) {
+              return (
+                <div key={item.key} style={{ position: 'relative' }}>
+                  <Image
+                    src={deletedThumbnail}
+                    alt={`Identity document ${index + 1} (deleted)`}
+                    width={76}
+                    height={100}
+                    style={{
+                      boxSizing: 'border-box',
+                      border: '1px dashed #d9d9d9',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                    }}
+                  />
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%)',
+                      color: '#999',
+                      fontSize: '0.75rem',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    Deleted
+                  </span>
+                </div>
+              )
+            }
+            if (item.isPdf) {
+              return (
+                <Image
+                  key={item.key}
+                  src={pdfThumbnail}
+                  alt={`Identity document ${index + 1} (PDF)`}
+                  width={76}
+                  height={100}
+                  style={{
+                    boxSizing: 'border-box',
+                    padding: 18,
+                    background: '#fafafa',
+                    border: '1px solid #f0f0f0',
+                    borderRadius: 4,
+                    objectFit: 'contain',
+                    cursor: 'pointer',
+                  }}
+                />
+              )
+            }
+            return (
               <Image
                 key={item.key}
                 src={item.src}
@@ -148,7 +213,7 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
                 style={{ borderRadius: 4 }}
               />
             )
-          )}
+          })}
         </Flex>
       </Image.PreviewGroup>
       <Button type="primary" style={{ marginTop: '.25rem' }} onClick={deleteAllDocuments}>

@@ -8,14 +8,14 @@
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
   font-size: 1rem;
   line-height: 1.5;
+}
 
-  .fileMeta {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.fileMeta {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .propertyLabel {
-    font-weight: 600;
-  }
+.propertyLabel {
+  font-weight: 600;
 }
