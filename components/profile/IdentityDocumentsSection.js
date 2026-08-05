@@ -58,9 +58,18 @@ const DocumentMetadata = ({ item, loadIdentityDocuments, inline = false }) => {
   )
 }
 
-const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDocuments }) => {
+const IdentityDocumentsSection = ({
+  profileId,
+  profileDocuments,
+  loadIdentityDocuments,
+  isRejectedProfile,
+  setProfileToPreview,
+}) => {
   if (!profileDocuments) return <LoadingSpinner inline />
   if (!profileDocuments.length) return 'No Identity Documents'
+  const shouldShowActionButton = profileDocuments.some(
+    ({ type, ddate }) => type !== 'parentalConsent' && !ddate
+  )
 
   const items = profileDocuments.map(
     ({ id, type, extension, filename, size, tcdate, ddate }, index) => ({
@@ -82,10 +91,23 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
 
   const deleteAllDocuments = async () => {
     const confirmDelete = window.confirm(
-      `Are you sure you want to delete all identity documents of ${profileId}? This action cannot be undone.`
+      `Identity documents of ${profileId} will be deleted. This action cannot be undone.`
     )
     if (!confirmDelete) return
     try {
+      if (isRejectedProfile) {
+        // post tag and activate profile
+        await api.post('/tags', {
+          profile: profileId,
+          label: 'user sent document',
+          signature: `${process.env.SUPER_USER}/Support`,
+          invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+        })
+
+        await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
+
+        setProfileToPreview(null)
+      }
       const { deletedCount } = await api.delete(
         `/profile-documents/identity/profiles/${profileId}`
       )
@@ -221,9 +243,11 @@ const IdentityDocumentsSection = ({ profileId, profileDocuments, loadIdentityDoc
           })}
         </Flex>
       </Image.PreviewGroup>
-      <Button type="primary" style={{ marginTop: '.25rem' }} onClick={deleteAllDocuments}>
-        Delete All Identity Documents
-      </Button>
+      {shouldShowActionButton && (
+        <Button type="primary" style={{ marginTop: '.25rem' }} onClick={deleteAllDocuments}>
+          {isRejectedProfile ? 'Activate with ID check' : 'Delete All Identity Documents'}
+        </Button>
+      )}
     </div>
   )
 }

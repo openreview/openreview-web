@@ -224,6 +224,8 @@ const ProfilePreviewModal = ({
               profileId={profileToPreview.id}
               profileDocuments={profileDocuments}
               loadIdentityDocuments={loadIdentityDocuments}
+              isRejectedProfile={profileToPreview.state === 'Rejected'}
+              setProfileToPreview={setProfileToPreview}
             />
           </ProfileViewSection>
         )}
