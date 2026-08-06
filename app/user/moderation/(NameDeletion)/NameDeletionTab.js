@@ -123,6 +123,7 @@ export default function NameDeletionTab() {
         decisionResultsP,
         processLogsP,
       ])
+
       const sortedResult = [
         ...nameRemovalNotes.notes.filter((p) => p.content.status.value === 'Pending'),
         ...nameRemovalNotes.notes.filter((p) => p.content.status.value !== 'Pending'),
