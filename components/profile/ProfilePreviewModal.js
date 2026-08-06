@@ -230,16 +230,32 @@ const ProfilePreviewModal = ({
           </ProfileViewSection>
         )}
         {contentToShow?.includes('identityDocuments') && (
-          <ProfileViewSection title="Identity Documents">
-            <IdentityDocumentsSection
-              profileId={profileToPreview.id}
-              profileDocuments={profileDocuments}
-              loadIdentityDocuments={loadIdentityDocuments}
-              deleteAllLabel={isRejectedProfile ? 'Activate with ID check' : undefined}
-              onBeforeDeleteAll={isRejectedProfile ? tagAndActivateProfile : undefined}
-              onAfterDeleteAll={isRejectedProfile ? loadTags : undefined}
-            />
-          </ProfileViewSection>
+          <>
+            {profileDocuments?.some((document) => document.type === 'parentalConsent') && (
+              <ProfileViewSection title="Parental Consent">
+                <IdentityDocumentsSection
+                  profileId={profileToPreview.id}
+                  profileDocuments={profileDocuments.filter(
+                    (document) => document.type === 'parentalConsent'
+                  )}
+                />
+              </ProfileViewSection>
+            )}
+            {profileDocuments?.some((document) => document.type !== 'parentalConsent') && (
+              <ProfileViewSection title="Identity Documents">
+                <IdentityDocumentsSection
+                  profileId={profileToPreview.id}
+                  profileDocuments={profileDocuments.filter(
+                    (document) => document.type !== 'parentalConsent'
+                  )}
+                  loadIdentityDocuments={loadIdentityDocuments}
+                  deleteAllLabel={isRejectedProfile ? 'Activate with ID check' : undefined}
+                  onBeforeDeleteAll={isRejectedProfile ? tagAndActivateProfile : undefined}
+                  onAfterDeleteAll={isRejectedProfile ? loadTags : undefined}
+                />
+              </ProfileViewSection>
+            )}
+          </>
         )}
         <Flex vertical gap="small">
           <Space wrap={true}>

@@ -52,32 +52,35 @@ const UploadLinkForm = () => {
   }
 
   return (
-    <Flex gap="small" align="center" wrap style={legacyStyles.filterForm}>
-      <Input
-        placeholder="Tilde ID or email"
-        style={{ ...legacyStyles.formInput, flex: '1 1 250px' }}
-        value={term}
-        onChange={(e) => setTerm(e.target.value)}
-        onPressEnter={getUploadLink}
-      />
-      <Select
-        options={[
-          { label: 'Identity Documents', value: 'identity' },
-          { label: 'Parental Consent', value: 'parentalConsent' },
-        ]}
-        value={linkType}
-        onChange={setLinkType}
-        style={{ width: 180 }}
-      />
-      <Button
-        type="primary"
-        styles={{ root: legacyStyles.formButton }}
-        disabled={!term.trim() || isLoading}
-        onClick={getUploadLink}
-      >
-        Copy Upload Link
-      </Button>
-    </Flex>
+    <>
+      <h4>Generate Document Upload Link</h4>
+      <Flex gap="small" align="center" wrap style={legacyStyles.filterForm}>
+        <Input
+          placeholder="Tilde ID or email"
+          style={{ ...legacyStyles.formInput, flex: '1 1 250px' }}
+          value={term}
+          onChange={(e) => setTerm(e.target.value)}
+          onPressEnter={getUploadLink}
+        />
+        <Select
+          options={[
+            { label: 'Identity Documents', value: 'identity' },
+            { label: 'Parental Consent', value: 'parentalConsent' },
+          ]}
+          value={linkType}
+          onChange={setLinkType}
+          style={{ width: 180 }}
+        />
+        <Button
+          type="primary"
+          styles={{ root: legacyStyles.formButton }}
+          disabled={!term.trim() || isLoading}
+          onClick={getUploadLink}
+        >
+          Copy Upload Link
+        </Button>
+      </Flex>
+    </>
   )
 }
 
@@ -172,6 +175,10 @@ const IdentityDocumentsTab = () => {
   return (
     <>
       <UploadLinkForm />
+      <h4 style={{ marginTop: '3rem' }}>
+        Profiles with Uploaded Documents
+        {profileWithIdentityDocuments ? ` (${profileWithIdentityDocuments.length})` : ''}
+      </h4>
       {renderDocumentsList()}
     </>
   )

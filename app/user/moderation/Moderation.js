@@ -40,6 +40,16 @@ export default function Moderation() {
         children: <IdentityDocumentsTab />,
       },
       {
+        key: 'requests',
+        label: <NewVenueRequestCount>Venue Requests</NewVenueRequestCount>,
+        children: <VenueRequestTab />,
+      },
+      {
+        key: 'venues',
+        label: 'Deployed Venues',
+        children: <VenuesTab />,
+      },
+      {
         key: 'email',
         label: 'Email Delete',
         children: <EmailDeletionTab />,
@@ -63,16 +73,6 @@ export default function Moderation() {
         key: 'connections',
         label: 'Connected Apps',
         children: <ConnectedAppTab />,
-      },
-      {
-        key: 'requests',
-        label: <NewVenueRequestCount>Venue Requests</NewVenueRequestCount>,
-        children: <VenueRequestTab />,
-      },
-      {
-        key: 'venues',
-        label: 'Deployed Venues',
-        children: <VenuesTab />,
       },
     ],
     []
