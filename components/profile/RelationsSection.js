@@ -234,7 +234,9 @@ export const RelationRow = ({
                       icon={<SafetyCertificateOutlined />}
                       loading={isVouching}
                       aria-label="Vouch for this user"
-                    />
+                    >
+                      Vouch
+                    </Button>
                   </Tooltip>
                 </Popconfirm>
               )}

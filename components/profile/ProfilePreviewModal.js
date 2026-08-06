@@ -238,6 +238,7 @@ const ProfilePreviewModal = ({
                     ? []
                     : [
                         { label: 'require vouch', value: 'require vouch' },
+                        { label: 'user sent document', value: 'user sent document' },
                         { label: 'potential spam', value: 'potential spam' },
                       ]
                 }
