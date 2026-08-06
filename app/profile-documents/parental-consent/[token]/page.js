@@ -34,7 +34,12 @@ export default function Page() {
         <Title level={2} style={{ marginTop: 0 }}>
           Upload Parental Consent
         </Title>
-        <DocumentUploadSection type="parental-consent" token={token} instructions="" />
+        <DocumentUploadSection
+          type="parental-consent"
+          token={token}
+          instructions=""
+          maxFileCount={1}
+        />
       </div>
     </CommonLayout>
   )

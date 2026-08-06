@@ -19,10 +19,14 @@ const DocumentMetadata = ({ item, loadIdentityDocuments, inline = false }) => {
       label: 'Uploaded',
       value: item.tcdate ? formatDateTime(item.tcdate, { second: undefined }) : null,
     },
-    {
-      label: 'Deleted',
-      value: item.ddate ? formatDateTime(item.ddate, { second: undefined }) : null,
-    },
+    ...(item.ddate
+      ? [
+          {
+            label: 'Deleted',
+            value: formatDateTime(item.ddate, { second: undefined }),
+          },
+        ]
+      : []),
   ]
   const isDeletable = item.type !== 'parentalConsent' && !item.ddate
 

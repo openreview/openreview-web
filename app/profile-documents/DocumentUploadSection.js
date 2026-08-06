@@ -112,7 +112,7 @@ const DocumentUploadSection = ({
     <>
       <div className={styles.instructions}>
         <div>{instructions}</div>
-        <div>You may upload up to {maxFileCount} files.</div>
+        <div>You may upload up to {inflect(maxFileCount, 'file', 'files', true)}.</div>
         <div>
           Accepted formats: <strong>PDF</strong>, <strong>JPG</strong>, <strong>JPEG</strong>,
           or <strong>PNG</strong>.
