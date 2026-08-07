@@ -26,6 +26,8 @@ const confirmPasswordInputSelector = Selector('input').withAttribute(
 const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 const messageSelector = Selector('.ant-notification-notice-content').nth(-1)
+const notificationSelector = Selector('.ant-notification-notice')
+const notificationCloseButton = Selector('.ant-notification-notice-close')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
 
@@ -497,6 +499,12 @@ test('register a profile with an institution which is not the one of the email',
     .eql(
       `Error: The institution of your email ${institutionEmailUser.email} must be added to the history`
     )
+
+    // the error notification is an 80vw banner fixed at the top of the viewport,
+    // so it swallows the click on the History step; dismiss it first
+    .click(notificationCloseButton)
+    .expect(notificationSelector.exists)
+    .notOk()
 
     // the profile is created once the institution of the email is in the history
     .click(historyStep)
