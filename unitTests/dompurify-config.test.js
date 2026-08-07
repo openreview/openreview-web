@@ -1,4 +1,4 @@
-import DOMPurify from 'isomorphic-dompurify'
+import DOMPurify from 'DOMPurify'
 import { allowedHtmlTags } from '../lib/utils'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
