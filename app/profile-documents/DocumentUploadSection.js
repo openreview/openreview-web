@@ -36,7 +36,7 @@ const DocumentUploadSection = ({
   token,
   maxSize = 3,
   maxFileCount = 5,
-  instructions = 'Upload any files that you think are necessary to support your profile creation request.',
+  instructions = 'Upload any files that you think are necessary to support your profile creation request. The documents will be deleted permanently after the profile creation request is processed.',
 }) => {
   const [documents, setDocuments] = useState([])
 

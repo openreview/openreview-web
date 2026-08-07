@@ -123,7 +123,7 @@ const IdentityDocumentsTab = () => {
   const renderDocumentsList = () => {
     if (!profileWithIdentityDocuments) return <LoadingSpinner />
     if (!profileWithIdentityDocuments.length)
-      return <div>No profiles with identity documents found.</div>
+      return <div>There are no profiles pending identity document check.</div>
     return (
       <>
         <Row
@@ -176,7 +176,7 @@ const IdentityDocumentsTab = () => {
     <>
       <UploadLinkForm />
       <h4 style={{ marginTop: '3rem' }}>
-        Profiles with Uploaded Documents
+        Profiles pending identity document check
         {profileWithIdentityDocuments ? ` (${profileWithIdentityDocuments.length})` : ''}
       </h4>
       {renderDocumentsList()}
