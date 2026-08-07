@@ -47,11 +47,19 @@ export const mergeUser = {
   password: strongPassword,
   tildeId: '~FirstF_LastF1',
 }
+export const institutionEmailUser = {
+  fullname: 'FirstG LastG',
+  email: 'test@umass.edu',
+  password: strongPassword,
+  activate: false,
+}
 // #endregion
 
 export async function setupRegister(superUserToken) {
   // create inactive user
   await createUser(inactiveUser)
+  // create inactive user with an institutional email
+  await createUser(institutionEmailUser)
   await createProfile(
     inActiveUserNoPassword.fullname,
     inActiveUserNoPassword.email,
