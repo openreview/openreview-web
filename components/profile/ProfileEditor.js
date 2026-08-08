@@ -1,12 +1,11 @@
-/* globals promptError: false */
-
+import { Steps } from 'antd'
 import pick from 'lodash/pick'
-import Steps from 'rc-steps'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import api from '../../lib/api-client'
 import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 import BirthDateSection from './BirthDateSection'
+import DocumentUploadSection from './DocumentUploadSection'
 import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
 import ExpertiseSection from './ExpertiseSection'
@@ -17,6 +16,12 @@ import PersonalLinksSection from './PersonalLinksSection'
 import ProfileSection from './ProfileSection'
 import PronounSection from './PronounSection'
 import RelationsSection from './RelationsSection'
+
+import stepsStyles from './ProfileEditorSteps.module.scss'
+import {
+  getProfileEditorStepItemStyles,
+  profileEditorStepsRailStyle,
+} from '../../lib/legacy-bootstrap-styles'
 
 export default function ProfileEditor({
   loadedProfile,
@@ -73,7 +78,7 @@ export default function ProfileEditor({
       step: 1,
       key: 'personal',
       title: 'Personal Info',
-      description: isNewProfile
+      content: isNewProfile
         ? 'Gender, Pronouns and Birth Year'
         : 'Gender, Pronouns, Birth Year and Profile Visibility',
       status: getStepStatus('personal'),
@@ -83,14 +88,14 @@ export default function ProfileEditor({
       step: 3,
       key: 'links',
       title: 'Personal Links',
-      ...(!hidePublicationEditor && { description: 'Imported DBLP publications' }),
+      ...(!hidePublicationEditor && { content: 'Imported DBLP publications' }),
       status: getStepStatus('links'),
     },
     {
       step: 4,
       key: 'history',
       title: 'History',
-      description: 'Career & Education History',
+      content: 'Career & Education History',
       status: getStepStatus('history'),
     },
     ...(isNewProfile
@@ -101,13 +106,20 @@ export default function ProfileEditor({
             title: 'Expertise',
             status: getStepStatus('expertise'),
           },
+          {
+            step: 6,
+            key: 'documents',
+            title: 'File Upload',
+            content: 'Upload supporting documents',
+            status: getStepStatus('documents'),
+          },
         ]
       : [
           {
             step: 5,
             key: 'relations',
             title: 'Relations',
-            description: 'Advisors & Other Relations',
+            content: 'Advisors & Other Relations',
             status: getStepStatus('relations'),
           },
           {
@@ -469,6 +481,7 @@ export default function ProfileEditor({
               profileNames={profile?.names}
               updateNames={(names) => setProfile({ type: 'names', data: names })}
               preferredUsername={loadedProfile?.names?.find((p) => p.preferred)?.username}
+              isNewProfile={isNewProfile}
             />
           </ProfileSection>
         )
@@ -664,6 +677,17 @@ export default function ProfileEditor({
             />
           </ProfileSection>
         )
+      case 'documents':
+        return (
+          <ProfileSection title="Verification document upload">
+            <DocumentUploadSection
+              profileDocuments={profile?.identityDocuments}
+              updateDocuments={(documents) =>
+                setProfile({ type: 'identityDocuments', data: documents })
+              }
+            />
+          </ProfileSection>
+        )
       default:
         return null
     }
@@ -747,16 +771,27 @@ export default function ProfileEditor({
   return (
     <div className="profile-edit-container" ref={stepRef}>
       <Steps
-        type="navigation"
+        titlePlacement="vertical"
+        responsive={false}
         current={stepsItems.findIndex((p) => p.key === currentStepKey)}
         onChange={(e) => {
           setCurrentStepKey(stepsItems[e].key)
         }}
-        items={stepsItems}
+        classNames={{
+          root: stepsStyles.steps,
+          item: stepsStyles.item,
+          itemTitle: stepsStyles.title,
+          itemContent: stepsStyles.content,
+        }}
+        styles={{ itemRail: profileEditorStepsRailStyle }}
+        items={stepsItems.map((item) => ({
+          ...pick(item, ['title', 'content', 'status']),
+          styles: getProfileEditorStepItemStyles(item.status),
+        }))}
       />
       {renderStep(currentStepKey)}
-      {isNewProfile && currentStepKey === 'expertise' && (
-        <p className="help-block">
+      {isNewProfile && currentStepKey === 'documents' && (
+        <p className="help-block terms-of-use">
           By registering, you agree to the{' '}
           <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
             <strong>Terms of Use</strong>
@@ -765,7 +800,7 @@ export default function ProfileEditor({
         </p>
       )}
 
-      {isNewProfile && currentStepKey !== 'expertise' ? (
+      {isNewProfile && currentStepKey !== 'documents' ? (
         <div className="buttons-row">
           <button
             type="button"

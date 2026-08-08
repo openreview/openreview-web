@@ -326,6 +326,12 @@ export function getGroups(params, token, version = 1) {
     .then((result) => result.groups)
 }
 
+export function getProfile(params, token, version = 2) {
+  return api
+    .get('/profiles', params, { accessToken: token, version })
+    .then((result) => result.profiles?.[0])
+}
+
 export function getReferences(params, token) {
   return api
     .get('/references', params, { accessToken: token, version: 1 })

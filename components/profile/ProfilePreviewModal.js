@@ -5,6 +5,7 @@ import { getRejectionReasons } from '../../lib/utils'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
+import IdentityDocumentsSection from './IdentityDocumentsSection'
 import MessagesSection from './MessagesSection'
 import PastStatesSection from './PastStatesSection'
 import ProfilePublications from './ProfilePublications'
@@ -202,6 +203,15 @@ const ProfilePreviewModal = ({
             />
           </ProfileViewSection>
         )}
+        {contentToShow?.includes('identityDocuments') &&
+          profileToPreview.identityDocuments && (
+            <ProfileViewSection title="Identity Documents">
+              <IdentityDocumentsSection
+                identityDocuments={profileToPreview.identityDocuments}
+                profileId={profileToPreview.id}
+              />
+            </ProfileViewSection>
+          )}
         <Flex vertical gap="small">
           <Space wrap={true}>
             {tags.map((tag, index) => (
