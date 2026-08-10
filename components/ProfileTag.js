@@ -1,8 +1,9 @@
 /* globals $: false */
 import { useEffect } from 'react'
 import { getTagDispayText } from '../lib/utils'
-import styles from '../styles/components/ProfileTag.module.scss'
 import Icon from './Icon'
+
+import styles from '../styles/components/ProfileTag.module.scss'
 
 const ProfileTag = ({ tag, onDelete, showProfileId, borderless }) => {
   const { label, invitation, parentInvitations, readers, signature } = tag
@@ -17,7 +18,7 @@ const ProfileTag = ({ tag, onDelete, showProfileId, borderless }) => {
 
   const getColorClass = () => {
     if (label === 'require vouch') return styles.requireVouch
-    if (label === 'user sent document') return styles.userSentDocument
+    if (label.startsWith('user sent document')) return styles.userSentDocument
     if (label === 'potential spam') return styles.potentialSpam
     if (parentInvitations?.endsWith('_Role')) return styles.serviceRole
     return ''

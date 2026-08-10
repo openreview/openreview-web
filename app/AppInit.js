@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import BibtexModal from '../components/BibtexModal'
 import usePrompt from '../hooks/usePrompt'
 import mathjaxConfig from '../lib/mathjax-config'
+import { allowedHtmlTags } from '../lib/utils'
 import MathjaxScript from './MathjaxScript'
 import StripeScript from './StripeScript'
 import TurnstileScript from './TurnstileScript'
@@ -27,11 +28,16 @@ export default function AppInit() {
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
     window.marked = marked
+    DOMPurify.setConfig({ ALLOWED_TAGS: allowedHtmlTags })
     DOMPurify.addHook('afterSanitizeAttributes', (node) => {
       if (node.tagName === 'A') {
         node.setAttribute('target', '_blank')
         node.setAttribute('rel', 'noopener noreferrer')
       }
+
+      node.removeAttribute?.('style')
+      node.removeAttribute?.('action')
+      node.removeAttribute?.('formaction')
     })
     window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig
