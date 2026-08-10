@@ -1,15 +1,9 @@
 # This workflow deploys any branch, tag, or commit hash to the production environment.
-# Flow (normal deploy):
-#   1. Build Next.js and upload artifact to GCS (skipped if build already exists)
-#   2. Run Packer to bake the artifact into a new GCE image
-#   3. Terraform apply to update the instance template
-#   4. Rolling update — replace MIG instances one at a time with zero downtime
-#   5. Deploy static files to nginx (symlinks /_next and .html files into nginx html dir)
-#
-# Flow (rollback — tag already has a GCS image mapping and force_rebuild is false):
-#   1. Resolve tag to previously baked image via GCS mapping
-#   2. Rolling update directly — skips build, Packer, and Terraform
-#   3. Deploy static files to nginx
+# Flow: build Next.js, bake a GCE image with Packer, then a blue/green cutover (warm the idle color
+# on the new image, wait for it healthy on the LB, flip both web backend services), then sync static
+# files to nginx. The web MIG is flexible so it cannot be rolled in place; see the blue/green model
+# in openreview-cloud Terraform/prod/web/README.md.
+# Rollback: re-run with an older tag; its mapped image skips build/Packer and runs the same cutover.
 
 name: Production Deployment
 
