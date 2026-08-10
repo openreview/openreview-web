@@ -21,6 +21,7 @@ import {
 } from 'antd'
 import dayjs from 'dayjs'
 import { cloneDeep, uniqBy } from 'lodash'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useReducer, useState } from 'react'
 import Icon from '../../../components/Icon'
 import LoadingSpinner from '../../../components/LoadingSpinner'
@@ -91,6 +92,7 @@ export const RejectionModal = ({
         xs: '90%',
         sm: '50%',
       }}
+      styles={{ wrapper: { overscrollBehavior: 'contain' } }}
     >
       <Flex vertical gap="small" align="flex-start">
         <Select
@@ -295,11 +297,16 @@ const UserModerationQueue = ({
   shouldReload,
   showSortButton = false,
 }) => {
+  const searchParams = useSearchParams()
+  const idParam = searchParams.get('id')
+  const profileIdToSerach = idParam?.startsWith('~') ? idParam : ''
   const [profiles, setProfiles] = useState(null)
   const [isMultiTermSearch, setIsMultiTermSearch] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
   const [pageNumber, setPageNumber] = useState(1)
-  const [filters, setFilters] = useState({})
+  const [filters, setFilters] = useState(
+    !onlyModeration && profileIdToSerach ? { term: profileIdToSerach } : {}
+  )
   const [profileToReject, setProfileToReject] = useState(null)
   const [profileToBlockUnblock, setProfileToBlockUnblock] = useState(null)
   const [signedNotes, setSignedNotes] = useState(0)
@@ -307,7 +314,7 @@ const UserModerationQueue = ({
   const [descOrder, setDescOrder] = useState(true)
   const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 10)
   const [profileToPreview, setProfileToPreview] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(profileIdToSerach)
   const [profileStateOption, setProfileStateOption] = useState('All')
   const profileStateOptions = [
     'All',
@@ -457,11 +464,42 @@ const UserModerationQueue = ({
   }
 
   const rejectUser = async (rejectionMessage, id) => {
+    let interpretedRejectionMessage = rejectionMessage
+    if (interpretedRejectionMessage.includes('{{documentVerificationLink}}')) {
+      try {
+        const { url } = await api.post('/profile-documents/upload-link', {
+          profileId: id,
+          type: 'identity',
+        })
+        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
+          '{{documentVerificationLink}}',
+          url
+        )
+      } catch (error) {
+        promptError(error.message)
+        return
+      }
+    }
+    if (interpretedRejectionMessage.includes('{{underageConsentLink}}')) {
+      try {
+        const { url } = await api.post('/profile-documents/upload-link', {
+          profileId: id,
+          type: 'parentalConsent',
+        })
+        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
+          '{{underageConsentLink}}',
+          url
+        )
+      } catch (error) {
+        promptError(error.message)
+        return
+      }
+    }
     try {
       await api.post('/profile/moderate', {
         id,
         decision: 'reject',
-        reason: rejectionMessage,
+        reason: interpretedRejectionMessage,
       })
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
@@ -548,6 +586,16 @@ const UserModerationQueue = ({
       )
     }
   }
+
+  useEffect(() => {
+    if (onlyModeration || !profileIdToSerach) return
+    setSearchTerm(profileIdToSerach)
+    setPageNumber(1)
+    setProfileStateOption('All')
+    setFilters((currentFilters) =>
+      currentFilters.term === profileIdToSerach ? currentFilters : { term: profileIdToSerach }
+    )
+  }, [onlyModeration, profileIdToSerach])
 
   useEffect(() => {
     getProfiles()
@@ -861,6 +909,7 @@ const UserModerationQueue = ({
           'publications',
           'pastStates',
           'tags',
+          'identityDocuments',
         ]}
         showNextProfile={showNextProfile}
         showPreviousProfile={showPreviousProfile}

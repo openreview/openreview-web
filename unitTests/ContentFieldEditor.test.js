@@ -1,8 +1,8 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import ContentFieldEditor from '../components/EditorComponents/ContentFieldEditor'
 import { renderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
-import ContentFieldEditor from '../components/EditorComponents/ContentFieldEditor'
 
 let mockedFormProps
 let onFormChange
@@ -172,7 +172,7 @@ describe('ContentFieldEditor', () => {
       })
     )
 
-    expect(Object.keys(mockedFormProps.mock.calls[0][0].fields)).toHaveLength(22) // 22 fields defined for a field (removed hidden)
+    expect(Object.keys(mockedFormProps.mock.calls[0][0].fields)).toHaveLength(21) // 21 fields defined for a field (removed hidden and range)
   })
 
   test('update invitation content editor when widget form is updated', async () => {
