@@ -23,13 +23,15 @@ const confirmPasswordInputSelector = Selector('input').withAttribute(
   'placeholder',
   'Confirm new password'
 )
-const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
-const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
+
 const messageSelector = Selector('.ant-notification-notice-content').nth(-1)
 const notificationSelector = Selector('.ant-notification-notice')
 const notificationCloseButton = Selector('.ant-notification-notice-close')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
+const personalStep = Selector('div[step="1"]').find('div[role="button"]')
+const expertiseStep = Selector('div[step="5"]').find('div[role="button"]')
+const dateOfBirthInput = Selector('input[placeholder="Select your date of birth"]')
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -377,6 +379,15 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector) // last section expertise
     .expect(Selector('p').withText('last updated September 24, 2024').exists)
     .ok()
+    // enter date of birth
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messageSelector.innerText)
+    .eql('Error: Date of Birth is required. Please select your date of birth.')
+    .click(personalStep)
+    .click(dateOfBirthInput)
+    .typeText(dateOfBirthInput, '1990-01-01', { replace: true })
+    .pressKey('enter')
+    .click(expertiseStep)
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
@@ -391,8 +402,11 @@ fixture`Activate`
 
 test('register a profile with an institutional email', async (t) => {
   await t
-    .click(nextSectiomButtonSelector)
-    .click(nextSectiomButtonSelector)
+    .click(personalStep)
+    .click(dateOfBirthInput)
+    .typeText(dateOfBirthInput, '1990-01-01', { replace: true })
+    .pressKey('enter')
+    .click(nextSectiomButtonSelector) // emails
     .expect(
       Selector('p').withText(/Your email address could not be automatically verified/).exists
     )
@@ -476,7 +490,11 @@ fixture`Activate with an institution which is not the one of the email`
 
 test('register a profile with an institution which is not the one of the email', async (t) => {
   await t
-    .click(nextSectiomButtonSelector) // personal
+    // enter dob
+    .click(personalStep)
+    .click(dateOfBirthInput)
+    .typeText(dateOfBirthInput, '1990-01-01', { replace: true })
+    .pressKey('enter')
     .click(nextSectiomButtonSelector) // emails
     .click(nextSectiomButtonSelector) // links
     .typeText(Selector('#homepage_url'), 'http://pambeesly.com', { paste: true })

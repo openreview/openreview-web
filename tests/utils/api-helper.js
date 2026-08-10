@@ -168,6 +168,7 @@ export async function createUser({
         },
       ],
       gender: '',
+      dob: Date.UTC(1990, 0, 1),
       homepage,
       gscholar: '',
       dblp: '',
