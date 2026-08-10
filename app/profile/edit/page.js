@@ -135,7 +135,7 @@ export default function Page() {
       promptMessage('Your profile information has been successfully updated', 2)
       loadProfile()
     } catch (apiError) {
-      promptError(apiError.message)
+      promptError(apiError.message, undefined, true)
       setSaveProfileErrors(
         apiError.errors?.map((p) => p.details?.path) ?? [apiError?.details?.path]
       )

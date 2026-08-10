@@ -1,6 +1,5 @@
 'use client'
 
-/* globals promptMessage,promptError: false */
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import ErrorDisplay from '../../../components/ErrorDisplay'
@@ -48,12 +47,12 @@ export default function Page() {
       } else {
         // If user moderation is enabled, PUT /activate/${token} will return an empty response
         promptMessage(
-          'Your OpenReview profile has been created. Please allow up to two weeks for your profile to be processed.'
+          'Your OpenReview profile has been created and is now in the moderation queue. You will receive an email once moderation is complete.'
         )
         router.push('/')
       }
     } catch (apiError) {
-      promptError(apiError.message)
+      promptError(apiError.message, undefined, true)
       setActivateProfileErrors(
         apiError.errors?.map((p) => p.details?.path) ?? [apiError?.details?.path]
       )

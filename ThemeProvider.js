@@ -90,6 +90,9 @@ const theme = {
       colorInfoBg: '#dff0d8',
       width: '80vw',
     },
+    Tooltip: {
+      colorBgSpotlight: 'rgba(44, 58, 74, 0.9)',
+    },
   },
 }
 
