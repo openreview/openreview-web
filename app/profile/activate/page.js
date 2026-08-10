@@ -56,8 +56,8 @@ export default function Page() {
       setActivateProfileErrors(
         apiError.errors?.map((p) => p.details?.path) ?? [apiError?.details?.path]
       )
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   useEffect(() => {
