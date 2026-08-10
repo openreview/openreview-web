@@ -1,4 +1,4 @@
-import { Button, Flex, Input, Modal, Select, Space } from 'antd'
+import { Badge, Button, Flex, Input, Modal, Select, Space } from 'antd'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import { getRejectionReasons } from '../../lib/utils'
@@ -191,12 +191,23 @@ const ProfilePreviewModal = ({
     >
       <Flex vertical gap="small">
         {error && <ErrorAlert error={error} />}
-        <BasicProfileView
-          profile={profileToPreview}
-          showLinkText={true}
-          moderation={true}
-          contentToShow={contentToShow}
-        />
+        {profileToPreview.isMinor ? (
+          <Badge.Ribbon text="Minor">
+            <BasicProfileView
+              profile={profileToPreview}
+              showLinkText={true}
+              moderation={true}
+              contentToShow={contentToShow}
+            />
+          </Badge.Ribbon>
+        ) : (
+          <BasicProfileView
+            profile={profileToPreview}
+            showLinkText={true}
+            moderation={true}
+            contentToShow={contentToShow}
+          />
+        )}
         {contentToShow?.includes('publications') && (
           <ProfileViewSection title="Publications">
             <ProfilePublications

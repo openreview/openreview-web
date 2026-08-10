@@ -30,6 +30,9 @@ const theme = {
       borderRadius: 3,
       borderRadiusSM: 3,
     },
+    Badge: {
+      colorPrimary: orRed,
+    },
     Select: {
       colorBorder: primaryColor,
       hoverBorderColor: '#4f7a8a',
