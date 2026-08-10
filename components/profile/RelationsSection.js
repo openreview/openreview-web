@@ -591,7 +591,12 @@ const RelationsSection = ({
       const { profiles } = await api.getAllProfilesByIds(usernames)
       setRelationProfileStates(
         Object.fromEntries(
-          profiles.map((candidateProfile) => [candidateProfile.id, candidateProfile.state])
+          profiles.flatMap((candidateProfile) => {
+            const allUserNames = (candidateProfile.content.names ?? []).map(
+              (p) => p.username ?? []
+            )
+            return allUserNames.map((p) => [p, candidateProfile.state])
+          })
         )
       )
     } catch {}
