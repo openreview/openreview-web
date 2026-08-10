@@ -178,43 +178,131 @@ jobs:
           gsutil cp $GITHUB_WORKSPACE/deployment.conf gs://openreview-general/conf/deployment.conf
 
       - name: Setup Terraform
-        if: steps.check-mapping.outputs.is_rollback == 'false'
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_wrapper: false
 
-      - name: Terraform apply — update instance template and roll MIG
-        if: steps.check-mapping.outputs.is_rollback == 'false'
-        working-directory: openreview-cloud/Terraform/prod/web
-        env:
-          IMAGE: ${{ steps.packer.outputs.image }}
-        run: |
-          terraform init
-          terraform apply -auto-approve \
-            -var="project_id=${{ secrets.GCP_PROJECT_ID }}" \
-            -var="image=${IMAGE}"
-
-      - name: Start MIG rolling update
+      - name: Resolve image to deploy
+        id: image
         run: |
           if [ "${{ steps.check-mapping.outputs.is_rollback }}" = "true" ]; then
             IMAGE=$(gsutil cat gs://openreview-general/web-image-map/${TAG})
-            echo "Rolling back to image: $IMAGE"
           else
             IMAGE="${{ steps.packer.outputs.image }}"
           fi
-          gcloud compute instance-groups managed rolling-action start-update openreview-web \
-            --region=us-central1 \
-            --project=${{ secrets.GCP_PROJECT_ID }} \
-            --version=template=projects/${{ secrets.GCP_PROJECT_ID }}/regions/us-central1/instanceTemplates/openreview-web-template-${IMAGE} \
-            --max-surge=3 \
-            --max-unavailable=0
+          echo "Deploying image: $IMAGE"
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
 
-      - name: Wait for rollout to complete
+      - name: Determine active color, size, and current image
+        id: state
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
-          gcloud compute instance-groups managed wait-until openreview-web \
-            --version-target-reached \
-            --region=us-central1 \
-            --project=${{ secrets.GCP_PROJECT_ID }}
+          set -euo pipefail
+          REGION=us-central1
+          GLB=openreview-web-backend-service
+          ACTIVE_GROUP=$(gcloud compute backend-services describe $GLB --global --project=$PROJECT_ID \
+            --format=json | jq -r '.backends[] | select(.capacityScaler==1.0) | .group | split("/") | last')
+          if [ "$ACTIVE_GROUP" = "openreview-web" ]; then
+            ACTIVE=blue;  IDLE=green; IDLE_GROUP=openreview-web-grn
+          elif [ "$ACTIVE_GROUP" = "openreview-web-grn" ]; then
+            ACTIVE=green; IDLE=blue;  IDLE_GROUP=openreview-web
+          else
+            echo "Could not determine active color (no backend at capacity_scaler=1.0)"; exit 1
+          fi
+
+          N=$(gcloud compute instance-groups managed describe $ACTIVE_GROUP --region=$REGION \
+            --project=$PROJECT_ID --format="value(targetSize)")
+          [ "${N:-0}" -lt 2 ] && N=2
+
+          ACTIVE_TPL=$(gcloud compute instance-groups managed describe $ACTIVE_GROUP --region=$REGION \
+            --project=$PROJECT_ID --format="value(versions[0].instanceTemplate)" | xargs basename)
+          ACTIVE_IMG=$(gcloud compute instance-templates describe $ACTIVE_TPL --region=$REGION \
+            --project=$PROJECT_ID --format="value(properties.disks[0].initializeParams.sourceImage)" | xargs basename)
+
+          if [ "$ACTIVE" = "blue" ]; then
+            BLUE_IMG=$ACTIVE_IMG; GREEN_IMG=${{ steps.image.outputs.image }}
+          else
+            GREEN_IMG=$ACTIVE_IMG; BLUE_IMG=${{ steps.image.outputs.image }}
+          fi
+
+          echo "active=$ACTIVE (N=$N, img=$ACTIVE_IMG) -> idle=$IDLE gets ${{ steps.image.outputs.image }}"
+          for kv in "active=$ACTIVE" "idle=$IDLE" "idle_group=$IDLE_GROUP" "n=$N" \
+                    "blue_img=$BLUE_IMG" "green_img=$GREEN_IMG"; do echo "$kv" >> $GITHUB_OUTPUT; done
+
+      - name: Warm idle color to active's instance count on the new image
+        id: warm
+        working-directory: openreview-cloud/Terraform/prod/web
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="active_color=${{ steps.state.outputs.active }}" \
+            -var="blue_image=${{ steps.state.outputs.blue_img }}" \
+            -var="green_image=${{ steps.state.outputs.green_img }}" \
+            -var="warm_idle_size=${{ steps.state.outputs.n }}"
+
+      - name: Wait for idle color to reach N healthy on the load balancer
+        id: wait
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          GLB=openreview-web-backend-service
+          IDLE_GROUP=${{ steps.state.outputs.idle_group }}
+          N=${{ steps.state.outputs.n }}
+          deadline=$(( $(date +%s) + 900 ))
+          while :; do
+            healthy=$(gcloud compute backend-services get-health $GLB --global --project=$PROJECT_ID \
+              --format=json | jq --arg g "$IDLE_GROUP" \
+              '[.[] | select(.backend|test("/"+$g+"$")) | .status.healthStatus[]? | select(.healthState=="HEALTHY")] | length')
+            healthy=${healthy:-0}
+            echo "  $IDLE_GROUP: $healthy/$N healthy"
+            [ "$healthy" -ge "$N" ] && break
+            [ "$(date +%s)" -ge "$deadline" ] && { echo "TIMEOUT: idle did not reach $N healthy"; exit 1; }
+            sleep 15
+          done
+
+      - name: Flip traffic to idle color on both GLB and ILB backends
+        id: flip
+        working-directory: openreview-cloud/Terraform/prod/lb
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="web_active_color=${{ steps.state.outputs.idle }}" \
+            -target=google_compute_backend_service.web \
+            -target=google_compute_region_backend_service.web_ilb
+
+      - name: Settle new active color and drain the old one
+        working-directory: openreview-cloud/Terraform/prod/web
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="active_color=${{ steps.state.outputs.idle }}" \
+            -var="blue_image=${{ steps.state.outputs.blue_img }}" \
+            -var="green_image=${{ steps.state.outputs.green_img }}" \
+            -var="warm_idle_size=0"
+
+      - name: Failover to previous color if the cutover failed before flipping
+        if: failure() && steps.flip.outcome != 'success'
+        working-directory: openreview-cloud/Terraform/prod/web
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          echo "Cutover failed before flip; ${{ steps.state.outputs.active }} still serving. Draining idle."
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="active_color=${{ steps.state.outputs.active }}" \
+            -var="blue_image=${{ steps.state.outputs.blue_img }}" \
+            -var="green_image=${{ steps.state.outputs.green_img }}" \
+            -var="warm_idle_size=0"
 
       - name: Sync error pages to GCS
         run: |
