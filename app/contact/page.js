@@ -29,7 +29,7 @@ export default function Page() {
   const organizationSubject = 'A conference I organized'
   const committeeSubject = 'I am a reviewer or committee member'
   const createProfileSubject = 'I am trying to create my profile'
-  const profileRejectedSubject = 'My profile was rejected and I want to appeal'
+  const profileRejectedSubject = 'I am unable to provide the information requested to activate my profile'
   const accessPublicationSubject = 'I am trying to access a publication'
   const subjectOptions = [
     profileSubject,
