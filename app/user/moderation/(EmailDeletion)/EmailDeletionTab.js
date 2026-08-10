@@ -31,7 +31,7 @@ export default function EmailDeletionTab() {
         invitation: emailRemovalInvitationId,
         sort: 'tcdate',
       })
-      const editResultsP = api.getAll(
+      const editResultsP = api.getAllWithAfter(
         '/notes/edits',
         { invitation: emailRemovalInvitationId },
         { resultsKey: 'edits' }

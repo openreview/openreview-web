@@ -1,6 +1,6 @@
 {
   "name": "openreview-web",
-  "version": "1.15.26",
+  "version": "1.15.27",
   "private": true,
   "scripts": {
     "dev": "next dev --port $NEXT_PORT",
@@ -38,7 +38,7 @@
     "copy-to-clipboard": "^3.3.3",
     "d3": "^7.8.5",
     "dayjs": "^1.11.10",
-    "dompurify": "3.4.1",
+    "dompurify": "3.4.13",
     "eslint4b-prebuilt": "^6.7.2",
     "framer-motion": "^12.18.1",
     "handlebars": "^4.7.8",
