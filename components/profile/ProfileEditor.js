@@ -209,6 +209,15 @@ export default function ProfileEditor({
 
     let invalidRecord = null
 
+    // #region validate dob
+    if (!profile.dob?.value) {
+      promptError('Date of Birth is required. Please select your date of birth.')
+      setInvalidStepKeys((current) => [...current, 'personal'])
+      setProfile({ type: 'dob', data: { ...profile.dob, valid: false } })
+      return { isValid: false, profileContent: null }
+    }
+    // #endregion
+
     // #region validate emails
     if ((invalidRecord = profileContent.emails.find((p) => !isValidEmail(p.email)))) {
       setInvalidStepKeys((current) => [...current, 'emails'])
@@ -434,6 +443,7 @@ export default function ProfileEditor({
         pick(p, ['relation', 'username', 'name', 'email', 'start', 'end', 'readers'])
       ),
       preferredEmail: profileContent.emails.find((p) => p.preferred)?.email,
+      dob: profileContent.dob?.value,
       homepage: profileContent.homepage?.value?.trim(),
       gscholar: profileContent.gscholar?.value?.trim(),
       dblp: profileContent.dblp?.value?.trim(),
@@ -494,13 +504,13 @@ export default function ProfileEditor({
               />
             </ProfileSection>
             <ProfileSection
-              title="Year Of Birth"
-              instructions="This information is solely used by OpenReview to disambiguate user profiles. It will never be released publicly or shared with venue organizers. (Optional)"
+              title="Date Of Birth"
+              instructions="This information helps OpenReview to disambiguate user profiles. (Mandatory)"
             >
               <BirthDateSection
-                profileYearOfBirth={profile?.yearOfBirth}
-                updateYearOfBirth={(yearOfBirth) =>
-                  setProfile({ type: 'yearOfBirth', data: yearOfBirth })
+                profileDateOfBirth={profile?.dob}
+                updateDateOfBirth={(dateOfBirth) =>
+                  setProfile({ type: 'dob', data: dateOfBirth })
                 }
               />
             </ProfileSection>

@@ -20,6 +20,8 @@ const DatetimePicker = ({
   skipOkEvent = false,
   onBlur,
   disabledDate,
+  defaultPickerValue,
+  showNow,
   showTime = {
     showSecond: false,
   },
@@ -62,6 +64,8 @@ const DatetimePicker = ({
       autoFocus={autoFocus}
       allowClear={allowClear}
       disabledDate={disabledDate}
+      showNow={showNow}
+      {...(defaultPickerValue && { defaultPickerValue })}
       getPopupContainer={getPopupContainer}
       status={invalid ? 'error' : undefined}
       suffixIcon={null}
