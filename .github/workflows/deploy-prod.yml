@@ -114,6 +114,7 @@ jobs:
 
             echo "copying build to Google Cloud."
             gsutil cp "/tmp/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/${build_id}.tar.gz"
+            echo "$build_id" | gsutil cp - gs://openreview-general/static-upload-pending/${build_id}
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
           fi
 
