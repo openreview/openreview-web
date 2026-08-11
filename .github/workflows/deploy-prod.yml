@@ -306,15 +306,6 @@ jobs:
             -var="green_image=${{ steps.state.outputs.green_img }}" \
             -var="warm_idle_size=0"
 
-          OLD_GROUP=${{ steps.state.outputs.active_group }}
-          insts=$(gcloud compute instance-groups managed list-instances "$OLD_GROUP" \
-            --region=us-central1 --project=$PROJECT_ID --format="value(instance.basename())" | paste -sd, -)
-          if [ -n "$insts" ]; then
-            echo "Draining old color $OLD_GROUP: $insts"
-            gcloud compute instance-groups managed delete-instances "$OLD_GROUP" \
-              --instances="$insts" --region=us-central1 --project=$PROJECT_ID
-          fi
-
       - name: Failover to previous color if the cutover failed before flipping
         if: failure() && steps.flip.outcome != 'success'
         env:
