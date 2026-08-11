@@ -221,8 +221,24 @@ jobs:
           fi
 
           echo "active=$ACTIVE (N=$N, img=$ACTIVE_IMG) -> idle=$IDLE gets ${{ steps.image.outputs.image }}"
-          for kv in "active=$ACTIVE" "idle=$IDLE" "idle_group=$IDLE_GROUP" "n=$N" \
+          for kv in "active=$ACTIVE" "idle=$IDLE" "active_group=$ACTIVE_GROUP" "idle_group=$IDLE_GROUP" "n=$N" \
                     "blue_img=$BLUE_IMG" "green_img=$GREEN_IMG"; do echo "$kv" >> $GITHUB_OUTPUT; done
+
+      - name: Ensure idle color is empty before warming
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          IDLE_GROUP=${{ steps.state.outputs.idle_group }}
+          size=$(gcloud compute instance-groups managed describe "$IDLE_GROUP" \
+            --region=us-central1 --project=$PROJECT_ID --format="value(targetSize)")
+          if [ "${size:-0}" -ne 0 ]; then
+            echo "Idle color $IDLE_GROUP still has ${size} instance(s) draining from a previous deploy."
+            echo "Blue/green requires it at 0 so it boots fresh on the new image. Wait a few minutes and re-run."
+            echo "Aborting before any change -- the active color keeps serving."
+            exit 1
+          fi
+          echo "Idle color $IDLE_GROUP is empty; safe to warm."
 
       - name: Warm idle color to active's instance count on the new image
         id: warm
@@ -277,12 +293,22 @@ jobs:
         env:
           PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
+          set -euo pipefail
           terraform apply -auto-approve \
             -var="project_id=$PROJECT_ID" \
             -var="active_color=${{ steps.state.outputs.idle }}" \
             -var="blue_image=${{ steps.state.outputs.blue_img }}" \
             -var="green_image=${{ steps.state.outputs.green_img }}" \
             -var="warm_idle_size=0"
+
+          OLD_GROUP=${{ steps.state.outputs.active_group }}
+          insts=$(gcloud compute instance-groups managed list-instances "$OLD_GROUP" \
+            --region=us-central1 --project=$PROJECT_ID --format="value(instance.basename())" | paste -sd, -)
+          if [ -n "$insts" ]; then
+            echo "Draining old color $OLD_GROUP: $insts"
+            gcloud compute instance-groups managed delete-instances "$OLD_GROUP" \
+              --instances="$insts" --region=us-central1 --project=$PROJECT_ID
+          fi
 
       - name: Failover to previous color if the cutover failed before flipping
         if: failure() && steps.flip.outcome != 'success'
