@@ -299,6 +299,17 @@ jobs:
           PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
           set -euo pipefail
+          retiring_size=$(gcloud compute instance-groups managed describe ${{ steps.state.outputs.active_group }} \
+            --region=us-central1 --project=$PROJECT_ID --format="value(targetSize)")
+          [ -n "$retiring_size" ] || { echo "Could not read retiring group size"; exit 1; }
+          echo "Apply 1: flip modes, hold retiring ${{ steps.state.outputs.active_group }} at its live size ${retiring_size} so it is not resized while still autoscaled"
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="active_color=${{ steps.state.outputs.idle }}" \
+            -var="blue_image=${{ steps.state.outputs.blue_img }}" \
+            -var="green_image=${{ steps.state.outputs.green_img }}" \
+            -var="warm_idle_size=${retiring_size}"
+          echo "Apply 2: retiring color now OFF, drain it to 0"
           terraform apply -auto-approve \
             -var="project_id=$PROJECT_ID" \
             -var="active_color=${{ steps.state.outputs.idle }}" \
