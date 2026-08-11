@@ -21,6 +21,10 @@ on:
         default: false
         type: boolean
 
+concurrency:
+  group: prod-web-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     permissions:
@@ -312,11 +316,20 @@ jobs:
 
       - name: Failover to previous color if the cutover failed before flipping
         if: failure() && steps.flip.outcome != 'success'
-        working-directory: openreview-cloud/Terraform/prod/web
         env:
           PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
         run: |
-          echo "Cutover failed before flip; ${{ steps.state.outputs.active }} still serving. Draining idle."
+          set -euo pipefail
+          echo "Cutover failed at or before flip; re-asserting ${{ steps.state.outputs.active }} on both backends, then draining idle."
+          cd $GITHUB_WORKSPACE/openreview-cloud/Terraform/prod/lb
+          terraform init -input=false
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="web_active_color=${{ steps.state.outputs.active }}" \
+            -target=google_compute_backend_service.web \
+            -target=google_compute_region_backend_service.web_ilb
+          cd $GITHUB_WORKSPACE/openreview-cloud/Terraform/prod/web
+          terraform init -input=false
           terraform apply -auto-approve \
             -var="project_id=$PROJECT_ID" \
             -var="active_color=${{ steps.state.outputs.active }}" \
