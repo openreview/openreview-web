@@ -2,7 +2,7 @@ const nextBuildId = require('next-build-id')
 
 module.exports = {
   eslint: {
-    dirs: ['pages', 'components', 'hooks', 'lib', 'tests', 'unitTests'],
+    ignoreDuringBuilds: true,
   },
   env: {
     SERVER_ENV: process.env.NODE_ENV,
@@ -11,6 +11,7 @@ module.exports = {
     ACCESS_TOKEN_NAME: process.env.ACCESS_TOKEN_NAME,
     REFRESH_TOKEN_NAME: process.env.REFRESH_TOKEN_NAME,
     USER_TOKEN_NAME: process.env.USER_TOKEN_NAME,
+    CLEARANCE_COOKIE_NAME: process.env.CLEARANCE_COOKIE_NAME,
     SUPER_USER: process.env.SUPER_USER,
     USE_DBLP_VENUES: process.env.USE_DBLP_VENUES,
     GA_PROPERTY_ID: process.env.GA_PROPERTY_ID,

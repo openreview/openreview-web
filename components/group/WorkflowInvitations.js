@@ -1,14 +1,14 @@
-/* eslint-disable arrow-body-style */
+import dayjs from 'dayjs'
+import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import timezone from 'dayjs/plugin/timezone'
+import utc from 'dayjs/plugin/utc'
+import { motion } from 'framer-motion'
+import { orderBy, sortBy, get } from 'lodash'
 /* globals promptError,promptMessage,$: false */
 import { useEffect, useRef, useState } from 'react'
-import { orderBy, sortBy, get } from 'lodash'
-import timezone from 'dayjs/plugin/timezone'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
-import { motion } from 'framer-motion'
-import EditorSection from '../EditorSection'
+import useSocket from '../../hooks/useSocket'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import {
   formatDateTime,
@@ -20,13 +20,12 @@ import {
   getSubInvitationContentFieldDisplayValue,
   getMetaInvitationId,
 } from '../../lib/utils'
-import InvitationEditor from './InvitationEditor'
 import Dropdown from '../Dropdown'
 import Markdown from '../EditorComponents/Markdown'
+import EditorSection from '../EditorSection'
 import Icon from '../Icon'
-import useSocket from '../../hooks/useSocket'
-import useUser from '../../hooks/useUser'
 import LoadingSpinner from '../LoadingSpinner'
+import InvitationEditor from './InvitationEditor'
 
 dayjs.extend(isSameOrBefore)
 dayjs.extend(timezone)
@@ -221,7 +220,6 @@ const WorkflowTasks = ({ workflowTasks, setCollapsedWorkflowInvitationIds }) => 
                 className={`task-container${task.isCompleted ? ' completed' : ''}`}
                 key={task.id}
               >
-                {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                 <a className="task-name" onClick={() => openSubInvitation(task)}>
                   {prettyInvitationId(task.id)}
                 </a>
@@ -489,7 +487,6 @@ const SubInvitationRow = ({
                   Add
                 </button>
               ) : (
-                // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
                   className="edit-close-button"
@@ -941,7 +938,7 @@ const WorkFlowInvitations = ({ group }) => {
         return []
       return stepObj
     })
-    if (!tempFilterResult.length) {
+    if (!tempFilterResult.length && !skipWorkflowInvitationCheck) {
       // skip workflow invitation check
       return filterWorkflowInvitations(
         exclusionWorkflowInvitations,
@@ -968,11 +965,12 @@ const WorkFlowInvitations = ({ group }) => {
       .then((result) => result.groups)
 
     const getAllInvitationsP = await api.getAll('/invitations', {
-      prefix: groupId,
+      prefix: `${groupId}/`,
       expired: true,
       trash: true,
       type: 'all',
       filterStaticForum: true,
+      domain: groupId,
     })
 
     let getStageInvitationTemplatesP =
@@ -985,7 +983,6 @@ const WorkFlowInvitations = ({ group }) => {
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])
     try {
-      // eslint-disable-next-line no-shadow
       const [groups, invitations, stageInvitations, logs] = await Promise.all([
         getAllGroupsP,
         getAllInvitationsP,
@@ -1058,7 +1055,6 @@ const WorkFlowInvitations = ({ group }) => {
       loadProcessLogs()
     }, 5000)
 
-    // eslint-disable-next-line consistent-return
     return () => {
       clearTimeout(eventsHandler)
     }
@@ -1161,7 +1157,6 @@ const WorkFlowInvitations = ({ group }) => {
                     key={id}
                     transition={{ duration: 0.5 }}
                     ref={(el) => {
-                      // eslint-disable-next-line no-param-reassign
                       workflowInvitationsRef.current[id] = el
                     }}
                     className="motion-div"

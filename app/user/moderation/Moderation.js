@@ -1,81 +1,92 @@
 'use client'
 
-import { useEffect, useState, useTransition } from 'react'
 import dynamic from 'next/dynamic'
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../../../components/Tabs'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useMemo, useState } from 'react'
+import { AntdTabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
-import VenueRequestCount from './(VenueRequests)/VenueRequestCount'
-import LoadingSpinner from '../../../components/LoadingSpinner'
+import NewVenueRequestCount from './(VenueRequests)/NewVenueRequestCount'
+import IdentityDocumentsTab from './IdentityDocumentsTab'
 import UserModerationTab from './UserModerationTab'
 
 const EmailDeletionTab = dynamic(() => import('./(EmailDeletion)/EmailDeletionTab'))
 const NameDeletionTab = dynamic(() => import('./(NameDeletion)/NameDeletionTab'))
 const ProfileMergeTab = dynamic(() => import('./(ProfileMerge)/ProfileMergeTab'))
 const InstitutionTab = dynamic(() => import('./(Institution)/InstitutionTab'))
+const ConnectedAppTab = dynamic(() => import('./(Connection)/ConnectedAppTab'))
 const VenueRequestTab = dynamic(() => import('./(VenueRequests)/VenueRequestTab'))
+const VenuesTab = dynamic(() => import('./(VenueRequests)/VenuesTab'))
 
 export default function Moderation() {
-  const [activeTabId, setActiveTabId] = useState('#profiles')
-  const [isPending, startTransition] = useTransition()
-  const [isClientRendering, setIsClientRendering] = useState(false)
+  const searchParams = useSearchParams()
+  const idParam = searchParams.get('id')
+  const [activeKey, setActiveKey] = useState('profiles')
 
   useEffect(() => {
-    setIsClientRendering(true)
-  }, [])
+    if (idParam) setActiveKey('profiles')
+  }, [idParam])
 
-  if (!isClientRendering)
-    return (
-      <Tabs>
-        <TabList>
-          <Tab>User Moderation</Tab>
-          <Tab>Email Delete Requests</Tab>
-          <Tab>Name Delete Requests</Tab>
-          <Tab>Profile Merge Requests</Tab>
-          <Tab>Institution List</Tab>
-          <Tab>Venue Requests</Tab>
-        </TabList>
-        <LoadingSpinner />
-      </Tabs>
-    )
+  const items = useMemo(
+    () => [
+      {
+        key: 'profiles',
+        label: 'Moderation',
+        children: <UserModerationTab />,
+      },
+      {
+        key: 'documents',
+        label: 'Identity Documents',
+        children: <IdentityDocumentsTab />,
+      },
+      {
+        key: 'requests',
+        label: <NewVenueRequestCount>Venue Requests</NewVenueRequestCount>,
+        children: <VenueRequestTab />,
+      },
+      {
+        key: 'venues',
+        label: 'Deployed Venues',
+        children: <VenuesTab />,
+      },
+      {
+        key: 'email',
+        label: 'Email Delete',
+        children: <EmailDeletionTab />,
+      },
+      {
+        key: 'name',
+        label: <NameDeletionCount>Name Delete</NameDeletionCount>,
+        children: <NameDeletionTab />,
+      },
+      {
+        key: 'merge',
+        label: <ProfileMergeCount>Profile Merge</ProfileMergeCount>,
+        children: <ProfileMergeTab />,
+      },
+      {
+        key: 'institution',
+        label: 'Institution List',
+        children: <InstitutionTab />,
+      },
+      {
+        key: 'connections',
+        label: 'Connected Apps',
+        children: <ConnectedAppTab />,
+      },
+    ],
+    []
+  )
 
   return (
-    <Tabs>
-      <TabList>
-        <Tab id="profiles" active>
-          User Moderation
-        </Tab>
-        <Tab id="email" onClick={() => startTransition(() => setActiveTabId('#email'))}>
-          Email Delete Requests
-        </Tab>
-        <Tab id="name" onClick={() => startTransition(() => setActiveTabId('#name'))}>
-          Name Delete Requests <NameDeletionCount />
-        </Tab>
-        <Tab id="merge" onClick={() => startTransition(() => setActiveTabId('#merge'))}>
-          Profile Merge Requests <ProfileMergeCount />
-        </Tab>
-        <Tab
-          id="institution"
-          onClick={() => startTransition(() => setActiveTabId('#institution'))}
-        >
-          Institution List
-        </Tab>
-        <Tab id="requests" onClick={() => startTransition(() => setActiveTabId('#requests'))}>
-          Venue Requests <VenueRequestCount />
-        </Tab>
-      </TabList>
-      <TabPanels>
-        <TabPanel id="profiles">
-          <UserModerationTab />
-        </TabPanel>
-        <TabPanel id="email">{activeTabId === '#email' && <EmailDeletionTab />}</TabPanel>
-        <TabPanel id="name">{activeTabId === '#name' && <NameDeletionTab />}</TabPanel>
-        <TabPanel id="merge">{activeTabId === '#merge' && <ProfileMergeTab />}</TabPanel>
-        <TabPanel id="institution">
-          {activeTabId === '#institution' && <InstitutionTab />}
-        </TabPanel>
-        <TabPanel id="requests">{activeTabId === '#requests' && <VenueRequestTab />}</TabPanel>
-      </TabPanels>
-    </Tabs>
+    <AntdTabs
+      type="card"
+      items={items}
+      activeKey={activeKey}
+      onChange={(key) => {
+        setActiveKey(key)
+        if (idParam) window.history.replaceState(null, '', window.location.pathname)
+      }}
+    />
   )
 }

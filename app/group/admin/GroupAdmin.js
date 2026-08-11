@@ -21,10 +21,13 @@ import LoadingSpinner from '../../../components/LoadingSpinner'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 import api from '../../../lib/api-client'
 import { isSuperUser } from '../../../lib/clientAuth'
+import GroupRestrictGroup from '../../../components/group/GroupRestrictGroup'
+import Alert from '../../../components/Alert'
 
 export default function GroupAdmin({ id, query }) {
   const [group, setGroup] = useState(null)
   const [error, setError] = useState(null)
+  const [isGroupRestricted, setIsGroupRestricted] = useState(false)
   const { user, isRefreshing } = useUser()
   const router = useRouter()
   const profileId = user?.profile?.id
@@ -33,7 +36,6 @@ export default function GroupAdmin({ id, query }) {
     try {
       const { groups } = await api.get('/groups', { id })
       if (!groups?.length) throw new Error('Group not found')
-      // eslint-disable-next-line no-shadow
       const group = groups[0]
       if (group.details?.writable) {
         // Get venue group to pass to webfield component
@@ -93,6 +95,7 @@ export default function GroupAdmin({ id, query }) {
         <div id="header">
           <h1>{prettyId(group.id)}</h1>
         </div>
+        {isGroupRestricted && <Alert color="danger">This venue is currently shut down.</Alert>}
         <div>
           <GroupGeneral
             group={group}
@@ -116,6 +119,9 @@ export default function GroupAdmin({ id, query }) {
           <GroupChildGroups groupId={group.id} />
           <GroupRelatedInvitations group={group} />
           <GroupUICode group={group} profileId={profileId} reloadGroup={loadGroup} />
+          {group.domain === group.id && (
+            <GroupRestrictGroup group={group} setIsGroupRestricted={setIsGroupRestricted} />
+          )}
         </div>
       </div>
     </CommonLayout>

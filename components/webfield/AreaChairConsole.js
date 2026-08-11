@@ -1,19 +1,10 @@
-/* eslint-disable max-len */
-/* globals $,promptMessage,promptError,typesetMathJax: false */
-
-import { useContext, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { camelCase, chunk, orderBy } from 'lodash'
 import Link from 'next/link'
-import WebFieldContext from '../WebFieldContext'
-import BasicHeader from './BasicHeader'
-import Table from '../Table'
-import ErrorDisplay from '../ErrorDisplay'
-import NoteSummary from './NoteSummary'
-import { AcPcConsoleNoteReviewStatus, LatestReplies } from './NoteReviewStatus'
-import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
+import { useSearchParams } from 'next/navigation'
+import { useContext, useEffect, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
+import { formatProfileContent } from '../../lib/edge-utils'
 import {
   getNumberFromGroup,
   getIndentifierFromGroup,
@@ -26,11 +17,17 @@ import {
   getSingularRoleName,
   getRoleHashFragment,
 } from '../../lib/utils'
-import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
+import ErrorDisplay from '../ErrorDisplay'
 import LoadingSpinner from '../LoadingSpinner'
-import ConsoleTaskList from './ConsoleTaskList'
-import { formatProfileContent } from '../../lib/edge-utils'
+import Table from '../Table'
+import WebFieldContext from '../WebFieldContext'
+import AreaChairConsoleMenuBar from './AreaChairConsoleMenuBar'
+import BasicHeader from './BasicHeader'
 import ConsoleTabs from './ConsoleTabs'
+import ConsoleTaskList from './ConsoleTaskList'
+import { AreaChairConsoleNoteMetaReviewStatus } from './NoteMetaReviewStatus'
+import { AcPcConsoleNoteReviewStatus, LatestReplies } from './NoteReviewStatus'
+import NoteSummary from './NoteSummary'
 import SelectAllCheckBox from './SelectAllCheckbox'
 
 const AssignedPaperRow = ({
@@ -399,7 +396,6 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
  *
  * @typedef {Object} AreaChairConsoleConfig
  *
- // eslint-disable-next-line max-len
  * @property {Object} header mandatory but can be empty object
  * @property {string} venueId mandatory
  * @property {Object} reviewerAssignment optional
@@ -861,7 +857,7 @@ const AreaChairConsole = ({ appContext }) => {
     const sacProfileLinks = acConsoleData.sacProfiles.map(
       (sacProfile, index) =>
         `<a href="/profile?id=${sacProfile.id}" target="_blank" rel="noopener noreferrer" >${prettyId(sacProfile.id)}</a>${
-          sacEmails[index] ? `(${sacEmails[index]})` : ''
+          sacEmails[index] ? ` (${sacEmails[index]})` : ''
         }`
     )
     setSacLinkText(
@@ -1020,13 +1016,7 @@ const AreaChairConsole = ({ appContext }) => {
         ]),
       ]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const getProfilesByIdsP = ids.length
-        ? api.post('/profiles/search', {
-            ids,
-          })
-        : Promise.resolve([])
-
-      const profileResult = await getProfilesByIdsP
+      const profileResult = await api.getAllProfilesByIds(ids)
       // #endregion
 
       // #region calculate reviewProgressData and metaReviewData
@@ -1127,6 +1117,13 @@ const AreaChairConsole = ({ appContext }) => {
           }
         })
         const metaReview = allMetaReviews.find((p) => !p.isByOtherAC)
+        if (typeof note.content?.authors?.value === 'object' && !note.content?.authorids) {
+          // eslint-disable-next-line no-param-reassign
+          note.authorSearchValue = note.content.authors.value.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          }))
+        }
 
         const customStageReviews = customStageInvitations?.reduce((prev, curr) => {
           const customStageReview = note.details.replies.find((p) =>

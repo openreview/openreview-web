@@ -88,7 +88,6 @@ function MessageContent({ content = '' }) {
   if (!sanitizedHtml) return null
 
   return (
-    // eslint-disable-next-line react/no-danger
     <div className="markdown-rendered" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
   )
 }

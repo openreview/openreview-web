@@ -1,3 +1,4 @@
+// TODO: this component is obselete and should be replaced with AllVenuesWithSearch
 import { headers } from 'next/headers'
 import api from '../../lib/api-client'
 import { deburrString, formatGroupResults, prettyId } from '../../lib/utils'
@@ -20,6 +21,7 @@ export default async function AllVenues() {
       .then(formatGroupResults)
       .then(sortAlpha)
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.log('Error in AllVenues', {
       page: 'Home',
       component: 'AllVenues',

@@ -45,7 +45,7 @@ export const MessageACSACModal = ({
     try {
       await api.post('/messages', {
         invitation: messageInvitationId,
-        signature: messageInvitationId && messageSignature,
+        signature: messageSignature,
         groups: recipientsInfo.map((p) => p.id),
         subject,
         message,
@@ -63,7 +63,7 @@ export const MessageACSACModal = ({
 
   const getRecipientRows = () => {
     if (Object.keys(messageOption).includes('filterFunc')) {
-      const customFunc = Function('row', messageOption.filterFunc) // eslint-disable-line no-new-func
+      const customFunc = Function('row', messageOption.filterFunc)
       return tableRows.filter((row) => customFunc(row))
     }
 

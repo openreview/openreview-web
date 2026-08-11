@@ -4,42 +4,40 @@
 /* globals typesetMathJax: false */
 /* globals promptError: false */
 
-import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
-import { flushSync } from 'react-dom'
-import { useRouter } from 'next/navigation'
-import isEmpty from 'lodash/isEmpty'
-import truncate from 'lodash/truncate'
-import debounce from 'lodash/debounce'
-import groupBy from 'lodash/groupBy'
-import escapeRegExp from 'lodash/escapeRegExp'
-import List from 'rc-virtual-list'
-
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import ForumNote from './ForumNote'
-import NoteEditor from '../NoteEditor'
-import ChatEditorForm from './ChatEditorForm'
-import FilterForm from './FilterForm'
-import ChatFilterForm from './ChatFilterForm'
-import FilterTabs from './FilterTabs'
-import ForumReply from './ForumReply'
-import ChatReply from './ChatReply'
-import LoadingSpinner from '../LoadingSpinner'
-import ForumReplyContext from './ForumReplyContext'
-import ConfirmDeleteModal from './ConfirmDeleteModal'
-
+import debounce from 'lodash/debounce'
+import escapeRegExp from 'lodash/escapeRegExp'
+import groupBy from 'lodash/groupBy'
+import isEmpty from 'lodash/isEmpty'
+import truncate from 'lodash/truncate'
+import { useRouter } from 'next/navigation'
+import List from 'rc-virtual-list'
+import { useEffect, useState, useCallback, useMemo, useRef } from 'react'
+import { flushSync } from 'react-dom'
+import useLocalStorage from '../../hooks/useLocalStorage'
+import useSocket from '../../hooks/useSocket'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import {
   formatNote,
   addTagToReactionsList,
   parseFilterQuery,
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
-import useLocalStorage from '../../hooks/useLocalStorage'
+import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import Icon from '../Icon'
-import useSocket from '../../hooks/useSocket'
+import LoadingSpinner from '../LoadingSpinner'
+import NoteEditor from '../NoteEditor'
+import ChatEditorForm from './ChatEditorForm'
+import ChatFilterForm from './ChatFilterForm'
+import ChatReply from './ChatReply'
+import ConfirmDeleteModal from './ConfirmDeleteModal'
+import FilterForm from './FilterForm'
+import FilterTabs from './FilterTabs'
+import ForumNote from './ForumNote'
+import ForumReply from './ForumReply'
+import ForumReplyContext from './ForumReplyContext'
 
 dayjs.extend(relativeTime)
 
@@ -295,7 +293,7 @@ export default function Forum({
       })
       return notes?.length > 0 ? notes : []
     } catch (error) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('Error loading new replies: ', error.message)
       return []
     }
@@ -562,7 +560,9 @@ export default function Forum({
   }
 
   const renderReplies = () => {
-    if (!orderedReplies) return null
+    setTimeout(() => {
+      typesetMathJax()
+    }, 200)
 
     const replies =
       layout === 'chat' || cutoffIndex.current >= orderedReplies.length
@@ -601,10 +601,6 @@ export default function Forum({
       )
     }
 
-    setTimeout(() => {
-      typesetMathJax()
-    }, 200)
-
     return replies.map((reply) => (
       <ForumReply
         key={reply.id}
@@ -636,8 +632,8 @@ export default function Forum({
 
       const primaryInvitationId = tab.expandedInvitations?.[0]
       if (primaryInvitationId) {
-        const primaryInvitation = parentNote.replyInvitations.find(
-          (inv) => inv.id === primaryInvitationId
+        const primaryInvitation = parentNote.replyInvitations?.find((inv) =>
+          inv.id.match(primaryInvitationId)
         )
         if (
           !primaryInvitation ||
@@ -689,7 +685,6 @@ export default function Forum({
 
     window.onhashchange = handleRouteChange
 
-    // eslint-disable-next-line consistent-return
     return () => {
       window.onhashchange = null
     }
@@ -776,8 +771,8 @@ export default function Forum({
     // Special case for chat layout: make sure all participants in the chat can read all the notes
     let chatReaders = null
     if (expandedInvitations?.length > 0) {
-      const primaryInv = parentNote.replyInvitations.find(
-        (inv) => inv.id === expandedInvitations[0]
+      const primaryInv = parentNote.replyInvitations.find((inv) =>
+        inv.id.match(expandedInvitations[0])
       )
       chatReaders = primaryInv ? primaryInv.edit.note.readers : null
     }
@@ -915,15 +910,11 @@ export default function Forum({
         newReplies.forEach((note) => {
           const invId = note.invitations[0]
           const sigId = note.signatures[0]
-          // eslint-disable-next-line no-param-reassign
           note.details.invitation = invitationMapRef.current[invId]?.[0]
-          // eslint-disable-next-line no-param-reassign
           note.details.presentation = invitationMapRef.current[invId]?.[1]
-          // eslint-disable-next-line no-param-reassign
           note.details.signatures = signaturesMapRef.current[sigId]
             ? [signaturesMapRef.current[sigId]]
             : []
-          // eslint-disable-next-line no-param-reassign
           note.details.tags = groupedTags[note.id]
 
           const isNewNote = updateNote(note)
@@ -934,7 +925,11 @@ export default function Forum({
           }
 
           // Track details of new notes for chat notifications
-          if (isNewNote && expandedInvitations?.includes(invId) && !note.ddate) {
+          if (
+            isNewNote &&
+            expandedInvitations?.some((pattern) => invId.match(pattern)) &&
+            !note.ddate
+          ) {
             if (!newMessageAuthor) {
               newMessageAuthor = prettyId(sigId, true)
               newMessage = truncate(note.content.message?.value || note.content.title?.value, {
@@ -1020,7 +1015,7 @@ export default function Forum({
         deleteOrRestoreNote={deleteOrRestoreNote}
       />
 
-      {repliesLoaded && orderedReplies.length > 0 && (
+      {repliesLoaded && (
         <div className="filters-container mt-4">
           {replyForumViews && (
             <FilterTabs
@@ -1031,25 +1026,27 @@ export default function Forum({
             />
           )}
 
-          {filterOptions && layout === 'default' && (
-            <FilterForm
-              forumId={id}
-              selectedFilters={selectedFilters}
-              setSelectedFilters={(newFilters) => {
-                setSelectedFilters(newFilters)
-                setMaxLength(250)
-              }}
-              filterOptions={filterOptions}
-              sort={sort}
-              setSort={setSort}
-              nesting={nesting}
-              setNesting={setNesting}
-              defaultCollapseLevel={defaultCollapseLevel}
-              setDefaultCollapseLevel={setDefaultCollapseLevel}
-              numReplies={replyNoteCount.current}
-              numRepliesHidden={numRepliesHidden}
-            />
-          )}
+          {filterOptions &&
+            numRepliesHidden < Object.keys(replyNoteMap).length &&
+            layout === 'default' && (
+              <FilterForm
+                forumId={id}
+                selectedFilters={selectedFilters}
+                setSelectedFilters={(newFilters) => {
+                  setSelectedFilters(newFilters)
+                  setMaxLength(250)
+                }}
+                filterOptions={filterOptions}
+                sort={sort}
+                setSort={setSort}
+                nesting={nesting}
+                setNesting={setNesting}
+                defaultCollapseLevel={defaultCollapseLevel}
+                setDefaultCollapseLevel={setDefaultCollapseLevel}
+                numReplies={replyNoteCount.current}
+                numRepliesHidden={numRepliesHidden}
+              />
+            )}
           {filterOptions && layout === 'chat' && (
             <ChatFilterForm
               forumId={id}
@@ -1168,8 +1165,8 @@ export default function Forum({
         <div className="chat-invitations-container">
           {expandedInvitations ? (
             expandedInvitations.map((invitationId) => {
-              const invitation = parentNote.replyInvitations.find(
-                (inv) => inv.id === invitationId
+              const invitation = parentNote.replyInvitations.find((inv) =>
+                inv.id.match(invitationId)
               )
               if (!invitation) {
                 return (

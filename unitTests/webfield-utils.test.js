@@ -4,6 +4,7 @@ import {
   isNonDeletableError,
   convertToString,
   convertToArray,
+  evaluateOperator,
 } from '../lib/webfield-utils'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -14,45 +15,49 @@ const uniqueIdentifier = 'id'
 describe('webfield-utils', () => {
   test('return field name in getErrorFieldName', () => {
     let errorPath = 'note/content/pdf'
-    let resultExpected = 'pdf'
+    let resultExpected = { fieldName: 'pdf' }
 
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/content/title/value'
-    resultExpected = 'title'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'title' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/content/authorids/value/0'
-    resultExpected = 'authorids'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'authorids' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'signatures' // edit signatures
-    resultExpected = 'editSignatureInputValues'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'editSignatureInputValues' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/signatures' // note signatures
-    resultExpected = 'noteSignatureInputValues'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'noteSignatureInputValues' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'readers' // edit readers
-    resultExpected = 'editReaderValues'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'editReaderValues' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/readers' // note readers
-    resultExpected = 'noteReaderValues'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'noteReaderValues' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/license' // note license
-    resultExpected = 'noteLicenseValue'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'noteLicenseValue' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'content/author_id/value' // edit content
-    resultExpected = 'content.author_id'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'content.author_id' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'content/author_index/value/0'
-    resultExpected = 'content.author_index'
-    expect(getErrorFieldName(errorPath)).toBe(resultExpected)
+    resultExpected = { fieldName: 'content.author_index' }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
+
+    errorPath = 'note/content/authors/value/4/institutions' // object authors
+    resultExpected = { fieldName: 'authors', index: 4 }
+    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
   })
 
   test('return whether the error invalidValue is {delete:true} in isNonDeletableError', () => {
@@ -76,6 +81,129 @@ describe('webfield-utils', () => {
 
     invalidValue = { delete: true, someOtherKey: 'some other value' }
     expect(isNonDeletableError(invalidValue)).toBe(false)
+  })
+})
+
+describe('evaluateOperator', () => {
+  test('return null when property value or target value is undefined or null', () => {
+    let propertyValue, targetValue, operator
+    operator = '='
+    propertyValue = undefined
+    targetValue = 'some value'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+
+    propertyValue = 'some value'
+    targetValue = null
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+
+    propertyValue = null
+    targetValue = undefined
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+  })
+
+  test('treat N/A property value as 0 when compared with number tagrget value', () => {
+    let propertyValue = 'N/A'
+    let targetValue = 5
+    let operator = '<'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+
+    operator = '>'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+
+    targetValue = -1
+    operator = '>'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+  })
+
+  test('user preferredName and preferredId as property value when searching profile', () => {
+    // convert all value to lowercase whne operator is not ==
+    let propertyValue = [
+      { preferredId: '~First_Last1', preferredName: 'First Last', type: 'profile' },
+    ]
+    let targetValue = 'last'
+    let operator = '='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+
+    targetValue = 'LAST'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+
+    // exact match when operator is ==
+    operator = '=='
+    targetValue = 'last'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    targetValue = 'first Last'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    targetValue = 'First Last'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+  })
+
+  test('not to allow greater less comparison when both target and property', () => {
+    let propertyValue = 'some string and some other string'
+    let targetValue = 'some string'
+
+    const notAllowedOperators = ['>', '>=', '<', '<=']
+    notAllowedOperators.forEach((operator) => {
+      expect(() => evaluateOperator(operator, propertyValue, targetValue)).toThrow(
+        'operator is invalid'
+      )
+    })
+
+    let operator = '='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    operator = '=='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    operator = '!='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+  })
+
+  test('not to convert target value to string when target value is number', () => {
+    // comparison of '5.00' and 3 is handled by js type coercion so no need to perform type conversion
+    let propertyValue = '5.00'
+    let targetValue = 3
+    let operator = '='
+
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    operator = '>='
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    operator = '<'
+    expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+  })
+
+  test('compare number', () => {
+    // 1.23=1.23
+    let propertyValue = 1.23
+    let targetValue = 1.23
+    let trueOperators = ['=', '==', '>=', '<=']
+    let falseOperators = ['!=', '>', '<']
+
+    falseOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    })
+    trueOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    })
+
+    // 1.23<1.24
+    targetValue = 1.24
+    trueOperators = ['!=', '<', '<=']
+    falseOperators = ['=', '==', '>=', '>']
+    falseOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    })
+    trueOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    })
+
+    // 1.23>1.22
+    targetValue = 1.22
+    trueOperators = ['!=', '>', '>=']
+    falseOperators = ['=', '==', '<', '<=']
+    falseOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(false)
+    })
+    trueOperators.forEach((operator) => {
+      expect(evaluateOperator(operator, propertyValue, targetValue)).toBe(true)
+    })
   })
 })
 
@@ -622,6 +750,111 @@ describe('filterCollections', () => {
 
     // filter by exact id
     filterString = 'sac=~Id2'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([2])
+  })
+
+  test('filter object authors', () => {
+    const note1Authors = [
+      {
+        fullname: 'Name One',
+        username: '~Id1',
+        institutions: [{ domain: 'institution.one', name: 'Institution One', country: 'TC' }],
+      },
+      {
+        fullname: 'Name Two',
+        username: '~Id2',
+        institutions: [{ domain: 'institution.two', name: 'Institution Two', country: 'TC' }],
+      },
+    ]
+    const note2Authors = [
+      {
+        fullname: 'Name Three',
+        username: '~Id3',
+        institutions: [
+          { domain: 'institution.three', name: 'Institution Three', country: 'TC' },
+        ],
+      },
+      {
+        fullname: 'Name Four',
+        username: '~Id4',
+        institutions: [
+          { domain: 'institution.four', name: 'Institution Four', country: 'TC' },
+        ],
+      },
+    ]
+    const collections = [
+      {
+        id: 1,
+        note: {
+          content: {
+            authors: { value: note1Authors },
+          },
+          authorSearchValue: note1Authors.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          })),
+        },
+      },
+      {
+        id: 2,
+        note: {
+          content: {
+            authors: { value: note2Authors },
+          },
+          authorSearchValue: note2Authors.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          })),
+        },
+      },
+    ]
+
+    // id match
+    let filterString = 'author=~Id'
+    const propertiesAllowed = {
+      author: ['note.authorSearchValue'],
+    }
+
+    let result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([1, 2])
+
+    // id exact match
+    filterString = 'author=~Id3'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([2])
+
+    // name match
+    filterString = 'author=Name'
+    result = filterCollections(
+      collections,
+      filterString,
+      filterOperators,
+      propertiesAllowed,
+      uniqueIdentifier
+    )
+    expect(result.filteredRows.map((p) => p.id)).toEqual([1, 2])
+
+    // name exact match
+    filterString = 'author==Name Three'
     result = filterCollections(
       collections,
       filterString,

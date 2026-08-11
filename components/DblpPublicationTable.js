@@ -17,28 +17,39 @@ export default function DblpPublicationTable({
   orPublicationsImportedByOtherProfile,
   maxNumberofPublicationsToImport,
 }) {
+  const { user } = useUser(true)
   const [profileIdsRequested, setProfileIdsRequested] = useState([])
-  const pubsCouldNotImport = [] // either existing or associated with other profile
-  const pubsCouldImport = []
-  dblpPublications.forEach((dblpPub) => {
-    const titleMatch = (orPub) =>
-      orPub.title === dblpPub.formattedTitle &&
-      orPub.authorCount === dblpPub.authorCount &&
-      orPub.venue === dblpPub.venue
-    const existing = orPublications.find(titleMatch)
-    const existingWithOtherProfile = orPublicationsImportedByOtherProfile.find(titleMatch)
-    if (existing || existingWithOtherProfile || dblpPub.authorIndex === -1) {
-      pubsCouldNotImport.push(dblpPub.key)
-    } else {
-      pubsCouldImport.push(dblpPub.key)
+
+  const categorizedDblpPublications = dblpPublications.map((dblpPub) => {
+    const externalIdOrtitleMatch = (orPub) =>
+      orPub.externalId === dblpPub.externalId ||
+      (orPub.title === dblpPub.formattedTitle &&
+        orPub.authorCount === dblpPub.authorCount &&
+        orPub.venue === dblpPub.venue)
+    const existing = orPublications.find(externalIdOrtitleMatch)
+    const existingWithOtherProfile =
+      orPublicationsImportedByOtherProfile.find(externalIdOrtitleMatch)
+
+    return {
+      ...dblpPub,
+      existing,
+      existingWithOtherProfile,
+      couldNotImport: existing || existingWithOtherProfile || dblpPub.authorIndex === -1,
     }
   })
-  const allExistInOpenReview = dblpPublications.length === pubsCouldNotImport.length
+
+  const pubsCouldNotImport = categorizedDblpPublications.flatMap((p) =>
+    p.couldNotImport ? [p.key] : []
+  )
+  const pubsCouldImport = categorizedDblpPublications
+    .map((p) => p.key)
+    .filter((key) => !pubsCouldNotImport.includes(key))
+  const allExistInOpenReview = categorizedDblpPublications.length === pubsCouldNotImport.length
   const allChecked =
-    dblpPublications.length - pubsCouldNotImport.length === selectedPublications.length
+    categorizedDblpPublications.length - pubsCouldNotImport.length ===
+    selectedPublications.length
 
-  const dblpPublicationsGroupedByYear = groupBy(dblpPublications, (p) => p.year)
-
+  const dblpPublicationsGroupedByYear = groupBy(categorizedDblpPublications, (p) => p.year)
   const toggleSelectAll = (checked) => {
     if (!checked) {
       setSelectedPublications([])
@@ -156,14 +167,9 @@ export default function DblpPublicationTable({
                   </>
                 ),
                 body: publicationsOfYear.map((publication) => {
-                  const titleMatch = (orPub) =>
-                    orPub.title === publication.formattedTitle &&
-                    orPub.authorCount === publication.authorCount &&
-                    orPub.venue === publication.venue
-                  const existingPublication = orPublications.find(titleMatch)
+                  const existingPublication = publication.existing
                   const existingPublicationOfOtherProfile =
-                    orPublicationsImportedByOtherProfile.find(titleMatch)
-                  // eslint-disable-next-line no-nested-ternary
+                    publication.existingWithOtherProfile
                   const category = existingPublication
                     ? 'existing-publication'
                     : existingPublicationOfOtherProfile
@@ -172,7 +178,6 @@ export default function DblpPublicationTable({
 
                   return (
                     <DblpPublicationRow
-                      // eslint-disable-next-line react/no-array-index-key
                       key={publication.key}
                       title={publication.title}
                       authors={publication.authorNames}
@@ -188,6 +193,7 @@ export default function DblpPublicationTable({
                       source={publication.source}
                       profileIdsRequested={profileIdsRequested}
                       setProfileIdsRequested={setProfileIdsRequested}
+                      user={user}
                     />
                   )
                 }),
@@ -219,8 +225,8 @@ const DblpPublicationRow = ({
   source,
   profileIdsRequested,
   setProfileIdsRequested,
+  user,
 }) => {
-  const { user } = useUser(true)
   const [error, setError] = useState(null)
   const [profileMergeStatus, setProfileMergeStatus] = useState(null)
   const profileMergeInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_Merge`
@@ -233,7 +239,7 @@ const DblpPublicationRow = ({
       const editToPost = view2.constructEdit({
         formData: {
           email: user.profile.preferredEmail,
-          left: user.id,
+          left: user.profile.id,
           right: otherProfileId,
           comment: 'DBLP import',
           status: 'Pending',

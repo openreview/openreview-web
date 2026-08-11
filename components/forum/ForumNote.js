@@ -1,15 +1,13 @@
-/* globals $, promptError, view2, DOMPurify: false */
-
-import { useState } from 'react'
-import Link from 'next/link'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
-import NoteEditor from '../NoteEditor'
+import Link from 'next/link'
+import { useState } from 'react'
+import getLicenseInfo from '../../lib/forum-utils'
+import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
+import Icon from '../Icon'
 import { NoteAuthorsV2 } from '../NoteAuthors'
 import { NoteContentV2 } from '../NoteContent'
-import Icon from '../Icon'
-import { prettyId, prettyInvitationId, forumDate, classNames } from '../../lib/utils'
-import getLicenseInfo from '../../lib/forum-utils'
+import NoteEditor from '../NoteEditor'
 import OtherVersions from './OtherVersions'
 
 dayjs.extend(relativeTime)
@@ -18,7 +16,6 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
   const { id, content, details, signatures, editInvitations, deleteInvitation } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
-  // eslint-disable-next-line no-underscore-dangle
   const texDisabled = !!content?._disableTexRendering?.value
 
   const [activeInvitation, setActiveInvitation] = useState(null)
@@ -93,7 +90,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
 
       <ForumTitle
         id={id}
-        title={DOMPurify.sanitize(content?.title?.value)}
+        title={content?.title?.value}
         pdf={canShowIcon('pdf')}
         html={canShowIcon('html')}
       />
@@ -105,6 +102,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
             authorIds={content?.authorids}
             signatures={signatures}
             noteReaders={note.readers}
+            showAuthorInstitutions={true}
           />
         </h3>
       </div>
@@ -166,7 +164,6 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
                           : ''
                       }
                     >
-                      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
                       <a
                         href="#"
                         data-id={invitation.id}
@@ -303,16 +300,13 @@ function ForumMeta({ note }) {
         </span>
       )}
 
-      {/* eslint-disable-next-line no-underscore-dangle */}
       {note.content?._bibtex?.value && (
         <span className="item">
           <Icon name="bookmark" />
-          {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
           <a
             href="#"
             data-target="#bibtex-modal"
             data-toggle="modal"
-            // eslint-disable-next-line no-underscore-dangle
             data-bibtex={encodeURIComponent(note.content._bibtex.value)}
           >
             BibTeX

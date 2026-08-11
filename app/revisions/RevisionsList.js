@@ -69,7 +69,6 @@ export function V1RevisionsList({ revisions, user, selectedIndexes, setSelectedI
 
     // Tell the note editor to submit both the referent and the note id so that
     // the API doesn't create a new reference
-    // eslint-disable-next-line no-param-reassign
     note.updateId = note.id
 
     view.mkNoteEditor(note, invitation, user, {
@@ -107,7 +106,6 @@ export function V1RevisionsList({ revisions, user, selectedIndexes, setSelectedI
 
   const buildNotePanel = (note, revisionInvitation) => {
     if (!revisionInvitation && note.details) {
-      // eslint-disable-next-line no-param-reassign
       note.details.originalWritable = false
     }
     if (
@@ -115,7 +113,6 @@ export function V1RevisionsList({ revisions, user, selectedIndexes, setSelectedI
       typeof note.details.writable === 'undefined' &&
       note.details.originalWritable
     ) {
-      // eslint-disable-next-line no-param-reassign
       note.details.writable = true
     }
 
@@ -170,7 +167,6 @@ export function V1RevisionsList({ revisions, user, selectedIndexes, setSelectedI
       {revisions.map(([reference, invitation], index) => (
         <div key={reference.id} className="row">
           <div className="checkbox col-sm-1">
-            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
             <label>
               <input
                 type="checkbox"
@@ -240,7 +236,6 @@ export default function RevisionsList({
       {revisions.map(([reference, invitation], index) => (
         <div key={reference.id} className="row">
           <div className="checkbox col-sm-1">
-            {/* eslint-disable-next-line jsx-a11y/label-has-associated-control */}
             <label>
               <input
                 type="checkbox"

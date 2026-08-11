@@ -1,9 +1,9 @@
 import { screen, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import userEvent from '@testing-library/user-event'
+import AreaChairConsole from '../components/webfield/AreaChairConsole'
 import api from '../lib/api-client'
 import { reRenderWithWebFieldContext, renderWithWebFieldContext } from './util'
-import AreaChairConsole from '../components/webfield/AreaChairConsole'
+import '@testing-library/jest-dom'
 
 let useUserReturnValue
 let noteSummaryProps
@@ -267,14 +267,14 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.post = jest.fn((_, param) =>
+    api.getAllProfilesByIds = jest.fn((_, param) =>
       Promise.resolve({
         profiles: [
           {
             id: '~Senior_AC1',
             content: {
               names: [{ username: '~Senior_AC1' }],
-              emails: ['senior@AC.one'],
+              emailsConfirmed: ['senior@AC.one'],
             },
           },
         ],
@@ -326,7 +326,7 @@ describe('AreaChairConsole', () => {
       expect(global.marked).toHaveBeenCalledWith(
         // senior@AC.two won't be shown because can't get the profile
         expect.stringContaining(
-          'Your assigned Area Chair is <a href="/profile?id=~Senior_AC1" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>'
+          'Your assigned Area Chair is <a href="/profile?id=~Senior_AC1" target="_blank" rel="noopener noreferrer" >Senior AC</a>'
         )
       )
     })
@@ -365,21 +365,21 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.post = jest.fn((_, param) =>
+    api.getAllProfilesByIds = jest.fn((_, param) =>
       Promise.resolve({
         profiles: [
           {
             id: '~Senior_AC1',
             content: {
               names: [{ username: '~Senior_AC1' }],
-              emails: ['senior@AC.one'],
+              emailsConfirmed: ['senior@AC.one'],
             },
           },
           {
             id: '~Senior_AC2',
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@AC.two'],
+              emailsConfirmed: ['senior@AC.two'],
             },
             email: 'senior@AC.two',
           },
@@ -432,7 +432,7 @@ describe('AreaChairConsole', () => {
     await waitFor(() => {
       expect(global.marked).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>(senior@ac.1) and <a href="/profile?id=~Senior_AC2" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>(senior@ac.2)'
+          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" target="_blank" rel="noopener noreferrer" >Senior AC</a> (senior@ac.1) and <a href="/profile?id=~Senior_AC2" target="_blank" rel="noopener noreferrer" >Senior AC</a> (senior@ac.2)'
         )
       )
     })
@@ -763,37 +763,37 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperFive_Reviewer1', fullname: 'PaperFive Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperFive_Reviewer2', fullname: 'PaperFive Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~Senior_AC1' }],
-              emails: ['senior@AC.one'],
+              emailsConfirmed: ['senior@AC.one'],
             },
           },
           {
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@AC.two'],
+              emailsConfirmed: ['senior@AC.two'],
             },
           },
         ],
@@ -989,13 +989,13 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
         ],
@@ -1293,39 +1293,39 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperFive_Reviewer1', fullname: 'PaperFive Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperFive_Reviewer2', fullname: 'PaperFive Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             id: '~Senior_AC1',
             content: {
               names: [{ username: '~Senior_AC1' }],
-              emails: ['senior@AC.one'],
+              emailsConfirmed: ['senior@AC.one'],
             },
           },
           {
             id: '~Senior_AC2',
             content: {
               names: [{ username: '~Senior_AC2' }],
-              emails: ['senior@AC.two'],
+              emailsConfirmed: ['senior@AC.two'],
             },
           },
         ],
@@ -1373,7 +1373,7 @@ describe('AreaChairConsole', () => {
     await waitFor(() => {
       expect(global.marked).toHaveBeenCalledWith(
         expect.stringContaining(
-          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a> and <a href="/profile?id=~Senior_AC2" target=\"_blank\" rel=\"noopener noreferrer\" >Senior AC</a>'
+          'Your assigned Area Chairs are <a href="/profile?id=~Senior_AC1" target="_blank" rel="noopener noreferrer" >Senior AC</a> and <a href="/profile?id=~Senior_AC2" target="_blank" rel="noopener noreferrer" >Senior AC</a>'
         )
       )
       expect(screen.getByRole('button', { name: 'Export' })).toBeVisible()
@@ -1844,13 +1844,13 @@ describe('AreaChairConsole', () => {
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
           {
             content: {
               names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
-              emails: [],
+              emailsConfirmed: [],
             },
           },
         ],

@@ -44,6 +44,7 @@ export default async function page({ searchParams }) {
       throw new Error(`The Invitation ${id} was not found`)
     }
   } catch (error) {
+    // oxlint-disable-next-line no-console
     console.log('Error in get invitation', {
       page: 'invitation',
       user: user?.id,

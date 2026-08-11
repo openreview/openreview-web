@@ -89,7 +89,6 @@ export default function PaginationLinks({
               }
             }
             pageLink = (
-              // eslint-disable-next-line jsx-a11y/anchor-is-valid
               <a href="#" role="button" onClick={onClickHandler}>
                 {page.label}
               </a>

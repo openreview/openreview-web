@@ -3,7 +3,6 @@
 /* globals promptError, typesetMathJax: false */
 /* globals marked, nanoid, DOMPurify, MathJax, Handlebars: false */
 
-// eslint-disable-next-line wrap-iife
 module.exports = (function () {
   const valueInput = (contentInput, fieldName, fieldDescription) => {
     const $smallHeading = $('<div>', {
@@ -1347,7 +1346,6 @@ module.exports = (function () {
       $cancelButton.on('click', function () {
         const confirmCancel =
           $noteEditor.data('hasUnsavedData') &&
-          // eslint-disable-next-line no-alert
           !window.confirm(
             'Any unsaved changes will be lost. Are you sure you want to continue?'
           )
@@ -1466,7 +1464,7 @@ module.exports = (function () {
       )
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures)
     } catch (error) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.error(error)
 
       const err =
@@ -1708,7 +1706,6 @@ module.exports = (function () {
         fieldDescription,
         'const',
         function (newFieldDescription) {
-          // eslint-disable-next-line no-template-curly-in-string
           if (fieldDescription.param.const[0] === '${{note.replyto}.readers}') {
             fieldDescription.param.const = newFieldDescription.param.const
           }
@@ -1827,7 +1824,7 @@ module.exports = (function () {
       onValidate: null,
       onError: null,
       isEdit: false,
-      ...(options ?? {}),
+      ...options,
     }
     if ($('.note_editor.panel').length) {
       promptError(
@@ -2058,7 +2055,6 @@ module.exports = (function () {
       $cancelButton.on('click', function () {
         const confirmCancel =
           $noteEditor.data('hasUnsavedData') &&
-          // eslint-disable-next-line no-alert
           !window.confirm(
             'Any unsaved changes will be lost. Are you sure you want to continue?'
           )
@@ -2189,7 +2185,7 @@ module.exports = (function () {
       )
       buildEditor(editReaders, editSignatures, noteReaders, noteSignatures)
     } catch (error) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.error(error)
 
       if (params.onError) {
@@ -2662,7 +2658,6 @@ module.exports = (function () {
     if (Array.isArray(invitation.edit.note?.readers)) {
       return undefined
     }
-    // eslint-disable-next-line no-nested-ternary
     var readers = invitation.edit
       ? isEdit
         ? invitation.edit.readers

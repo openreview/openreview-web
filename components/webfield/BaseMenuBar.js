@@ -120,7 +120,7 @@ const BaseMenuBar = ({
     let getValueFn = sortOption.getValue
     if (typeof sortOption.getValue === 'string') {
       try {
-        getValueFn = Function('row', sortOption.getValue) // eslint-disable-line no-new-func
+        getValueFn = Function('row', sortOption.getValue)
       } catch (error) {
         return
       }

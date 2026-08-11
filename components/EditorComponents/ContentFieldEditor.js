@@ -1,16 +1,16 @@
-/* eslint-disable func-names,object-shorthand */
+import { get, set, unset } from 'lodash'
 import { useContext, useState } from 'react'
-import { get, set } from 'lodash'
+import { convertToType } from '../../lib/webfield-utils'
+import Dropdown from '../Dropdown'
 import EditorComponentContext from '../EditorComponentContext'
+import Form from '../Form'
+import Icon from '../Icon'
+import NoteEditor from '../NoteEditor'
 import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
 import CodeEditorWidget from './CodeEditorWidget'
-import Dropdown from '../Dropdown'
-import Form from '../Form'
-import NoteEditor from '../NoteEditor'
 import EditorComponentHeader from './EditorComponentHeader'
+
 import styles from '../../styles/components/ContentFieldEditor.module.scss'
-import Icon from '../Icon'
-import { convertToType } from '../../lib/webfield-utils'
 
 const JsonEditor = ({ existingFields, onFieldChange }) => {
   const [mode, setMode] = useState('empty')
@@ -151,6 +151,10 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
             // { value: 'group', description: 'Group ID (Profile Search)' },
             // { value: 'profile', description: 'Profile ID (Profile Search)' },
             { value: 'group[]', description: 'Group ID Array (Profile Search)' },
+            {
+              value: 'author{}',
+              description: 'Author Object (Profile Search with Institution)',
+            },
             // { value: 'profile[]', description: 'Profile ID Array (Profile Search)' },
             // { value: 'note', description: 'Note ID (Not implemented)' },
             // { value: 'note[]', description: 'Note ID Array (Not implemented)' },
@@ -188,7 +192,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
         },
       },
       shouldBeShown: (formData) =>
-        !['const', 'file', 'date', 'boolean', 'json'].includes(formData.dataType),
+        !['const', 'file', 'date', 'boolean', 'json', 'author{}'].includes(formData.dataType),
       getValue: function (existingValue) {
         return get(existingValue, this.valuePath)
       },
@@ -230,23 +234,23 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       },
       valuePath: 'value.param.regex',
     },
-    range: {
-      order: 9,
-      description: 'Range of the field, for exmaple 1,99',
-      value: {
-        param: {
-          input: 'text',
-          type: 'string',
-          optional: true,
-        },
-      },
-      shouldBeShown: (formData) =>
-        ['integer', 'float'].includes(formData.dataType) && formData.inputType === 'text',
-      getValue: function (existingValue) {
-        return get(existingValue, this.valuePath)
-      },
-      valuePath: 'value.param.range',
-    },
+    // range: {
+    //   order: 9,
+    //   description: 'Range of the field, for exmaple 1,99',
+    //   value: {
+    //     param: {
+    //       input: 'text',
+    //       type: 'string',
+    //       optional: true,
+    //     },
+    //   },
+    //   shouldBeShown: (formData) =>
+    //     ['integer', 'float'].includes(formData.dataType) && formData.input === 'text',
+    //   getValue: function (existingValue) {
+    //     return get(existingValue, this.valuePath)
+    //   },
+    //   valuePath: 'value.param.range',
+    // },
     fieldName: {
       order: 9,
       description: 'The Text to display as name of the field',
@@ -269,7 +273,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       value: {
         param: {
           input: 'text',
-          type: 'string',
+          type: 'integer',
           optional: true,
         },
       },
@@ -285,7 +289,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       value: {
         param: {
           input: 'text',
-          type: 'string',
+          type: 'integer',
           optional: true,
         },
       },
@@ -301,7 +305,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       value: {
         param: {
           input: 'text',
-          type: 'string',
+          type: 'integer',
           optional: true,
         },
       },
@@ -320,7 +324,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       value: {
         param: {
           input: 'text',
-          type: 'string',
+          type: 'integer',
           optional: true,
         },
       },
@@ -387,7 +391,7 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       description: 'The max file size allowed for user to upload',
       value: {
         param: {
-          type: 'number',
+          type: 'integer',
           input: 'text',
           optional: true,
         },
@@ -433,12 +437,63 @@ const JsonEditor = ({ existingFields, onFieldChange }) => {
       },
       valuePath: 'value.param.markdown',
     },
+    institution: {
+      order: 9,
+      description: 'whether to include institution info',
+      value: {
+        param: {
+          input: 'checkbox',
+          type: 'boolean',
+          enum: [{ value: true, description: 'Include institution info' }],
+          optional: true,
+        },
+      },
+      shouldBeShown: (formData) => formData.dataType === 'author{}',
+      getValue: function (existingValue) {
+        const hasInstitution = get(existingValue, this.valuePath)
+        return !!hasInstitution
+      },
+      valuePath: 'value.param.properties.institutions',
+    },
   }
 
   const onFormChange = (updatedForm) => {
     const updatedField = Object.entries(fieldSpecificationsOfJsonField).reduce(
       (prev, [key, config]) => {
-        if (config.valuePath) {
+        if (key === 'dataType' && updatedForm[key] === 'author{}') {
+          set(prev, config.valuePath, updatedForm[key])
+          set(prev, 'value.param.properties', {
+            fullname: { param: { type: 'string' } },
+            username: { param: { type: 'string' } },
+          })
+        } else if (key === 'institution') {
+          const includeInstitution = updatedForm[key]
+          // eslint-disable-next-line no-unused-expressions
+          includeInstitution
+            ? set(prev, 'value.param.properties.institutions', {
+                param: {
+                  type: 'object{}',
+                  properties: {
+                    name: {
+                      param: {
+                        type: 'string',
+                      },
+                    },
+                    domain: {
+                      param: {
+                        type: 'string',
+                      },
+                    },
+                    country: {
+                      param: {
+                        type: 'string',
+                      },
+                    },
+                  },
+                },
+              })
+            : unset(prev, 'value.param.properties.institutions', undefined)
+        } else if (config.valuePath) {
           set(prev, config.valuePath, updatedForm[key])
         } else {
           set(prev, key, updatedForm[key])
@@ -537,7 +592,6 @@ const ContentFieldEditor = () => {
 
   const valueWithoutDeletedFields = Object.keys(value ?? {}).reduce((prev, curr) => {
     if (value[curr]?.delete) return prev
-    // eslint-disable-next-line no-param-reassign
     prev[curr] = value[curr]
     return prev
   }, {})

@@ -15,7 +15,6 @@ const Form = ({ fields, existingFieldsValue, onFormChange }) => {
     switch (action.type) {
       case 'INIT':
         return Object.keys(fields).reduce((prev, curr) => {
-          // eslint-disable-next-line no-param-reassign
           prev[curr] = fields[curr]?.getValue?.(existingFieldsValue)
           return prev
         }, {})

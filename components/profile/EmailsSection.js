@@ -1,12 +1,10 @@
-/* globals promptError,promptMessage,$: false */
-
-import { useEffect, useReducer, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
 import { nanoid } from 'nanoid'
-import Icon from '../Icon'
+import { useSearchParams } from 'next/navigation'
+import { useEffect, useReducer, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { isInstitutionEmail, isValidEmail } from '../../lib/utils'
+import Icon from '../Icon'
 
 const EmailsButton = ({
   type,
@@ -125,7 +123,6 @@ const EmailsSection = ({
     if (action.reset) return action.data
     return state
   }
-  // eslint-disable-next-line max-len
   const [emails, setEmails] = useReducer(
     emailsReducer,
     profileEmails?.map((p) => ({ ...p, key: nanoid(), isValid: true })) ?? []
@@ -238,9 +235,12 @@ const EmailsSection = ({
         <div className="activation-message">
           <Icon name="warning-sign" />
           <p>
-            Your profile does not contain any company/institution email and it can take up to 2
-            weeks for your profile to be activated. If you would like to activate your profile,
-            please add an email issued by employing or educational institution.
+            Please note: Your email address could not be automatically verified.
+            <br /> Accounts that cannot be automatically verified will need to be manually
+            activated. To expedite the process, we recommend using an email address from a
+            recognized company or institution (for example, your employer, university, or
+            research lab), or completing your profile information as thoroughly as possible to
+            help us verify your affiliation.
           </p>
         </div>
       )}
@@ -248,7 +248,6 @@ const EmailsSection = ({
         {emails.map((emailObj) => (
           <div className="row d-flex" key={emailObj.key}>
             <div className="col-md-4 emails__value">
-              {/* eslint-disable-next-line jsx-a11y/no-autofocus */}
               <input
                 aria-label="email"
                 type="email"

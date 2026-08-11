@@ -3,11 +3,10 @@
 /* globals promptMessage: false */
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { truncate } from 'lodash'
-import LoginPage from './Login'
 import useUser from '../../hooks/useUser'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import { sanitizeRedirectUrl } from '../../lib/utils'
+import LoginForm from './LoginForm'
 
 function Page() {
   const [isLoading, setLoading] = useState(true)
@@ -34,7 +33,7 @@ function Page() {
   }, [user, isRefreshing])
 
   if (isLoading) return <LoadingSpinner />
-  return <LoginPage />
+  return <LoginForm />
 }
 
 export default function Login() {

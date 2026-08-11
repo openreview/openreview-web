@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useDispatch } from 'react-redux'
+import { setBannerContent } from '../../bannerSlice'
+import api from '../../lib/api-client'
 import Note, { NoteV2 } from '../Note'
 import PaginatedList from '../PaginatedList'
-import api from '../../lib/api-client'
 
 const defaultDisplayOptions = {
   pdfLink: true,
@@ -24,15 +26,23 @@ export default function SubmissionsList({
   enableSearch,
   useCredentials,
   paperDisplayOptions,
+  skipDomain = false,
 }) {
   const [combinedDisplayOptions, setCombinedDisplayOptions] = useState(defaultDisplayOptions)
+  const dispatch = useDispatch()
   const details = 'replyCount,presentation,writable'
 
   const loadNotes = useCallback(
     async (limit, offset) => {
       const { notes, count } = await api.get(
         '/notes',
-        { details, ...query, limit, offset, domain: apiVersion === 1 ? undefined : venueId },
+        {
+          details,
+          ...query,
+          limit,
+          offset,
+          domain: apiVersion === 1 || skipDomain ? undefined : venueId,
+        },
         { version: apiVersion, useCredentials: useCredentials ?? true }
       )
       if (typeof updateCount === 'function') {
@@ -48,7 +58,7 @@ export default function SubmissionsList({
 
   const searchNotes = useCallback(
     async (term, limit, offset) => {
-      const { notes, count } = await api.get(
+      const { notes, count, searchUnavailable } = await api.get(
         '/notes/search',
         {
           ...(query['content.venue'] && { venue: query['content.venue'] }),
@@ -62,6 +72,17 @@ export default function SubmissionsList({
           offset,
         },
         { version: apiVersion, useCredentials: useCredentials ?? true }
+      )
+      dispatch(
+        setBannerContent(
+          searchUnavailable
+            ? {
+                type: 'error',
+                value:
+                  'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+              }
+            : { type: null, value: null }
+        )
       )
       return {
         items: notes,

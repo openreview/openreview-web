@@ -1,6 +1,7 @@
 {
   "stopOnFirstFail": true,
   "pageRequestTimeout": 30000,
+  "browserInitTimeout": 360000,
   "hostname": "localhost",
   "retryTestPages": true
 }

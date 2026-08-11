@@ -14,6 +14,15 @@ beforeEach(() => {
 })
 
 describe('ProfileLink', () => {
+  test('show plain text if id is undefined', () => {
+    const props = {
+      id: undefined,
+      name: 'Test User',
+    }
+    render(<ProfileLink {...props} />)
+    expect(screen.getByText('Test User')).toBeInTheDocument()
+  })
+
   test('show link to profile page when id is tilde id', () => {
     const props = {
       id: '~Test_User1',

@@ -1,23 +1,20 @@
-/* globals promptError: false */
-/* eslint-disable no-cond-assign */
-
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import pick from 'lodash/pick'
 import Steps from 'rc-steps'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import api from '../../lib/api-client'
+import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
+import BirthDateSection from './BirthDateSection'
 import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
 import ExpertiseSection from './ExpertiseSection'
 import GenderSection from './GenderSection'
-import PronounSection from './PronounSection'
 import ImportedPublicationsSection from './ImportedPublicationsSection'
-import LoadingSpinner from '../LoadingSpinner'
 import NamesSection from './NameSection'
 import PersonalLinksSection from './PersonalLinksSection'
+import ProfileEditorActions from './ProfileEditorActions'
 import ProfileSection from './ProfileSection'
+import PronounSection from './PronounSection'
 import RelationsSection from './RelationsSection'
-import api from '../../lib/api-client'
-import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
-import BirthDateSection from './BirthDateSection'
 
 export default function ProfileEditor({
   loadedProfile,
@@ -631,6 +628,7 @@ export default function ProfileEditor({
           >
             <RelationsSection
               profileRelation={profile?.relations}
+              savedRelations={loadedProfile?.relations}
               prefixedRelations={prefixedRelations}
               relationReaders={relationReaders}
               updateRelations={(relations) =>
@@ -765,38 +763,20 @@ export default function ProfileEditor({
         </p>
       )}
 
-      {isNewProfile && currentStepKey !== 'expertise' ? (
-        <div className="buttons-row">
-          <button
-            type="button"
-            className="btn submit-button"
-            onClick={() =>
-              setCurrentStepKey(
-                stepsItems[stepsItems.findIndex((p) => p.key === currentStepKey) + 1].key
-              )
-            }
-          >
-            {'Next Section'}
-          </button>
-        </div>
-      ) : (
-        <div className="buttons-row">
-          <button
-            type="button"
-            className="btn submit-button"
-            disabled={loading}
-            onClick={handleSubmit}
-          >
-            {submitButtonText ?? 'Save Profile Changes'}
-            {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
-          </button>
-          {!hideCancelButton && (
-            <button type="button" className="btn btn-default" onClick={cancelHandler}>
-              {isNewProfile ? 'Cancel' : 'Exit Edit Mode'}
-            </button>
-          )}
-        </div>
-      )}
+      <ProfileEditorActions
+        mode={isNewProfile && currentStepKey !== 'expertise' ? 'next' : 'submit'}
+        loading={loading}
+        submitLabel={submitButtonText ?? 'Save Profile Changes'}
+        cancelLabel={isNewProfile ? 'Cancel' : 'Exit Edit Mode'}
+        showCancel={!hideCancelButton}
+        onNext={() =>
+          setCurrentStepKey(
+            stepsItems[stepsItems.findIndex((p) => p.key === currentStepKey) + 1].key
+          )
+        }
+        onSubmit={handleSubmit}
+        onCancel={cancelHandler}
+      />
     </div>
   )
 }

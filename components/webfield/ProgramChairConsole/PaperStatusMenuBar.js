@@ -49,7 +49,11 @@ const PaperStatusMenuBar = ({
     number: ['note.number'],
     id: ['note.id'],
     title: ['note.content.title.value'],
-    author: ['note.content.authors.value', 'note.content.authorids.value'],
+    author: [
+      'note.content.authors.value',
+      'note.content.authorids.value',
+      'note.authorSearchValue',
+    ],
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
     ...(formattedSACName && { [formattedSACName]: ['metaReviewData.seniorAreaChairs'] }),
@@ -121,9 +125,9 @@ const PaperStatusMenuBar = ({
     Object.entries(extraPropertiesAllowed).forEach(([key, value]) => {
       if (Array.isArray(value)) return
       try {
-        result[key] = Function('row', value) // eslint-disable-line no-new-func
+        result[key] = Function('row', value)
       } catch (error) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.error(`Error parsing function for extra property ${key}: ${error}`)
       }
     })
@@ -134,7 +138,6 @@ const PaperStatusMenuBar = ({
     Object.keys(functionExtraProperties).length > 0
       ? tableRowsAll.map((row) => {
           const extraProperties = {}
-          // eslint-disable-next-line no-restricted-syntax
           for (const [key, value] of Object.entries(functionExtraProperties)) {
             extraProperties[key] = value(row)
           }
@@ -493,8 +496,7 @@ const PaperStatusMenuBar = ({
   ]
 
   const basicSearchFunction = (row, term) =>
-    row.note.number == term || // eslint-disable-line eqeqeq
-    row.note.content?.title?.value?.toLowerCase()?.includes(term)
+    row.note.number == term || row.note.content?.title?.value?.toLowerCase()?.includes(term)
   return (
     <BaseMenuBar
       tableRowsAll={tableRowsAllWithFilterProperties}

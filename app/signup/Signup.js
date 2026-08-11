@@ -1,14 +1,13 @@
 'use client'
 
-/* globals promptError,$ */
-import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import api from '../../lib/api-client'
+import { useState, useEffect } from 'react'
 import BasicModal from '../../components/BasicModal'
-import { isInstitutionEmail, isValidEmail, isValidPassword } from '../../lib/utils'
 import Icon from '../../components/Icon'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
+import api from '../../lib/api-client'
+import { isInstitutionEmail, isValidEmail, isValidPassword } from '../../lib/utils'
 
 const SignupForm = ({ setSignupConfirmation }) => {
   const [fullName, setFullName] = useState('')
@@ -82,7 +81,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
             />
             I confirm that this name is typed exactly as it would appear as an author in my
             publications. I understand that any future changes to my name will require
-            moderation by the OpenReview.net Staff, and may require two weeks processing time.
+            moderation by the OpenReview.net Staff.
           </label>
         </div>
       </form>
@@ -114,26 +113,15 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
   const [passwordVisible, setPasswordVisible] = useState(false)
   const [institutionDomains, setInstitutionDomains] = useState([])
   const [nonInstitutionEmail, setNonInstitutionEmail] = useState(null)
-  const router = useRouter()
 
-  const storeFeedbackInfo = (e) => {
-    e.preventDefault()
-    sessionStorage.setItem('feedbackInstitution', email)
-    router.push('/contact')
-  }
-
-  const InstitutionErrorMessage = ({ email: invalidEmail }) => (
+  const InstitutionErrorMessage = () => (
     <span>
-      <strong>{invalidEmail.split('@').pop()}</strong> does not appear in our list of
-      publishing institutions. It can take up to <strong>2 weeks</strong> for profiles using
-      public email services to be activated. To activate immediately, please sign up with an
-      email address that uses an educational or employing institution domain. If your
-      institution is not yet in our list,{' '}
-      {/* eslint-disable-next-line jsx-a11y/anchor-is-valid */}
-      <Link href="#" onClick={storeFeedbackInfo}>
-        contact us
-      </Link>{' '}
-      to request that it be added.
+      Please note: Your email address could not be automatically verified.
+      <br />
+      Accounts that cannot be automatically verified will need to be manually activated. To
+      expedite the process, we recommend using an email address from a recognized company or
+      institution (for example, your employer, university, or research lab), or completing your
+      profile information as thoroughly as possible to help us verify your affiliation.
     </span>
   )
 
@@ -219,7 +207,7 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
           <div className="activation-message-row">
             <div>
               <Icon name="warning-sign" extraClasses="email-tooltip" />
-              <InstitutionErrorMessage email={nonInstitutionEmail} />
+              <InstitutionErrorMessage />
             </div>
           </div>
         )}
@@ -307,7 +295,7 @@ const ConfirmNameModal = ({ fullName, onConfirm, setTurnstileToken }) => {
           I confirm my name is correct
         </label>
       </div>
-      <div className="mt-3 mb-2 text-center" ref={turnstileContainerRef}></div>
+      <div className="mt-3 mb-2 text-center" ref={turnstileContainerRef} />
     </BasicModal>
   )
 }

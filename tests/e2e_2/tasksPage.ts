@@ -4,7 +4,7 @@ import { hasTaskUser, hasNoTaskUser } from '../utils/api-helper'
 const confirmDeleteModal = Selector('#confirm-delete-modal')
 const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), 'test@mail.com')
     .typeText(Selector('#password-input'), hasTaskUser.password)
     .wait(100)
@@ -13,14 +13,14 @@ const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async 
 
 const hasNoTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), hasNoTaskUser.email)
     .typeText(Selector('#password-input'), hasNoTaskUser.password)
     .wait(300)
     .click(Selector('button').withText('Login to OpenReview'))
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Tasks Page`
 
 test('user with no tasks should see an empty tasks page', async (t) => {
@@ -39,7 +39,8 @@ test('task should change when note is deleted and restored', async (t) => {
     .useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
     .click(Selector('span.glyphicon-triangle-bottom'))
-    .expect(Selector('a').withText('Submission1 Official Review').exists).ok()
+    .expect(Selector('a').withText('Submission1 Official Review').exists)
+    .ok()
   await t
     .useRole(hasTaskUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/tasks`)
@@ -60,8 +61,7 @@ test('task should change when note is deleted and restored', async (t) => {
     .click(Selector('span.task-count-message'))
     .expect(Selector('span.task-count-message').innerText)
     .eql('1 pending task')
-    .click(Selector('span.task-count-message'))
-    .wait(200)
+    .wait(500)
     .click(Selector('a').withText('Submission1 Official Review'))
     .wait(2000)
     .click(Selector('#forum-replies').find('button').withAttribute('type', 'button').nth(4))
@@ -77,5 +77,5 @@ test('task should change when note is deleted and restored', async (t) => {
     .expect(Selector('span.task-count-message').innerText)
     .eql('0 pending tasks and 1 completed task')
 }).skipJsErrors({
-  message: "[Cloudflare Turnstile] Error: 300030."
+  message: '[Cloudflare Turnstile] Error: 300030.',
 })

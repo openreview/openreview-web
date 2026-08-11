@@ -1,16 +1,16 @@
 'use client'
 
-/* globals promptMessage,promptError: false */
-import { useEffect, useState } from 'react'
-import { marked } from 'marked'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfileEditor from '../../../components/profile/ProfileEditor'
+import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
-import useUser from '../../../hooks/useUser'
+import { getNoteAuthorIds, getNoteAuthors } from '../../../lib/utils'
 import LimitedStateAlert from './LimitedStateAlert'
+
 import styles from './Edit.module.scss'
-import LoadingSpinner from '../../../components/LoadingSpinner'
 
 export default function Page() {
   const [profile, setProfile] = useState(null)
@@ -24,11 +24,11 @@ export default function Page() {
     let authorIds
     let invitation
     if (note.invitations) {
-      authorIds = note.content.authorids?.value
+      authorIds = getNoteAuthorIds(note, true)
       invitation = note.invitations[0]
     } else {
-      authorIds = note.content.authorids
-      // eslint-disable-next-line prefer-destructuring
+      authorIds = getNoteAuthorIds(note, false)
+      // oxlint-disable-next-line prefer-destructuring
       invitation = note.invitation
     }
     const invitationMap = {
@@ -39,6 +39,7 @@ export default function Page() {
         'OpenReview.net/Archive/-/Direct_Upload_Revision',
       'DBLP.org/-/Record': 'DBLP.org/-/Author_Coreference',
       [`${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`]: `${process.env.SUPER_USER}/Public_Article/-/Author_Removal`,
+      [`${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`]: `${process.env.SUPER_USER}/Public_Article/-/Author_Removal`,
     }
     if (!authorIds) {
       throw new Error(`Note ${noteId} is missing author ids`)
@@ -74,6 +75,10 @@ export default function Page() {
           content: {
             author_index: { value: matchedIdx[0] },
             author_id: { value: '' },
+            ...(invitationMap[invitation] ===
+              `${process.env.SUPER_USER}/Public_Article/-/Author_Removal` && {
+              author_name: { value: getNoteAuthors(note, true)[matchedIdx[0]] },
+            }),
           },
         }
       : {
@@ -92,10 +97,9 @@ export default function Page() {
       : api.post('/notes', updateAuthorIdsObject, { version: 1 })
   }
 
-  // eslint-disable-next-line consistent-return
   const loadProfile = async () => {
     try {
-      const { profiles } = await api.get('/profiles')
+      const { profiles } = await api.get('/profiles', { id: user.profile.id })
       if (profiles?.length > 0) {
         const formattedProfile = formatProfileData(profiles[0], { useLinkObjectFormat: true })
         setProfile(formattedProfile)
@@ -131,7 +135,7 @@ export default function Page() {
       promptMessage('Your profile information has been successfully updated', 2)
       loadProfile()
     } catch (apiError) {
-      promptError(apiError.message)
+      promptError(apiError.message, undefined, true)
       setSaveProfileErrors(
         apiError.errors?.map((p) => p.details?.path) ?? [apiError?.details?.path]
       )
@@ -141,7 +145,10 @@ export default function Page() {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!user) router.replace('/login?redirect=/profile/edit')
+    if (!user) {
+      router.replace('/login?redirect=/profile/edit')
+      return
+    }
     loadProfile()
   }, [isRefreshing])
 

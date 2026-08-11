@@ -1,9 +1,9 @@
 /* globals $,clearMessage,promptError: false */
 
-import { useState, useRef, useEffect } from 'react'
 import { nanoid } from 'nanoid'
-import LoadingSpinner from './LoadingSpinner'
-import DblpPublicationTable from './DblpPublicationTable'
+import { useState, useRef, useEffect } from 'react'
+import { useDispatch } from 'react-redux'
+import { setBannerContent } from '../bannerSlice'
 import {
   getDblpPublicationsFromXmlUrl,
   getAllPapersByGroupId,
@@ -11,6 +11,8 @@ import {
   getAllPapersImportedByOtherProfiles,
 } from '../lib/profiles'
 import { deburrString, getNameString, inflect } from '../lib/utils'
+import DblpPublicationTable from './DblpPublicationTable'
+import LoadingSpinner from './LoadingSpinner'
 
 const ErrorMessage = ({ message, dblpNames, profileNames }) => {
   if (!dblpNames?.length) return <p>{message}</p>
@@ -62,23 +64,37 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
   const publicationsImportedByOtherProfiles = useRef([])
   const modalEl = useRef(null)
   const dblpNames = useRef(null)
+  const dispatch = useDispatch()
+  const setESErrorBanner = (searchUnavailable) => {
+    dispatch(
+      setBannerContent(
+        searchUnavailable
+          ? {
+              type: 'error',
+              value:
+                'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+            }
+          : { type: null, value: null }
+      )
+    )
+    if (searchUnavailable)
+      promptError(
+        'OpenReview is experiencing degraded performance in search functionality. Please try again later.'
+      )
+  }
 
   const maxNumberofPublicationsToImport = 500
 
   const getExistingFromDblpPubs = (allDblpPubs) => {
-    const existingPubsInAllDblpPubs = allDblpPubs.filter(
-      // eslint-disable-next-line max-len
-      (dblpPub) =>
-        publicationsInOpenReview.current.find(
-          (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
-        )
+    const existingPubsInAllDblpPubs = allDblpPubs.filter((dblpPub) =>
+      publicationsInOpenReview.current.find(
+        (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
+      )
     )
-    const associatedWithOtherProfilesPubsInAllDblpPubs = allDblpPubs.filter(
-      // eslint-disable-next-line max-len
-      (dblpPub) =>
-        publicationsImportedByOtherProfiles.current.find(
-          (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
-        )
+    const associatedWithOtherProfilesPubsInAllDblpPubs = allDblpPubs.filter((dblpPub) =>
+      publicationsImportedByOtherProfiles.current.find(
+        (orPub) => orPub.title === dblpPub.formattedTitle && orPub.venue === dblpPub.venue
+      )
     )
     return {
       numExisting: existingPubsInAllDblpPubs.length,
@@ -131,7 +147,8 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
           venue: p.venue,
           year: p.year,
         })),
-        profileNames
+        profileNames,
+        setESErrorBanner
       )
       const { numExisting, numAssociatedWithOtherProfile, noPubsToImport } =
         getExistingFromDblpPubs(allDblpPublications)
@@ -208,7 +225,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
       // replace other format of dblp homepage with persistent url
       if ($('#dblp_url').val() !== dblpUrl) {
-        // eslint-disable-next-line no-unused-expressions
+        // oxlint-disable-next-line no-unused-expressions
         updateDBLPUrl ? updateDBLPUrl(dblpUrl) : $('#dblp_url').val(dblpUrl)
       }
 

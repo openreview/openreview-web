@@ -21,7 +21,7 @@ const PersonalLinkInput = ({ type, links, setLinks }) => {
         break
       }
       case 'semanticScholar': {
-        const isValid = /^https:\/\/www\.semanticscholar\.org/.test(value)
+        const isValid = value.startsWith('https://www.semanticscholar.org')
         if (!isValid) {
           promptError(`${value} is not a valid Semantic Scholar URL`)
         }

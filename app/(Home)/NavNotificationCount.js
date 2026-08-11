@@ -23,6 +23,7 @@ export default async function NavNotificationCount() {
       return { count: count ?? 0 }
     })
     .catch((error) => {
+      // oxlint-disable-next-line no-console
       console.log('Error in NavNotificationCount', {
         page: 'Home',
         component: 'NavNotificationCount',

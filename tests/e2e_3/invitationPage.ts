@@ -9,7 +9,7 @@ const errorMessageLabel = Selector('.error-message')
 
 const reviewerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'reviewer_iclr@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
@@ -18,14 +18,14 @@ const reviewerRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t)
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
     .click(loginButton)
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Bidding page`
   .page`http://localhost:${process.env.NEXT_PORT}/invitation?id=ICLR.cc/2021/Conference/Reviewers/-/Bid`
 
@@ -87,7 +87,7 @@ test('logged in user should get a forbidden error', async (t) => {
     .eql("You don't have permission to read this invitation")
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Invitation page`.page`http://localhost:${process.env.NEXT_PORT}`
 
 test('accessing an invalid invitation should get a not found error', async (t) => {

@@ -52,7 +52,6 @@ const CommitteeSummary = ({ rowData }) => {
           </h4>
           <div className="profile-title">{title}</div>
           {preferredEmailInvitationId && (
-            // eslint-disable-next-line jsx-a11y/anchor-is-valid
             <a
               href="#"
               className="copy-email-link"
@@ -80,7 +79,7 @@ const CommitteeSummary = ({ rowData }) => {
 
 // modified based on notesAreaChairProgress.hbs
 const NoteAreaChairProgress = ({ rowData, referrerUrl }) => {
-  const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
+  const numCompletedReviews = rowData.numCompletedReviews // oxlint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   const { submissionName, officialReviewName } = useContext(WebFieldContext)
 
@@ -135,7 +134,7 @@ const NoteAreaChairStatus = ({
   submissionName,
   officialMetaReviewName,
 }) => {
-  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
+  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // oxlint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   const { metaReviewRecommendationName = 'recommendation' } = useContext(WebFieldContext)
 
@@ -266,7 +265,7 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
     const allNoteNumbers = sacConsoleData.notes.map((p) => p.note.number)
     sacConsoleData.areaChairGroups.forEach((acGroup) => {
       acGroup.members.forEach((member) => {
-        const noteNumber = acGroup.noteNumber // eslint-disable-line prefer-destructuring
+        const noteNumber = acGroup.noteNumber // oxlint-disable-line prefer-destructuring
         if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
         const reviewMetaReviewInfo =
           sacConsoleData.notes.find((p) => p.noteNumber === noteNumber) ?? {}

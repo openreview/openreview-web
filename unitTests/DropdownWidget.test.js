@@ -1342,11 +1342,9 @@ describe('DropdownWidget', () => {
     const optionOne = screen.getByText('option description one')
 
     expect(
-      // eslint-disable-next-line no-bitwise
       optionTwo.compareDocumentPosition(optionThree) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
     expect(
-      // eslint-disable-next-line no-bitwise
       optionThree.compareDocumentPosition(optionOne) & Node.DOCUMENT_POSITION_FOLLOWING
     ).toBeTruthy()
   })
@@ -1494,5 +1492,103 @@ describe('DropdownWidget', () => {
         value: [{ description: 'CC BY-NC 4.0', optional: true, value: 'CC BY-NC 4.0' }],
       })
     )
+  })
+})
+
+describe('DropdownWidget author-derived field (select an author)', () => {
+  const authorReferenceField = {
+    serve_as_reviewer: {
+      value: {
+        param: {
+          type: 'string[]',
+          input: 'select',
+          enum: ['${3/authors/value/*/username}'],
+        },
+      },
+    },
+  }
+
+  test('render options labelled by author display name', async () => {
+    const providerProps = {
+      value: {
+        field: authorReferenceField,
+        noteEditorValue: {
+          authors: [
+            { username: '~Jane_Doe1', fullname: 'Jane Doe' },
+            { username: '~Bob_Lee1', fullname: 'Bob Lee' },
+          ],
+        },
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+    await userEvent.click(screen.getByRole('combobox'))
+    expect(screen.getByText('Jane Doe')).toBeInTheDocument()
+    expect(screen.getByText('Bob Lee')).toBeInTheDocument()
+  })
+
+  test('drop a selected reviewer whose author has been removed', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: authorReferenceField,
+        noteEditorValue: { authors: [{ username: '~Jane_Doe1', fullname: 'Jane Doe' }] },
+        value: ['~Jane_Doe1', '~Removed_Author1'], // second author was removed
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+    expect(onChange).toHaveBeenCalledWith({
+      fieldName: 'serve_as_reviewer',
+      value: ['~Jane_Doe1'],
+    })
+  })
+
+  test('clear the value when the only selected author is removed', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: authorReferenceField,
+        noteEditorValue: { authors: [{ username: '~Jane_Doe1', fullname: 'Jane Doe' }] },
+        value: ['~Removed_Author1'],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+    expect(onChange).toHaveBeenCalledWith({ fieldName: 'serve_as_reviewer', value: undefined })
+  })
+
+  test('keep a valid selection unchanged (no reconcile dispatch)', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: authorReferenceField,
+        noteEditorValue: {
+          authors: [
+            { username: '~Jane_Doe1', fullname: 'Jane Doe' },
+            { username: '~Bob_Lee1', fullname: 'Bob Lee' },
+          ],
+        },
+        value: ['~Jane_Doe1'],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  test('render nothing when there are no authors', () => {
+    const providerProps = {
+      value: {
+        field: authorReferenceField,
+        noteEditorValue: { authors: [] },
+      },
+    }
+
+    const { container } = renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+    expect(container).toBeEmptyDOMElement()
   })
 })

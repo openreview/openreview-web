@@ -1,16 +1,19 @@
-import { useContext, useEffect, useState } from 'react'
 import { isEqual } from 'lodash'
-import Dropdown from '../Dropdown'
-import EditorComponentContext from '../EditorComponentContext'
+import { useContext, useEffect, useState } from 'react'
 import { prettyField, prettyId } from '../../lib/utils'
 import { convertToType } from '../../lib/webfield-utils'
+import Dropdown from '../Dropdown'
+import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/DropdownWidget.module.scss'
 
 const DropdownWidget = () => {
-  const { field, onChange, value, clearError } = useContext(EditorComponentContext)
+  const { field, onChange, value, clearError, noteEditorValue } =
+    useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
+  const isAuthorDerivedField =
+    field[fieldName]?.value?.param?.enum?.[0] === '${3/authors/value/*/username}'
   const isArrayType = fieldType?.endsWith('[]')
   const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
   const [dropdownOptions, setDropdownOptions] = useState([])
@@ -51,6 +54,7 @@ const DropdownWidget = () => {
   }
 
   useEffect(() => {
+    if (isAuthorDerivedField) return
     const enumValues = field[fieldName].value?.param?.enum
     const itemsValues = field[fieldName].value?.param?.items
     let options = []
@@ -84,7 +88,7 @@ const DropdownWidget = () => {
       }))
       setDropdownOptions(options)
       if (!value && defaultValues?.length) {
-        onChange({ fieldName, value: [...new Set([...defaultValues])] })
+        onChange({ fieldName, value: [...new Set(defaultValues)] })
       }
       if (value) {
         onChange({
@@ -97,6 +101,25 @@ const DropdownWidget = () => {
     }
   }, [])
 
+  useEffect(() => {
+    if (!isAuthorDerivedField) return
+    const authors = noteEditorValue?.authors ?? []
+    const authorOptions = authors.map((p) => ({
+      label: p.fullname,
+      value: p.username,
+    }))
+    setDropdownOptions(authorOptions)
+
+    // drop any selected reviewer whose author has been removed from the note
+    if (Array.isArray(value)) {
+      const optionValues = authorOptions.map((p) => p.value)
+      const filteredValue = value.filter((p) => optionValues.includes(p))
+      if (filteredValue.length !== value.length) {
+        onChange({ fieldName, value: filteredValue.length ? filteredValue : undefined })
+      }
+    }
+  }, [noteEditorValue?.authors])
+
   if (!dropdownOptions.length) return null
 
   return (
@@ -106,13 +129,14 @@ const DropdownWidget = () => {
         onChange={dropdownChangeHandler}
         value={
           allowMultiSelect
-            ? value?.map((p) =>
-                dropdownOptions.find((q) =>
-                  // eslint-disable-next-line eqeqeq
-                  typeof p === 'object' ? isEqual(q.value, p) : q.value == p
+            ? value
+                ?.map((p) =>
+                  dropdownOptions.find((q) =>
+                    typeof p === 'object' ? isEqual(q.value, p) : q.value == p
+                  )
                 )
-              )
-            : dropdownOptions.filter((p) => p.value == value) // eslint-disable-line eqeqeq
+                .filter(Boolean)
+            : dropdownOptions.filter((p) => p.value == value)
         }
         isClearable={true}
         isMulti={allowMultiSelect}

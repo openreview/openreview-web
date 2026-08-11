@@ -20,7 +20,11 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
     number: ['note.number'],
     id: ['note.id'],
     title: ['note.content.title.value'],
-    author: ['note.content.authors.value', 'note.content.authorids.value'],
+    author: [
+      'note.content.authors.value',
+      'note.content.authorids.value',
+      'note.authorSearchValue',
+    ],
     keywords: ['note.content.keywords.value'],
     reviewer: ['ethicsReviewers'],
     numReviewersAssigned: ['numReviewersAssigned'],
@@ -78,8 +82,7 @@ const EthicsChairMenuBar = ({ tableRowsAll, tableRows, setPaperStatusTabData }) 
       : []),
   ]
   const basicSearchFunction = (row, term) =>
-    row.note.number == term || // eslint-disable-line eqeqeq
-    row.note.content?.title?.value?.toLowerCase()?.includes(term)
+    row.note.number == term || row.note.content?.title?.value?.toLowerCase()?.includes(term)
   return (
     <BaseMenuBar
       tableRowsAll={tableRowsAll}

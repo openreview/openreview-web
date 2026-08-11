@@ -1,8 +1,8 @@
 'use client'
 
 import { useSelector } from 'react-redux'
-import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 import Banner from '../components/Banner'
+import { referrerLink, venueHomepageLink } from '../lib/banner-links'
 
 // it could be:
 // default banner - prompt open review message
@@ -21,10 +21,13 @@ export default function CustomBanner({ banner = true }) {
     case 'venueHomepageLink':
       storeBanner = venueHomepageLink(value)
       break
+    case 'error':
+      storeBanner = <span className="important_message">{value}</span>
+      break
     default:
       break
   }
 
-  if (banner === null) return storeBanner ? <Banner>{storeBanner}</Banner> : null
+  if (banner === null) return storeBanner ? <Banner type={type}>{storeBanner}</Banner> : null
   return banner === true ? <Banner /> : banner
 }

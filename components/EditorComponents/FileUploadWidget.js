@@ -1,13 +1,11 @@
-/* globals promptError: false */
-
-import { useContext, useRef, useState } from 'react'
 import { nanoid } from 'nanoid'
-import EditorComponentContext from '../EditorComponentContext'
-import SpinnerButton from '../SpinnerButton'
-import { TrashButton } from '../IconButton'
-import useUser from '../../hooks/useUser'
+import { useContext, useEffect, useRef, useState } from 'react'
+import useTurnstileToken from '../../hooks/useTurnstileToken'
 import api from '../../lib/api-client'
 import { prettyField } from '../../lib/utils'
+import EditorComponentContext from '../EditorComponentContext'
+import { TrashButton } from '../IconButton'
+import SpinnerButton from '../SpinnerButton'
 
 import styles from '../../styles/components/FileUploadWidget.module.scss'
 
@@ -17,53 +15,52 @@ const FileUploadWidget = () => {
   const fileInputRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
   const [uploadPercentage, setUploadPercentage] = useState(2)
+  const [hasHumanVerificationError, setHasHumanVerificationError] = useState(false)
+  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
+    'fileUpload',
+    hasHumanVerificationError
+  )
+
+  const pendingFileRef = useRef(null)
 
   const fieldName = Object.keys(field)[0]
   const [fileName, setFileName] = useState(prettyField(fieldName))
   const maxSize = field[fieldName].value?.param?.maxSize
   const extensions = field[fieldName].value?.param?.extensions?.map((p) => `.${p}`)
 
-  const uploadSingleFileChunk = async (chunk, index, chunkCount, clientUploadId) => {
-    try {
-      const data = new FormData()
-      data.append('invitationId', invitation.id)
-      data.append('name', fieldName)
-      data.append('chunkIndex', index + 1)
-      data.append('totalChunks', chunkCount)
-      data.append('clientUploadId', clientUploadId)
-      data.append('file', chunk)
+  const uploadSingleFileChunk = async (chunk, index, chunkCount, clientUploadId, token) => {
+    const data = new FormData()
+    data.append('invitationId', invitation.id)
+    data.append('name', fieldName)
+    data.append('chunkIndex', index + 1)
+    data.append('totalChunks', chunkCount)
+    data.append('clientUploadId', clientUploadId)
+    data.append('file', chunk)
 
-      const result = noteEditorPreview
-        ? await Promise.resolve({ url: 'preview url' })
-        : await api.put('/attachment/chunk', data, {
-            contentType: 'unset',
-          })
-      if (result.url) {
-        // upload is completed
-        onChange({ fieldName, value: result.url })
-        clearError?.()
-        setUploadPercentage(2)
-      } else {
-        setUploadPercentage(
-          (
-            (Object.values(result).filter((p) => p === 'completed').length * 100) /
-            Object.values(result).length
-          ).toFixed(0)
-        )
-      }
-    } catch (apiError) {
-      promptError(apiError.message)
-      fileInputRef.current.value = ''
+    const result = noteEditorPreview
+      ? await Promise.resolve({ url: 'preview url' })
+      : await api.put('/attachment/chunk', data, {
+          contentType: 'unset',
+          'cf-turnstile-token': token,
+        })
+    if (result.url) {
+      // upload is completed
+      onChange({ fieldName, value: result.url })
+      clearError?.()
+      setUploadPercentage(2)
+    } else {
+      setUploadPercentage(
+        (
+          (Object.values(result).filter((p) => p === 'completed').length * 100) /
+          Object.values(result).length
+        ).toFixed(0)
+      )
     }
   }
 
-  const handleFileSelected = async (e) => {
+  const uploadFile = async (file, token) => {
+    setIsLoading(true)
     try {
-      const file = e.target.files[0]
-      if (!file) return
-      if (maxSize && file.size > 1024 * 1000 * maxSize)
-        throw new Error(`File is too large. File size limit is ${maxSize} mb`)
-      setIsLoading(true)
       const chunkSize = 1024 * 1000 * 5 // 5mb
       const chunkCount = Math.ceil(file.size / chunkSize)
       const clientUploadId = nanoid()
@@ -79,23 +76,49 @@ const FileUploadWidget = () => {
       const sendChunksPromises = chunks.reduce(
         (oldPromises, currentChunk, i) =>
           oldPromises.then(() =>
-            uploadSingleFileChunk(currentChunk, i, chunkCount, clientUploadId)
+            uploadSingleFileChunk(currentChunk, i, chunkCount, clientUploadId, token)
           ),
         Promise.resolve()
       )
       await sendChunksPromises
       setFileName(file.name)
+      pendingFileRef.current = null
     } catch (apiError) {
-      promptError(apiError.message)
-      fileInputRef.current.value = ''
+      if (apiError.name === 'HumanVerificationRequiredError' && !noteEditorPreview) {
+        pendingFileRef.current = file
+        setHasHumanVerificationError(true)
+      } else {
+        promptError(apiError.message)
+        fileInputRef.current.value = ''
+      }
     }
-
     setIsLoading(false)
+  }
+
+  useEffect(() => {
+    if (!(turnstileToken && hasHumanVerificationError && pendingFileRef.current)) return
+
+    setHasHumanVerificationError(false)
+    uploadFile(pendingFileRef.current, turnstileToken)
+
+    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
+  }, [turnstileToken, hasHumanVerificationError])
+
+  const handleFileSelected = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (maxSize && file.size > 1024 * 1000 * maxSize) {
+      promptError(`File is too large. File size limit is ${maxSize} mb`)
+      return
+    }
+    await uploadFile(file, turnstileToken)
   }
 
   const handleDeleteFile = () => {
     onChange({ fieldName, value: undefined })
     fileInputRef.current.value = ''
+    pendingFileRef.current = null
+    setHasHumanVerificationError(false)
   }
 
   return (
@@ -111,7 +134,7 @@ const FileUploadWidget = () => {
         type="primary"
         className={`${styles.selectFileButton} ${error ? styles.invalidValue : ''}`}
         onClick={() => fileInputRef.current?.click()}
-        disabled={isLoading}
+        disabled={isLoading || hasHumanVerificationError}
         loading={isLoading}
       >{`Choose ${prettyField(fieldName)}`}</SpinnerButton>
       {isLoading && (
@@ -125,6 +148,7 @@ const FileUploadWidget = () => {
           />
         </div>
       )}
+      <div ref={turnstileContainerRef} />
       {value && (
         <>
           <span className={styles.fileUrl}>{`${fileName} (${value})`}</span>

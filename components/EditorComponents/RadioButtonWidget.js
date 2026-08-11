@@ -37,7 +37,7 @@ const RadioButtonWidget = () => {
           <input
             type="radio"
             value={option.value}
-            checked={value == option.value} // eslint-disable-line eqeqeq
+            checked={value == option.value}
             onChange={(e) => {
               onChange({ fieldName, value: convertToType(e.target.value, dataType) })
               clearError?.()

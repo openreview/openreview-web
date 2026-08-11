@@ -1,0 +1,36 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "semi": false,
+  "singleQuote": true,
+  "printWidth": 95,
+  "trailingComma": "es5",
+  "sortImports": {
+    "newlinesBetween": false,
+    "customGroups": [
+      {
+        "groupName": "legacy-bootstrap",
+        "elementNamePattern": ["**/legacy-bootstrap-styles"]
+      }
+    ],
+    "groups": [
+      "builtin",
+      "external",
+      ["internal", "subpath"],
+      ["parent", "sibling", "index"],
+      "side_effect",
+      "unknown",
+      { "newlinesBetween": true },
+      ["style", "side_effect_style"],
+      "legacy-bootstrap"
+    ]
+  },
+  "sortPackageJson": false,
+  "ignorePatterns": [
+    "/node_modules",
+    "/videos",
+    "/.next",
+    "/client/templates.js",
+    "/client/templates",
+    "/public/error-styles.css"
+  ]
+}

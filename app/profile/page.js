@@ -1,17 +1,17 @@
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import { stringify } from 'query-string'
-import { headers } from 'next/headers'
 import { orderBy } from 'lodash'
-import serverAuth, { isSuperUser } from '../auth'
-import api from '../../lib/api-client'
-import ErrorDisplay from '../../components/ErrorDisplay'
-import Profile from './Profile'
-import { formatProfileData } from '../../lib/profiles'
-import CommonLayout from '../CommonLayout'
+import { headers } from 'next/headers'
+import Link from 'next/link'
+import { redirect } from 'next/navigation'
+import { stringify } from 'query-string'
 import EditBanner from '../../components/EditBanner'
-import PreferredIdUpdater from './PreferredIdUpdater'
+import ErrorDisplay from '../../components/ErrorDisplay'
+import api from '../../lib/api-client'
+import { formatProfileData } from '../../lib/profiles'
 import { prettyId } from '../../lib/utils'
+import serverAuth, { isSuperUser } from '../auth'
+import CommonLayout from '../CommonLayout'
+import PreferredIdUpdater from './PreferredIdUpdater'
+import Profile from './Profile'
 
 export const dynamic = 'force-dynamic'
 
@@ -24,7 +24,7 @@ export async function generateMetadata({ searchParams }) {
 }
 
 export default async function page({ searchParams }) {
-  const { user, token } = await serverAuth()
+  const { user, token, clearanceToken } = await serverAuth()
   const query = await searchParams
   const { id, email } = query
 
@@ -42,14 +42,27 @@ export default async function page({ searchParams }) {
     email === '' ||
     (!id && !email)
 
+  let profileQuery
+  if (isProfileOwner) {
+    profileQuery = { id: user.profile.id }
+  } else if (id) {
+    profileQuery = { id }
+  } else {
+    profileQuery = { email }
+  }
+
   let profileResult
   try {
-    // eslint-disable-next-line no-nested-ternary
-    profileResult = await api.get('/profiles', isProfileOwner ? {} : id ? { id } : { email }, {
+    profileResult = await api.get('/profiles', profileQuery, {
       accessToken: token,
       remoteIpAddress,
+      clearanceToken,
     })
   } catch (error) {
+    // Send guests to the challenge page rather than silently rendering "not found".
+    if (error.name === 'ChallengeRequiredError') {
+      redirect(`/challenge?redirect=${encodeURIComponent(`/profile?${stringify(query)}`)}`)
+    }
     return <ErrorDisplay message="Profile not found" />
   }
   const profile = profileResult?.profiles?.[0]
@@ -82,6 +95,7 @@ export default async function page({ searchParams }) {
         ['desc']
       )
     } catch (error) {
+      // oxlint-disable-next-line no-console
       console.log('Error in page', {
         page: 'Home',
         error,
@@ -101,6 +115,53 @@ export default async function page({ searchParams }) {
   ) : null
 
   const formattedProfile = formatProfileData(profile)
+
+  try {
+    const result = await api.get(
+      '/tags',
+      {
+        invitation: `${process.env.SUPER_USER}/Support/-/Vouch`,
+        signature: profile.id,
+      },
+      { accessToken: token, remoteIpAddress }
+    )
+    const vouchByUsername = new Map(
+      result.tags.map((tag) => {
+        let decoded = {}
+        try {
+          decoded = JSON.parse(tag.label ?? '') ?? {}
+        } catch {
+          decoded = {}
+        }
+        return [
+          tag.profile,
+          {
+            relation: decoded.relation || 'Vouchee',
+            username: tag.profile,
+            start: decoded.start ?? null,
+            end: decoded.end ?? null,
+            readers: ['everyone'],
+            vouched: true,
+          },
+        ]
+      })
+    )
+    if (vouchByUsername.size) {
+      const relations = (formattedProfile.relations ?? []).map((relation) => {
+        const vouch = vouchByUsername.get(relation.username)
+        if (!vouch) return relation
+        vouchByUsername.delete(relation.username)
+        return { ...relation, ...vouch, name: relation.name ?? prettyId(vouch.username) }
+      })
+
+      const reconstructed = [...vouchByUsername.values()].map((vouch) => ({
+        ...vouch,
+        name: prettyId(vouch.username),
+      }))
+      formattedProfile.relations = [...relations, ...reconstructed]
+    }
+  } catch {}
+
   const { preferredId } = formattedProfile
   const shouldRedirect = email || id !== preferredId || (!email && !id)
 

@@ -4,11 +4,11 @@ import api from '../lib/api-client'
 
 export default function useUser(getFullProfile = false) {
   const [user, setUser] = useState(null)
-  const [isRefreshing, setIsRefshing] = useState(true)
+  const [isRefreshing, setIsRefreshing] = useState(true)
 
-  const getProfile = async () => {
+  const getProfile = async (userProfileId) => {
     try {
-      const profileResult = await api.get('/profiles')
+      const profileResult = await api.get('/profiles', { id: userProfileId })
       return profileResult?.profiles?.[0]
     } catch (_) {
       return null
@@ -17,8 +17,13 @@ export default function useUser(getFullProfile = false) {
 
   const fetchData = async () => {
     const { user: userFromCookie } = await clientAuth()
-    if (userFromCookie?.id && getFullProfile) {
-      const fullProfile = await getProfile()
+    if (!userFromCookie?.profile?.id) {
+      setUser(null)
+      setIsRefreshing(false)
+      return
+    }
+    if (getFullProfile) {
+      const fullProfile = await getProfile(userFromCookie.profile.id)
       if (fullProfile) {
         const preferedNameObj =
           fullProfile.content.names?.find((p) => p.preferred) ?? fullProfile.content.names?.[0]
@@ -26,17 +31,17 @@ export default function useUser(getFullProfile = false) {
           profile: {
             id: fullProfile.id,
             preferredId: preferedNameObj?.username ?? fullProfile.id,
-            preferredName: preferedNameObj?.fullname ?? userFromCookie.profile.fullName,
+            preferredName: preferedNameObj?.fullname ?? userFromCookie.profile.fullname,
             preferredEmail:
               fullProfile.content.preferredEmail ?? fullProfile.content.emails?.[0],
           },
         })
-        setIsRefshing(false)
+        setIsRefreshing(false)
         return
       }
     }
     setUser(userFromCookie)
-    setIsRefshing(false)
+    setIsRefreshing(false)
   }
 
   useEffect(() => {

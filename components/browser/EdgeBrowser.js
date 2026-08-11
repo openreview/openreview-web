@@ -1,14 +1,12 @@
-/* eslint-disable react/destructuring-assignment */
-/* eslint-disable react/no-access-state-in-setstate */
 /* globals promptError: false */
 
-import React from 'react'
 import _ from 'lodash'
-import Column from './Column'
-import EdgeBrowserContext from './EdgeBrowserContext'
+import React from 'react'
 import api from '../../lib/api-client'
 import { formatEntityContent, buildSearchText } from '../../lib/edge-utils'
 import { prettyId } from '../../lib/utils'
+import Column from './Column'
+import EdgeBrowserContext from './EdgeBrowserContext'
 
 export default class EdgeBrowser extends React.Component {
   constructor(props) {
@@ -63,6 +61,7 @@ export default class EdgeBrowser extends React.Component {
     this.userId = props.userInfo.userId
 
     this.availableSignaturesInvitationMap = []
+    this.browseEdgesCache = new Map()
   }
 
   componentDidMount() {
@@ -86,7 +85,13 @@ export default class EdgeBrowser extends React.Component {
   buildEntityMapFromInvitation(headOrTail) {
     // Get all head or tail objects referenced by the traverse parameter invitation
     const invReplyObj = this.traverseInvitation[headOrTail]
-    const requestParams = { ...invReplyObj?.query } // avoid polluting invReplyObj which is used for compare
+    const requestParams = {
+      ...invReplyObj?.query,
+      ...(invReplyObj.type === 'profile' && {
+        select:
+          'id,content.names,content.preferredEmail,content.emailsConfirmed,content.history,content.expertise',
+      }),
+    } // avoid polluting invReplyObj which is used for compare
     const localQuery = invReplyObj?.localQuery
     const apiUrlMap = {
       note: '/notes',
@@ -121,6 +126,10 @@ export default class EdgeBrowser extends React.Component {
       const startRequestParams = startInv.query || {}
       if (startInv.type === 'note') {
         startRequestParams.invitation = startInv.query.invitation
+      }
+      if (startInv.type === 'profile') {
+        startRequestParams.select =
+          'id,content.names,content.preferredEmail,content.emailsConfirmed,content.history,content.expertise'
       }
       startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, {
         version: this.version,
@@ -234,7 +243,7 @@ export default class EdgeBrowser extends React.Component {
         return
       }
       if (index + 1 === this.maxColumns) {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn('Cannot add new column: maxColumns limit reached')
         return
       }
@@ -408,6 +417,7 @@ export default class EdgeBrowser extends React.Component {
       availableSignaturesInvitationMap: this.availableSignaturesInvitationMap,
       version: this.version,
       traverseGroup: this.state.traverseGroup,
+      browseEdgesCache: this.browseEdgesCache,
     }
 
     return (
@@ -418,7 +428,6 @@ export default class EdgeBrowser extends React.Component {
         >
           {this.state.columns.map((column, i) => (
             <Column
-              // eslint-disable-next-line react/no-array-index-key
               key={`${column.parentId || 'start-col'}-${i}`}
               type={column.type}
               entityType={column.entityType}

@@ -33,12 +33,16 @@ const DonateBanner = () => {
   )
 }
 
-export default function Banner({ hidden, children }) {
+export default function Banner({ hidden, children, type }) {
   if (hidden) return null
   if (!children) return <DonateBanner />
 
   return (
-    <div id="or-banner" className="banner" role="banner">
+    <div
+      id="or-banner"
+      className={`banner${type === 'error' ? ' banner-error' : ''}`}
+      role="banner"
+    >
       <div className="container">
         <div className="row">
           <div className="col-xs-12">{children}</div>

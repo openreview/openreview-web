@@ -161,7 +161,6 @@ module.exports = function (forumId, noteId, invitationId, user) {
       })
 
       return $.when.apply($, noteRecPs).then(function () {
-        // eslint-disable-next-line prefer-rest-params
         return _.toArray(arguments)
       })
     })

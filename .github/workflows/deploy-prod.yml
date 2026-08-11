@@ -1,9 +1,13 @@
 # This workflow deploys any branch, tag, or commit hash to the production environment.
+# Flow: build Next.js, bake a GCE image with Packer, then a blue/green cutover (warm the idle color
+# on the new image, wait for it healthy on the LB, flip both web backend services), then sync static
+# files to nginx. The web MIG is flexible so it cannot be rolled in place; see the blue/green model
+# in openreview-cloud Terraform/prod/web/README.md.
+# Rollback: re-run with an older tag; its mapped image skips build/Packer and runs the same cutover.
 
 name: Production Deployment
 
 on:
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
     inputs:
       tag:
@@ -11,10 +15,18 @@ on:
         required: false
         default: master
         type: string
+      force_rebuild:
+        description: Force a full build even if an image mapping already exists for this tag
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: prod-web-deploy
+  cancel-in-progress: false
 
 jobs:
   deploy:
-    # Allow the job to fetch a GitHub ID token
     permissions:
       id-token: write
       contents: read
@@ -25,34 +37,66 @@ jobs:
       TAG: ${{ github.event.inputs.tag }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           ref: ${{ env.TAG }}
           fetch-depth: 0
+
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: openreview
+          repositories: openreview-cloud
+
+      - name: Checkout openreview-cloud
+        uses: actions/checkout@v6
+        with:
+          repository: openreview/openreview-cloud
+          path: openreview-cloud
+          token: ${{ steps.app-token.outputs.token }}
+
       - name: Authenticate with Google Cloud
         id: auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
           create_credentials_file: true
           cleanup_credentials: true
           export_environment_variables: true
+
       - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           skip_install: true
-      - name: Run deploy script
-        run: |
-          gsutil cp gs://openreview-general/conf/deployment.conf ./deployment.conf
-          sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" ./deployment.conf
-          gsutil cp ./deployment.conf gs://openreview-general/conf/deployment.conf
 
+      - name: Check for existing image mapping
+        id: check-mapping
+        run: |
+          if [ "${{ inputs.force_rebuild }}" = "true" ]; then
+            echo "is_rollback=false" >> $GITHUB_OUTPUT
+            echo "Force rebuild requested — full deploy mode"
+          elif gsutil -q stat gs://openreview-general/web-image-map/${TAG}; then
+            echo "is_rollback=true" >> $GITHUB_OUTPUT
+            echo "Existing image mapping found for ${TAG} — rollback mode"
+          else
+            echo "is_rollback=false" >> $GITHUB_OUTPUT
+            echo "No image mapping found for ${TAG} — full deploy mode"
+          fi
+
+      - name: Run deploy script
+        id: build
+        if: steps.check-mapping.outputs.is_rollback == 'false'
+        run: |
           cd $GITHUB_WORKSPACE
           gsutil cp gs://openreview-general/conf/production.env $GITHUB_WORKSPACE/.env.local
           config_hash="$(sha1sum $GITHUB_WORKSPACE/.env.local | cut -d " " -f 1)"
           build_id="$(git describe --tags)-$config_hash"
+          echo "build_id=$build_id" >> $GITHUB_OUTPUT
           echo "Build ID: $build_id"
 
           if gsutil ls "gs://openreview-general/openreview-web-builds/${build_id}.tar.gz" ; then
@@ -60,7 +104,7 @@ jobs:
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20BUILD%20ALREADY%20EXISTS:%20${build_id}&format=text"
           else
             echo "Building OpenReview web application..."
-            npm install
+            npm ci
             npm run build
             echo "compressing build."
 
@@ -70,33 +114,241 @@ jobs:
 
             echo "copying build to Google Cloud."
             gsutil cp "/tmp/${build_id}.tar.gz" "gs://openreview-general/openreview-web-builds/${build_id}.tar.gz"
+            echo "$build_id" | gsutil cp - gs://openreview-general/static-upload-pending/${build_id}
             curl -s "https://cowsay.morecode.org/say?message=MOO%21%20YOU%20CREATED%20A%20BUILD%20SUCCESSFULLY&format=text"
           fi
 
-          instance_prefix='openreview-web-'
+          gsutil cp gs://openreview-general/conf/deployment.conf $GITHUB_WORKSPACE/deployment.conf
+          sed -i "s/WEB_TAG=.*/WEB_TAG=\"$TAG\"/" $GITHUB_WORKSPACE/deployment.conf
+          sed -i '/^BUILD_ID=/d' $GITHUB_WORKSPACE/deployment.conf
+          echo "BUILD_ID=\"$build_id\"" >> $GITHUB_WORKSPACE/deployment.conf
 
-          instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
-
-          instances_arr=(${instances// / })
-
-          instance_names=()
-          zones=()
-          for i in ${!instances_arr[@]}; do
-            if echo "${instances_arr[$i]}" | grep -q "$instance_prefix"; then
-              instance_names+=(${instances_arr[$i]})
+      - name: Sync static assets to GCS
+        if: steps.check-mapping.outputs.is_rollback == 'false'
+        env:
+          BUILD_ID: ${{ steps.build.outputs.build_id }}
+        run: |
+          if [ -d "$GITHUB_WORKSPACE/.next/static" ]; then
+            echo "$BUILD_ID" | gsutil cp - gs://openreview-general/static-upload-pending/${BUILD_ID}
+            gsutil -m rsync -r $GITHUB_WORKSPACE/.next/static/ gs://openreview-web-static/_next/static/
+            gsutil rm gs://openreview-general/static-upload-pending/${BUILD_ID}
+          elif gsutil -q stat "gs://openreview-general/static-upload-pending/${BUILD_ID}"; then
+            if [ "${{ inputs.force_rebuild }}" = "true" ]; then
+              echo "Marker found with force_rebuild — extracting static files from existing artifact and retrying sync..."
+              gsutil cp "gs://openreview-general/openreview-web-builds/${BUILD_ID}.tar.gz" /tmp/${BUILD_ID}.tar.gz
+              tar -xzf /tmp/${BUILD_ID}.tar.gz -C /tmp/ "${BUILD_ID}/.next/static/"
+              gsutil -m rsync -r /tmp/${BUILD_ID}/.next/static/ gs://openreview-web-static/_next/static/
+              gsutil rm gs://openreview-general/static-upload-pending/${BUILD_ID}
             else
-              zones+=(${instances_arr[$i]})
+              echo "ERROR: Static upload pending for ${BUILD_ID} from a previous failed run. Re-run with force_rebuild=true."
+              exit 1
             fi
+          else
+            echo "Build skipped and no pending upload — static files already in bucket."
+          fi
+
+      - name: Setup Packer
+        if: steps.check-mapping.outputs.is_rollback == 'false'
+        uses: hashicorp/setup-packer@v3.2.0
+        with:
+          version: latest
+
+      - name: Build GCE image with Packer
+        id: packer
+        if: steps.check-mapping.outputs.is_rollback == 'false'
+        working-directory: openreview-cloud/Images/openreview-web
+        env:
+          BUILD_ID: ${{ steps.build.outputs.build_id }}
+        run: |
+          packer init .
+          packer build \
+            -var="build_id=${BUILD_ID}" \
+            -var="project_id=${{ secrets.GCP_PROJECT_ID }}"  \
+            .
+          image=$(jq -r '.builds[-1].artifact_id' manifest.json | cut -d: -f2)
+          echo "image=$image" >> $GITHUB_OUTPUT
+
+      - name: Record image→tag mapping
+        if: steps.check-mapping.outputs.is_rollback == 'false'
+        env:
+          IMAGE: ${{ steps.packer.outputs.image }}
+        run: |
+          echo "$IMAGE" | gsutil cp - gs://openreview-general/web-image-map/${TAG}
+          gsutil cp $GITHUB_WORKSPACE/deployment.conf gs://openreview-general/conf/deployment.conf
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Resolve image to deploy
+        id: image
+        run: |
+          if [ "${{ steps.check-mapping.outputs.is_rollback }}" = "true" ]; then
+            IMAGE=$(gsutil cat gs://openreview-general/web-image-map/${TAG})
+          else
+            IMAGE="${{ steps.packer.outputs.image }}"
+          fi
+          echo "Deploying image: $IMAGE"
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+
+      - name: Determine active color, size, and current image
+        id: state
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          REGION=us-central1
+          GLB=openreview-web-backend-service
+          ACTIVE_GROUP=$(gcloud compute backend-services describe $GLB --global --project=$PROJECT_ID \
+            --format=json | jq -r '.backends[] | select(.capacityScaler==1.0) | .group | split("/") | last')
+          if [ "$ACTIVE_GROUP" = "openreview-web" ]; then
+            ACTIVE=blue;  IDLE=green; IDLE_GROUP=openreview-web-grn
+          elif [ "$ACTIVE_GROUP" = "openreview-web-grn" ]; then
+            ACTIVE=green; IDLE=blue;  IDLE_GROUP=openreview-web
+          else
+            echo "Could not determine active color (no backend at capacity_scaler=1.0)"; exit 1
+          fi
+
+          N=$(gcloud compute instance-groups managed describe $ACTIVE_GROUP --region=$REGION \
+            --project=$PROJECT_ID --format="value(targetSize)")
+          [ "${N:-0}" -lt 2 ] && N=2
+
+          ACTIVE_TPL=$(gcloud compute instance-groups managed describe $ACTIVE_GROUP --region=$REGION \
+            --project=$PROJECT_ID --format="value(versions[0].instanceTemplate)" | xargs basename)
+          ACTIVE_IMG=$(gcloud compute instance-templates describe $ACTIVE_TPL --region=$REGION \
+            --project=$PROJECT_ID --format="value(properties.disks[0].initializeParams.sourceImage)" | xargs basename)
+
+          if [ "$ACTIVE" = "blue" ]; then
+            BLUE_IMG=$ACTIVE_IMG; GREEN_IMG=${{ steps.image.outputs.image }}
+          else
+            GREEN_IMG=$ACTIVE_IMG; BLUE_IMG=${{ steps.image.outputs.image }}
+          fi
+
+          echo "active=$ACTIVE (N=$N, img=$ACTIVE_IMG) -> idle=$IDLE gets ${{ steps.image.outputs.image }}"
+          for kv in "active=$ACTIVE" "idle=$IDLE" "active_group=$ACTIVE_GROUP" "idle_group=$IDLE_GROUP" "n=$N" \
+                    "blue_img=$BLUE_IMG" "green_img=$GREEN_IMG"; do echo "$kv" >> $GITHUB_OUTPUT; done
+
+      - name: Ensure idle color is empty before warming
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          IDLE_GROUP=${{ steps.state.outputs.idle_group }}
+          size=$(gcloud compute instance-groups managed describe "$IDLE_GROUP" \
+            --region=us-central1 --project=$PROJECT_ID --format="value(targetSize)")
+          if [ "${size:-0}" -ne 0 ]; then
+            echo "Idle color $IDLE_GROUP still has ${size} instance(s) draining from a previous deploy."
+            echo "Blue/green requires it at 0 so it boots fresh on the new image. Wait a few minutes and re-run."
+            echo "Aborting before any change -- the active color keeps serving."
+            exit 1
+          fi
+          echo "Idle color $IDLE_GROUP is empty; safe to warm."
+
+      - name: Warm idle color to active's instance count on the new image
+        id: warm
+        working-directory: openreview-cloud/Terraform/prod/web
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="active_color=${{ steps.state.outputs.active }}" \
+            -var="blue_image=${{ steps.state.outputs.blue_img }}" \
+            -var="green_image=${{ steps.state.outputs.green_img }}" \
+            -var="warm_idle_size=${{ steps.state.outputs.n }}"
+
+      - name: Wait for idle color to reach N healthy on the load balancer
+        id: wait
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          GLB=openreview-web-backend-service
+          IDLE_GROUP=${{ steps.state.outputs.idle_group }}
+          N=${{ steps.state.outputs.n }}
+          deadline=$(( $(date +%s) + 900 ))
+          while :; do
+            healthy=$(gcloud compute backend-services get-health $GLB --global --project=$PROJECT_ID \
+              --format=json | jq --arg g "$IDLE_GROUP" \
+              '[.[] | select(.backend|test("/"+$g+"$")) | .status.healthStatus[]? | select(.healthState=="HEALTHY")] | length')
+            healthy=${healthy:-0}
+            echo "  $IDLE_GROUP: $healthy/$N healthy"
+            [ "$healthy" -ge "$N" ] && break
+            [ "$(date +%s)" -ge "$deadline" ] && { echo "TIMEOUT: idle did not reach $N healthy"; exit 1; }
+            sleep 15
           done
 
-          for i in ${!instance_names[@]}; do
-            echo Deploying to ${instance_names[$i]}
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command "bash bin/deploy-web.sh ${TAG}"
-          done
+      - name: Flip traffic to idle color on both GLB and ILB backends
+        id: flip
+        working-directory: openreview-cloud/Terraform/prod/lb
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="web_active_color=${{ steps.state.outputs.idle }}" \
+            -target=google_compute_backend_service.web \
+            -target=google_compute_region_backend_service.web_ilb
+
+      - name: Settle new active color and drain the old one
+        working-directory: openreview-cloud/Terraform/prod/web
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          retiring_size=$(gcloud compute instance-groups managed describe ${{ steps.state.outputs.active_group }} \
+            --region=us-central1 --project=$PROJECT_ID --format="value(targetSize)")
+          [ -n "$retiring_size" ] || { echo "Could not read retiring group size"; exit 1; }
+          echo "Apply 1: flip modes, hold retiring ${{ steps.state.outputs.active_group }} at its live size ${retiring_size} so it is not resized while still autoscaled"
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="active_color=${{ steps.state.outputs.idle }}" \
+            -var="blue_image=${{ steps.state.outputs.blue_img }}" \
+            -var="green_image=${{ steps.state.outputs.green_img }}" \
+            -var="warm_idle_size=${retiring_size}"
+          echo "Apply 2: retiring color now OFF, drain it to 0"
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="active_color=${{ steps.state.outputs.idle }}" \
+            -var="blue_image=${{ steps.state.outputs.blue_img }}" \
+            -var="green_image=${{ steps.state.outputs.green_img }}" \
+            -var="warm_idle_size=0"
+
+      - name: Failover to previous color if the cutover failed before flipping
+        if: failure() && steps.flip.outcome != 'success'
+        env:
+          PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+        run: |
+          set -euo pipefail
+          echo "Cutover failed at or before flip; re-asserting ${{ steps.state.outputs.active }} on both backends, then draining idle."
+          cd $GITHUB_WORKSPACE/openreview-cloud/Terraform/prod/lb
+          terraform init -input=false
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="web_active_color=${{ steps.state.outputs.active }}" \
+            -target=google_compute_backend_service.web \
+            -target=google_compute_region_backend_service.web_ilb
+          cd $GITHUB_WORKSPACE/openreview-cloud/Terraform/prod/web
+          terraform init -input=false
+          terraform apply -auto-approve \
+            -var="project_id=$PROJECT_ID" \
+            -var="active_color=${{ steps.state.outputs.active }}" \
+            -var="blue_image=${{ steps.state.outputs.blue_img }}" \
+            -var="green_image=${{ steps.state.outputs.green_img }}" \
+            -var="warm_idle_size=0"
+
+      - name: Sync error pages to GCS
+        run: |
+          gsutil -m rsync -r $GITHUB_WORKSPACE/public/html/ gs://openreview-public/error-pages/
+
+      - name: Deploy static files to nginx
+        run: |
+          nvm='export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&'
 
           nginx='nginx'
-
-          nvm='export NVM_DIR="$HOME/.nvm" && [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" &&'
 
           nginx=$(gcloud compute instances list | grep "$nginx" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
 
@@ -104,4 +356,4 @@ jobs:
           nginx_name=${nginx_arr[0]}
           nginx_zone=${nginx_arr[1]}
 
-          gcloud compute --project "sunlit-realm-131518" ssh --zone $nginx_zone --tunnel-through-iap openreview@$nginx_name --command "${nvm} bash bin/deploy-web.sh ${TAG}" --quiet
+          gcloud compute --project "${{ secrets.GCP_PROJECT_ID }}" ssh --zone $nginx_zone --tunnel-through-iap openreview@$nginx_name --command "${nvm} bash bin/deploy-web.sh ${TAG}" --quiet

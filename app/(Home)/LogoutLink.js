@@ -1,18 +1,19 @@
 'use client'
 
-/* globals promptError: false */
 import Link from 'next/link'
 import api from '../../lib/api-client'
 
-export default function LogoutLink() {
+export default function LogoutLink({ className, style, onClick }) {
   const handleLogout = async (e) => {
     e.preventDefault()
+    onClick?.()
 
     try {
       await api.post('/logout')
       window.location.reload()
       window.localStorage.setItem('openreview.lastLogout', Date.now())
     } catch (error) {
+      // oxlint-disable-next-line no-console
       console.log('Error in LogoutLink', {
         page: 'Home',
         component: 'LogoutLink',
@@ -26,8 +27,7 @@ export default function LogoutLink() {
   }
 
   return (
-    // eslint-disable-next-line jsx-a11y/anchor-is-valid
-    <Link href="#" onClick={handleLogout}>
+    <Link href="#" onClick={handleLogout} className={className} style={style}>
       Logout
     </Link>
   )

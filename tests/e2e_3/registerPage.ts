@@ -1,14 +1,16 @@
-import { Selector, ClientFunction, RequestLogger } from 'testcafe'
+import { Selector, ClientFunction, RequestLogger, Role } from 'testcafe'
 import {
   inactiveUser,
   inActiveUserNoPassword,
   inActiveUserNoPasswordNoEmail,
+  institutionEmailUser,
   getToken,
   getMessages,
+  createPasswordResetRequest,
+  hasTaskUser,
   superUserName,
   strongPassword,
 } from '../utils/api-helper'
-
 
 const fullNameInputSelector = Selector('#first-input')
 const emailAddressInputSelector = Selector('input').withAttribute(
@@ -23,7 +25,9 @@ const confirmPasswordInputSelector = Selector('input').withAttribute(
 )
 const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
-const messageSelector = Selector('.rc-notification-notice-content').nth(-1)
+const messageSelector = Selector('.ant-notification-notice-content').nth(-1)
+const notificationSelector = Selector('.ant-notification-notice')
+const notificationCloseButton = Selector('.ant-notification-notice-close')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
 
@@ -39,7 +43,7 @@ test('create new profile', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff.'
       ).exists
     )
     .ok()
@@ -54,9 +58,8 @@ test('create new profile', async (t) => {
     .expect(confirmPasswordInputSelector.exists)
     .ok()
     .expect(
-      Selector('span').withText(
-        `test.com does not appear in our list of publishing institutions.`
-      ).exists
+      Selector('span').withText(/Your email address could not be automatically verified/)
+        .exists
     )
     .ok()
     // type another non institution email
@@ -65,9 +68,8 @@ test('create new profile', async (t) => {
     .typeText(emailAddressInputSelector, 'non@institution.email')
     .click(signupButtonSelector)
     .expect(
-      Selector('span').withText(
-        `institution.email does not appear in our list of publishing institutions.`
-      ).exists
+      Selector('span').withText(/Your email address could not be automatically verified/)
+        .exists
     )
     .ok()
     // correct email to be institution email
@@ -117,7 +119,7 @@ test('create another new profile', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff.'
       ).exists
     )
     .ok()
@@ -132,9 +134,8 @@ test('create another new profile', async (t) => {
     .expect(confirmPasswordInputSelector.exists)
     .ok()
     .expect(
-      Selector('span').withText(
-        `test.com does not appear in our list of publishing institutions.`
-      ).exists
+      Selector('span').withText(/Your email address could not be automatically verified/)
+        .exists
     )
     .ok()
 
@@ -167,7 +168,7 @@ test('create a new profile with an institutional email', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff.'
       ).exists
     )
     .ok()
@@ -311,7 +312,7 @@ test('request a reset password with no active profile', async (t) => {
     .contains('http://localhost:3030/reset', { timeout: 10000 })
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=melisa@test.com`
 
@@ -320,9 +321,7 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector)
     .click(nextSectiomButtonSelector)
     .expect(
-      Selector('p').withText(
-        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
-      ).exists
+      Selector('p').withText(/Your email address could not be automatically verified/).exists
     )
     .ok()
     // add alternate email while registering
@@ -356,9 +355,7 @@ test('update profile', async (t) => {
     .expect(Selector('button').withText('Make Preferred').nth(0).exists)
     .ok()
     .expect(
-      Selector('p').withText(
-        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
-      ).exists
+      Selector('p').withText(/Your email address could not be automatically verified/).exists
     )
     .notOk()
 
@@ -368,15 +365,18 @@ test('update profile', async (t) => {
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
+    // the institution of the email of the profile must be in the history
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .click(Selector('div.institution-dropdown__option').nth(0))
+    .typeText(Selector('input.institution-dropdown__input'), 'umass.edu')
+    .click(Selector('div.institution-dropdown__option').withExactText('umass.edu'))
     .pressKey('tab')
     // add mandatory region
     .click(Selector('input.region-dropdown__placeholder'))
     .click(Selector('div.country-dropdown__option').nth(3))
 
     .click(nextSectiomButtonSelector) // last section expertise
-    .expect(Selector('p').withText("last updated September 24, 2024").exists).ok()
+    .expect(Selector('p').withText('last updated September 24, 2024').exists)
+    .ok()
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
@@ -385,8 +385,7 @@ test('update profile', async (t) => {
     .notOk()
 })
 
-
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Activate`
   .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=kevin@umass.edu`
 
@@ -395,9 +394,7 @@ test('register a profile with an institutional email', async (t) => {
     .click(nextSectiomButtonSelector)
     .click(nextSectiomButtonSelector)
     .expect(
-      Selector('p').withText(
-        'Your profile does not contain any company/institution email and it can take up to 2 weeks for your profile to be activated.'
-      ).exists
+      Selector('p').withText(/Your email address could not be automatically verified/).exists
     )
     .notOk()
     // add alternate email while registering
@@ -410,9 +407,7 @@ test('register a profile with an institutional email', async (t) => {
     )
     .click(Selector('div.container.emails').find('button.confirm-button'))
     .expect(messageSelector.innerText)
-    .eql(
-      'A confirmation email has been sent to kevin@test.com with confirmation instructions'
-    )
+    .eql('A confirmation email has been sent to kevin@test.com with confirmation instructions')
     .wait(500)
     .click(Selector('button').withText('Verify').nth(0))
     .expect(messageSelector.innerText)
@@ -437,8 +432,10 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
+    // the institution of the email of the profile must be in the history
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .click(Selector('div.institution-dropdown__option').nth(0))
+    .typeText(Selector('input.institution-dropdown__input'), 'umass.edu')
+    .click(Selector('div.institution-dropdown__option').withExactText('umass.edu'))
     .pressKey('tab')
     // add mandatory region
     .click(Selector('input.region-dropdown__placeholder'))
@@ -450,7 +447,118 @@ test('register a profile with an institutional email', async (t) => {
     .eql('Your OpenReview profile has been successfully created')
 })
 
-// eslint-disable-next-line no-unused-expressions
+// the api requires the institution of an institutional email to be in the history
+const institutionEmailDomain = 'umass.edu'
+const otherInstitutionDomain = 'abc.com'
+const otherInstitutionName = 'ABC Institution'
+
+const institutionEmailUserRole = Role(
+  `http://localhost:${process.env.NEXT_PORT}/login`,
+  async (t) => {
+    await t
+      .typeText(Selector('#email-input'), institutionEmailUser.email)
+      .typeText(Selector('#password-input'), institutionEmailUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  }
+)
+const institutionDomainInput = Selector('input.institution-dropdown__input')
+const historyDomainInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'Institution Domain')
+const historyNameInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'Institution Name')
+const historyStep = Selector('div[step="4"]').find('div[role="button"]')
+
+// oxlint-disable-next-line no-unused-expressions
+fixture`Activate with an institution which is not the one of the email`
+  .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=${institutionEmailUser.email}`
+
+test('register a profile with an institution which is not the one of the email', async (t) => {
+  await t
+    .click(nextSectiomButtonSelector) // personal
+    .click(nextSectiomButtonSelector) // emails
+    .click(nextSectiomButtonSelector) // links
+    .typeText(Selector('#homepage_url'), 'http://pambeesly.com', { paste: true })
+    .click(nextSectiomButtonSelector) // history
+    .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .wait(300)
+    .pressKey('M S space s t u d e n t tab')
+    // an institution which is not the one of the email of the profile
+    .click(Selector('input.institution-dropdown__placeholder').nth(0))
+    .typeText(institutionDomainInput, otherInstitutionDomain)
+    .pressKey('enter')
+    .typeText(historyNameInputs.nth(0), otherInstitutionName)
+    // add mandatory region
+    .click(Selector('input.region-dropdown__placeholder'))
+    .click(Selector('div.country-dropdown__option').nth(3))
+
+    .click(nextSectiomButtonSelector)
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messageSelector.innerText)
+    .eql(
+      `Error: The institution of your email ${institutionEmailUser.email} must be added to the history`
+    )
+
+    // the error notification is an 80vw banner fixed at the top of the viewport,
+    // so it swallows the click on the History step; dismiss it first
+    .click(notificationCloseButton)
+    .expect(notificationSelector.exists)
+    .notOk()
+
+    // the profile is created once the institution of the email is in the history
+    .click(historyStep)
+    .click(Selector('input.institution-dropdown__placeholder').nth(0))
+    .typeText(institutionDomainInput, institutionEmailDomain)
+    .click(Selector('div.institution-dropdown__option').withExactText(institutionEmailDomain))
+    .pressKey('tab')
+    // add mandatory region again as selecting an institution resets country/region
+    .click(Selector('input.region-dropdown__placeholder'))
+    .click(Selector('div.country-dropdown__option').nth(3))
+    .click(nextSectiomButtonSelector)
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messageSelector.innerText)
+    .eql('Your OpenReview profile has been successfully created')
+})
+
+// oxlint-disable-next-line no-unused-expressions
+fixture`Edit the history of the institution of the email`
+
+test('replace the institution of the email in the history', async (t) => {
+  await t
+    .useRole(institutionEmailUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(historyStep)
+    .expect(historyDomainInputs.count)
+    .eql(1)
+    .expect(historyDomainInputs.nth(0).value)
+    .eql(institutionEmailDomain)
+    // add the history of another institution
+    .click(Selector('[aria-label="add another history"]'))
+    .click(Selector('input.position-dropdown__placeholder').nth(1))
+    .wait(300)
+    .pressKey('M S space s t u d e n t tab')
+    .click(Selector('input.institution-dropdown__placeholder').nth(1))
+    .typeText(institutionDomainInput, otherInstitutionDomain)
+    .pressKey('enter')
+    .typeText(historyNameInputs.nth(1), otherInstitutionName)
+    .click(Selector('input.region-dropdown__placeholder').nth(1))
+    .click(Selector('div.country-dropdown__option').nth(3))
+    // remove the history of the institution of the email
+    .click(historyDomainInputs.nth(0).parent('div.row').find('[aria-label="remove history"]'))
+    .expect(historyDomainInputs.count)
+    .eql(1)
+    .expect(historyDomainInputs.nth(0).value)
+    .eql(otherInstitutionDomain)
+    .click(Selector('button').withText('Save Profile Changes'))
+    .expect(messageSelector.innerText)
+    .eql(
+      `Error: The institution of your email ${institutionEmailUser.email} must be added to the history`
+    )
+})
+
+// oxlint-disable-next-line no-unused-expressions
 fixture`Activate with errors`
 
 test('try to activate a profile with no token and get an error', async (t) => {
@@ -480,19 +588,18 @@ test('try to activate a profile with invalid token and get an error', async (t) 
     .eql('Activation token is not valid')
 }).skipJsErrors()
 
-fixture`Reset password`.before(
-  async (ctx) => {
-    ctx.superUserToken = await getToken(superUserName, strongPassword)
-    return ctx
-  }
-)
+fixture`Reset password`.before(async (ctx) => {
+  ctx.superUserToken = await getToken(superUserName, strongPassword)
+  return ctx
+})
 
 test('reset password of active profile', async (t) => {
   await t
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/reset`)
     .wait(1000)
     .typeText(Selector('#email-input'), 'melisa@test.com')
-    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled')).notOk({ timeout: 5000 })
+    .expect(Selector('button').withText('Reset Password').hasAttribute('disabled'))
+    .notOk({ timeout: 5000 })
     .click(Selector('button').withText('Reset Password'))
     .expect(Selector('div').withAttribute('role', 'alert').exists)
     .ok()
@@ -506,6 +613,116 @@ test('reset password of active profile', async (t) => {
     .expect(messages[0].content.text)
     .contains('http://localhost:3030/user/password?token=')
 }).skipJsErrors()
+
+test('complete password reset for logged-out user redirects to login with new-session message', async (t) => {
+  const baseUrl = `http://localhost:${process.env.NEXT_PORT}`
+  const getPageUrl = ClientFunction(() => window.location.href.toString())
+  await createPasswordResetRequest(hasTaskUser.email)
+
+  await t
+    .useRole(Role.anonymous())
+    .navigateTo(`${baseUrl}/user/password?token=${hasTaskUser.email}`)
+    .expect(Selector('input[type="checkbox"]').exists)
+    .notOk()
+    .typeText(Selector('input[type="password"]').nth(0), strongPassword, { replace: true })
+    .typeText(Selector('input[type="password"]').nth(1), strongPassword, { replace: true })
+    .click(Selector('button').withText('Reset Password'))
+    .expect(messageSelector.innerText)
+    .eql('Your password has been updated. Please log in with your new password to continue.')
+    .expect(getPageUrl())
+    .contains('/login', { timeout: 10000 })
+})
+
+test('logged-in password reset with checkbox unchecked leaves other sessions intact', async (t) => {
+  const baseUrl = `http://localhost:${process.env.NEXT_PORT}`
+  const getPageUrl = ClientFunction(() => window.location.href.toString())
+  const otherSession = Role(`${baseUrl}/login`, async (roleT) => {
+    await roleT
+      .typeText(Selector('#email-input'), hasTaskUser.email)
+      .typeText(Selector('#password-input'), hasTaskUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  })
+  const currentSession = Role(`${baseUrl}/login`, async (roleT) => {
+    await roleT
+      .typeText(Selector('#email-input'), hasTaskUser.email)
+      .typeText(Selector('#password-input'), hasTaskUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  })
+
+  await t
+    .useRole(otherSession)
+    .navigateTo(`${baseUrl}/profile`)
+    .expect(Selector('#user-menu').filterVisible().exists)
+    .ok()
+
+  await createPasswordResetRequest(hasTaskUser.email)
+
+  await t
+    .useRole(currentSession)
+    .navigateTo(`${baseUrl}/user/password?token=${hasTaskUser.email}`)
+    .expect(Selector('input[type="checkbox"]').exists)
+    .ok({ timeout: 15000 })
+    .click(Selector('input[type="checkbox"]'))
+    .typeText(Selector('input[type="password"]').nth(0), strongPassword, { replace: true })
+    .typeText(Selector('input[type="password"]').nth(1), strongPassword, { replace: true })
+    .click(Selector('button').withText('Reset Password'))
+    .expect(messageSelector.innerText)
+    .eql('Your password has been updated.')
+    .expect(getPageUrl())
+    .notContains('/login', { timeout: 10000 })
+
+  await t
+    .useRole(otherSession)
+    .navigateTo(`${baseUrl}/profile`)
+    .expect(getPageUrl())
+    .notContains('/login')
+    .expect(Selector('#user-menu').filterVisible().exists)
+    .ok()
+})
+
+test('logged-in password reset with checkbox checked invalidates other sessions', async (t) => {
+  const baseUrl = `http://localhost:${process.env.NEXT_PORT}`
+  const getPageUrl = ClientFunction(() => window.location.href.toString())
+  const otherSession = Role(`${baseUrl}/login`, async (roleT) => {
+    await roleT
+      .typeText(Selector('#email-input'), hasTaskUser.email)
+      .typeText(Selector('#password-input'), hasTaskUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  })
+  const currentSession = Role(`${baseUrl}/login`, async (roleT) => {
+    await roleT
+      .typeText(Selector('#email-input'), hasTaskUser.email)
+      .typeText(Selector('#password-input'), hasTaskUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  })
+
+  await t
+    .useRole(otherSession)
+    .navigateTo(`${baseUrl}/profile`)
+    .expect(Selector('#user-menu').filterVisible().exists)
+    .ok()
+
+  await createPasswordResetRequest(hasTaskUser.email)
+
+  await t
+    .useRole(currentSession)
+    .navigateTo(`${baseUrl}/user/password?token=${hasTaskUser.email}`)
+    .expect(Selector('input[type="checkbox"]').exists)
+    .ok({ timeout: 15000 })
+    .typeText(Selector('input[type="password"]').nth(0), strongPassword, { replace: true })
+    .typeText(Selector('input[type="password"]').nth(1), strongPassword, { replace: true })
+    .click(Selector('button').withText('Reset Password'))
+    .expect(messageSelector.innerText)
+    .eql('Your password has been updated and all other sessions have been logged out.')
+    .expect(getPageUrl())
+    .notContains('/login', { timeout: 10000 })
+
+  await t
+    .useRole(otherSession)
+    .navigateTo(`${baseUrl}/profile`)
+    .expect(Selector('div').withText('Profile not found').exists)
+    .ok({ timeout: 10000 })
+})
 
 fixture`Edit profile`.page`http://localhost:${process.env.NEXT_PORT}/login`.before(
   async (ctx) => {
@@ -523,11 +740,11 @@ test('add alternate email', async (t) => {
     .click(Selector('button').withText('Login to OpenReview'))
     .expect(getPageUrl())
     .contains('http://localhost:3030', { timeout: 10000 })
-    .expect(Selector('#user-menu').exists)
+    .expect(Selector('#user-menu').filterVisible().exists)
     .ok()
     .wait(100)
-    .click(Selector('#user-menu'))
-    .expect(Selector('ul').withAttribute('class', 'dropdown-menu').exists)
+    .click(Selector('#user-menu').filterVisible())
+    .expect(Selector('ul.ant-dropdown-menu').filterVisible().exists)
     .ok()
     .click(Selector('a').withText('Profile'))
     .click(Selector('a').withAttribute('href', '/profile/edit'))
@@ -567,7 +784,7 @@ test('add alternate email', async (t) => {
     )
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Issue related tests`
 
 test('#160 allow user to overwrite last/middle/first name to be lowercase', async (t) => {

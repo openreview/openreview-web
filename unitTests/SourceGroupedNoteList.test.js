@@ -15,7 +15,7 @@ jest.mock('../components/NoteAuthors', () => ({
   NoteAuthorsV2: () => <div>NoteAuthorsV2</div>,
 }))
 
-jest.mock('../components/ClientForumDate', () => () => <span>client forum date</span>)
+jest.mock('../components/ClientForumDate', () => () => <li>client forum date</li>)
 
 describe('SourceGroupedNoteList', () => {
   test('not to group v1 note', () => {

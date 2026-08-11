@@ -156,7 +156,6 @@ module.exports = (function () {
           return get(url, Object.assign({}, queryObj, { offset: n }))
         })
         return $.when.apply($, remainingRequests).then(function () {
-          // eslint-disable-next-line prefer-rest-params
           var rest = _.compact(_.flatMap(arguments, resultsKey))
           return initialResults.concat(rest)
         })
@@ -169,9 +168,9 @@ module.exports = (function () {
   }
 
   var jqErrorCallback = function (jqXhr, textStatus, errorThrown) {
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus)
-    // eslint-disable-next-line no-console
+    // oxlint-disable-next-line no-console
     console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2))
 
     var errorText = getErrorFromJqXhr(jqXhr, textStatus)
@@ -220,9 +219,9 @@ module.exports = (function () {
         withCredentials: true,
       },
     }).fail(function (jqXhr, textStatus, errorThrown) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('Xhr Error: ' + errorThrown + ': ' + textStatus)
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('jqXhr: ' + JSON.stringify(jqXhr, null, 2))
 
       if (fieldName) {
@@ -570,7 +569,7 @@ module.exports = (function () {
       container: '#invitation',
       largeLabel: true,
       onNoteCreated: function () {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn('onNoteCreated option is required')
       },
     }
@@ -628,7 +627,6 @@ module.exports = (function () {
           if (middleOfOperand) {
             currentOperand += 'AND'
             i += 2
-            // eslint-disable-next-line no-continue
             continue
           } else if (stuffInBrackets.length) {
             return new TreeNode(
@@ -645,7 +643,6 @@ module.exports = (function () {
           } else {
             currentOperand = t
           }
-          // eslint-disable-next-line no-continue
           continue
         }
       }
@@ -654,7 +651,6 @@ module.exports = (function () {
           if (middleOfOperand) {
             currentOperand += 'OR'
             i += 1
-            // eslint-disable-next-line no-continue
             continue
           } else if (stuffInBrackets.length) {
             return new TreeNode(
@@ -671,7 +667,6 @@ module.exports = (function () {
           } else {
             currentOperand = t
           }
-          // eslint-disable-next-line no-continue
           continue
         }
       } else if (t === '(') {
@@ -682,7 +677,6 @@ module.exports = (function () {
           stuffInBrackets = query.slice(i + 1, i + lengthToRightBracket + 1)
           i = i + lengthToRightBracket + 1
           if (i === query.length - 1) return queryToTree(query.slice(1, -1)) // no more expression
-          // eslint-disable-next-line no-continue
           continue
         }
       } else if (t === '"' || t === "'") {
@@ -873,7 +867,6 @@ module.exports = (function () {
       case 'OR':
         return [...new Set([...collection1, ...collection2])]
       case 'AND':
-        // eslint-disable-next-line no-case-declarations
         const collection2UniqueIdentifiers = collection2.map((p) =>
           propertyPath.reduce((r, s) => r?.[s], p)
         )
@@ -1487,7 +1480,7 @@ module.exports = (function () {
         .off('click', 'ul.pagination > li > a')
         .on('click', 'ul.pagination > li > a', function () {
           if (!_.isFunction(options.onPageClick)) {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn('Missing required onPageClick callback')
             return false
           }
@@ -1767,7 +1760,7 @@ module.exports = (function () {
     })
 
     if (_.isEmpty(sections)) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('Missing required parameter for tabPanel: sections')
       return
     }
@@ -2049,7 +2042,7 @@ module.exports = (function () {
     options = _.defaults(options, defaults)
 
     if (_.isEmpty(container)) {
-      // eslint-disable-next-line no-console
+      // oxlint-disable-next-line no-console
       console.warn('Missing required parameter for spinner: container')
       return
     }

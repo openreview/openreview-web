@@ -1,7 +1,5 @@
 /* globals promptError, $: false */
 
-import { useContext, useState, useEffect, useCallback, useRef } from 'react'
-import { maxBy, throttle, upperFirst } from 'lodash'
 import {
   DndContext,
   useSensor,
@@ -11,17 +9,21 @@ import {
   pointerWithin,
 } from '@dnd-kit/core'
 import { SortableContext, useSortable, arrayMove } from '@dnd-kit/sortable'
+import { maxBy, throttle, upperFirst } from 'lodash'
+import { useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { useDispatch } from 'react-redux'
+import { setBannerContent } from '../../bannerSlice'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { getProfileName, isValidEmail } from '../../lib/utils'
 import EditorComponentContext from '../EditorComponentContext'
+import Icon from '../Icon'
 import IconButton from '../IconButton'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
 import SpinnerButton from '../SpinnerButton'
-import useUser from '../../hooks/useUser'
-import api from '../../lib/api-client'
-import { getProfileName, isValidEmail } from '../../lib/utils'
 
 import styles from '../../styles/components/ProfileSearchWidget.module.scss'
-import Icon from '../Icon'
 
 const getTitle = (profile, isEditor) => {
   if (!profile.content) return null
@@ -271,8 +273,8 @@ const ProfileSearchFormAndResults = ({
   const [totalCount, setTotalCount] = useState(0)
   const [profileSearchResults, setProfileSearchResults] = useState(null)
   const [showCustomAuthorForm, setShowCustomAuthorForm] = useState(false)
+  const dispatch = useDispatch()
 
-  // eslint-disable-next-line no-use-before-define
   const placeHolderName = getPlaceHolderName()
 
   function getPlaceHolderName() {
@@ -280,20 +282,23 @@ const ProfileSearchFormAndResults = ({
     return Object.keys(field)[0] === 'authorids' ? 'author' : Object.keys(field)[0]
   }
 
-  // eslint-disable-next-line no-shadow
   const searchProfiles = async (searchTerm, pageNumber, showLoadingSpinner = true) => {
     const cleanSearchTerm = searchTerm.trim()
     let paramKey = 'fullname'
     let paramValue = cleanSearchTerm.toLowerCase()
     if (isValidEmail(cleanSearchTerm)) {
-      setErrors((existingErrors) =>
-        existingErrors
-          .filter((e) => e.fieldName !== fieldName)
-          .concat({
-            fieldName,
-            message: 'Search profile by name or OpenReview profile ID.',
-          })
-      )
+      if (isEditor) {
+        setErrors((existingErrors) =>
+          existingErrors
+            .filter((e) => e.fieldName !== fieldName)
+            .concat({
+              fieldName,
+              message: 'Search profile by name or OpenReview profile ID.',
+            })
+        )
+      } else {
+        promptError('Search profile by name or OpenReview profile ID.')
+      }
       return
     }
     if (cleanSearchTerm.startsWith('~')) {
@@ -309,6 +314,17 @@ const ProfileSearchFormAndResults = ({
         limit: pageSize,
         offset: pageSize * (pageNumber - 1),
       })
+      dispatch(
+        setBannerContent(
+          results.searchUnavailable
+            ? {
+                type: 'error',
+                value:
+                  'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+              }
+            : { type: null, value: null }
+        )
+      )
       setTotalCount(results.count > 200 ? 200 : results.count)
       setProfileSearchResults(
         isEditor === false
@@ -664,7 +680,7 @@ const ProfileSearchWidget = ({
         setDisplayAuthors([])
         return
       }
-      // eslint-disable-next-line no-unused-expressions
+      // oxlint-disable-next-line no-unused-expressions
       value ? getProfiles(multiple ? value : [value]) : setDisplayAuthors([])
       return
     }

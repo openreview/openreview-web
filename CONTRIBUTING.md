@@ -40,19 +40,19 @@ The more information you can provide, the more likely someone will be successful
 
 Please include the following with each issue to the best of your abililty and leave blank the ones you don't have information for. The more information you provide the easier will it be for us to reproduce the issue and fix it.
 
-* Version (if you know it)
+- Version (if you know it)
 
-* Operating system
+- Operating system
 
-* Browser and browser version
+- Browser and browser version
 
-* Reproducible steps that trigger the issue
+- Reproducible steps that trigger the issue
 
-* What you expected to see, versus what you actually saw
+- What you expected to see, versus what you actually saw
 
-* Images, animations, or a link to a video showing the issue occurring
+- Images, animations, or a link to a video showing the issue occurring
 
-* Any errors from the browser's developer console (opening the developer console varies depending on your browser)
+- Any errors from the browser's developer console (opening the developer console varies depending on your browser)
 
 ## Development Setup
 

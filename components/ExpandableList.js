@@ -21,7 +21,6 @@ export default function ExpandableList({
     <span>
       {listWithCommas}{' '}
       {items.length > maxItems && (
-        // eslint-disable-next-line jsx-a11y/anchor-is-valid
         <a
           href="#"
           title={expanded ? 'Collapse list' : 'Expand list'}

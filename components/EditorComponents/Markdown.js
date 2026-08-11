@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 
-const Markdown = ({ text, disableMathjaxFormula = false }) => {
+const Markdown = ({ text, disableMathjaxFormula = false, disableGfm = false }) => {
   const [sanitizedHtml, setSanitizedHtml] = useState('')
   const containerEl = useRef(null)
 
@@ -15,8 +15,10 @@ const Markdown = ({ text, disableMathjaxFormula = false }) => {
       setSanitizedHtml(DOMPurify.sanitize(text))
       return
     }
-    setSanitizedHtml(DOMPurify.sanitize(marked(text)))
-  }, [text])
+    setSanitizedHtml(
+      DOMPurify.sanitize(disableGfm ? marked(text, { gfm: false }) : marked(text))
+    )
+  }, [text, disableGfm])
 
   useEffect(() => {
     if (disableMathjaxFormula) return
@@ -24,7 +26,7 @@ const Markdown = ({ text, disableMathjaxFormula = false }) => {
       MathJax.startup.promise
         .then(() => MathJax.typesetPromise([containerEl.current]))
         .catch(() => {
-          // eslint-disable-next-line no-console
+          // oxlint-disable-next-line no-console
           console.warn('Could not typeset TeX content')
         })
     }

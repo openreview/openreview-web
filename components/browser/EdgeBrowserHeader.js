@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-
 import { prettyId } from '../../lib/utils'
 
 export default function EdgeBrowserHeader({ invitation }) {

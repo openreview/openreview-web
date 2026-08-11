@@ -55,6 +55,14 @@ const PaymentWidget = dynamic(() => import('../EditorComponents/PaymentWidget'),
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
 })
 
+const ProfileSearchWithInstitutionWidget = dynamic(
+  () => import('../EditorComponents/ProfileSearchWithInstitutionWidget'),
+  {
+    ssr: false,
+    loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+  }
+)
+
 // #endregion
 
 const EditorWidget = () => {
@@ -124,6 +132,8 @@ const EditorWidget = () => {
         return <ProfileSearchWidget multiple={true} />
       case 'payment':
         return <PaymentWidget />
+      case 'author{}':
+        return <ProfileSearchWithInstitutionWidget />
       case 'note':
       case 'note[]':
       case 'edit':
@@ -140,6 +150,12 @@ const EditorWidget = () => {
 
   if (fieldName === 'authorids' && Array.isArray(field.authorids?.value))
     return <ProfileSearchWidget multiple={true} />
+  if (
+    fieldName === 'authors' &&
+    (Array.isArray(field.authors?.value) || // reorder only
+      field.authors?.value?.param?.elements) // reorder with institution change
+  )
+    return <ProfileSearchWithInstitutionWidget />
   if (!field[fieldName].value?.param) {
     if (!field[fieldName].value && field[fieldName].readers) {
       return null // TODO: an empty widget which shows only readers

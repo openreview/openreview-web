@@ -1,0 +1,34 @@
+@use '../../../styles/utils/constants';
+
+.venues {
+  :global {
+    .venues-list {
+      margin-bottom: 1.5rem;
+
+      h3 {
+        margin-top: 0;
+      }
+    }
+    .h4 {
+      color: #757575;
+    }
+
+    .noteline {
+      font-size: 1.25rem;
+      color: constants.$subtleGray;
+    }
+
+    .external-links {
+      padding-right: 5px;
+      word-wrap: break-word;
+    }
+  }
+}
+
+.leadingVenue {
+  display: inline-block;
+  &:first-letter {
+    color: constants.$orRed;
+    font-weight: bold;
+  }
+}

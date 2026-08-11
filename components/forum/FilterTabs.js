@@ -17,8 +17,8 @@ export default function FilterTabs({
         // (which by convention is the first item in the expandedInvitations array)
         const primaryInvitationId = view.expandedInvitations?.[0]
         if (primaryInvitationId) {
-          const primaryInvitation = replyInvitations.find(
-            (inv) => inv.id === primaryInvitationId
+          const primaryInvitation = replyInvitations.find((inv) =>
+            inv.id.match(primaryInvitationId)
           )
           if (
             !primaryInvitation ||

@@ -1,19 +1,9 @@
-/* eslint-disable no-use-before-define */
-/* eslint-disable jsx-a11y/anchor-is-valid */
-/* eslint-disable react/destructuring-assignment */
 /* globals $: false */
 /* globals promptError: false */
 
 import React, { useContext } from 'react'
-import EdgeBrowserContext from './EdgeBrowserContext'
-import EditEdgeDropdown from './EditEdgeDropdown'
-import EditEdgeToggle from './EditEdgeToggle'
-import NoteAuthors from './NoteAuthors'
-import NoteContent from './NoteContent'
-import ScoresList from './ScoresList'
-import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-
 import {
   getInterpolatedValues,
   getSignatures,
@@ -21,7 +11,13 @@ import {
   isInGroupInvite,
   isNotInGroupInvite,
 } from '../../lib/edge-utils'
-import useUser from '../../hooks/useUser'
+import EdgeBrowserContext from './EdgeBrowserContext'
+import EditEdgeDropdown from './EditEdgeDropdown'
+import EditEdgeToggle from './EditEdgeToggle'
+import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
+import NoteAuthors from './NoteAuthors'
+import NoteContent from './NoteContent'
+import ScoresList from './ScoresList'
 
 export default function NoteEntity(props) {
   const { editInvitations, traverseInvitation, availableSignaturesInvitationMap, version } =
@@ -53,6 +49,12 @@ export default function NoteEntity(props) {
   if (editEdges?.length) extraClasses.push('is-editable')
   if (props.isSelected) extraClasses.push('is-selected')
 
+  let { authors, authorids } = content
+
+  if (authors && !authorids) {
+    authorids = authors.map((p) => p.username)
+    authors = authors.map((p) => p.fullname)
+  }
   // Event handlers
   const handleClick = (e) => {
     if (!props.canTraverse) return
@@ -110,7 +112,6 @@ export default function NoteEntity(props) {
     }
   }
 
-  // eslint-disable-next-line object-curly-newline
   const addEdge = async ({ e, existingEdge, editEdgeTemplate, updatedEdgeFields = {} }) => {
     if (e) {
       e.preventDefault()
@@ -246,7 +247,6 @@ export default function NoteEntity(props) {
     const editEdgeDropdown = (type, controlType) => (
       <EditEdgeDropdown
         existingEdge={editEdge}
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === editInvitation.id).length === 0 ||
           editInvitation.multiReply
@@ -266,7 +266,6 @@ export default function NoteEntity(props) {
         existingEdge={editEdge}
         addEdge={addEdge}
         removeEdge={() => removeEdge(editEdge)}
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === editInvitation.id).length === 0 ||
           editInvitation.multiReply
@@ -279,7 +278,6 @@ export default function NoteEntity(props) {
     )
     const editEdgeTwoDropdowns = (controlType) => (
       <EditEdgeTwoDropdowns
-        // eslint-disable-next-line max-len
         canAddEdge={
           editEdges?.filter((p) => p?.invitation === editInvitation.id).length === 0 ||
           editInvitation.multiReply
@@ -320,7 +318,6 @@ export default function NoteEntity(props) {
   }
 
   return (
-    // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
     <li className={`entry entry-note ${extraClasses.join(' ')}`} onClick={handleClick}>
       <div className="note-heading">
         <h3>
@@ -336,8 +333,8 @@ export default function NoteEntity(props) {
         </h3>
 
         <NoteAuthors
-          authors={content.authors}
-          authorIds={content.authorids}
+          authors={authors}
+          authorIds={authorids}
           signatures={noteSignatures}
           original={original}
           max={4}
@@ -350,7 +347,6 @@ export default function NoteEntity(props) {
       <div className="note-meta clearfix">
         {/* existing editEdges */}
         {editEdges?.map((editEdge, index) => (
-          // eslint-disable-next-line react/no-array-index-key
           <React.Fragment key={index}>
             {renderEditEdgeWidget({
               editEdge,
@@ -361,7 +357,6 @@ export default function NoteEntity(props) {
 
         {/* add new editEdge */}
         {editInvitations?.map((editInvitation, index) => (
-          // eslint-disable-next-line react/no-array-index-key
           <React.Fragment key={index}>
             {renderEditEdgeWidget({ editInvitation })}
           </React.Fragment>
@@ -374,7 +369,6 @@ export default function NoteEntity(props) {
             <li>
               {props.canTraverse ? (
                 <a href="#" className="show-assignments">
-                  {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
                   {props.traverseLabel} ({props.note.traverseEdgesCount}) &raquo;
                 </a>
               ) : (

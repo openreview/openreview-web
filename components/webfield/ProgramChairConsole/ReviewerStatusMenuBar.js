@@ -31,7 +31,7 @@ const MessageReviewersModal = ({
     try {
       await api.post('/messages', {
         invitation: messageReviewersInvitationId,
-        signature: messageReviewersInvitationId && messageSignature,
+        signature: messageSignature,
         groups: recipientsInfo.map((p) => p.id),
         subject,
         message,
@@ -47,7 +47,7 @@ const MessageReviewersModal = ({
 
   const getRecipientRows = () => {
     if (Object.keys(messageOption).includes('filterFunc')) {
-      const customFunc = Function('row', messageOption.filterFunc) // eslint-disable-line no-new-func
+      const customFunc = Function('row', messageOption.filterFunc)
       return tableRows.filter((row) => customFunc(row))
     }
 

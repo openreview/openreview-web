@@ -1,21 +1,24 @@
-/* eslint-disable global-require */
-
 'use client'
 
-import { useEffect, useState } from 'react'
+import DOMPurify from 'dompurify'
 import { marked } from 'marked'
-import DOMPurify from 'isomorphic-dompurify'
 import { nanoid } from 'nanoid'
-import mathjaxConfig from '../lib/mathjax-config'
-import MathjaxScript from './MathjaxScript'
-import TurnstileScript from './TurnstileScript'
-import usePrompt from '../hooks/usePrompt'
+import { useEffect, useState } from 'react'
 import BibtexModal from '../components/BibtexModal'
+import usePrompt from '../hooks/usePrompt'
+import mathjaxConfig from '../lib/mathjax-config'
+import { allowedHtmlTags } from '../lib/utils'
+import MathjaxScript from './MathjaxScript'
 import StripeScript from './StripeScript'
+import TurnstileScript from './TurnstileScript'
 
 export default function AppInit() {
   const [libarysLoaded, setLibrariesLoaded] = useState(false)
   const { notificationHolder, promptFunctions } = usePrompt()
+
+  useEffect(() => {
+    Object.assign(global, promptFunctions)
+  }, [promptFunctions])
 
   useEffect(() => {
     // Load required vendor libraries
@@ -25,11 +28,16 @@ export default function AppInit() {
     window._ = require('lodash')
     window.Handlebars = require('handlebars/runtime')
     window.marked = marked
+    DOMPurify.setConfig({ ALLOWED_TAGS: allowedHtmlTags })
     DOMPurify.addHook('afterSanitizeAttributes', (node) => {
       if (node.tagName === 'A') {
         node.setAttribute('target', '_blank')
         node.setAttribute('rel', 'noopener noreferrer')
       }
+
+      node.removeAttribute?.('style')
+      node.removeAttribute?.('action')
+      node.removeAttribute?.('formaction')
     })
     window.DOMPurify = DOMPurify
     window.MathJax = mathjaxConfig
@@ -45,8 +53,6 @@ export default function AppInit() {
     require('../client/template-helpers')
     require('../client/globals')
 
-    Object.assign(global, promptFunctions)
-
     // Setup marked options and renderer overwrite
     window.view.setupMarked()
 
@@ -58,13 +64,11 @@ export default function AppInit() {
 
     window.typesetMathJax = () => {
       const runTypeset = () => {
-        // eslint-disable-next-line no-undef
         MathJax.startup.promise.then(MathJax.typesetPromise).catch((error) => {
-          // eslint-disable-next-line no-console
+          // oxlint-disable-next-line no-console
           console.warn('Could not typeset TeX content')
         })
       }
-      // eslint-disable-next-line no-undef
       if (window.isMathJaxLoaded && MathJax.startup?.promise) {
         runTypeset()
       } else {
@@ -77,7 +81,7 @@ export default function AppInit() {
             tryCount += 1
             setTimeout(waitForMathJax, 500)
           } else {
-            // eslint-disable-next-line no-console
+            // oxlint-disable-next-line no-console
             console.warn('Could not typeset TeX content')
           }
         }
@@ -88,7 +92,7 @@ export default function AppInit() {
     // Register Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js').catch((error) => {
-        // eslint-disable-next-line no-console
+        // oxlint-disable-next-line no-console
         console.warn('Failed to register service worker: ', error)
       })
     }

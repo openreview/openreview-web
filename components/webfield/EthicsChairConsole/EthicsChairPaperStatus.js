@@ -1,19 +1,17 @@
-/* globals promptError: false */
-import { useContext, useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useContext, useEffect, useState } from 'react'
 import api from '../../../lib/api-client'
-import WebFieldContext from '../../WebFieldContext'
 import {
   getIndentifierFromGroup,
   getNumberFromGroup,
   getProfileName,
 } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
-
-import Table from '../../Table'
 import PaginationLinks from '../../PaginationLinks'
-import NoteSummary from '../NoteSummary'
+import Table from '../../Table'
+import WebFieldContext from '../../WebFieldContext'
 import { EthicsReviewStatus } from '../NoteReviewStatus'
+import NoteSummary from '../NoteSummary'
 import EthicsChairMenuBar from './EthicsChairMenuBar'
 
 const EthicsSubmissionRow = ({ rowData }) => {
@@ -153,12 +151,7 @@ const EthicsChairPaperStatus = () => {
 
       const allIds = [...new Set(allGroupMembers)]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const getProfilesByIdsP = ids.length
-        ? api.post('/profiles/search', {
-            ids,
-          })
-        : Promise.resolve([])
-      const profileResults = await getProfilesByIdsP
+      const profileResults = await api.getAllProfilesByIds(ids)
       const allProfiles = (profileResults.profiles ?? []).map((profile) => ({
         ...profile,
         preferredName: getProfileName(profile),
@@ -175,7 +168,7 @@ const EthicsChairPaperStatus = () => {
       const ethicsReviewsByPaperNumberMap = new Map()
 
       notes.forEach((note) => {
-        const replies = note.details.replies // eslint-disable-line prefer-destructuring
+        const replies = note.details.replies // oxlint-disable-line prefer-destructuring
         const ethicsReviews = replies
           .filter((p) => {
             const ethicsReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${ethicsReviewName}`
@@ -198,7 +191,13 @@ const EthicsChairPaperStatus = () => {
               return p.invitations.includes(ethicsMetaReviewInvitationId)
             })
           : null
-
+        if (typeof note.content?.authors?.value === 'object' && !note.content?.authorids) {
+          // eslint-disable-next-line no-param-reassign
+          note.authorSearchValue = note.content.authors.value.map((p) => ({
+            ...p,
+            type: 'authorObj',
+          }))
+        }
         return {
           note,
           ethicsReviews,
@@ -215,7 +214,7 @@ const EthicsChairPaperStatus = () => {
           numReviewersAssigned: assignedEthicsReviewers.length,
           replyCount: note.details.replies?.length ?? 0,
           ethicsMetaReview,
-          hasEthicsMetaReview: ethicsMetaReview ? true : false, // eslint-disable-line no-unneeded-ternary
+          hasEthicsMetaReview: ethicsMetaReview ? true : false,
         }
       })
 

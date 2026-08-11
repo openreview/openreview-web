@@ -4,6 +4,8 @@ import { use, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setNotificationCount } from '../../notificationSlice'
 
+import legacyNavStyles from '../../styles/components/legacy-bootstrap-nav.module.scss'
+
 export default function NotificationCount({ notificationCountP }) {
   const { count: initialCount } = use(notificationCountP)
   const { count: storeCount } = useSelector((state) => state.notification)
@@ -20,5 +22,5 @@ export default function NotificationCount({ notificationCountP }) {
   }, [storeCount])
 
   if (!count) return null
-  return <span className="badge">{count}</span>
+  return <span className={legacyNavStyles.navBadge}>{count}</span>
 }

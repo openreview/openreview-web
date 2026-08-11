@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/anchor-is-valid */
-
 import zip from 'lodash/zip'
 import { prettyId } from '../../lib/utils'
 import ExpandableList from '../ExpandableList'

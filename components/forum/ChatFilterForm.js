@@ -13,7 +13,7 @@ export default function ChatFilterForm({
   // Options for dropdowns
   const invDropdownFilterOptions = [
     { value: 'all', label: 'All Message Types', type: 'invitation' },
-    ...(defaultFilters.invitations ?? []).map((invitationId) => ({
+    ...(defaultFilters?.invitations ?? []).map((invitationId) => ({
       value: invitationId,
       label: prettyInvitationId(invitationId),
       type: 'invitation',
@@ -27,7 +27,7 @@ export default function ChatFilterForm({
 
   // Selected options
   let selectedInvitationOptions
-  if (selectedFilters.invitations === defaultFilters.invitations) {
+  if (selectedFilters.invitations === defaultFilters?.invitations) {
     selectedInvitationOptions = invDropdownFilterOptions[0]
   } else {
     selectedInvitationOptions = invDropdownFilterOptions.find((invOption) =>
@@ -87,7 +87,7 @@ export default function ChatFilterForm({
               if (!selectedOption) return
 
               if (selectedOption.value === 'all') {
-                updateFilters({ invitations: defaultFilters.invitations })
+                updateFilters({ invitations: defaultFilters?.invitations })
               } else {
                 updateFilters({ invitations: [selectedOption.value] })
               }

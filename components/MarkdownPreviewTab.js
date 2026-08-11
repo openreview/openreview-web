@@ -73,7 +73,6 @@ const MarkdownPreviewTab = ({
           </div>
         </TabPanel>
         <TabPanel id={`${fieldName}${secondTabId}`}>
-          {/* eslint-disable-next-line react/no-danger */}
           <div className="preview" dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
         </TabPanel>
       </TabPanels>

@@ -49,7 +49,7 @@ npm run templates
 This command compiles all the .hbs files found in the `client/templates` dir and
 builds the file client/templates.js which is used by the legacy frontend code.
 
-To check for ESLint errors, run:
+To check for lint errors, run:
 
 ```bash
 npm run lint

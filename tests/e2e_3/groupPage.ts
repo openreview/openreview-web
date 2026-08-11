@@ -9,7 +9,7 @@ const errorMessageLabel = Selector('.error-message')
 
 const johnRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'john@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
@@ -18,14 +18,14 @@ const johnRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => 
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
     .click(loginButton)
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Program Chairs page`
   .page`http://localhost:${process.env.NEXT_PORT}/group?id=ICLR.cc/2021/Conference/Program_Chairs`
 
@@ -87,7 +87,7 @@ test('logged user should get a forbidden error', async (t) => {
     .eql("You don't have permission to read this group")
 })
 
-// eslint-disable-next-line no-unused-expressions
+// oxlint-disable-next-line no-unused-expressions
 fixture`Group page`.page`http://localhost:${process.env.NEXT_PORT}`
 
 test('try to access to an invalid group and get a not found error', async (t) => {

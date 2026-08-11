@@ -1,16 +1,24 @@
 import { useState } from 'react'
-import Note, { NoteV2 } from './Note'
-import { NoteAuthorsV2 } from './NoteAuthors'
-import { buildNoteTitle, buildNoteUrl, prettyId } from '../lib/utils'
+import { getImportSourceIcon } from '../lib/profiles'
+import {
+  buildNoteTitle,
+  buildNoteUrl,
+  getNoteAuthorIds,
+  getNoteAuthors,
+  prettyId,
+} from '../lib/utils'
 import ClientForumDate from './ClientForumDate'
 import Icon from './Icon'
+import Note, { NoteV2 } from './Note'
+import { NoteAuthorsV2 } from './NoteAuthors'
 import NoteReaders from './NoteReaders'
-import { getImportSourceIcon } from '../lib/profiles'
 
 const MultiSourceNote = ({ notes, displayOptions }) => {
   const [noteToShow, setNoteToShow] = useState(notes[0])
   const { id, forum, content, invitations, readers, signatures } = noteToShow
   const privatelyRevealed = !noteToShow?.readers?.includes('everyone')
+  const authorIds = getNoteAuthorIds(noteToShow, true)
+  const authors = getNoteAuthors(noteToShow, true)
 
   const sources = [
     'DBLP.org/-/Record',
@@ -32,17 +40,15 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
       </h4>
       <div className="note-authors">
         <NoteAuthorsV2
-          authors={content?.authors}
-          authorIds={content?.authorids}
+          authors={authors}
+          authorIds={authorIds}
           signatures={signatures}
           noteReaders={readers}
         />
       </div>
       {noteToShow && (
         <ul className="note-meta-info list-inline">
-          <li>
-            <ClientForumDate note={noteToShow} />
-          </li>
+          <ClientForumDate note={noteToShow} />
           <li>
             {!noteToShow.content?.venue?.value
               ? prettyId(noteToShow.invitations[0])
@@ -91,16 +97,14 @@ const SourceGroupedNoteList = ({ notes, displayOptions }) => {
         `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
       ].some((p) => curr.invitations.includes(p))
     ) {
-      // eslint-disable-next-line no-param-reassign
       prev[curr.id] = [curr]
       return prev
     }
     const title = curr.content.title.value
-    const authors = curr.content.authors.value.join(',')
-    const key = `${title}|${authors}`
+    const authorNames = getNoteAuthors(curr, true).join(',')
+    const key = `${title}|${authorNames}`
 
     if (!prev[key]) {
-      // eslint-disable-next-line no-param-reassign
       prev[key] = []
     }
     prev[key].push(curr)

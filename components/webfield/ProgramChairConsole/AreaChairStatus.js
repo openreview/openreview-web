@@ -28,7 +28,7 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
     recommendationName,
     preferredEmailInvitationId,
   } = useContext(WebFieldContext)
-  const completedBids = rowData.completedBids // eslint-disable-line prefer-destructuring
+  const completedBids = rowData.completedBids // oxlint-disable-line prefer-destructuring
   const completedRecs = rowData.completedRecommendations
   const edgeBrowserBidsUrl = buildEdgeBrowserUrl(
     `tail:${id}`,
@@ -78,7 +78,6 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
             </h4>
             <div className="profile-title">{title}</div>
             {preferredEmailInvitationId && (
-              // eslint-disable-next-line jsx-a11y/anchor-is-valid
               <a
                 href="#"
                 className="copy-email-link"
@@ -148,7 +147,6 @@ const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitati
               </h4>
               <div className="profile-title">{sacProfile.title}</div>
               {preferredEmailInvitationId && (
-                // eslint-disable-next-line jsx-a11y/anchor-is-valid
                 <a
                   href="#"
                   className="copy-email-link"
@@ -191,7 +189,7 @@ const NoteAreaChairProgress = ({
   officialReviewName,
   submissionName,
 }) => {
-  const numCompletedReviews = rowData.numCompletedReviews // eslint-disable-line prefer-destructuring
+  const numCompletedReviews = rowData.numCompletedReviews // oxlint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="reviewer-progress">
@@ -242,7 +240,7 @@ const NoteAreaChairStatus = ({
   officialMetaReviewName,
   submissionName,
 }) => {
-  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // eslint-disable-line prefer-destructuring
+  const numCompletedMetaReviews = rowData.numCompletedMetaReviews // oxlint-disable-line prefer-destructuring
   const numPapers = rowData.notes.length
   return (
     <div className="areachair-progress">
@@ -389,7 +387,7 @@ const AreaChairStatus = ({
         pcConsoleData.paperGroups.areaChairGroups.forEach((acGroup) => {
           // const members = acGroup.members
           acGroup.members.forEach((member) => {
-            const noteNumber = acGroup.noteNumber // eslint-disable-line prefer-destructuring
+            const noteNumber = acGroup.noteNumber // oxlint-disable-line prefer-destructuring
             if (!allNoteNumbers.includes(noteNumber)) return // paper could have been desk rejected
             const reviewMetaReviewInfo =
               pcConsoleData.noteNumberReviewMetaReviewMap.get(noteNumber) ?? {}

@@ -1,15 +1,14 @@
 'use client'
 
+import { Flex } from 'antd'
 import ProfileTag from '../../components/ProfileTag'
 
 export default function ServiceRoles({ serviceRoles }) {
   return (
-    <div
-      className={`tags-container service-roles-container ${serviceRoles.length ? 'mb-2' : ''}`}
-    >
+    <Flex vertical gap={0} align="flex-start">
       {serviceRoles.map((tag, index) => (
-        <ProfileTag key={index} tag={tag} showProfileId={false} />
+        <ProfileTag key={index} tag={tag} showProfileId={false} borderless />
       ))}
-    </div>
+    </Flex>
   )
 }

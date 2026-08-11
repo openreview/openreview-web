@@ -1,15 +1,20 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { setBannerContent } from '../bannerSlice'
 import ProfileSearchWidget from '../components/EditorComponents/ProfileSearchWidget'
+import api from '../lib/api-client'
 import { renderWithEditorComponentContext, reRenderWithEditorComponentContext } from './util'
 import '@testing-library/jest-dom'
 
-import api from '../lib/api-client'
+let dispatch
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({
   user: { profile: { id: '~test_id1' } },
   accessToken: 'test token',
+}))
+jest.mock('react-redux', () => ({
+  useDispatch: () => dispatch,
 }))
 
 global.$ = jest.fn(() => ({
@@ -18,6 +23,7 @@ global.$ = jest.fn(() => ({
 
 beforeEach(() => {
   global.promptError = jest.fn()
+  dispatch = jest.fn()
 })
 
 describe('ProfileSearchWidget for authors+authorids field', () => {
@@ -1304,6 +1310,52 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
       '   TEST@EMAIL.COM   ' // same as test@email.com
     )
     expect(screen.getByText('Add')).toHaveAttribute('disabled')
+  })
+
+  test('show es down banner when es fail', async () => {
+    const getProfile = jest.fn(() =>
+      Promise.resolve({ count: 0, profiles: [], searchUnavailable: true })
+    )
+    api.post = jest.fn(() => Promise.resolve({ profiles: [] }))
+    api.get = getProfile
+    const providerProps = {
+      value: {
+        field: {
+          authorids: {
+            value: {
+              param: {
+                type: 'group[]',
+                regex:
+                  '^~\\S+$|([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,},){0,}([a-z0-9_\\-\\.]{1,}@[a-z0-9_\\-\\.]{2,}\\.[a-z]{2,})',
+              },
+            },
+          },
+        },
+        value: [{ authorId: '~test_id1' }],
+        onChange: jest.fn(),
+        setErrors: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWidget multiple={true} />, providerProps)
+
+    await userEvent.type(
+      screen.getByPlaceholderText('search profiles by name or OpenReview profile ID'),
+      'test'
+    )
+    await userEvent.click(screen.getByText('Search'))
+
+    expect(getProfile).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ es: true })
+    )
+    expect(dispatch).toHaveBeenCalledWith(
+      setBannerContent({
+        type: 'error',
+        value:
+          'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
+      })
+    )
   })
 })
 
