@@ -1,5 +1,7 @@
 {
   "stopOnFirstFail": true,
+  "selectorTimeout": 30000,
+  "assertionTimeout": 10000,
   "pageRequestTimeout": 30000,
   "browserInitTimeout": 360000,
   "hostname": "localhost",
