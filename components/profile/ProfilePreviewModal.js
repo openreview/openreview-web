@@ -40,7 +40,7 @@ const ProfilePreviewModal = ({
   ]
   const [tagInvitation, setTagInvitation] = useState(tagInvitationOptions[0].value)
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
-  const isRejectedProfile = profileToPreview?.state === 'Rejected'
+  const isProfileActivatable = profileToPreview?.state === 'Rejected' || needsModeration
 
   const tagAndActivateProfile = async () => {
     await api.post('/tags', {
@@ -249,9 +249,9 @@ const ProfilePreviewModal = ({
                     (document) => document.type !== 'parentalConsent'
                   )}
                   loadIdentityDocuments={loadIdentityDocuments}
-                  deleteAllLabel={isRejectedProfile ? 'Activate with ID check' : undefined}
-                  onBeforeDeleteAll={isRejectedProfile ? tagAndActivateProfile : undefined}
-                  onAfterDeleteAll={isRejectedProfile ? loadTags : undefined}
+                  deleteAllLabel={isProfileActivatable ? 'Activate with ID check' : undefined}
+                  onBeforeDeleteAll={isProfileActivatable ? tagAndActivateProfile : undefined}
+                  onAfterDeleteAll={isProfileActivatable ? loadTags : undefined}
                 />
               </ProfileViewSection>
             )}
