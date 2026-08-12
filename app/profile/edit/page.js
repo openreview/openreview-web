@@ -1,5 +1,6 @@
 'use client'
 
+import { Flex } from 'antd'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
@@ -9,6 +10,7 @@ import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
 import { getNoteAuthorIds, getNoteAuthors } from '../../../lib/utils'
 import LimitedStateAlert from './LimitedStateAlert'
+import MFADisabledAlert from './MFADisabledAlert'
 
 import styles from './Edit.module.scss'
 
@@ -156,7 +158,10 @@ export default function Page() {
 
   return (
     <div className={styles.edit}>
-      <LimitedStateAlert profile={profile} />
+      <Flex vertical gap="middle">
+        <LimitedStateAlert profile={profile} />
+        <MFADisabledAlert />
+      </Flex>
       <header>
         <h1>Edit Profile</h1>
       </header>
