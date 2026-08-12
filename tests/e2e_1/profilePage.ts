@@ -799,7 +799,7 @@ const dblpImportModalAddToProfileBtn = Selector('#dblp-import-modal')
   .withText('Add to Your Profile')
 const dblpImportModalSelectCount = Selector('#dblp-import-modal').find('div.selected-count')
 const saveProfileButton = Selector('button').withText('Save Profile Changes')
-const cancelButton = Selector('div.buttons-row').find('button').withText('Exit Edit Mode')
+const cancelButton = Selector('button').withText('Exit Edit Mode')
 const nameMakePreferredButton = Selector('div.container.names')
   .find('button.preferred_button')
   .filterVisible()
@@ -957,7 +957,7 @@ test('user open own profile', async (t) => {
     .click(step6Expertise)
     .typeText(Selector('div.expertise').find('input').nth(0), '        ')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
@@ -991,7 +991,7 @@ test('add links', async (t) => {
     .expect(aclanthologyUrlInput.hasClass('invalid-value'))
     .notOk()
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
@@ -1061,7 +1061,7 @@ test('add relation', async (t) => {
       '2023'
     )
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
@@ -1130,7 +1130,7 @@ test('add expertise', async (t) => {
     )
     .typeText(thirdExpertiseRow.find('div.expertise__value').nth(1).find('input'), '1999')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     // verify relation is added
@@ -1195,7 +1195,7 @@ test('import paper from dblp', async (t) => {
     .typeText(editFullNameInputSelector, 'Di Xu')
     .click(saveProfileButton)
     // wait until profile save complete
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
 
   await t
@@ -1298,7 +1298,7 @@ test('unlink paper', async (t) => {
     // keep 1 publication to check history
     .click(Selector('ul.submissions-list').find('.glyphicon-minus-sign').nth(1)) // unlink 2nd paper
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
 })
 
@@ -1394,7 +1394,7 @@ test('validate current history', async (t) => {
       paste: true,
     })
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
@@ -1408,7 +1408,7 @@ test('validate current history', async (t) => {
     .selectText(firstHistoryEndInput)
     .pressKey('delete')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
@@ -1445,7 +1445,7 @@ test('profile should be auto merged', async (t) => {
     .ok()
 
     .click(saveProfileButton) // save profile should success
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
@@ -1624,7 +1624,7 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .eql('FirstB LastB ')
     .click(nameMakePreferredButton)
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('#user-menu').filterVisible().innerText)
@@ -1634,7 +1634,7 @@ test('#123 update name in nav when preferred name is updated ', async (t) => {
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .click(nameMakePreferredButton)
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('#user-menu').innerText)
@@ -1653,7 +1653,7 @@ test('#160 allow user to overwrite name to be lowercase', async (t) => {
     .expect(editFullNameInputSelector.value)
     .eql('first')
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('span').withText('first').exists)
@@ -1694,7 +1694,7 @@ test('confirm an email with a numeric token', async (t) => {
     .expect(Selector('button').withText('Make Preferred').nth(0).exists)
     .ok()
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('span').withText('aaa@alternate.com').exists)
@@ -1750,7 +1750,7 @@ test('check if a user can add multiple emails without entering verification toke
     .eql('Error: token must NOT have fewer than 1 characters')
 
     .click(saveProfileButton)
-    .expect(saveProfileButton.find('div.spinner-container').exists)
+    .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
     .click(cancelButton)
     .expect(Selector('span').withText('aab@alternate.com').exists)

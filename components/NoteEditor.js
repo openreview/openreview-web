@@ -564,7 +564,7 @@ const NoteEditor = ({
         noteReaderValues: await getNoteReaderValues(roleNames, invitation, noteEditorData),
         editReaderValues: await getEditReaderValues(roleNames, invitation, noteEditorData),
         editWriterValues: getEditWriterValues(),
-        ...(replyToNote && { replyto: replyToNote.id }),
+        ...(!note?.id && replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,
       }
 
