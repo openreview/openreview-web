@@ -482,7 +482,6 @@ const historyDomainInputs = Selector('div.history')
 const historyNameInputs = Selector('div.history')
   .find('input')
   .withAttribute('aria-label', 'Institution Name')
-const historyStep = Selector('div[step="4"]').find('div[role="button"]')
 
 // oxlint-disable-next-line no-unused-expressions
 fixture`Activate with an institution which is not the one of the email`
@@ -525,7 +524,7 @@ test('register a profile with an institution which is not the one of the email',
     .notOk()
 
     // the profile is created once the institution of the email is in the history
-    .click(historyStep)
+    .click(Selector('.ant-steps-item').withText('History'))
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .typeText(institutionDomainInput, institutionEmailDomain)
     .click(Selector('div.institution-dropdown__option').withExactText(institutionEmailDomain))
@@ -547,7 +546,7 @@ test('replace the institution of the email in the history', async (t) => {
     .useRole(institutionEmailUserRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .wait(100)
-    .click(historyStep)
+    .click(Selector('.ant-steps-item').withText('History'))
     .expect(historyDomainInputs.count)
     .eql(1)
     .expect(historyDomainInputs.nth(0).value)
@@ -766,7 +765,7 @@ test('add alternate email', async (t) => {
     .ok()
     .click(Selector('a').withText('Profile'))
     .click(Selector('a').withAttribute('href', '/profile/edit'))
-    .click(Selector('div[step="2"]').find('div[role="button"]')) // go to email section
+    .click(Selector('.ant-steps-item').withText('Emails')) // go to email section
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
     .click(Selector('section').find('.glyphicon-plus-sign')) // add button

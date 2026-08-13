@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { orderBy } from 'lodash'
-import { motion } from 'framer-motion'
 import dayjs from 'dayjs'
+import { motion, useMotionValue } from 'framer-motion'
+import { orderBy } from 'lodash'
+import { useEffect, useRef, useState } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { inflect } from '../../lib/utils'
@@ -11,6 +11,7 @@ const OtherVersions = ({ note }) => {
   const { isRefreshing } = useUser()
   const [otherVersions, setOtherVersions] = useState(null)
   const containerRef = useRef(null)
+  const overflow = useMotionValue('hidden')
 
   const loadOtherVersions = async () => {
     try {
@@ -45,14 +46,13 @@ const OtherVersions = ({ note }) => {
   return (
     <motion.div
       ref={containerRef}
-      initial={{ height: 0, overflow: 'hidden' }}
+      initial={{ height: 0 }}
       animate={{ height: 'auto' }}
       transition={{
         height: { duration: 0.5, ease: 'easeIn' },
       }}
-      onAnimationComplete={() => {
-        if (containerRef.current) containerRef.current.style.overflow = 'visible'
-      }}
+      onAnimationComplete={() => overflow.set('visible')}
+      style={{ overflow }}
     >
       <div className="btn-group">
         <button
