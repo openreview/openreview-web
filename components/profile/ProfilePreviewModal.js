@@ -192,7 +192,7 @@ const ProfilePreviewModal = ({
       <Flex vertical gap="small">
         {error && <ErrorAlert error={error} />}
         {profileToPreview.isMinor ? (
-          <Badge.Ribbon text="Minor">
+          <Badge.Ribbon text="Minor" placement="end" styles={{ indicator: { top: 44 } }}>
             <BasicProfileView
               profile={profileToPreview}
               showLinkText={true}
