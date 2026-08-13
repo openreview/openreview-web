@@ -54,6 +54,7 @@ const EducationHistoryRow = ({
   const [isRegionClicked, setIsRegionClicked] = useState(false)
   const invalidFields = profileHistory?.find((q) => q.key === p.key)?.invalidFields
   const isIndependentResearcher = p.position === 'Independent Researcher'
+  const invalidFieldMessages = invalidFields ? [...new Set(Object.values(invalidFields))] : []
 
   const updateDomain = async (domain, key) => {
     if (!domain) {
@@ -137,7 +138,7 @@ const EducationHistoryRow = ({
             aria-label="Position"
           />
         )}
-        {invalidFields?.position && (
+        {/* {invalidFields?.position && (
           <span
             className="invalid-value-icon"
             data-toggle="tooltip"
@@ -146,7 +147,7 @@ const EducationHistoryRow = ({
           >
             <Icon name="exclamation-sign" />
           </span>
-        )}
+        )} */}
       </div>
       <div className="col-md-1 history__value">
         {isMobile && <div className="small-heading col-md-1">Start</div>}
@@ -159,7 +160,7 @@ const EducationHistoryRow = ({
           }
           aria-label="start year"
         />
-        {invalidFields?.startYear && (
+        {/* {invalidFields?.startYear && (
           <span
             className="invalid-value-icon"
             data-toggle="tooltip"
@@ -168,7 +169,7 @@ const EducationHistoryRow = ({
           >
             <Icon name="exclamation-sign" />
           </span>
-        )}
+        )} */}
       </div>
       <div className="col-md-1 history__value">
         {isMobile && <div className="small-heading col-md-1">End</div>}
@@ -181,7 +182,7 @@ const EducationHistoryRow = ({
           }
           aria-label="end year"
         />
-        {invalidFields?.endYear && (
+        {/* {invalidFields?.endYear && (
           <span
             className="invalid-value-icon"
             data-toggle="tooltip"
@@ -190,7 +191,7 @@ const EducationHistoryRow = ({
           >
             <Icon name="exclamation-sign" />
           </span>
-        )}
+        )} */}
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-3">Institution Domain</div>}
@@ -237,7 +238,7 @@ const EducationHistoryRow = ({
             aria-label="Institution Domain"
           />
         )}
-        {invalidFields?.institutionDomain && (
+        {/* {invalidFields?.institutionDomain && (
           <span
             className="invalid-value-icon"
             data-toggle="tooltip"
@@ -246,7 +247,7 @@ const EducationHistoryRow = ({
           >
             <Icon name="exclamation-sign" />
           </span>
-        )}
+        )} */}
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Name</div>}
@@ -265,7 +266,7 @@ const EducationHistoryRow = ({
           }
           aria-label="Institution Name"
         />
-        {invalidFields?.institutionName && (
+        {/* {invalidFields?.institutionName && (
           <span
             className="invalid-value-icon"
             data-toggle="tooltip"
@@ -274,7 +275,7 @@ const EducationHistoryRow = ({
           >
             <Icon name="exclamation-sign" />
           </span>
-        )}
+        )} */}
       </div>
       <div className="col-md-1 history__value">
         {history.length > 1 && (
@@ -324,7 +325,7 @@ const EducationHistoryRow = ({
             aria-label="Institution Country/Region"
           />
         )}
-        {invalidFields?.institutionCountryRegion && (
+        {/* {invalidFields?.institutionCountryRegion && (
           <span
             className="invalid-value-icon"
             data-toggle="tooltip"
@@ -333,7 +334,7 @@ const EducationHistoryRow = ({
           >
             <Icon name="exclamation-sign" />
           </span>
-        )}
+        )} */}
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution State/Province</div>}
@@ -380,6 +381,15 @@ const EducationHistoryRow = ({
           aria-label="Department of Institution"
         />
       </div>
+      {invalidFieldMessages.length > 0 && (
+        <div className="col-md-12 history__error" role="alert">
+          {invalidFieldMessages.map((message) => (
+            <div key={message}>
+              <Icon name="exclamation-sign" /> {message}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
