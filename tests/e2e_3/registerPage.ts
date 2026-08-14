@@ -29,8 +29,8 @@ const notificationSelector = Selector('.ant-notification-notice')
 const notificationCloseButton = Selector('.ant-notification-notice-close')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
-const personalStep = Selector('div[step="1"]').find('div[role="button"]')
-const expertiseStep = Selector('div[step="5"]').find('div[role="button"]')
+const personalStep = Selector('.ant-steps-item').withText('Personal Info')
+const expertiseStep = Selector('.ant-steps-item').withText('Expertise')
 const dateOfBirthInput = Selector('input[placeholder="Select your date of birth"]')
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
