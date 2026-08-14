@@ -3,6 +3,7 @@ import {
   inactiveUser,
   inActiveUserNoPassword,
   inActiveUserNoPasswordNoEmail,
+  institutionEmailUser,
   getToken,
   getMessages,
   createPasswordResetRequest,
@@ -25,6 +26,8 @@ const confirmPasswordInputSelector = Selector('input').withAttribute(
 const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
 const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
 const messageSelector = Selector('.ant-notification-notice-content').nth(-1)
+const notificationSelector = Selector('.ant-notification-notice')
+const notificationCloseButton = Selector('.ant-notification-notice-close')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
 
@@ -40,7 +43,7 @@ test('create new profile', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff.'
       ).exists
     )
     .ok()
@@ -116,7 +119,7 @@ test('create another new profile', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff.'
       ).exists
     )
     .ok()
@@ -165,7 +168,7 @@ test('create a new profile with an institutional email', async (t) => {
     .notOk()
     .expect(
       Selector('label').withText(
-        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff, and may require two weeks processing time.'
+        'I confirm that this name is typed exactly as it would appear as an author in my publications. I understand that any future changes to my name will require moderation by the OpenReview.net Staff.'
       ).exists
     )
     .ok()
@@ -362,8 +365,10 @@ test('update profile', async (t) => {
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
+    // the institution of the email of the profile must be in the history
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .click(Selector('div.institution-dropdown__option').nth(0))
+    .typeText(Selector('input.institution-dropdown__input'), 'umass.edu')
+    .click(Selector('div.institution-dropdown__option').withExactText('umass.edu'))
     .pressKey('tab')
     // add mandatory region
     .click(Selector('input.region-dropdown__placeholder'))
@@ -427,8 +432,10 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
+    // the institution of the email of the profile must be in the history
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .click(Selector('div.institution-dropdown__option').nth(0))
+    .typeText(Selector('input.institution-dropdown__input'), 'umass.edu')
+    .click(Selector('div.institution-dropdown__option').withExactText('umass.edu'))
     .pressKey('tab')
     // add mandatory region
     .click(Selector('input.region-dropdown__placeholder'))
@@ -438,6 +445,116 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
+})
+
+// the api requires the institution of an institutional email to be in the history
+const institutionEmailDomain = 'umass.edu'
+const otherInstitutionDomain = 'abc.com'
+const otherInstitutionName = 'ABC Institution'
+
+const institutionEmailUserRole = Role(
+  `http://localhost:${process.env.NEXT_PORT}/login`,
+  async (t) => {
+    await t
+      .typeText(Selector('#email-input'), institutionEmailUser.email)
+      .typeText(Selector('#password-input'), institutionEmailUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  }
+)
+const institutionDomainInput = Selector('input.institution-dropdown__input')
+const historyDomainInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'Institution Domain')
+const historyNameInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'Institution Name')
+
+// oxlint-disable-next-line no-unused-expressions
+fixture`Activate with an institution which is not the one of the email`
+  .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=${institutionEmailUser.email}`
+
+test('register a profile with an institution which is not the one of the email', async (t) => {
+  await t
+    .click(nextSectiomButtonSelector) // personal
+    .click(nextSectiomButtonSelector) // emails
+    .click(nextSectiomButtonSelector) // links
+    .typeText(Selector('#homepage_url'), 'http://pambeesly.com', { paste: true })
+    .click(nextSectiomButtonSelector) // history
+    .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .wait(300)
+    .pressKey('M S space s t u d e n t tab')
+    // an institution which is not the one of the email of the profile
+    .click(Selector('input.institution-dropdown__placeholder').nth(0))
+    .typeText(institutionDomainInput, otherInstitutionDomain)
+    .pressKey('enter')
+    .typeText(historyNameInputs.nth(0), otherInstitutionName)
+    // add mandatory region
+    .click(Selector('input.region-dropdown__placeholder'))
+    .click(Selector('div.country-dropdown__option').nth(3))
+
+    .click(nextSectiomButtonSelector)
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messageSelector.innerText)
+    .eql(
+      `Error: The institution of your email ${institutionEmailUser.email} must be added to the history`
+    )
+
+    // the error notification is an 80vw banner fixed at the top of the viewport,
+    // so it swallows the click on the History step; dismiss it first
+    .click(notificationCloseButton)
+    .expect(notificationSelector.exists)
+    .notOk()
+
+    // the profile is created once the institution of the email is in the history
+    .click(Selector('.ant-steps-item').withText('History'))
+    .click(Selector('input.institution-dropdown__placeholder').nth(0))
+    .typeText(institutionDomainInput, institutionEmailDomain)
+    .click(Selector('div.institution-dropdown__option').withExactText(institutionEmailDomain))
+    .pressKey('tab')
+    // add mandatory region again as selecting an institution resets country/region
+    .click(Selector('input.region-dropdown__placeholder'))
+    .click(Selector('div.country-dropdown__option').nth(3))
+    .click(nextSectiomButtonSelector)
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messageSelector.innerText)
+    .eql('Your OpenReview profile has been successfully created')
+})
+
+// oxlint-disable-next-line no-unused-expressions
+fixture`Edit the history of the institution of the email`
+
+test('replace the institution of the email in the history', async (t) => {
+  await t
+    .useRole(institutionEmailUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(Selector('.ant-steps-item').withText('History'))
+    .expect(historyDomainInputs.count)
+    .eql(1)
+    .expect(historyDomainInputs.nth(0).value)
+    .eql(institutionEmailDomain)
+    // add the history of another institution
+    .click(Selector('[aria-label="add another history"]'))
+    .click(Selector('input.position-dropdown__placeholder').nth(1))
+    .wait(300)
+    .pressKey('M S space s t u d e n t tab')
+    .click(Selector('input.institution-dropdown__placeholder').nth(1))
+    .typeText(institutionDomainInput, otherInstitutionDomain)
+    .pressKey('enter')
+    .typeText(historyNameInputs.nth(1), otherInstitutionName)
+    .click(Selector('input.region-dropdown__placeholder').nth(1))
+    .click(Selector('div.country-dropdown__option').nth(3))
+    // remove the history of the institution of the email
+    .click(historyDomainInputs.nth(0).parent('div.row').find('[aria-label="remove history"]'))
+    .expect(historyDomainInputs.count)
+    .eql(1)
+    .expect(historyDomainInputs.nth(0).value)
+    .eql(otherInstitutionDomain)
+    .click(Selector('button').withText('Save Profile Changes'))
+    .expect(messageSelector.innerText)
+    .eql(
+      `Error: The institution of your email ${institutionEmailUser.email} must be added to the history`
+    )
 })
 
 // oxlint-disable-next-line no-unused-expressions
@@ -630,7 +747,7 @@ test('add alternate email', async (t) => {
     .ok()
     .click(Selector('a').withText('Profile'))
     .click(Selector('a').withAttribute('href', '/profile/edit'))
-    .click(Selector('div[step="2"]').find('div[role="button"]')) // go to email section
+    .click(Selector('.ant-steps-item').withText('Emails')) // go to email section
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
     .click(Selector('section').find('.glyphicon-plus-sign')) // add button
