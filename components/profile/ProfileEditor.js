@@ -192,7 +192,6 @@ export default function ProfileEditor({
     let profileContent = {
       ...profile,
       names: profile.names.map((p) => (p.fullname ? p : null)).filter(Boolean),
-      yearOfBirth: profile.yearOfBirth ? Number.parseInt(profile.yearOfBirth, 10) : undefined,
       emails: profile.emails.map((p) => (p.email ? p : null)).filter(Boolean),
       links: undefined,
       ...profile.links,
@@ -704,7 +703,7 @@ export default function ProfileEditor({
     if (
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/pronouns')) ||
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/gender')) ||
-      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/yearOfBirth'))
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/dob'))
     ) {
       setInvalidStepKeys((current) => [...current, 'personal'])
     }
