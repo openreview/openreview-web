@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import { Selector, ClientFunction, RequestLogger, Role } from 'testcafe'
 import {
   inactiveUser,
@@ -29,9 +30,45 @@ const notificationSelector = Selector('.ant-notification-notice')
 const notificationCloseButton = Selector('.ant-notification-notice-close')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
-const personalStep = Selector('.ant-steps-item').withText('Personal Info')
-const expertiseStep = Selector('.ant-steps-item').withText('Expertise')
-const dateOfBirthInput = Selector('input[placeholder="Select your date of birth"]')
+const nameConfirmationLabel = Selector('label[for="name-confirmation"]')
+
+const dobMonthSelect = Selector('.ant-select-selector')
+const dobDayInput = Selector('input[placeholder="DD"]')
+const dobYearInput = Selector('input[placeholder="YYYY"]')
+const dobMonthOption = (monthLabel: string) =>
+  Selector('.ant-select-item-option').withAttribute('title', monthLabel)
+const monthLabels = [
+  'January (1)',
+  'February (2)',
+  'March (3)',
+  'April (4)',
+  'May (5)',
+  'June (6)',
+  'July (7)',
+  'August (8)',
+  'September (9)',
+  'October (10)',
+  'November (11)',
+  'December (12)',
+]
+
+const enterDob = (t: TestController, month = 'January (1)', day = '11', year = '1990') =>
+  t
+    .click(dobMonthSelect)
+    .click(dobMonthOption(month))
+    .typeText(dobDayInput, day, { replace: true })
+    .typeText(dobYearInput, year, { replace: true })
+
+const maxStackedNotifications = 2 // notification.useNotification({ maxCount: 2 })
+const dismissNotifications = async (t: TestController) => {
+  for (
+    let i = 0;
+    i < maxStackedNotifications && (await notificationCloseButton.exists);
+    i += 1
+  ) {
+    await t.click(notificationCloseButton.nth(0))
+  }
+}
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -50,7 +87,57 @@ test('create new profile', async (t) => {
     )
     .ok()
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(nameConfirmationLabel)
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+
+  const currentYear = dayjs().year()
+
+  await t
+    .click(dobMonthSelect)
+    .click(dobMonthOption('January (1)'))
+    .typeText(dobDayInput, '1', { replace: true })
+    .typeText(dobYearInput, `${currentYear - 12}`, { replace: true })
+    .expect(messageSelector.innerText)
+    .eql('Error: OpenReview profiles require an age of 13 or over.')
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+  await dismissNotifications(t)
+
+  await t
+    .typeText(dobYearInput, `${currentYear - 101}`, { replace: true })
+    .expect(messageSelector.innerText)
+    .eql('Error: Please enter a valid date of birth.')
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+  await dismissNotifications(t)
+
+  // signup only prompts when the message changes, and Feb 31 repeats the message above,
+  // so assert the form stays hidden rather than the notification text
+  await t
+    .click(dobMonthSelect)
+    .click(dobMonthOption('February (2)'))
+    .typeText(dobDayInput, '31', { replace: true })
+    .typeText(dobYearInput, '1990', { replace: true })
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+  await dismissNotifications(t)
+
+  const thirteenToday = dayjs().subtract(13, 'year')
+  await t
+    .click(dobMonthSelect)
+    .click(dobMonthOption(monthLabels[thirteenToday.month()]))
+    .typeText(dobDayInput, `${thirteenToday.date()}`, { replace: true })
+    .typeText(dobYearInput, `${thirteenToday.year()}`, { replace: true })
+    .expect(emailAddressInputSelector.exists)
+    .ok()
+  await dismissNotifications(t)
+
+  await t
+    .click(dobMonthSelect)
+    .click(dobMonthOption('January (1)'))
+    .typeText(dobDayInput, '11', { replace: true })
+    .typeText(dobYearInput, '1990', { replace: true })
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -126,7 +213,9 @@ test('create another new profile', async (t) => {
     )
     .ok()
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(nameConfirmationLabel)
+  await enterDob(t, 'March (3)', '5', '1985')
+  await t
     .typeText(emailAddressInputSelector, 'peter@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -175,7 +264,9 @@ test('create a new profile with an institutional email', async (t) => {
     )
     .ok()
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(nameConfirmationLabel)
+  await enterDob(t, 'July (7)', '20', '1992')
+  await t
     .typeText(emailAddressInputSelector, 'kevin@umass.edu')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -208,10 +299,9 @@ test('create a new profile with an institutional email', async (t) => {
 })
 
 test('sign up with invalid name', async (t) => {
+  await t.wait(100).typeText(fullNameInputSelector, '1').click(nameConfirmationLabel)
+  await enterDob(t)
   await t
-    .wait(100)
-    .typeText(fullNameInputSelector, '1')
-    .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
     .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
@@ -228,9 +318,9 @@ test('sign up with invalid name', async (t) => {
 })
 
 test('sign up with another invalid name', async (t) => {
+  await t.typeText(fullNameInputSelector, 'abc `', { speed: 0.8 }).click(nameConfirmationLabel)
+  await enterDob(t)
   await t
-    .typeText(fullNameInputSelector, 'abc `', { speed: 0.8 })
-    .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
     .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
@@ -252,7 +342,9 @@ test('enter valid name invalid email and change to valid email and register', as
   await t
     .typeText(fullNameInputSelector, fullName) // must be new each test run
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(nameConfirmationLabel)
+  await enterDob(t)
+  await t
     .typeText(emailAddressInputSelector, `${email}@test.com`)
     .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists)
@@ -379,15 +471,6 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector) // last section expertise
     .expect(Selector('p').withText('last updated September 24, 2024').exists)
     .ok()
-    // enter date of birth
-    .click(Selector('button').withText('Register for OpenReview'))
-    .expect(messageSelector.innerText)
-    .eql('Error: Date of Birth is required. Please select your date of birth.')
-    .click(personalStep)
-    .click(dateOfBirthInput)
-    .typeText(dateOfBirthInput, '1990-01-01', { replace: true })
-    .pressKey('enter')
-    .click(expertiseStep)
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
@@ -402,10 +485,7 @@ fixture`Activate`
 
 test('register a profile with an institutional email', async (t) => {
   await t
-    .click(personalStep)
-    .click(dateOfBirthInput)
-    .typeText(dateOfBirthInput, '1990-01-01', { replace: true })
-    .pressKey('enter')
+    .click(nextSectiomButtonSelector) // personal
     .click(nextSectiomButtonSelector) // emails
     .expect(
       Selector('p').withText(/Your email address could not be automatically verified/).exists
@@ -489,11 +569,7 @@ fixture`Activate with an institution which is not the one of the email`
 
 test('register a profile with an institution which is not the one of the email', async (t) => {
   await t
-    // enter dob
-    .click(personalStep)
-    .click(dateOfBirthInput)
-    .typeText(dateOfBirthInput, '1990-01-01', { replace: true })
-    .pressKey('enter')
+    .click(nextSectiomButtonSelector) // personal
     .click(nextSectiomButtonSelector) // emails
     .click(nextSectiomButtonSelector) // links
     .typeText(Selector('#homepage_url'), 'http://pambeesly.com', { paste: true })

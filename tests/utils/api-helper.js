@@ -13,6 +13,8 @@ export const baseGroupId = 'TestVenue'
 export const subGroupId = 'TestVenue/2020'
 export const conferenceGroupId = 'TestVenue/2020/Conference'
 export const conferenceSubmissionInvitationId = `${conferenceGroupId}/-/Submission`
+// /register rejects a missing dob when the API sets profile.requireDob
+export const defaultDob = Date.UTC(1990, 0, 1)
 
 export const hasTaskUser = {
   fullname: 'FirstA LastA',
@@ -143,6 +145,7 @@ export async function createUser({
       email,
       password,
       fullname,
+      dob: defaultDob,
     },
     { version: 2 }
   )
@@ -168,7 +171,7 @@ export async function createUser({
         },
       ],
       gender: '',
-      dob: Date.UTC(1990, 0, 1),
+      dob: defaultDob,
       homepage,
       gscholar: '',
       dblp: '',
