@@ -78,8 +78,8 @@ export default function ProfileEditor({
       key: 'personal',
       title: 'Personal Info',
       content: isNewProfile
-        ? 'Gender, Pronouns and Birth Year'
-        : 'Gender, Pronouns, Birth Year and Profile Visibility',
+        ? `Gender, Pronouns${loadedProfile?.dob?.value ? '' : ' and Date of Birth'}`
+        : `Gender, Pronouns${loadedProfile?.dob?.value ? '' : ' , Date of Birth '} and Profile Visibility`,
       status: getStepStatus('personal'),
     },
     { step: 2, key: 'emails', title: 'Emails', status: getStepStatus('emails') },
