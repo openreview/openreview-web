@@ -11,7 +11,7 @@ const PronounSection = ({ profilePronouns, updatePronoun }) => {
         style={{ width: '100%', maxWidth: 500 }}
         options={options}
         value={profilePronouns}
-        onChange={updatePronoun}
+        onChange={(value) => updatePronoun(value || undefined)}
         placeholder="Choose pronouns or type a custom pronouns"
         showSearch={{ filterOption: true }}
         allowClear

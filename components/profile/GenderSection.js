@@ -11,7 +11,7 @@ const GenderSection = ({ profileGender, updateGender }) => {
         style={{ width: '100%', maxWidth: 500 }}
         options={options}
         value={profileGender}
-        onChange={updateGender}
+        onChange={(value) => updateGender(value || undefined)}
         placeholder="Choose a gender or type a custom gender"
         showSearch={{ filterOption: true }}
         allowClear
