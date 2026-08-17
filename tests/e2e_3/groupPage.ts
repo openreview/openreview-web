@@ -9,7 +9,7 @@ const errorMessageLabel = Selector('.error-message')
 
 const johnRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'john@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)
@@ -18,7 +18,7 @@ const johnRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => 
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)

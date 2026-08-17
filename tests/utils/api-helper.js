@@ -1,5 +1,5 @@
-import fetch from 'node-fetch-cjs'
 import { loadEnvConfig } from '@next/env'
+import fetch from 'node-fetch-cjs'
 import api from '../../lib/api-client'
 
 loadEnvConfig(process.cwd())
@@ -47,11 +47,19 @@ export const mergeUser = {
   password: strongPassword,
   tildeId: '~FirstF_LastF1',
 }
+export const institutionEmailUser = {
+  fullname: 'FirstG LastG',
+  email: 'test@umass.edu',
+  password: strongPassword,
+  activate: false,
+}
 // #endregion
 
 export async function setupRegister(superUserToken) {
   // create inactive user
   await createUser(inactiveUser)
+  // create inactive user with an institutional email
+  await createUser(institutionEmailUser)
   await createProfile(
     inActiveUserNoPassword.fullname,
     inActiveUserNoPassword.email,
@@ -300,6 +308,10 @@ export async function createEmptyProfile(fullname, tildeId, superUserToken) {
 
 export function getMessages(params, token) {
   return api.get('/messages', params, { accessToken: token }).then((result) => result.messages)
+}
+
+export function createPasswordResetRequest(email) {
+  return api.post('/resettable', { id: email })
 }
 
 export function getNotes(params, token, version = 1) {

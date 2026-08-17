@@ -1,3 +1,4 @@
+import { screen, render } from '@testing-library/react'
 import {
   getDefaultTimezone,
   getTagDispayText,
@@ -9,8 +10,10 @@ import {
   stringToObject,
   buildNoteUrl,
   sanitizeRedirectUrl,
+  getNoteAuthorIds,
+  getNoteAuthors,
+  normalizeName,
 } from '../lib/utils'
-import { screen, render } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -961,5 +964,225 @@ describe('utils', () => {
     redirect = 'javascript:alert("some alert")'
     expectedValue = '/'
     expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+  })
+
+  test('return authorids correctly', () => {
+    let note, isV2Note, expectedValue, edit
+
+    // v1 note
+    note = {
+      content: {
+        authorids: ['~Test_User1', '~Test_User2'],
+      },
+    }
+    isV2Note = false
+    expectedValue = ['~Test_User1', '~Test_User2']
+    expect(getNoteAuthorIds(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - authors+authorids schema
+    note = {
+      content: {
+        authors: { value: ['Test User1', 'Test User2'] },
+        authorids: { value: ['~Test_User1', '~Test_User2'] },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['~Test_User1', '~Test_User2']
+    expect(getNoteAuthorIds(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - object author schema
+    note = {
+      content: {
+        authors: {
+          value: [
+            { username: '~Test_User1', fullname: 'Test User1', institutions: [] },
+            { username: '~Test_User2', fullname: 'Test User2', institutions: [] },
+          ],
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['~Test_User1', '~Test_User2']
+    expect(getNoteAuthorIds(note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for authors+authorids schema
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authorids: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthorIds(edit.note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for object author schema (use authors instead of authorids)
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authors: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthorIds(edit.note, isV2Note)).toEqual(expectedValue)
+  })
+
+  test('return author names correctly', () => {
+    let note, isV2Note, expectedValue, edit
+
+    // v1 note
+    note = {
+      content: {
+        authors: ['Test User1', 'Test User2'],
+      },
+    }
+    isV2Note = false
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // v1 note with original
+    note = {
+      content: {
+        authors: ['submission authors'],
+      },
+      details: {
+        original: {
+          content: {
+            authors: ['Test User1', 'Test User2'],
+          },
+        },
+      },
+    }
+    isV2Note = false
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - authors+authorids schema
+    note = {
+      content: {
+        authors: { value: ['Test User1', 'Test User2'] },
+        authorids: { value: ['~Test_User1', '~Test_User2'] },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - object author schema
+    note = {
+      content: {
+        authors: {
+          value: [
+            { username: '~Test_User1', fullname: 'Test User1', institutions: [] },
+            { username: '~Test_User2', fullname: 'Test User2', institutions: [] },
+          ],
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for authors+authorids schema
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authorids: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthors(edit.note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for object author schema (use authors instead of authorids)
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authors: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthors(edit.note, isV2Note)).toEqual(expectedValue)
+  })
+
+  test('return normalized name', () => {
+    let fullname, expectedNormalizedName
+
+    // normal name
+    fullname = 'Test User'
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with extra spaces
+    fullname = '  Test   User  '
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with fullwidth characters
+    fullname = 'Ｔｅｓｔ　Ｕｓｅｒ'
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with Diacritical Marks
+    fullname = 'Tést Üsér'
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+    fullname = 'Test O’Connor'
+    expectedNormalizedName = 'Test O Connor'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with chinese characters
+    fullname = '用户全名'
+    expectedNormalizedName = '用户全名'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with different kinds of hyphen,dot,underscore
+    fullname = 'Some-differnt–kind—First Some.kind•of‧Middle Some_kinds＿of﹏last◌̲Name'
+    expectedNormalizedName =
+      'Some differnt kind First Some kind of Middle Some kinds of last Name'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // some other special characters
+    fullname = 'ﬁle ﬂow Ⅻ ①'
+    expectedNormalizedName = 'file flow XII 1'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
   })
 })

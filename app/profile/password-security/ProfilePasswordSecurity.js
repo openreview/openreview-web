@@ -2,7 +2,7 @@
 
 import { Collapse } from 'antd'
 import { useState } from 'react'
-import { ResetForm } from '../../reset/Reset'
+import { PasswordResetRequestForm } from '../../reset/Reset'
 import ConnectedAppsList from './ConnectedAppsList'
 import MultiFactorAuthenticationSetup from './MultiFactorAuthenticationSetup'
 
@@ -14,7 +14,7 @@ const ProfilePasswordSecurity = ({ profile }) => {
       key: 'passwordReset',
       label: 'Password Reset',
       children: (
-        <ResetForm
+        <PasswordResetRequestForm
           user={{ profile }}
           setEmailSent={() => {
             promptMessage(
@@ -34,6 +34,7 @@ const ProfilePasswordSecurity = ({ profile }) => {
       key: 'connectedApps',
       label: 'Third-party apps & services',
       children: <ConnectedAppsList />,
+      styles: { body: { maxWidth: 'none' } },
     },
   ]
 

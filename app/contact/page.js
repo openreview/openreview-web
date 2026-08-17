@@ -1,14 +1,13 @@
 'use client'
 
-/* globals promptMessage: false */
 import Link from 'next/link'
 import { useEffect, useReducer, useState } from 'react'
+import { CreatableDropdown } from '../../components/Dropdown'
+import ErrorAlert from '../../components/ErrorAlert'
+import { ClearButton } from '../../components/IconButton'
+import SpinnerButton from '../../components/SpinnerButton'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
 import useUser from '../../hooks/useUser'
-import { ClearButton } from '../../components/IconButton'
-import { CreatableDropdown } from '../../components/Dropdown'
-import SpinnerButton from '../../components/SpinnerButton'
-import ErrorAlert from '../../components/ErrorAlert'
 import api from '../../lib/api-client'
 
 import styles from './Contact.module.scss'
@@ -30,16 +29,16 @@ export default function Page() {
   const organizationSubject = 'A conference I organized'
   const committeeSubject = 'I am a reviewer or committee member'
   const createProfileSubject = 'I am trying to create my profile'
+  const profileRejectedSubject = 'I am unable to provide the information requested to activate my profile'
   const accessPublicationSubject = 'I am trying to access a publication'
-  const institutionSubject = 'Please add my domain to your list of publishing institutions'
   const subjectOptions = [
     profileSubject,
     submissionSubject,
     organizationSubject,
     committeeSubject,
     createProfileSubject,
+    profileRejectedSubject,
     accessPublicationSubject,
-    // institutionSubject,
   ].map((subject) => ({
     label: subject,
     value: subject,
@@ -66,7 +65,8 @@ export default function Page() {
       type: 'input',
       placeholder: 'Profile ID',
       required: () => formData.subject === profileSubject,
-      showIf: () => formData.subject === profileSubject,
+      showIf: () =>
+        formData.subject === profileSubject || formData.subject === profileRejectedSubject,
     },
     {
       name: 'venueId',
@@ -89,27 +89,6 @@ export default function Page() {
       showIf: () =>
         formData.subject === submissionSubject ||
         formData.subject === accessPublicationSubject,
-    },
-    {
-      name: 'institutionDomain',
-      type: 'input',
-      placeholder: 'Email Domain of Your Institution',
-      required: () => formData.subject === institutionSubject,
-      showIf: () => formData.subject === institutionSubject,
-    },
-    {
-      name: 'institutionName',
-      type: 'input',
-      placeholder: 'Full Name of Your Institution',
-      required: () => formData.subject === institutionSubject,
-      showIf: () => formData.subject === institutionSubject,
-    },
-    {
-      name: 'institutionUrl',
-      type: 'input',
-      placeholder: 'Official Website URL of Your Institution',
-      required: () => formData.subject === institutionSubject,
-      showIf: () => formData.subject === institutionSubject,
     },
     {
       name: 'message',
@@ -154,9 +133,13 @@ export default function Page() {
           feedbackData.subject = `Venue - ${formData.venueId}`
 
           break
-        case institutionSubject:
-          feedbackData.message = `Institution Domain: ${formData.institutionDomain}\nInstitution Fullname: ${formData.institutionName}\nInstitution URL: ${formData.institutionUrl}\n\n${formData.message}`
-          feedbackData.subject = `${cleanSubject} - ${formData.institutionDomain}`
+        case profileRejectedSubject:
+          feedbackData.message = formData.profileId
+            ? `Profile ID: ${formData.profileId}\n\n${formData.message}`
+            : formData.message
+          feedbackData.subject = formData.profileId
+            ? `${cleanSubject} - ${formData.profileId}`
+            : cleanSubject
           break
         case createProfileSubject:
           feedbackData.message = `${formData.message}`

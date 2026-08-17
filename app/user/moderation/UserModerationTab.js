@@ -1,20 +1,40 @@
 import {
   CheckCircleOutlined,
   CloseCircleOutlined,
+  CopyOutlined,
   PlusOutlined,
   StopOutlined,
   UndoOutlined,
 } from '@ant-design/icons'
-import { Button, Col, Flex, Input, Modal, Pagination, Row, Select, Space, Tag } from 'antd'
+import {
+  Button,
+  Col,
+  Flex,
+  Input,
+  Modal,
+  Pagination,
+  Row,
+  Select,
+  Space,
+  Tag,
+  Typography,
+} from 'antd'
 import dayjs from 'dayjs'
 import { cloneDeep, uniqBy } from 'lodash'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useReducer, useState } from 'react'
 import Icon from '../../../components/Icon'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
-import { formatDateTime, getRejectionReasons, inflect, prettyId } from '../../../lib/utils'
+import {
+  formatDateTime,
+  getRejectionReasons,
+  inflect,
+  isValidDomain,
+  prettyId,
+} from '../../../lib/utils'
 
 import styles from './moderation.module.scss'
 import {
@@ -66,21 +86,25 @@ export const RejectionModal = ({
       onOk={() => {
         setRejectionMessage('')
         rejectUser(rejectionMessage, profileToReject.id)
+        setProfileToReject(null)
       }}
       width={{
         xs: '90%',
         sm: '50%',
       }}
+      styles={{ wrapper: { overscrollBehavior: 'contain' } }}
     >
       <Flex vertical gap="small" align="flex-start">
         <Select
           allowClear
+          mode="multiple"
           style={{ width: '100%' }}
-          placeholder="Choose a common reject reason..."
+          placeholder="Choose rejection reason(s)..."
           options={rejectionReasons}
+          getPopupContainer={(triggerNode) => triggerNode.parentElement}
           onChange={(value) => {
-            const rejectOption = rejectionReasons.find((r) => r.value === value)
-            setRejectionMessage(rejectOption?.rejectionText || '')
+            const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+            setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
           }}
         />
         <Space wrap>
@@ -273,10 +297,16 @@ const UserModerationQueue = ({
   shouldReload,
   showSortButton = false,
 }) => {
+  const searchParams = useSearchParams()
+  const idParam = searchParams.get('id')
+  const profileIdToSerach = idParam?.startsWith('~') ? idParam : ''
   const [profiles, setProfiles] = useState(null)
+  const [isMultiTermSearch, setIsMultiTermSearch] = useState(false)
   const [totalCount, setTotalCount] = useState(0)
   const [pageNumber, setPageNumber] = useState(1)
-  const [filters, setFilters] = useState({})
+  const [filters, setFilters] = useState(
+    !onlyModeration && profileIdToSerach ? { term: profileIdToSerach } : {}
+  )
   const [profileToReject, setProfileToReject] = useState(null)
   const [profileToBlockUnblock, setProfileToBlockUnblock] = useState(null)
   const [signedNotes, setSignedNotes] = useState(0)
@@ -284,7 +314,7 @@ const UserModerationQueue = ({
   const [descOrder, setDescOrder] = useState(true)
   const [pageSize, setPageSize] = useState(onlyModeration ? 200 : 10)
   const [profileToPreview, setProfileToPreview] = useState(null)
-  const [searchTerm, setSearchTerm] = useState('')
+  const [searchTerm, setSearchTerm] = useState(profileIdToSerach)
   const [profileStateOption, setProfileStateOption] = useState('All')
   const profileStateOptions = [
     'All',
@@ -298,16 +328,54 @@ const UserModerationQueue = ({
   ].map((p) => ({ label: p, value: p }))
   const twoWeeksAgo = dayjs().subtract(2, 'week').valueOf()
 
+  const buildSearchQuery = (token) => {
+    if (token.startsWith('~')) return { id: token }
+    if (token.includes('@')) return { email: token.toLowerCase() }
+    if (isValidDomain(token.toLowerCase())) return { affiliationDomain: token.toLowerCase() }
+    return { fullname: token.toLowerCase() }
+  }
+
+  const isStructuredToken = (token) =>
+    token.startsWith('~') || token.includes('@') || isValidDomain(token.toLowerCase())
+
   const getProfiles = async () => {
-    const queryOptions = onlyModeration ? { needsModeration: true } : {}
+    const queryOptions = onlyModeration ? { state: 'Needs Moderation' } : {}
     const cleanSearchTerm = filters.term?.trim()
     const shouldSearchProfile = profileStateOption === 'All' && cleanSearchTerm
     const sortKey = onlyModeration ? 'tmdate' : 'tcdate'
-    let searchQuery = { fullname: cleanSearchTerm?.toLowerCase() }
-    if (cleanSearchTerm?.startsWith('~')) searchQuery = { id: cleanSearchTerm }
-    if (cleanSearchTerm?.includes('@')) searchQuery = { email: cleanSearchTerm.toLowerCase() }
+    const searchQuery = cleanSearchTerm ? buildSearchQuery(cleanSearchTerm) : {}
 
     try {
+      const searchTokens = cleanSearchTerm ? cleanSearchTerm.split(/\s+/) : []
+      if (
+        profileStateOption === 'All' &&
+        searchTokens.length > 1 &&
+        searchTokens.every(isStructuredToken)
+      ) {
+        const results = await Promise.all(
+          searchTokens.map((token) =>
+            api.get(
+              '/profiles/search',
+              {
+                ...buildSearchQuery(token),
+                es: true,
+                withBlocked: true,
+                trash: true,
+              },
+              { cachePolicy: 'no-cache' }
+            )
+          )
+        )
+        const merged = uniqBy(
+          results.flatMap((r) => r.profiles ?? []),
+          'id'
+        )
+        setTotalCount(merged.length)
+        setProfiles(merged)
+        setIsMultiTermSearch(true)
+        return
+      }
+
       const result = await api.get(
         shouldSearchProfile ? '/profiles/search' : '/profiles',
         {
@@ -326,6 +394,7 @@ const UserModerationQueue = ({
       )
       setTotalCount(result.count ?? 0)
       setProfiles(result.profiles ?? [])
+      setIsMultiTermSearch(false)
     } catch (error) {
       promptError(error.message)
     }
@@ -339,7 +408,7 @@ const UserModerationQueue = ({
     setFilters({ term: cleanSearchTerm })
   }
 
-  const acceptUser = async (profileId) => {
+  const acceptUser = async (profileId, showSuccessMessage = true) => {
     try {
       setIdsLoading((p) => [...p, profileId])
       await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
@@ -347,7 +416,9 @@ const UserModerationQueue = ({
         setPageNumber((p) => p - 1)
       }
       reload()
-      promptMessage(`${prettyId(profileId)} is now active`)
+      if (showSuccessMessage) {
+        promptMessage(`${prettyId(profileId)} is now active`)
+      }
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileId))
@@ -393,11 +464,42 @@ const UserModerationQueue = ({
   }
 
   const rejectUser = async (rejectionMessage, id) => {
+    let interpretedRejectionMessage = rejectionMessage
+    if (interpretedRejectionMessage.includes('{{documentVerificationLink}}')) {
+      try {
+        const { url } = await api.post('/profile-documents/upload-link', {
+          profileId: id,
+          type: 'identity',
+        })
+        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
+          '{{documentVerificationLink}}',
+          url
+        )
+      } catch (error) {
+        promptError(error.message)
+        return
+      }
+    }
+    if (interpretedRejectionMessage.includes('{{underageConsentLink}}')) {
+      try {
+        const { url } = await api.post('/profile-documents/upload-link', {
+          profileId: id,
+          type: 'parentalConsent',
+        })
+        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
+          '{{underageConsentLink}}',
+          url
+        )
+      } catch (error) {
+        promptError(error.message)
+        return
+      }
+    }
     try {
       await api.post('/profile/moderate', {
         id,
         decision: 'reject',
-        reason: rejectionMessage,
+        reason: interpretedRejectionMessage,
       })
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
@@ -476,9 +578,33 @@ const UserModerationQueue = ({
     }
   }
 
+  const showPreviousProfile = (currentProfileId) => {
+    const previousProfile = profiles[profiles.findIndex((p) => p.id === currentProfileId) - 1]
+    if (previousProfile) {
+      setProfileToPreview(
+        formatProfileData(cloneDeep(previousProfile), { includePastStates: true })
+      )
+    }
+  }
+
+  useEffect(() => {
+    if (onlyModeration || !profileIdToSerach) return
+    setSearchTerm(profileIdToSerach)
+    setPageNumber(1)
+    setProfileStateOption('All')
+    setFilters((currentFilters) =>
+      currentFilters.term === profileIdToSerach ? currentFilters : { term: profileIdToSerach }
+    )
+  }, [onlyModeration, profileIdToSerach])
+
   useEffect(() => {
     getProfiles()
   }, [pageNumber, filters, shouldReload, descOrder, pageSize, profileStateOption])
+
+  const profilesToDisplay =
+    isMultiTermSearch && profiles
+      ? profiles.slice((pageNumber - 1) * pageSize, pageNumber * pageSize)
+      : profiles
 
   return (
     <div style={{ marginBottom: '1.75rem' }}>
@@ -509,9 +635,11 @@ const UserModerationQueue = ({
           <Input
             type="text"
             className={styles.searchinput}
+            placeholder="Search by name, email, tilde id, or domain"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onPressEnter={filterProfiles}
+            allowClear
           />
           <Select
             className={styles.statefilter}
@@ -535,22 +663,48 @@ const UserModerationQueue = ({
 
       {profiles ? (
         <Flex vertical gap="small" style={{ marginBottom: '1.5rem' }}>
-          {profiles.map((profile) => {
+          {profilesToDisplay.map((profile) => {
             const name = profile.content.names?.[0]
             const state =
               profile.ddate && profile.state !== 'Merged' ? 'Deleted' : profile.state
             return (
-              <Row key={profile.id} align="middle" gutter={[15, 15]}>
+              <Row
+                key={profile.id}
+                align="middle"
+                gutter={[15, 15]}
+                className={styles.profilerow}
+              >
                 <Col xs={24} sm={12} md={6} lg={3} xl={3}>
-                  <a
-                    href={`/profile?id=${profile.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={profile.id}
-                    className={styles.profilenamelink}
-                  >
-                    {name?.fullname}
-                  </a>
+                  {onlyModeration ? (
+                    <a
+                      href={`/profile?id=${profile.id}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={profile.id}
+                      className={styles.profilenamelink}
+                    >
+                      {name?.fullname}
+                    </a>
+                  ) : (
+                    <Typography.Text
+                      copyable={{
+                        text: profile.id,
+                        tooltips: ['Copy tilde id', 'Tilde id copied'],
+                        icon: [<CopyOutlined key="copy" />, <CopyOutlined key="copied" />],
+                      }}
+                      className={styles.copyid}
+                    >
+                      <a
+                        href={`/profile?id=${profile.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={profile.id}
+                        className={styles.profilenamelink}
+                      >
+                        {name?.fullname}
+                      </a>
+                    </Typography.Text>
+                  )}
                 </Col>
                 <Col
                   xs={24}
@@ -755,8 +909,10 @@ const UserModerationQueue = ({
           'publications',
           'pastStates',
           'tags',
+          'identityDocuments',
         ]}
         showNextProfile={showNextProfile}
+        showPreviousProfile={showPreviousProfile}
         acceptUser={acceptUser}
         rejectUser={rejectUser}
       />

@@ -3,12 +3,12 @@
 /* globals promptMessage,promptError: false */
 import { useEffect, useState } from 'react'
 import Alert from '../../components/Alert'
-import api from '../../lib/api-client'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
-import { isValidEmail } from '../../lib/utils'
 import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { isValidEmail } from '../../lib/utils'
 
-export const ResetForm = ({ setEmailSent, user }) => {
+export const PasswordResetRequestForm = ({ setEmailSent, user }) => {
   const [email, setEmail] = useState('')
   const [error, setError] = useState(null)
 
@@ -77,7 +77,7 @@ export default function Reset() {
           Enter your email address below and we&apos;ll send you a link to reset your password.
         </p>
       )}
-      <ResetForm setEmailSent={setEmailSent} user={user} />
+      <PasswordResetRequestForm setEmailSent={setEmailSent} user={user} />
     </>
   )
 }

@@ -47,6 +47,14 @@ const theme = {
       lineWidth: 2,
       colorTextPlaceholder: '#999',
     },
+    Checkbox: {
+      colorPrimary: primaryColor,
+      colorPrimaryHover: '#4f7a8a',
+      colorBorder: primaryColor,
+      colorBgContainer: '#fffaf4',
+      lineWidth: 2,
+      borderRadiusSM: 2,
+    },
     Layout: {
       footerPadding: 0,
       bodyBg: backgroundWhite,
@@ -61,11 +69,13 @@ const theme = {
     Modal: {
       contentBg: backgroundWhite,
     },
-    Menu: {
-      itemBg: orRed,
-      colorText: 'white',
-      horizontalItemSelectedColor: 'transparent',
-      popupBg: orRed,
+    Dropdown: {
+      controlItemBgHover: backgroundGray,
+      borderRadiusLG: 0,
+      paddingBlock: 4,
+    },
+    Drawer: {
+      colorBgElevated: orRed,
     },
     Alert: {
       colorInfoBg: backgroundGray,
@@ -79,6 +89,9 @@ const theme = {
       colorSuccessBg: '#dff0d8',
       colorInfoBg: '#dff0d8',
       width: '80vw',
+    },
+    Tooltip: {
+      colorBgSpotlight: 'rgba(44, 58, 74, 0.9)',
     },
   },
 }

@@ -1,3 +1,4 @@
+import { Tooltip } from 'antd'
 import isEqual from 'lodash/isEqual'
 /* globals $: false */
 import uniqBy from 'lodash/uniqBy'
@@ -103,7 +104,7 @@ export const NoteAuthorsV2 = ({
   noteReaders,
   showAuthorInstitutions,
 }) => {
-  if (showAuthorInstitutions && !authorIdsProp?.value) {
+  if (showAuthorInstitutions && authorsProp?.value && !authorIdsProp?.value) {
     return <NoteAuthorsWithInstitutions authors={authorsProp} noteReaders={noteReaders} />
   }
 
@@ -114,8 +115,11 @@ export const NoteAuthorsV2 = ({
 
   let showPrivateLabel = false
   const sortedReaders = noteReaders ? [...noteReaders].sort() : []
-  if (Array.isArray(authorIds?.readers) && !isEqual(sortedReaders, authorIds.readers.sort())) {
-    showPrivateLabel = !authorIds.readers.includes('everyone')
+  if (
+    Array.isArray(authorIdsProp?.readers) &&
+    !isEqual(sortedReaders, authorIdsProp.readers.sort())
+  ) {
+    showPrivateLabel = !authorIdsProp.readers.includes('everyone')
   }
 
   let authorsList
@@ -186,7 +190,7 @@ export const NoteAuthorsV2 = ({
           key="private-label"
           name="eye-open"
           extraClasses="private-contents-icon"
-          tooltip={`Identities privately revealed to ${authorIds?.readers
+          tooltip={`Identities privately revealed to ${authorIdsProp?.readers
             ?.map((p) => prettyId(p))
             .join(', ')}`}
         />
@@ -220,17 +224,11 @@ export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
     if (!author.username) return <span key={author.fullname}>{author.fullname}</span>
     if (author.username.startsWith('https://dblp.org')) {
       return (
-        <a
-          key={`${author.fullname} ${author.username}`}
-          href={author.username}
-          title={author.username}
-          data-toggle="tooltip"
-          data-placement="top"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          {author.fullname}
-        </a>
+        <Tooltip key={`${author.fullname} ${author.username}`} title={author.username}>
+          <a href={author.username} target="_blank" rel="noopener noreferrer">
+            {author.fullname}
+          </a>
+        </Tooltip>
       )
     }
 
@@ -243,14 +241,15 @@ export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
         key={`${author.fullname} ${author.username}`}
         className="note-author-with-institutions"
       >
-        <Link
-          href={`/profile?id=${encodeURIComponent(author.username)}`}
-          title={author.username}
-          data-toggle="tooltip"
-          data-placement="top"
-        >
-          {author.fullname}
-        </Link>
+        <Tooltip title={author.username}>
+          {author.username.includes('@') ? (
+            <span>{author.fullname}</span>
+          ) : (
+            <Link href={`/profile?id=${encodeURIComponent(author.username)}`}>
+              {author.fullname}
+            </Link>
+          )}
+        </Tooltip>
         {institutionNumbers.length > 0 && <sup>{institutionNumbers.join(',')}</sup>}
       </span>
     )

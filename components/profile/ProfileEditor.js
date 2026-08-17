@@ -1,22 +1,26 @@
-/* globals promptError: false */
-
-import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import { Steps } from 'antd'
 import pick from 'lodash/pick'
-import Steps from 'rc-steps'
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
+import api from '../../lib/api-client'
+import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
+import BirthDateSection from './BirthDateSection'
 import EducationHistorySection from './EducationHistorySection'
 import EmailsSection from './EmailsSection'
 import ExpertiseSection from './ExpertiseSection'
 import GenderSection from './GenderSection'
-import PronounSection from './PronounSection'
 import ImportedPublicationsSection from './ImportedPublicationsSection'
-import LoadingSpinner from '../LoadingSpinner'
 import NamesSection from './NameSection'
 import PersonalLinksSection from './PersonalLinksSection'
+import ProfileEditorActions from './ProfileEditorActions'
 import ProfileSection from './ProfileSection'
+import PronounSection from './PronounSection'
 import RelationsSection from './RelationsSection'
-import api from '../../lib/api-client'
-import { isValidDomain, isValidEmail, isValidYear } from '../../lib/utils'
-import BirthDateSection from './BirthDateSection'
+
+import stepsStyles from './ProfileEditorSteps.module.scss'
+import {
+  getProfileEditorStepItemStyles,
+  profileEditorStepsRailStyle,
+} from '../../lib/legacy-bootstrap-styles'
 
 export default function ProfileEditor({
   loadedProfile,
@@ -73,7 +77,7 @@ export default function ProfileEditor({
       step: 1,
       key: 'personal',
       title: 'Personal Info',
-      description: isNewProfile
+      content: isNewProfile
         ? 'Gender, Pronouns and Birth Year'
         : 'Gender, Pronouns, Birth Year and Profile Visibility',
       status: getStepStatus('personal'),
@@ -83,14 +87,14 @@ export default function ProfileEditor({
       step: 3,
       key: 'links',
       title: 'Personal Links',
-      ...(!hidePublicationEditor && { description: 'Imported DBLP publications' }),
+      ...(!hidePublicationEditor && { content: 'Imported DBLP publications' }),
       status: getStepStatus('links'),
     },
     {
       step: 4,
       key: 'history',
       title: 'History',
-      description: 'Career & Education History',
+      content: 'Career & Education History',
       status: getStepStatus('history'),
     },
     ...(isNewProfile
@@ -107,7 +111,7 @@ export default function ProfileEditor({
             step: 5,
             key: 'relations',
             title: 'Relations',
-            description: 'Advisors & Other Relations',
+            content: 'Advisors & Other Relations',
             status: getStepStatus('relations'),
           },
           {
@@ -630,6 +634,7 @@ export default function ProfileEditor({
           >
             <RelationsSection
               profileRelation={profile?.relations}
+              savedRelations={loadedProfile?.relations}
               prefixedRelations={prefixedRelations}
               relationReaders={relationReaders}
               updateRelations={(relations) =>
@@ -746,12 +751,23 @@ export default function ProfileEditor({
   return (
     <div className="profile-edit-container" ref={stepRef}>
       <Steps
-        type="navigation"
+        titlePlacement="vertical"
+        responsive={false}
         current={stepsItems.findIndex((p) => p.key === currentStepKey)}
         onChange={(e) => {
           setCurrentStepKey(stepsItems[e].key)
         }}
-        items={stepsItems}
+        classNames={{
+          root: stepsStyles.steps,
+          item: stepsStyles.item,
+          itemTitle: stepsStyles.title,
+          itemContent: stepsStyles.content,
+        }}
+        styles={{ itemRail: profileEditorStepsRailStyle }}
+        items={stepsItems.map((item) => ({
+          ...pick(item, ['title', 'content', 'status']),
+          styles: getProfileEditorStepItemStyles(item.status),
+        }))}
       />
       {renderStep(currentStepKey)}
       {isNewProfile && currentStepKey === 'expertise' && (
@@ -764,38 +780,20 @@ export default function ProfileEditor({
         </p>
       )}
 
-      {isNewProfile && currentStepKey !== 'expertise' ? (
-        <div className="buttons-row">
-          <button
-            type="button"
-            className="btn submit-button"
-            onClick={() =>
-              setCurrentStepKey(
-                stepsItems[stepsItems.findIndex((p) => p.key === currentStepKey) + 1].key
-              )
-            }
-          >
-            {'Next Section'}
-          </button>
-        </div>
-      ) : (
-        <div className="buttons-row">
-          <button
-            type="button"
-            className="btn submit-button"
-            disabled={loading}
-            onClick={handleSubmit}
-          >
-            {submitButtonText ?? 'Save Profile Changes'}
-            {loading && <LoadingSpinner inline text="" extraClass="spinner-small" />}
-          </button>
-          {!hideCancelButton && (
-            <button type="button" className="btn btn-default" onClick={cancelHandler}>
-              {isNewProfile ? 'Cancel' : 'Exit Edit Mode'}
-            </button>
-          )}
-        </div>
-      )}
+      <ProfileEditorActions
+        mode={isNewProfile && currentStepKey !== 'expertise' ? 'next' : 'submit'}
+        loading={loading}
+        submitLabel={submitButtonText ?? 'Save Profile Changes'}
+        cancelLabel={isNewProfile ? 'Cancel' : 'Exit Edit Mode'}
+        showCancel={!hideCancelButton}
+        onNext={() =>
+          setCurrentStepKey(
+            stepsItems[stepsItems.findIndex((p) => p.key === currentStepKey) + 1].key
+          )
+        }
+        onSubmit={handleSubmit}
+        onCancel={cancelHandler}
+      />
     </div>
   )
 }

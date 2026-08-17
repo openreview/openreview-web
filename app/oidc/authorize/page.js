@@ -20,7 +20,7 @@ export default async function Page({ searchParams }) {
   const headersList = await headers()
   const remoteIpAddress = headersList.get('x-forwarded-for')
 
-  let redirectUri, client
+  let redirectUri, client, scopes
 
   try {
     const confirmResult = await api.post(
@@ -33,7 +33,7 @@ export default async function Page({ searchParams }) {
         remoteIpAddress,
       }
     )
-    ;({ redirectUri, client } = confirmResult ?? {})
+    ;({ redirectUri, client, scopes } = confirmResult ?? {})
   } catch (error) {
     // oxlint-disable-next-line no-console
     console.log('Error in page', {
@@ -47,9 +47,15 @@ export default async function Page({ searchParams }) {
     redirect(redirectUri)
   }
 
-  const { clientName, scopes } = client
+  if (!client || !scopes?.length) {
+    return <ErrorDisplay message="Invalid authorization request" />
+  }
 
   return (
-    <AuthorizeForm interactionId={interactionId} clientName={clientName} scopes={scopes} />
+    <AuthorizeForm
+      interactionId={interactionId}
+      clientName={client.clientName}
+      scopes={scopes}
+    />
   )
 }

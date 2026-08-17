@@ -5,6 +5,7 @@ import { getRejectionReasons } from '../../lib/utils'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
+import IdentityDocumentsSection from './IdentityDocumentsSection'
 import MessagesSection from './MessagesSection'
 import PastStatesSection from './PastStatesSection'
 import ProfilePublications from './ProfilePublications'
@@ -16,11 +17,13 @@ const ProfilePreviewModal = ({
   contentToShow,
   sortFn,
   showNextProfile,
+  showPreviousProfile,
   acceptUser,
   rejectUser,
 }) => {
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
+  const [profileDocuments, setProfileDocuments] = useState(null)
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
@@ -37,6 +40,17 @@ const ProfilePreviewModal = ({
   ]
   const [tagInvitation, setTagInvitation] = useState(tagInvitationOptions[0].value)
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
+  const isProfileActivatable = profileToPreview?.state === 'Rejected' || needsModeration
+
+  const tagAndActivateProfile = async () => {
+    await api.post('/tags', {
+      profile: profileToPreview.id,
+      label: 'user sent document',
+      signature: `${process.env.SUPER_USER}/Support`,
+      invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+    })
+    await api.post('/profile/moderate', { id: profileToPreview.id, decision: 'accept' })
+  }
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
     setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
@@ -71,6 +85,18 @@ const ProfilePreviewModal = ({
         profile: profileToPreview.id,
       })
       setTags(result.tags)
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
+  const loadIdentityDocuments = async () => {
+    try {
+      const { profileDocuments } = await api.get('/profile-documents', {
+        profileId: profileToPreview.id,
+        trash: true,
+      })
+      setProfileDocuments(profileDocuments)
     } catch (apiError) {
       setError(apiError)
     }
@@ -117,6 +143,9 @@ const ProfilePreviewModal = ({
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         showNextProfile(profileToPreview.id)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        showPreviousProfile(profileToPreview.id)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -135,6 +164,8 @@ const ProfilePreviewModal = ({
     setRejectReasons(getRejectionReasons(currentInstitutionName))
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
     if (profileToPreview && contentToShow?.includes('tags')) loadTags()
+    if (profileToPreview && contentToShow?.includes('identityDocuments'))
+      loadIdentityDocuments()
   }, [profileToPreview?.id])
 
   if (!profileToPreview) return null
@@ -198,6 +229,34 @@ const ProfilePreviewModal = ({
             />
           </ProfileViewSection>
         )}
+        {contentToShow?.includes('identityDocuments') && (
+          <>
+            {profileDocuments?.some((document) => document.type === 'parentalConsent') && (
+              <ProfileViewSection title="Parental Consent">
+                <IdentityDocumentsSection
+                  profileId={profileToPreview.id}
+                  profileDocuments={profileDocuments.filter(
+                    (document) => document.type === 'parentalConsent'
+                  )}
+                />
+              </ProfileViewSection>
+            )}
+            {profileDocuments?.some((document) => document.type !== 'parentalConsent') && (
+              <ProfileViewSection title="Identity Documents">
+                <IdentityDocumentsSection
+                  profileId={profileToPreview.id}
+                  profileDocuments={profileDocuments.filter(
+                    (document) => document.type !== 'parentalConsent'
+                  )}
+                  loadIdentityDocuments={loadIdentityDocuments}
+                  deleteAllLabel={isProfileActivatable ? 'Activate with ID check' : undefined}
+                  onBeforeDeleteAll={isProfileActivatable ? tagAndActivateProfile : undefined}
+                  onAfterDeleteAll={isProfileActivatable ? loadTags : undefined}
+                />
+              </ProfileViewSection>
+            )}
+          </>
+        )}
         <Flex vertical gap="small">
           <Space wrap={true}>
             {tags.map((tag, index) => (
@@ -234,6 +293,7 @@ const ProfilePreviewModal = ({
                     ? []
                     : [
                         { label: 'require vouch', value: 'require vouch' },
+                        { label: 'user sent document', value: 'user sent document' },
                         { label: 'potential spam', value: 'potential spam' },
                       ]
                 }
@@ -260,7 +320,7 @@ const ProfilePreviewModal = ({
                   type="primary"
                   onClick={() => {
                     showNextProfile(profileToPreview.id)
-                    acceptUser(profileToPreview.id)
+                    acceptUser(profileToPreview.id, false)
                   }}
                 >
                   Accept
@@ -289,13 +349,14 @@ const ProfilePreviewModal = ({
             <Flex vertical gap="small" align="flex-start">
               <Select
                 allowClear
+                mode="multiple"
                 style={{ width: '100%' }}
-                placeholder="Choose a common reject reason..."
+                placeholder="Choose rejection reason(s)..."
                 options={rejectionReasons}
                 getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 onChange={(value) => {
-                  const rejectOption = rejectionReasons.find((r) => r.value === value)
-                  setRejectionMessage(rejectOption?.rejectionText || '')
+                  const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+                  setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
                 }}
               />
               <Space wrap>

@@ -1348,13 +1348,8 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       // #region get all profiles(with assignments)
       const allIds = [...allGroupMembers]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const getProfilesByIdsP = ids.length
-        ? api.post('/profiles/search', {
-            ids,
-          })
-        : Promise.resolve([])
       setDataLoadingStatusMessage('Loading profiles')
-      const profileResults = await getProfilesByIdsP
+      const profileResults = await api.getAllProfilesByIds(ids)
       const allProfilesMap = new Map()
       const _ = (profileResults.profiles ?? []).forEach((profile) => {
         const reducedProfile = {
@@ -2048,12 +2043,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
       seniorAreaChairWithoutAssignmentIds
     )
     const ids = allIdsNoAssignment.filter((p) => p.startsWith('~'))
-    const getProfilesByIdsP = ids.length
-      ? api.post('/profiles/search', {
-          ids,
-        })
-      : Promise.resolve([])
-    const profileResults = await getProfilesByIdsP
+    const profileResults = await api.getAllProfilesByIds(ids)
     const acSacProfilesWithoutAssignment = (profileResults.profiles ?? []).map((profile) => ({
       ...profile,
       preferredName: getProfileName(profile),

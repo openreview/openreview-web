@@ -267,7 +267,7 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.post = jest.fn((_, param) =>
+    api.getAllProfilesByIds = jest.fn((_, param) =>
       Promise.resolve({
         profiles: [
           {
@@ -365,7 +365,7 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.post = jest.fn((_, param) =>
+    api.getAllProfilesByIds = jest.fn((_, param) =>
       Promise.resolve({
         profiles: [
           {
