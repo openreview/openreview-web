@@ -507,17 +507,20 @@ export default function ProfileEditor({
                 updatePronoun={(pronouns) => setProfile({ type: 'pronouns', data: pronouns })}
               />
             </ProfileSection>
-            <ProfileSection
-              title="Date Of Birth"
-              instructions="This information helps OpenReview to disambiguate user profiles. (Mandatory)"
-            >
-              <BirthDateSection
-                profileDateOfBirth={profile?.dob}
-                updateDateOfBirth={(dateOfBirth) =>
-                  setProfile({ type: 'dob', data: dateOfBirth })
-                }
-              />
-            </ProfileSection>
+
+            {!loadedProfile?.dob?.value && (
+              <ProfileSection
+                title="Date Of Birth"
+                instructions="This information helps OpenReview to disambiguate user profiles. (Mandatory)"
+              >
+                <BirthDateSection
+                  profileDateOfBirth={profile?.dob}
+                  updateDateOfBirth={(dateOfBirth) =>
+                    setProfile({ type: 'dob', data: dateOfBirth })
+                  }
+                />
+              </ProfileSection>
+            )}
             {!hidePublicationEditor && (
               <ProfileSection
                 title="Profile Visibility"

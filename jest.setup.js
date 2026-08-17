@@ -4,6 +4,18 @@ globalThis.ResizeObserver = class ResizeObserver {
   disconnect() {}
 }
 
+globalThis.MessageChannel = class MessageChannel {
+  constructor() {
+    this.port1 = { onmessage: null, close() {} }
+    this.port2 = {
+      postMessage: (data) => {
+        setTimeout(() => this.port1.onmessage?.({ data }), 0)
+      },
+      close() {},
+    }
+  }
+}
+
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: (query) => ({

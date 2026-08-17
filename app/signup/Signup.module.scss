@@ -30,12 +30,6 @@
           margin-bottom: 0;
         }
       }
-      .name-confirmation {
-        color: #333;
-      }
-      label {
-        color: constants.$orRed;
-      }
       .help-block {
         font-size: 0.75rem;
         margin-bottom: 0;
@@ -111,5 +105,20 @@
         color: #333;
       }
     }
+  }
+}
+
+.titleText {
+  color: constants.$orRed;
+}
+.warningText {
+  color: constants.$orRed;
+}
+.nameConfirmation {
+  cursor: pointer;
+  font-weight: normal;
+
+  &.disabled {
+    cursor: not-allowed;
   }
 }
