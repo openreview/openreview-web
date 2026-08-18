@@ -3,6 +3,7 @@
 import { Dropdown } from 'antd'
 import truncate from 'lodash/truncate'
 import Link from 'next/link'
+import LeaveImpersonationLink from './LeaveImpersonationLink'
 import LogoutLink from './LogoutLink'
 import NavSearch from './NavSearch'
 
@@ -70,6 +71,15 @@ export default function NavMd({ user, notificationCountSlot, dropdownOpen, setDr
           style: { padding: 0 },
         },
         { type: 'divider' },
+        ...(user.impersonator
+          ? [
+              {
+                key: 'leave-impersonation',
+                label: <LeaveImpersonationLink className={legacyNavStyles.navDropdownItem} />,
+                style: { padding: 0 },
+              },
+            ]
+          : []),
         {
           key: 'logout',
           label: <LogoutLink className={legacyNavStyles.navDropdownItem} />,
