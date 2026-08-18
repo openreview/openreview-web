@@ -245,7 +245,6 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
     reviewRatingName,
     areaChairName = 'Area_Chairs',
     officialReviewName,
-    officialReviewNames,
     officialMetaReviewName = 'Meta_Review',
     submissionName,
     displayReplyInvitations,
@@ -380,9 +379,7 @@ const PaperStatus = ({ pcConsoleData, loadReviewMetaReviewData, noteContentField
           },
           {
             id: 'reviewProgress',
-            content: `${(officialReviewNames ?? [officialReviewName])
-              .map((name) => prettyField(name))
-              .join(' / ')} Progress`,
+            content: `${prettyField(officialReviewName)} Progress`,
             width: displayReplyInvitations?.length ? '15%' : '30%',
           },
           ...(areaChairsId ? [{ id: 'status', content: 'Status' }] : []),
