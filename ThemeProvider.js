@@ -4,6 +4,8 @@ import { ConfigProvider } from 'antd'
 const primaryColor = '#3e6775'
 const backgroundWhite = '#fffdfa'
 const orRed = '#8c1b13'
+const orRedLight = '#ee8a83'
+const alertRed = '#f2dede'
 const subtleGray = '#616161'
 const backgroundGray = '#dddddd'
 
@@ -101,12 +103,15 @@ const theme = {
     Alert: {
       colorInfoBg: backgroundGray,
       colorText: subtleGray,
+      colorError: orRed,
+      colorErrorBg: alertRed,
+      colorErrorBorder: orRedLight,
     },
     Descriptions: {
       paddingXs: 4,
     },
     Notification: {
-      colorErrorBg: '#f2dede',
+      colorErrorBg: alertRed,
       colorSuccessBg: '#dff0d8',
       colorInfoBg: '#dff0d8',
       width: '80vw',

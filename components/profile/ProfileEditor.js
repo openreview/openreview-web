@@ -1,4 +1,4 @@
-import { Steps } from 'antd'
+import { Steps, Alert } from 'antd'
 import pick from 'lodash/pick'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import api from '../../lib/api-client'
@@ -48,6 +48,7 @@ export default function ProfileEditor({
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
   const [currentStepKey, setCurrentStepKey] = useState('names')
   const [invalidStepKeys, setInvalidStepKeys] = useState([])
+  const [historySectionError, setHistorySectionError] = useState(null)
   const stepRef = useRef(null)
   const renderPublicationsEditor = useCallback(() => {
     setRenderPublicationEditor((current) => !current)
@@ -154,8 +155,17 @@ export default function ProfileEditor({
       data: profile.history?.map((p, index) => {
         if ((!invalidKeys && index === 0) || invalidKeys.includes(p.key))
           return { ...p, valid: false, invalidFields: keyErrorFieldMessageMap.get(p.key) }
-        return p
+        return { ...p, valid: true, invalidFields: undefined }
       }),
+    })
+    return { isValid: false, profileContent: null }
+  }
+
+  const promptInvalidHistorySection = (message) => {
+    setHistorySectionError(message)
+    setProfile({
+      type: 'history',
+      data: profile.history?.map((p) => ({ ...p, valid: true, invalidFields: undefined })),
     })
     return { isValid: false, profileContent: null }
   }
@@ -255,16 +265,13 @@ export default function ProfileEditor({
     const historyRecords = profileContent.history
     if (!historyRecords?.length) {
       setInvalidStepKeys((current) => [...current, 'history'])
-      promptError('There are errors in your Career & Education History.')
-      return null
+      return promptInvalidHistorySection("Career & Education History can't be empty.")
     }
     if (!historyRecords.find((p) => !p.end || p.end >= new Date().getFullYear())) {
       setInvalidStepKeys((current) => [...current, 'history'])
-      const keyErrorFieldMessageMap = new Map()
-      keyErrorFieldMessageMap.set(profile.history?.[0]?.key, {
-        endYear: 'Your Career & Education History must include at least one current position.',
-      })
-      return promptInvalidHistory([profile.history?.[0]?.key], keyErrorFieldMessageMap)
+      return promptInvalidHistorySection(
+        'Your Career & Education History must include at least one current position. You can leave end year of current positions blank.'
+      )
     }
 
     const invalidKeys = []
@@ -461,6 +468,7 @@ export default function ProfileEditor({
 
   const handleSubmit = async () => {
     setInvalidStepKeys([])
+    setHistorySectionError(null)
     const { isValid, profileContent, profileReaders } = validateCleanProfile()
     if (isValid) {
       await submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
@@ -621,6 +629,13 @@ export default function ProfileEditor({
           conflict of interest detection, author deduplication, analysis of career path history, and
           tallies of institutional diversity. For ongoing positions, leave the End field blank."
           >
+            {historySectionError && (
+              <Alert
+                type="error"
+                title={historySectionError}
+                style={{ marginBottom: '.5rem' }}
+              />
+            )}
             <EducationHistorySection
               profileHistory={profile?.history}
               positions={positions}
@@ -733,8 +748,17 @@ export default function ProfileEditor({
     if (loadedProfile) {
       setProfile({ type: 'reset', data: loadedProfile })
       setInvalidStepKeys([])
+      setHistorySectionError(null)
     }
   }, [loadedProfile])
+
+  useEffect(() => {
+    if (!invalidStepKeys.length) return
+    const firstInvalidStepKey = stepsItems.find((p) => invalidStepKeys.includes(p.key))?.key
+    if (firstInvalidStepKey && firstInvalidStepKey !== currentStepKey) {
+      setCurrentStepKey(firstInvalidStepKey)
+    }
+  }, [invalidStepKeys])
 
   useEffect(() => {
     const loadOptions = async () => {
