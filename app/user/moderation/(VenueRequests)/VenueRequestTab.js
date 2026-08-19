@@ -1,11 +1,9 @@
-/* globals promptError: false */
-
-import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { orderBy, sortBy } from 'lodash'
-import api from '../../../../lib/api-client'
+import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
+import api from '../../../../lib/api-client'
 import VenueRequestList from './VenueRequestList'
 
 dayjs.extend(relativeTime)
@@ -15,7 +13,7 @@ export default function VenueRequestTab() {
 
   const loadRequestNotes = async () => {
     try {
-      const notesResult = await api.getCombined(
+      const venueNotes = await api.getCombined(
         '/notes',
         {
           invitation: `${process.env.SUPER_USER}/Support/-/Request_Form`,
@@ -32,30 +30,48 @@ export default function VenueRequestTab() {
         { includeVersion: true }
       )
 
-      const notes = notesResult?.notes?.filter(
-        (p) =>
-          !p.parentInvitations &&
-          (p.apiVersion === 2 ? !p.content?.venue_id?.value : !p.content?.venue_id)
-      )
+      const journalNotes = await api.get('/notes', {
+        invitation: `${process.env.SUPER_USER}/Support/-/Journal_Request`,
+        sort: 'cdate',
+        details: 'replies',
+        select: `id,forum,parentInvitations,cdate,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+      })
 
-      const allVenueRequests = notes?.map((p) => ({
+      const notes =
+        venueNotes?.notes?.filter(
+          (p) =>
+            !p.parentInvitations &&
+            (p.apiVersion === 2 ? !p.content?.venue_id?.value : !p.content?.venue_id)
+        ) ?? []
+
+      const journals =
+        journalNotes?.notes?.flatMap((p) => {
+          if (!p.parentInvitations && !p.content?.venue_id?.value) {
+            return { ...p, journal: true }
+          }
+          return []
+        }) ?? []
+
+      const combinedRequests = notes.concat(journals)
+      const allVenueRequests = combinedRequests?.map((p) => ({
         id: p.id,
         forum: p.forum,
         cdate: p.cdate,
         abbreviatedName:
-          p.apiVersion === 2
+          p.apiVersion === 2 || p.journal
             ? p.content.abbreviated_venue_name?.value
             : p.content?.['Abbreviated Venue Name'],
         latestComment: sortBy(
           p.details?.replies?.filter((q) =>
-            p.apiVersion === 2
+            p.apiVersion === 2 || p.journal
               ? q.invitations.find((r) => r.endsWith('Comment'))
               : q.invitation.endsWith('Comment')
           ),
           (s) => -s.cdate
         )?.[0],
-        apiVersion: p.apiVersion,
-        status: p.apiVersion === 2 ? p.content.status?.value : undefined,
+        apiVersion: p.journal ? 2 : p.apiVersion,
+        status: p.apiVersion === 2 || p.journal ? p.content.status?.value : undefined,
+        journal: p.journal,
       }))
 
       setVenueRequestNotes(orderBy(allVenueRequests, ['cdate'], ['desc']))

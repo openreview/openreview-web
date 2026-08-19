@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import api from '../../../../lib/api-client'
 import Badge from '../../../../components/Badge'
+import api from '../../../../lib/api-client'
 
 export default function NewVenueRequestCount({ children }) {
   const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(null)
@@ -29,7 +29,18 @@ export default function NewVenueRequestCount({ children }) {
           })
         )
 
-      setPendingVenueRequestCount(undeployedVenueRequests?.length)
+      const undeployedJournalRequests = await api
+        .get('/notes', {
+          invitation: `${process.env.SUPER_USER}/Support/-/Journal_Request`,
+          select: `parentInvitations,content.venue_id`,
+        })
+        .then((response) =>
+          response?.notes?.filter((p) => !p.parentInvitations && !p.content?.venue_id?.value)
+        )
+
+      setPendingVenueRequestCount(
+        undeployedVenueRequests?.length + undeployedJournalRequests?.length
+      )
     } catch (error) {
       /* empty */
     }
