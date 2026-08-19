@@ -1,6 +1,7 @@
 'use client'
 
-import { Checkbox, Col, Flex, Input, Row, Select, Space } from 'antd'
+import { InfoCircleOutlined } from '@ant-design/icons'
+import { Checkbox, Col, Flex, Input, Row, Select, Space, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
 import utc from 'dayjs/plugin/utc'
@@ -110,6 +111,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
         </label>
         <Input
           id="first-input"
+          className={styles.fieldWidth}
           value={fullName}
           onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
           onCompositionEnd={() => setIsComposing(false)}
@@ -144,7 +146,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
             <label htmlFor="dob-input" className={styles.titleText}>
               Enter your date of birth
             </label>
-            <Flex gap="middle" onBlur={handleDobBlur}>
+            <Flex gap="middle" onBlur={handleDobBlur} className={styles.fieldWidth}>
               <Select
                 options={monthOptions}
                 value={dobMM}
@@ -152,6 +154,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
                   setDobMM(value)
                 }}
                 placeholder="Month"
+                popupMatchSelectWidth={false}
                 style={{ flex: '2 1 0', width: 'auto' }}
               />
               <Input
@@ -174,7 +177,28 @@ const SignupForm = ({ setSignupConfirmation }) => {
               />
             </Flex>
             <span>
-              OpenReview profiles require an age of <strong>13</strong> or over.{' '}
+              <Tooltip
+                title={
+                  <Space vertical size={4}>
+                    <span>
+                      Accounts require a minimum age of 13, and additional protections apply to
+                      users between 13 and 18.
+                    </span>
+                    <span>Your date of birth is never shown publicly.</span>
+                  </Space>
+                }
+                placement="topLeft"
+                styles={{
+                  root: { maxWidth: '320px' },
+                }}
+              >
+                <InfoCircleOutlined
+                  tabIndex={0}
+                  aria-label="Why we ask for your date of birth"
+                  style={{ cursor: 'help' }}
+                />
+              </Tooltip>{' '}
+              OpenReview requires date of birth for age verification.{' '}
               <span className={styles.warningText}>
                 Your date of birth can <strong>NOT</strong> be changed after registration.
               </span>

@@ -10,10 +10,6 @@
       margin-bottom: 2rem;
     }
 
-    #first-input {
-      max-width: 510px;
-    }
-
     .signup-form-container {
       margin-top: 1.5rem;
       margin-bottom: 2rem;
@@ -108,6 +104,9 @@
   }
 }
 
+.fieldWidth {
+  max-width: 510px;
+}
 .titleText {
   color: constants.$orRed;
 }

@@ -1,16 +1,16 @@
 import dayjs from 'dayjs'
 import DatetimePicker from '../DatetimePicker'
 
-const BirthDateSection = ({ profileDateOfBirth, updateDateOfBirth }) => (
-  <div className="year-of-birth" translate="no">
+const BirthDateSection = ({ profileDateOfBirth, updateDateOfBirth, savedDateOfBirth }) => (
+  <div translate="no">
     <DatetimePicker
+      disabled={!!savedDateOfBirth}
       placeholder="Select your date of birth"
       autoFocus={false}
       showTime={false}
       showNow={false}
       disabledDate={(date) =>
-        date.isAfter(dayjs().subtract(13, 'year')) ||
-        date.isBefore(dayjs().subtract(100, 'year'))
+        date.isAfter(dayjs()) || date.isBefore(dayjs().subtract(100, 'year'))
       }
       defaultPickerValue={profileDateOfBirth?.value ? null : dayjs().subtract(20, 'year')}
       existingValue={

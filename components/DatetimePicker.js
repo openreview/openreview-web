@@ -27,6 +27,7 @@ const DatetimePicker = ({
   },
   getPopupContainer,
   invalid = false,
+  disabled = false,
 }) => {
   const [value, setValue] = useState(
     existingValue && dayjs(existingValue).isValid() ? dayjs(existingValue) : null
@@ -71,6 +72,7 @@ const DatetimePicker = ({
       suffixIcon={null}
       style={datePickerStyles.root}
       styles={{ input: datePickerStyles.input }}
+      disabled={disabled}
     />
   )
 }

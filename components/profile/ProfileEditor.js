@@ -515,7 +515,7 @@ export default function ProfileEditor({
               />
             </ProfileSection>
 
-            {!loadedProfile?.dob?.value && (
+            {
               <ProfileSection
                 title="Date Of Birth"
                 instructions="This information helps OpenReview to disambiguate user profiles. (Mandatory)"
@@ -525,9 +525,10 @@ export default function ProfileEditor({
                   updateDateOfBirth={(dateOfBirth) =>
                     setProfile({ type: 'dob', data: dateOfBirth })
                   }
+                  savedDateOfBirth={loadedProfile?.dob?.value}
                 />
               </ProfileSection>
-            )}
+            }
             {!hidePublicationEditor && (
               <ProfileSection
                 title="Profile Visibility"
