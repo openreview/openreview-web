@@ -352,6 +352,16 @@
           text-overflow: ellipsis;
         }
       }
+      &__error {
+        clear: both;
+        padding-left: 0;
+        margin-bottom: 5px;
+        color: constants.$orRed;
+        font-size: 0.8125rem;
+        .glyphicon {
+          padding-right: 0.25rem;
+        }
+      }
       .glyphicon-minus-sign {
         margin-top: 0.5rem;
         top: 0;

@@ -468,6 +468,16 @@ const historyDomainInputs = Selector('div.history')
 const historyNameInputs = Selector('div.history')
   .find('input')
   .withAttribute('aria-label', 'Institution Name')
+const historyStartInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'start year')
+const historyEndInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'end year')
+const historySection = Selector('div.history')
+const historySectionError = Selector('.ant-alert-error')
+const historyRowErrors = Selector('div.history').find('.history__error')
+const historyStep = Selector('.ant-steps-item').withText('History')
 
 // oxlint-disable-next-line no-unused-expressions
 fixture`Activate with an institution which is not the one of the email`
@@ -478,15 +488,57 @@ test('register a profile with an institution which is not the one of the email',
     .click(nextSectiomButtonSelector) // personal
     .click(nextSectiomButtonSelector) // emails
     .click(nextSectiomButtonSelector) // links
-    .typeText(Selector('#homepage_url'), 'http://pambeesly.com', { paste: true })
+    .typeText(Selector('#homepage_url'), 'http://test.com', { paste: true })
     .click(nextSectiomButtonSelector) // history
+    .click(nextSectiomButtonSelector) // expertise
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(notificationSelector.exists)
+    .notOk()
+    // user is taken back to the first step with error
+    .expect(historySection.exists)
+    .ok()
+    .expect(historyStep.hasClass('ant-steps-item-error'))
+    .ok()
+    .expect(historySectionError.innerText)
+    .contains("Career & Education History can't be empty.")
+
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
-    // an institution which is not the one of the email of the profile
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
     .typeText(institutionDomainInput, otherInstitutionDomain)
     .pressKey('enter')
+    .click(Selector('input.institution-dropdown__placeholder').nth(1))
+    .typeText(institutionDomainInput, otherInstitutionDomain)
+    .pressKey('enter')
+    .typeText(historyNameInputs.nth(1), otherInstitutionName)
+    .typeText(historyStartInputs.nth(1), '2020', { paste: true })
+    .typeText(historyEndInputs.nth(1), '2015', { paste: true })
+    .click(nextSectiomButtonSelector) // expertise
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messageSelector.innerText)
+    .eql('Error: There are errors in your Career & Education History.')
+    .click(notificationCloseButton)
+    .expect(notificationSelector.exists)
+    .notOk()
+    .expect(historySection.exists)
+    .ok()
+    .expect(historyRowErrors.count)
+    .eql(2)
+    .expect(historyRowErrors.nth(0).innerText)
+    .contains('Institution name is required')
+    .expect(historyRowErrors.nth(0).innerText)
+    .contains('Country/Region is required for current positions')
+    .expect(historyRowErrors.nth(1).innerText)
+    .contains('Position is required')
+    .expect(historyRowErrors.nth(1).innerText)
+    .contains('End date should be higher than start date')
+    // the empty history block is replaced by the per record errors
+    .expect(historySectionError.exists)
+    .notOk()
+
+    // drop the second record and complete the first one
+    .click(historyDomainInputs.nth(1).parent('div.row').find('[aria-label="remove history"]'))
     .typeText(historyNameInputs.nth(0), otherInstitutionName)
     // add mandatory region
     .click(Selector('input.region-dropdown__placeholder'))
