@@ -499,6 +499,21 @@ describe('utils', () => {
     expect(expectedValue).toEqual(resultValue)
     // #endregion
 
+    // #region script not to show actual script
+    workflowInvitation = {
+      id: 'ICLR.cc/2025/Conference/-/Confidential_Comment',
+      edit: {
+        invitation: {
+          preprocess: 'async func...',
+        },
+      },
+    }
+    path = 'edit.invitation.preprocess'
+    expectedValue = 'script'
+    resultValue = getSubInvitationContentFieldDisplayValue(workflowInvitation, path, 'script')
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
     // #region date as formatted string
     workflowInvitation = {
       id: 'ICLR.cc/2025/Conference/-/Confidential_Comment',
