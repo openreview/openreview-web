@@ -10,6 +10,8 @@ import Note, { NoteV2 } from './Note'
 import { BidRadioButtonGroup } from './webfield/BidWidget'
 import LoadingSpinner from './LoadingSpinner'
 import ErrorAlert from './ErrorAlert'
+import HumanVerificationChallenge from './HumanVerificationChallenge'
+import useHumanVerification from '../hooks/useHumanVerification'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyInvitationId } from '../lib/utils'
@@ -29,6 +31,8 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
   const { user, isRefreshing } = useUser()
   const [edgesMap, setEdgesMap] = useState(null)
   const [userNotes, setUserNotes] = useState(null)
+  const { runWithHumanVerification, needsHumanVerification, turnstileContainerRef } =
+    useHumanVerification('expertiseSelector')
 
   const options =
     apiVersion === 2
@@ -91,20 +95,22 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
     }
 
     try {
-      const res = await api.post(
-        '/edges',
-        {
-          ...(existingEdge ? { id: existingEdge.id } : {}),
-          invitation: invitation.id,
-          readers: [venueId, user.profile.id],
-          writers: [venueId, user.profile.id],
-          signatures: [user.profile.id],
-          head: noteId,
-          tail: user.profile.id,
-          label: value,
-          ...ddate,
-        },
-        { version: apiVersion }
+      const res = await runWithHumanVerification((requestOptions) =>
+        api.post(
+          '/edges',
+          {
+            ...(existingEdge ? { id: existingEdge.id } : {}),
+            invitation: invitation.id,
+            readers: [venueId, user.profile.id],
+            writers: [venueId, user.profile.id],
+            signatures: [user.profile.id],
+            head: noteId,
+            tail: user.profile.id,
+            label: value,
+            ...ddate,
+          },
+          { version: apiVersion, ...requestOptions }
+        )
       )
       setEdgesMap({
         ...edgesMap,
@@ -227,44 +233,51 @@ export default function ExpertiseSelector({ invitation, venueId, apiVersion, sho
   }
 
   return (
-    <Tabs className={styles.container}>
-      <TabList>
-        <Tab id="all-your-papers" icon="search" active>
-          All Your Papers
-        </Tab>
-        <Tab id={tabId} headingCount={selectedIds?.length}>
-          {tabLabel}
-        </Tab>
-      </TabList>
+    <>
+      <HumanVerificationChallenge
+        open={needsHumanVerification}
+        turnstileContainerRef={turnstileContainerRef}
+        message="To confirm you are not a robot, please complete the verification below. Your selection will be saved automatically."
+      />
+      <Tabs className={styles.container}>
+        <TabList>
+          <Tab id="all-your-papers" icon="search" active>
+            All Your Papers
+          </Tab>
+          <Tab id={tabId} headingCount={selectedIds?.length}>
+            {tabLabel}
+          </Tab>
+        </TabList>
 
-      <TabPanels>
-        <TabPanel id="all-your-papers">
-          {userNotes && edgesMap ? (
-            <PaginatedList
-              loadItems={loadNotePage}
-              searchItems={loadSearchPage}
-              ListItem={NoteListItem}
-              itemsPerPage={15}
-              className="submissions-list"
-              enableSearch
-            />
-          ) : (
-            <LoadingSpinner inline />
-          )}
-        </TabPanel>
-        <TabPanel id={tabId}>
-          {selectedIds?.length > 0 ? (
-            <PaginatedList
-              loadItems={loadSelectedPage}
-              ListItem={NoteListItem}
-              itemsPerPage={15}
-              className="submissions-list"
-            />
-          ) : (
-            <p className="empty-message">No {tabLabel.toLowerCase()} to display</p>
-          )}
-        </TabPanel>
-      </TabPanels>
-    </Tabs>
+        <TabPanels>
+          <TabPanel id="all-your-papers">
+            {userNotes && edgesMap ? (
+              <PaginatedList
+                loadItems={loadNotePage}
+                searchItems={loadSearchPage}
+                ListItem={NoteListItem}
+                itemsPerPage={15}
+                className="submissions-list"
+                enableSearch
+              />
+            ) : (
+              <LoadingSpinner inline />
+            )}
+          </TabPanel>
+          <TabPanel id={tabId}>
+            {selectedIds?.length > 0 ? (
+              <PaginatedList
+                loadItems={loadSelectedPage}
+                ListItem={NoteListItem}
+                itemsPerPage={15}
+                className="submissions-list"
+              />
+            ) : (
+              <p className="empty-message">No {tabLabel.toLowerCase()} to display</p>
+            )}
+          </TabPanel>
+        </TabPanels>
+      </Tabs>
+    </>
   )
 }

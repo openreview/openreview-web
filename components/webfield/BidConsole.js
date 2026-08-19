@@ -6,11 +6,13 @@ import { useSearchParams } from 'next/navigation'
 import { useCallback, useContext, useEffect, useReducer, useState } from 'react'
 import { useDispatch } from 'react-redux'
 import { setBannerContent } from '../../bannerSlice'
+import useHumanVerification from '../../hooks/useHumanVerification'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { pluralizeString, prettyField, prettyInvitationId } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import ErrorDisplay from '../ErrorDisplay'
+import HumanVerificationChallenge from '../HumanVerificationChallenge'
 import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteListWithBidWidget from '../NoteListWithBidWidget'
@@ -55,6 +57,8 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions, use
   const [showPagination, setShowPagination] = useState(true)
   const [showBidScore, setShowBidScore] = useState(true)
   const dispatch = useDispatch()
+  const { runWithHumanVerification, needsHumanVerification, turnstileContainerRef } =
+    useHumanVerification('bidConsole')
 
   const sortOptions = scoreIds?.map((p) => ({ label: prettyInvitationId(p), value: p }))
   const subjectAreaOptions = subjectAreas?.length
@@ -210,9 +214,12 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions, use
     const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
-      const result = await api.post(
-        '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate)
+      const result = await runWithHumanVerification((requestOptions) =>
+        api.post(
+          '/edges',
+          getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
+          requestOptions
+        )
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -392,6 +399,11 @@ const AllSubmissionsTab = ({ bidEdges, setBidEdges, conflictIds, bidOptions, use
         )}
         <button type="submit" style={{ display: 'none' }} />
       </form>
+      <HumanVerificationChallenge
+        open={needsHumanVerification}
+        turnstileContainerRef={turnstileContainerRef}
+        message="To confirm you are not a robot, please complete the verification below. Your bid will be saved automatically."
+      />
       {isLoading ? (
         <LoadingSpinner inline />
       ) : (
@@ -440,6 +452,8 @@ const NoBidTab = ({
   const [isLoading, setIsLoading] = useState(true)
   const selectedScore = scoreIds[0]
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
+  const { runWithHumanVerification, needsHumanVerification, turnstileContainerRef } =
+    useHumanVerification('bidConsole')
 
   const getNotesWithNoBids = async () => {
     setIsLoading(true)
@@ -508,9 +522,12 @@ const NoBidTab = ({
     const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
-      const result = await api.post(
-        '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate)
+      const result = await runWithHumanVerification((requestOptions) =>
+        api.post(
+          '/edges',
+          getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
+          requestOptions
+        )
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -535,21 +552,28 @@ const NoBidTab = ({
   if (isLoading) return <LoadingSpinner inline />
 
   return (
-    <NoteListWithBidWidget
-      notes={notes}
-      bidOptions={bidOptions}
-      bidEdges={bidEdges}
-      scoreEdges={scoreEdges}
-      displayOptions={{
-        emptyMessage: 'No papers to display at this time',
-        showContents: true,
-        collapse: true,
-        pdfLink: true,
-      }}
-      updateBidOption={updateBidOption}
-      virtualList={true}
-      bidUpdateStatus={bidUpdateStatus}
-    />
+    <>
+      <HumanVerificationChallenge
+        open={needsHumanVerification}
+        turnstileContainerRef={turnstileContainerRef}
+        message="To confirm you are not a robot, please complete the verification below. Your bid will be saved automatically."
+      />
+      <NoteListWithBidWidget
+        notes={notes}
+        bidOptions={bidOptions}
+        bidEdges={bidEdges}
+        scoreEdges={scoreEdges}
+        displayOptions={{
+          emptyMessage: 'No papers to display at this time',
+          showContents: true,
+          collapse: true,
+          pdfLink: true,
+        }}
+        updateBidOption={updateBidOption}
+        virtualList={true}
+        bidUpdateStatus={bidUpdateStatus}
+      />
+    </>
   )
 }
 
@@ -558,6 +582,8 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
   const [isLoading, setIsLoading] = useState(true)
   const noteIds = bidEdges.filter((p) => p.label === bidOption).map((q) => q.head)
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
+  const { runWithHumanVerification, needsHumanVerification, turnstileContainerRef } =
+    useHumanVerification('bidConsole')
 
   const getNotesByBids = async () => {
     setIsLoading(true)
@@ -584,9 +610,12 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
     const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
-      const result = await api.post(
-        '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate)
+      const result = await runWithHumanVerification((requestOptions) =>
+        api.post(
+          '/edges',
+          getBidObjectToPost(bidId, updatedOption, invitation, note, user.profile.id, ddate),
+          requestOptions
+        )
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -616,19 +645,26 @@ const BidOptionTab = ({ bidOptions, bidOption, bidEdges, invitation, setBidEdges
 
   if (isLoading) return <LoadingSpinner inline />
   return (
-    <NoteListWithBidWidget
-      notes={notes}
-      bidOptions={bidOptions}
-      bidEdges={bidEdges}
-      displayOptions={{
-        emptyMessage: 'No papers to display at this time',
-        showContents: true,
-        collapse: true,
-        pdfLink: true,
-      }}
-      updateBidOption={updateBidOption}
-      bidUpdateStatus={bidUpdateStatus}
-    />
+    <>
+      <HumanVerificationChallenge
+        open={needsHumanVerification}
+        turnstileContainerRef={turnstileContainerRef}
+        message="To confirm you are not a robot, please complete the verification below. Your bid will be saved automatically."
+      />
+      <NoteListWithBidWidget
+        notes={notes}
+        bidOptions={bidOptions}
+        bidEdges={bidEdges}
+        displayOptions={{
+          emptyMessage: 'No papers to display at this time',
+          showContents: true,
+          collapse: true,
+          pdfLink: true,
+        }}
+        updateBidOption={updateBidOption}
+        bidUpdateStatus={bidUpdateStatus}
+      />
+    </>
   )
 }
 
