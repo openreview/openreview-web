@@ -955,19 +955,19 @@ const WorkFlowInvitations = ({ group }) => {
 
   const loadAllInvitations = async () => {
     setMissingValueInvitationIds([])
-    const workflowGroupIds = workflowGroupKeys.flatMap((p) => {
-      const roles = p.rolesField ? group.content?.[p.rolesField]?.value : null
-      if (roles?.length) {
-        return roles.flatMap((role) => {
-          const roleGroupId = `${groupId}/${role}`
-          return [roleGroupId, ...p.subGroupSuffixes.map((q) => `${roleGroupId}${q}`)]
-        })
-      }
-      const workflowGroupId = group.content?.[p.field]?.value
-      if (!workflowGroupId) return []
-      const subGroupIds = p.subGroupSuffixes.map((q) => `${workflowGroupId}${q}`)
-      return [workflowGroupId, ...subGroupIds]
+    // Resolve the venue's role groups once: each entry pairs a main role group id with
+    // its subgroup ids (Invited/Declined/Accepted). Entries with a rolesField rely on
+    // the roles array alone; the field key is the default for the remaining entries.
+    const roleGroups = workflowGroupKeys.flatMap((p) => {
+      const mainGroupIds = p.rolesField
+        ? (group.content?.[p.rolesField]?.value ?? []).map((role) => `${groupId}/${role}`)
+        : [group.content?.[p.field]?.value].filter(Boolean)
+      return mainGroupIds.map((id) => ({
+        id,
+        subGroupIds: p.subGroupSuffixes.map((q) => `${id}${q}`),
+      }))
     })
+    const workflowGroupIds = roleGroups.flatMap((p) => [p.id, ...p.subGroupIds])
 
     const getAllGroupsP = api
       .get('/groups', {
@@ -975,14 +975,25 @@ const WorkFlowInvitations = ({ group }) => {
       })
       .then((result) => result.groups)
 
-    const getAllInvitationsP = await api.getAll('/invitations', {
-      prefix: `${groupId}/`,
-      expired: true,
-      trash: true,
-      type: 'all',
-      filterStaticForum: true,
-      domain: groupId,
-    })
+    // Load only the invitations directly under the venue and its main role groups
+    // (`venue_id/-/`, `role_id/-/`); a single `venue_id/` prefix would also return every
+    // submission-related invitation, and the Invited/Declined/Accepted subgroups only
+    // hold invitations the timeline never shows.
+    const invitationPrefixes = [groupId, ...roleGroups.map((p) => p.id)].map(
+      (id) => `${id}/-/`
+    )
+    const getAllInvitationsP = Promise.all(
+      invitationPrefixes.map((prefix) =>
+        api.getAll('/invitations', {
+          prefix,
+          expired: true,
+          trash: true,
+          type: 'all',
+          filterStaticForum: true,
+          domain: groupId,
+        })
+      )
+    ).then((results) => results.flat())
 
     let getStageInvitationTemplatesP =
       group.id === group.domain
