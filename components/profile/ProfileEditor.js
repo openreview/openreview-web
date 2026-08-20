@@ -304,6 +304,11 @@ export default function ProfileEditor({
         invalidKeys.push(key)
         invalidFieldErrorMap.endYear = 'End date should be a valid year'
       }
+      if (start !== null && !isValidYear(start)) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.startYear = 'start date should be a valid year'
+      }
+
       if (end && !start) {
         invalidKeys.push(key)
         invalidFieldErrorMap.startYear = 'Start date can not be empty'
