@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
-import { EditorView, basicSetup } from 'codemirror'
+import { indentWithTab } from '@codemirror/commands'
+import { javascriptLanguage, esLint } from '@codemirror/lang-javascript'
+import { jsonLanguage, jsonParseLinter } from '@codemirror/lang-json'
+import { pythonLanguage } from '@codemirror/lang-python'
+import { LanguageSupport } from '@codemirror/language'
+import { linter } from '@codemirror/lint'
 import { StateEffect } from '@codemirror/state'
 import { keymap } from '@codemirror/view'
-import { indentWithTab } from '@codemirror/commands'
-import { LanguageSupport } from '@codemirror/language'
-import { jsonLanguage, jsonParseLinter } from '@codemirror/lang-json'
-import { javascriptLanguage, esLint } from '@codemirror/lang-javascript'
-import { pythonLanguage } from '@codemirror/lang-python'
-import { linter } from '@codemirror/lint'
+import { EditorView, basicSetup } from 'codemirror'
 import Linter from 'eslint4b-prebuilt'
+import { useEffect, useRef, useState } from 'react'
 
 const CodeEditor = ({
   code,
@@ -126,7 +126,13 @@ const CodeEditor = ({
     ])
   }, [language, isVisible])
 
-  return <div className="code-editor disable-tex-rendering" ref={containerRef} />
+  return (
+    <div
+      className="code-editor disable-tex-rendering"
+      style={{ minHeight }}
+      ref={containerRef}
+    />
+  )
 }
 
 export default CodeEditor

@@ -306,9 +306,9 @@ export default function ProfileEditor({
       }
       if (institutionDomain && !isValidDomain(institutionDomain)) {
         invalidKeys.push(key)
-        invalidFieldErrorMap.institutionDomain = `${institutionDomain} is not a valid domain. Domains should not contain "http", "www", or and special characters like "?" or "/".`
+        invalidFieldErrorMap.institutionDomain = `${institutionDomain} is not a valid domain. Domains should be in the format of the email domain for your institution (e.g. umass.edu).`
       }
-      if (end && !isValidYear(end)) {
+      if (end !== null && !isValidYear(end)) {
         invalidKeys.push(key)
         invalidFieldErrorMap.endYear = 'End date should be a valid year'
       }
@@ -321,7 +321,7 @@ export default function ProfileEditor({
         invalidFieldErrorMap.startYear = 'End date should be higher than start date'
         invalidFieldErrorMap.endYear = 'End date should be higher than start date'
       }
-      if ((!end || end >= new Date().getFullYear()) && !institutionCountryRegion) {
+      if ((end === null || end >= new Date().getFullYear()) && !institutionCountryRegion) {
         invalidKeys.push(key)
         invalidFieldErrorMap.institutionCountryRegion =
           'Country/Region is required for current positions'
