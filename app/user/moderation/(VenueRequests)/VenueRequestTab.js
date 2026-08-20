@@ -25,7 +25,7 @@ export default function VenueRequestTab() {
           invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/Conference_Review_Workflow`,
           sort: 'cdate',
           details: 'replies',
-          select: `id,forum,parentInvitations,cdate,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+          select: `id,forum,cdate,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         { includeVersion: true }
       )
@@ -34,19 +34,17 @@ export default function VenueRequestTab() {
         invitation: `${process.env.SUPER_USER}/Support/-/Journal_Request`,
         sort: 'cdate',
         details: 'replies',
-        select: `id,forum,parentInvitations,cdate,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+        select: `id,forum,cdate,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
       })
 
       const notes =
-        venueNotes?.notes?.filter(
-          (p) =>
-            !p.parentInvitations &&
-            (p.apiVersion === 2 ? !p.content?.venue_id?.value : !p.content?.venue_id)
+        venueNotes?.notes?.filter((p) =>
+          p.apiVersion === 2 ? !p.content?.venue_id?.value : !p.content?.venue_id
         ) ?? []
 
       const journals =
         journalNotes?.notes?.flatMap((p) => {
-          if (!p.parentInvitations && !p.content?.venue_id?.value) {
+          if (!p.content?.venue_id?.value) {
             return { ...p, journal: true }
           }
           return []
