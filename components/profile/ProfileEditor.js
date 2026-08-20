@@ -518,7 +518,19 @@ export default function ProfileEditor({
             {
               <ProfileSection
                 title="Date Of Birth"
-                instructions="This information helps OpenReview to disambiguate user profiles. (Mandatory)"
+                instructions={
+                  loadedProfile?.dob?.value ? (
+                    'Your date of birth has been saved and cannot be changed.'
+                  ) : (
+                    <span>
+                      OpenReview requires date of birth for age verification.{' '}
+                      <span className={stepsStyles.warningText}>
+                        Your date of birth can <strong>NOT</strong> be changed once saved.
+                      </span>{' '}
+                      (Mandatory)
+                    </span>
+                  )
+                }
               >
                 <BirthDateSection
                   profileDateOfBirth={profile?.dob}
