@@ -1,8 +1,8 @@
 import { Col, Flex, Input, Pagination, Popover, Row, Space, Tag, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import { useMemo, useState } from 'react'
-import { prettyId } from '../../../../lib/utils'
 import Markdown from '../../../../components/EditorComponents/Markdown'
+import { prettyId } from '../../../../lib/utils'
 
 const pageSize = 25
 
@@ -38,7 +38,7 @@ const VenuesList = ({ venueRequestNotes }) => {
       )}
       <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '400px' }}>
         {venueRequestNotesToDisplay.map((venueRequestNote) => {
-          const { forum, cdate, abbreviatedName, latestComment, apiVersion, status } =
+          const { forum, cdate, abbreviatedName, latestComment, apiVersion, status, journal } =
             venueRequestNote
 
           return (
@@ -51,7 +51,8 @@ const VenuesList = ({ venueRequestNotes }) => {
                   rel="noreferrer"
                 >
                   {abbreviatedName}
-                  {apiVersion === 2 && <Tag>workflow</Tag>}
+                  {apiVersion === 2 && !journal && <Tag>workflow</Tag>}
+                  {journal && <Tag>journal</Tag>}
                 </a>
               </Col>
               <Col xs={24} md={9} lg={9}>
