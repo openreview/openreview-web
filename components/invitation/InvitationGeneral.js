@@ -590,7 +590,6 @@ const InvitationGeneralEditV2 = ({
   isMetaInvitation,
 }) => {
   const [isSaving, setIsSaving] = useState(false)
-  const isNoteInvitation = invitation.edit?.note
   const generalInfoReducer = (state, action) => {
     switch (action.type) {
       case 'activationDateTimezone':
@@ -636,11 +635,9 @@ const InvitationGeneralEditV2 = ({
     expDateTimezone: getDefaultTimezone()?.value,
     deletionDateTimezone: getDefaultTimezone()?.value,
     signatures: invitation.signatures?.join(', '),
-    ...(isNoteInvitation && {
-      humanVerificationRequired: invitation.humanVerificationRequired
-        ? JSON.stringify(invitation.humanVerificationRequired, null, 2)
-        : null,
-    }),
+    humanVerificationRequired: invitation.humanVerificationRequired
+      ? JSON.stringify(invitation.humanVerificationRequired, null, 2)
+      : null,
   })
 
   const constructInvitationEditToPost = () => {
@@ -665,8 +662,8 @@ const InvitationGeneralEditV2 = ({
         ? { delete: true }
         : parseInt(generalInfo.minReplies, 10)
 
-    let humanVerificationRequired
-    if (isNoteInvitation && generalInfo.humanVerificationRequired?.trim()) {
+    let humanVerificationRequired = { delete: true }
+    if (generalInfo.humanVerificationRequired?.trim()) {
       try {
         humanVerificationRequired = JSON.parse(generalInfo.humanVerificationRequired)
       } catch {
@@ -698,7 +695,7 @@ const InvitationGeneralEditV2 = ({
         nonreaders: stringToArray(generalInfo.nonreaders),
         readers: stringToArray(generalInfo.readers),
         writers: stringToArray(generalInfo.writers),
-        ...(humanVerificationRequired && { humanVerificationRequired }),
+        humanVerificationRequired,
         ...(isMetaInvitation && { edit: true }),
       },
       readers: [profileId],
@@ -903,22 +900,20 @@ const InvitationGeneralEditV2 = ({
         </div>
       </div>
 
-      {isNoteInvitation && (
-        <div className="row d-flex">
-          <span className="info-title edit-title">Human Verification:</span>
-          <div className="info-edit-control">
-            <CodeEditor
-              code={generalInfo.humanVerificationRequired ?? ''}
-              onChange={(value) =>
-                setGeneralInfo({ type: 'humanVerificationRequired', payload: value })
-              }
-              isJson
-              minHeight="80px"
-              maxHeight="200px"
-            />
-          </div>
+      <div className="row d-flex">
+        <span className="info-title edit-title">Human Verification:</span>
+        <div className="info-edit-control">
+          <CodeEditor
+            code={generalInfo.humanVerificationRequired ?? ''}
+            onChange={(value) =>
+              setGeneralInfo({ type: 'humanVerificationRequired', payload: value })
+            }
+            isJson
+            minHeight="80px"
+            maxHeight="200px"
+          />
         </div>
-      )}
+      </div>
 
       <div className="row d-flex">
         <span className="info-title edit-title" />

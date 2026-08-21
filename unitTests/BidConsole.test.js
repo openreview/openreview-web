@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { setBannerContent } from '../bannerSlice'
 import BidConsole from '../components/webfield/BidConsole'
@@ -7,7 +7,17 @@ import { renderWithWebFieldContext } from './util'
 import '@testing-library/jest-dom'
 
 let dispatch
+let useTurnstileTokenProps
+let mockTurnstileToken
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+jest.mock('../hooks/useTurnstileToken', () => (key, renderWidget) => {
+  useTurnstileTokenProps(key, renderWidget)
+  return {
+    // the token only exists once the user has solved the challenge
+    turnstileToken: renderWidget ? mockTurnstileToken : null,
+    turnstileContainerRef: { current: null },
+  }
+})
 jest.mock('../hooks/useUser', () => () => ({
   user: {
     profile: {
@@ -51,7 +61,52 @@ beforeEach(() => {
     },
   }
   dispatch = jest.fn()
+  useTurnstileTokenProps = jest.fn()
+  mockTurnstileToken = null
 })
+
+// Console with a single note loaded, so that a bid can be clicked
+const bidProviderProps = () => {
+  api.getAll = jest.fn(() => Promise.resolve([]))
+  api.get = jest.fn((path) => {
+    switch (path) {
+      case '/edges':
+        return Promise.resolve({ edges: [] })
+      case '/notes':
+      case '/notes/search':
+        return Promise.resolve({
+          notes: [
+            {
+              id: 'noteId1',
+              content: { title: { value: 'Note one' } },
+              invitations: ['AAAI.org/2025/Conference/-/Submission'],
+              readers: [
+                'AAAI.org/2025/Conference',
+                'AAAI.org/2025/Conference/Program_Committee',
+              ],
+            },
+          ],
+          count: 1,
+        })
+      default:
+        return null
+    }
+  })
+
+  return {
+    value: {
+      header: {
+        title: 'Program Committee Bidding Console',
+        instructions: '** some instructions **',
+      },
+      venueId: 'AAAI.org/2025/Conference',
+      submissionVenueId: 'AAAI.org/2025/Conference/Submission',
+      entity: bidInvitation,
+      scoreIds: [],
+      conflictInvitationId: 'AAAI.org/2025/Conference/Program_Committee/-/Conflict',
+    },
+  }
+}
 
 describe('BidConsole', () => {
   test('show error page if config is not complete', () => {
@@ -322,6 +377,64 @@ describe('BidConsole', () => {
           value:
             'OpenReview is experiencing degraded performance in search functionality. Please try again later.',
         })
+      )
+    })
+  })
+
+  test('show turnstile challenge when bid post returns human verification error', async () => {
+    const humanVerificationError = new Error('Human verification required')
+    humanVerificationError.name = 'HumanVerificationRequiredError'
+    api.post = jest.fn(() => Promise.reject(humanVerificationError))
+
+    renderWithWebFieldContext(
+      <BidConsole appContext={{ setBannerContent: jest.fn() }} />,
+      bidProviderProps()
+    )
+
+    await waitFor(() => expect(screen.getByText('Note one')).toBeInTheDocument())
+    const veryHighButton = screen.getByText('Very High', { selector: 'label.radio-toggle' })
+    await userEvent.click(within(veryHighButton).getByRole('radio'))
+
+    await waitFor(() => {
+      expect(useTurnstileTokenProps).toHaveBeenCalledWith('bidConsole', true)
+      expect(
+        screen.getByText('To confirm you are not a robot', { exact: false })
+      ).toBeInTheDocument()
+    })
+  })
+
+  test('retry bid after HumanVerificationRequiredError and turnstile token obtained', async () => {
+    const humanVerificationError = new Error('Human verification required')
+    humanVerificationError.name = 'HumanVerificationRequiredError'
+    api.post = jest
+      .fn()
+      .mockRejectedValueOnce(humanVerificationError)
+      .mockResolvedValue({ id: 'bidEdgeId', head: 'noteId1', label: 'Very High' })
+    mockTurnstileToken = 'some token'
+
+    renderWithWebFieldContext(
+      <BidConsole appContext={{ setBannerContent: jest.fn() }} />,
+      bidProviderProps()
+    )
+
+    await waitFor(() => expect(screen.getByText('Note one')).toBeInTheDocument())
+    const veryHighButton = screen.getByText('Very High', { selector: 'label.radio-toggle' })
+    await userEvent.click(within(veryHighButton).getByRole('radio'))
+
+    // initial failure + retry with token
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledTimes(2)
+      expect(api.post).toHaveBeenNthCalledWith(
+        1,
+        '/edges',
+        expect.objectContaining({ head: 'noteId1', label: 'Very High' }),
+        {}
+      )
+      expect(api.post).toHaveBeenNthCalledWith(
+        2,
+        '/edges',
+        expect.objectContaining({ head: 'noteId1', label: 'Very High' }),
+        expect.objectContaining({ 'cf-turnstile-token': 'some token' })
       )
     })
   })

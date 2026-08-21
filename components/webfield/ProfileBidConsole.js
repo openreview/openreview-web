@@ -2,11 +2,13 @@ import debounce from 'lodash/debounce'
 import kebabCase from 'lodash/kebabCase'
 import { useSearchParams } from 'next/navigation'
 import { useCallback, useContext, useEffect, useState } from 'react'
+import useHumanVerification from '../../hooks/useHumanVerification'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { prettyInvitationId } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import ErrorDisplay from '../ErrorDisplay'
+import HumanVerificationChallenge from '../HumanVerificationChallenge'
 import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import PaginationLinks from '../PaginationLinks'
@@ -61,6 +63,8 @@ const AllSubmissionsTab = ({
   const [selectedScore, setSelectedScore] = useState(scoreIds?.[0])
   const [searchTerm, setSearchTerm] = useState('')
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
+  const { runWithHumanVerification, needsHumanVerification, turnstileContainerRef } =
+    useHumanVerification('profileBidConsole')
 
   const [profileState, setProfileState] = useState({
     allProfiles: null,
@@ -154,9 +158,19 @@ const AllSubmissionsTab = ({
     const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
-      const result = await api.post(
-        '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, profile, user.profile.id, ddate)
+      const result = await runWithHumanVerification((requestOptions) =>
+        api.post(
+          '/edges',
+          getBidObjectToPost(
+            bidId,
+            updatedOption,
+            invitation,
+            profile,
+            user.profile.id,
+            ddate
+          ),
+          requestOptions
+        )
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -269,6 +283,11 @@ const AllSubmissionsTab = ({
         )}
         <button type="submit" style={{ display: 'none' }} />
       </form>
+      <HumanVerificationChallenge
+        open={needsHumanVerification}
+        turnstileContainerRef={turnstileContainerRef}
+        message="To confirm you are not a robot, please complete the verification below. Your bid will be saved automatically."
+      />
       {isLoading ? (
         <LoadingSpinner inline />
       ) : (
@@ -310,6 +329,8 @@ const BidOptionTab = ({
   const profileIds = bidEdges.filter((p) => p.label === bidOption).map((q) => q.head)
   const [bidUpdateStatus, setBidUpdateStatus] = useState(true)
   const emptyMessage = `No ${profileGroupName} to display at this time`
+  const { runWithHumanVerification, needsHumanVerification, turnstileContainerRef } =
+    useHumanVerification('profileBidConsole')
 
   const getProfilesByIds = async () => {
     setIsLoading(true)
@@ -336,9 +357,19 @@ const BidOptionTab = ({
     const ddate = getDdate(existingBidToDelete)
     const bidId = existingBidToDelete?.id ?? existingBidToUpdate?.id
     try {
-      const result = await api.post(
-        '/edges',
-        getBidObjectToPost(bidId, updatedOption, invitation, profile, user.profile.id, ddate)
+      const result = await runWithHumanVerification((requestOptions) =>
+        api.post(
+          '/edges',
+          getBidObjectToPost(
+            bidId,
+            updatedOption,
+            invitation,
+            profile,
+            user.profile.id,
+            ddate
+          ),
+          requestOptions
+        )
       )
       let updatedBidEdges = bidEdges
       if (existingBidToDelete) {
@@ -362,14 +393,21 @@ const BidOptionTab = ({
 
   if (isLoading) return <LoadingSpinner inline />
   return (
-    <ProfileListWithBidWidget
-      profiles={profiles}
-      bidOptions={bidOptions}
-      bidEdges={bidEdges}
-      emptyMessage={emptyMessage}
-      updateBidOption={updateBidOption}
-      bidUpdateStatus={bidUpdateStatus}
-    />
+    <>
+      <HumanVerificationChallenge
+        open={needsHumanVerification}
+        turnstileContainerRef={turnstileContainerRef}
+        message="To confirm you are not a robot, please complete the verification below. Your bid will be saved automatically."
+      />
+      <ProfileListWithBidWidget
+        profiles={profiles}
+        bidOptions={bidOptions}
+        bidEdges={bidEdges}
+        emptyMessage={emptyMessage}
+        updateBidOption={updateBidOption}
+        bidUpdateStatus={bidUpdateStatus}
+      />
+    </>
   )
 }
 
