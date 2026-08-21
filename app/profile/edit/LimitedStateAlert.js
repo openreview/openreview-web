@@ -12,7 +12,7 @@ export default function LimitedStateAlert({ profile }) {
       title={
         <>
           <span>
-            Your profile status is currently Limited. Please enter your year of birth to
+            Your profile status is currently Limited. Please enter your date of birth to
             activate your profile again.
           </span>{' '}
           <a

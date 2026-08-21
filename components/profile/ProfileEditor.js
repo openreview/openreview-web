@@ -79,8 +79,8 @@ export default function ProfileEditor({
       key: 'personal',
       title: 'Personal Info',
       content: isNewProfile
-        ? 'Gender, Pronouns and Birth Year'
-        : 'Gender, Pronouns, Birth Year and Profile Visibility',
+        ? `Gender, Pronouns${loadedProfile?.dob?.value ? '' : ' and Date of Birth'}`
+        : `Gender, Pronouns${loadedProfile?.dob?.value ? '' : ', Date of Birth'} and Profile Visibility`,
       status: getStepStatus('personal'),
     },
     { step: 2, key: 'emails', title: 'Emails', status: getStepStatus('emails') },
@@ -202,7 +202,6 @@ export default function ProfileEditor({
     let profileContent = {
       ...profile,
       names: profile.names.map((p) => (p.fullname ? p : null)).filter(Boolean),
-      yearOfBirth: profile.yearOfBirth ? Number.parseInt(profile.yearOfBirth, 10) : undefined,
       emails: profile.emails.map((p) => (p.email ? p : null)).filter(Boolean),
       links: undefined,
       ...profile.links,
@@ -222,6 +221,15 @@ export default function ProfileEditor({
     }
 
     let invalidRecord = null
+
+    // #region validate dob
+    if (!profile.dob?.value) {
+      promptError('Date of Birth is required. Please select your date of birth.')
+      setInvalidStepKeys((current) => [...current, 'personal'])
+      setProfile({ type: 'dob', data: { ...profile.dob, valid: false } })
+      return { isValid: false, profileContent: null }
+    }
+    // #endregion
 
     // #region validate emails
     if ((invalidRecord = profileContent.emails.find((p) => !isValidEmail(p.email)))) {
@@ -450,6 +458,7 @@ export default function ProfileEditor({
         pick(p, ['relation', 'username', 'name', 'email', 'start', 'end', 'readers'])
       ),
       preferredEmail: profileContent.emails.find((p) => p.preferred)?.email,
+      dob: profileContent.dob?.value,
       homepage: profileContent.homepage?.value?.trim(),
       gscholar: profileContent.gscholar?.value?.trim(),
       dblp: profileContent.dblp?.value?.trim(),
@@ -510,17 +519,32 @@ export default function ProfileEditor({
                 updatePronoun={(pronouns) => setProfile({ type: 'pronouns', data: pronouns })}
               />
             </ProfileSection>
-            <ProfileSection
-              title="Year Of Birth"
-              instructions="This information is solely used by OpenReview to disambiguate user profiles. It will never be released publicly or shared with venue organizers. (Optional)"
-            >
-              <BirthDateSection
-                profileYearOfBirth={profile?.yearOfBirth}
-                updateYearOfBirth={(yearOfBirth) =>
-                  setProfile({ type: 'yearOfBirth', data: yearOfBirth })
+
+            {
+              <ProfileSection
+                title="Date Of Birth"
+                instructions={
+                  loadedProfile?.dob?.value ? (
+                    'Your date of birth has been saved and cannot be changed.'
+                  ) : (
+                    <span>
+                      OpenReview requires date of birth for age verification.{' '}
+                      <span className={stepsStyles.warningText}>
+                        Your date of birth can <strong>NOT</strong> be changed once saved.
+                      </span>{' '}
+                    </span>
+                  )
                 }
-              />
-            </ProfileSection>
+              >
+                <BirthDateSection
+                  profileDateOfBirth={profile?.dob}
+                  updateDateOfBirth={(dateOfBirth) =>
+                    setProfile({ type: 'dob', data: dateOfBirth })
+                  }
+                  savedDateOfBirth={loadedProfile?.dob?.value}
+                />
+              </ProfileSection>
+            }
             {!hidePublicationEditor && (
               <ProfileSection
                 title="Profile Visibility"
@@ -711,7 +735,7 @@ export default function ProfileEditor({
     if (
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/pronouns')) ||
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/gender')) ||
-      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/yearOfBirth'))
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/dob'))
     ) {
       setInvalidStepKeys((current) => [...current, 'personal'])
     }
