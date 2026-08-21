@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import SpinnerButton from '../../components/SpinnerButton'
 import api from '../../lib/api-client'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../lib/utils'
+import devLoginLocationHeaders from './devLoginLocation'
 
 import styles from './Login.module.scss'
 
@@ -15,12 +16,16 @@ export const TOTPVerificationForm = ({ mfaPendingToken, completeLogin, setError 
   const handleSubmit = async () => {
     setIsLoading(true)
     try {
-      await api.post('/mfa/verify', {
-        mfaPendingToken,
-        method: 'totp',
-        code: verificationCode,
-        rememberDevice,
-      })
+      await api.post(
+        '/mfa/verify',
+        {
+          mfaPendingToken,
+          method: 'totp',
+          code: verificationCode,
+          rememberDevice,
+        },
+        { headers: devLoginLocationHeaders() }
+      )
       completeLogin()
     } catch (error) {
       setIsLoading(false)
@@ -77,12 +82,16 @@ export const EmailVerificationForm = ({ mfaPendingToken, completeLogin, setError
   const handleSubmit = async () => {
     setIsLoading(true)
     try {
-      await api.post('/mfa/verify', {
-        mfaPendingToken,
-        method: 'emailOtp',
-        code: verificationCode,
-        rememberDevice,
-      })
+      await api.post(
+        '/mfa/verify',
+        {
+          mfaPendingToken,
+          method: 'emailOtp',
+          code: verificationCode,
+          rememberDevice,
+        },
+        { headers: devLoginLocationHeaders() }
+      )
       completeLogin()
     } catch (error) {
       setIsLoading(false)
@@ -210,21 +219,25 @@ export const PasskeyVerificationForm = ({ mfaPendingToken, completeLogin, setErr
       const credential = await getPasskeyCredential(publicKeyCredentialRequestOptions)
       const { authenticatorAttachment, id, rawId, response, type } = credential
       const { authenticatorData, clientDataJSON, signature, userHandle } = response
-      await api.post('/mfa/verify', {
-        mfaPendingToken,
-        method: 'passkey',
-        code: {
-          id: credential.id,
-          rawId: arrayBufferToBase64(credential.rawId),
-          response: {
-            clientDataJSON: arrayBufferToBase64(clientDataJSON),
-            authenticatorData: arrayBufferToBase64(authenticatorData),
-            signature: arrayBufferToBase64(signature),
+      await api.post(
+        '/mfa/verify',
+        {
+          mfaPendingToken,
+          method: 'passkey',
+          code: {
+            id: credential.id,
+            rawId: arrayBufferToBase64(credential.rawId),
+            response: {
+              clientDataJSON: arrayBufferToBase64(clientDataJSON),
+              authenticatorData: arrayBufferToBase64(authenticatorData),
+              signature: arrayBufferToBase64(signature),
+            },
+            type: credential.type,
           },
-          type: credential.type,
+          rememberDevice,
         },
-        rememberDevice,
-      })
+        { headers: devLoginLocationHeaders() }
+      )
       setVerified(true)
       completeLogin()
     } catch (error) {
@@ -270,12 +283,16 @@ export const RecoveryCodeVerificationForm = ({ mfaPendingToken, completeLogin, s
   const handleSubmit = async () => {
     setIsLoading(true)
     try {
-      await api.post('/mfa/verify', {
-        mfaPendingToken,
-        method: 'recovery',
-        code: recoveryCode,
-        rememberDevice,
-      })
+      await api.post(
+        '/mfa/verify',
+        {
+          mfaPendingToken,
+          method: 'recovery',
+          code: recoveryCode,
+          rememberDevice,
+        },
+        { headers: devLoginLocationHeaders() }
+      )
       completeLogin()
     } catch (error) {
       setIsLoading(false)

@@ -11,6 +11,7 @@ import { setNotificationCount } from '../../notificationSlice'
 import { resetRefreshTokenStatus } from '../../lib/clientAuth'
 import LoginInitialStep from './LoginInitialStep'
 import LoginMFAStep from './LoginMFAStep'
+import devLoginLocationHeaders from './devLoginLocation'
 
 export default function LoginForm() {
   const [mfaStatus, setMfaStatus] = useState(null)
@@ -26,10 +27,14 @@ export default function LoginForm() {
 
   const handleInitialSubmit = async (email, password) => {
     try {
-      const result = await api.post('/login', {
-        id: email,
-        password: password,
-      })
+      const result = await api.post(
+        '/login',
+        {
+          id: email,
+          password: password,
+        },
+        { headers: devLoginLocationHeaders() }
+      )
       if (!result.mfaPending) {
         completeLogin()
         return true

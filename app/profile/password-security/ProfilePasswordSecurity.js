@@ -1,10 +1,9 @@
-/* globals promptMessage,promptError: false */
-
 import { Collapse } from 'antd'
 import { useState } from 'react'
 import { PasswordResetRequestForm } from '../../reset/Reset'
 import ConnectedAppsList from './ConnectedAppsList'
 import MultiFactorAuthenticationSetup from './MultiFactorAuthenticationSetup'
+import NotifyUnusualLogin from './NotifyUnusualLogin'
 
 const ProfilePasswordSecurity = ({ profile }) => {
   const [activeSection, setActiveSection] = useState('multiFactorAuth')
@@ -24,6 +23,12 @@ const ProfilePasswordSecurity = ({ profile }) => {
           }}
         />
       ),
+    },
+    {
+      key: 'notifyUnusualLogin',
+      label: 'Login Activity',
+      children: <NotifyUnusualLogin />,
+      styles: { body: { maxWidth: 'none' } },
     },
     {
       key: 'multiFactorAuth',
@@ -48,7 +53,9 @@ const ProfilePasswordSecurity = ({ profile }) => {
       items={items}
       styles={{
         header: { fontSize: '1.25rem', fontWeight: 'bold', alignItems: 'center' },
-        body: { maxWidth: 'fit-content' },
+        // 40 = default 16 + expand icon 12 + icon-label gap 12, aligning body content
+        // with the start of the header label text
+        body: { maxWidth: 'fit-content', paddingLeft: 40 },
       }}
     />
   )
