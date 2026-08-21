@@ -159,7 +159,11 @@ const SignupForm = ({ setSignupConfirmation }) => {
                 <InfoCircleFilled
                   tabIndex={0}
                   aria-label="Why we ask for your date of birth"
-                  style={{ cursor: 'help', color: '#3e6775' }}
+                  style={{
+                    cursor: 'help',
+                    color: '#3e6775',
+                    fontSize: '1rem',
+                  }}
                 />
               </Tooltip>
             </label>
@@ -351,7 +355,7 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
                 <InfoCircleFilled
                   tabIndex={0}
                   aria-label="Why we ask for your date of birth"
-                  style={{ cursor: 'help', color: '#3e6775' }}
+                  style={{ cursor: 'help', color: '#3e6775', fontSize: '1rem' }}
                 />
               </Tooltip>
             </div>
