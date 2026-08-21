@@ -910,6 +910,7 @@ const UserModerationQueue = ({
           'pastStates',
           'tags',
           'identityDocuments',
+          'loginActivity',
         ]}
         showNextProfile={showNextProfile}
         showPreviousProfile={showPreviousProfile}

@@ -2,13 +2,13 @@
 
 /* globals promptError,promptMessage,$: false */
 
-import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
+import { resetRefreshTokenStatus } from '../../lib/clientAuth'
 import { sanitizeRedirectUrl } from '../../lib/utils'
 import { setNotificationCount } from '../../notificationSlice'
-import { resetRefreshTokenStatus } from '../../lib/clientAuth'
 import LoginInitialStep from './LoginInitialStep'
 import LoginMFAStep from './LoginMFAStep'
 

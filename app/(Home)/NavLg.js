@@ -29,7 +29,7 @@ export default function NavLg({ user, notificationCountSlot, dropdownOpen, setDr
               href="/profile/password-security"
               className={legacyNavStyles.navDropdownItem}
             >
-              Password &amp; Security
+              Security settings
             </Link>
           ),
           style: { padding: 0 },
