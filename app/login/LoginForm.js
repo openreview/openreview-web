@@ -2,16 +2,15 @@
 
 /* globals promptError,promptMessage,$: false */
 
-import { useState } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { useState } from 'react'
 import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
+import { resetRefreshTokenStatus } from '../../lib/clientAuth'
 import { sanitizeRedirectUrl } from '../../lib/utils'
 import { setNotificationCount } from '../../notificationSlice'
-import { resetRefreshTokenStatus } from '../../lib/clientAuth'
 import LoginInitialStep from './LoginInitialStep'
 import LoginMFAStep from './LoginMFAStep'
-import devLoginLocationHeaders from './devLoginLocation'
 
 export default function LoginForm() {
   const [mfaStatus, setMfaStatus] = useState(null)
@@ -27,14 +26,10 @@ export default function LoginForm() {
 
   const handleInitialSubmit = async (email, password) => {
     try {
-      const result = await api.post(
-        '/login',
-        {
-          id: email,
-          password: password,
-        },
-        { headers: devLoginLocationHeaders() }
-      )
+      const result = await api.post('/login', {
+        id: email,
+        password: password,
+      })
       if (!result.mfaPending) {
         completeLogin()
         return true
