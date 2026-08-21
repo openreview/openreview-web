@@ -53,8 +53,6 @@ const ProfilePasswordSecurity = ({ profile }) => {
       items={items}
       styles={{
         header: { fontSize: '1.25rem', fontWeight: 'bold', alignItems: 'center' },
-        // 40 = default 16 + expand icon 12 + icon-label gap 12, aligning body content
-        // with the start of the header label text
         body: { maxWidth: 'fit-content', paddingLeft: 40 },
       }}
     />
