@@ -59,10 +59,6 @@
           }
         }
 
-        .password-tooltip {
-          color: constants.$mediumBlue;
-        }
-
         @media #{constants.$phone-only} {
           input {
             display: block;
@@ -112,6 +108,7 @@
 }
 .warningText {
   color: constants.$orRed;
+  font-size: 0.75rem;
 }
 .nameConfirmation {
   cursor: pointer;

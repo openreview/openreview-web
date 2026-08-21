@@ -532,7 +532,6 @@ export default function ProfileEditor({
                       <span className={stepsStyles.warningText}>
                         Your date of birth can <strong>NOT</strong> be changed once saved.
                       </span>{' '}
-                      (Mandatory)
                     </span>
                   )
                 }

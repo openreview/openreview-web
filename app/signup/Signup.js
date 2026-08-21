@@ -1,6 +1,6 @@
 'use client'
 
-import { InfoCircleOutlined } from '@ant-design/icons'
+import { InfoCircleFilled } from '@ant-design/icons'
 import { Checkbox, Col, Flex, Input, Row, Select, Space, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import customParseFormat from 'dayjs/plugin/customParseFormat'
@@ -144,7 +144,24 @@ const SignupForm = ({ setSignupConfirmation }) => {
           <hr className="spacer" />
           <Flex vertical gap="small">
             <label htmlFor="dob-input" className={styles.titleText}>
-              Enter your date of birth
+              Enter your date of birth{' '}
+              <Tooltip
+                title={
+                  <Space vertical size={4}>
+                    <span>OpenReview requires date of birth for age verification.</span>
+                    <span>Your date of birth is never shown publicly.</span>
+                  </Space>
+                }
+                styles={{
+                  root: { maxWidth: '320px' },
+                }}
+              >
+                <InfoCircleFilled
+                  tabIndex={0}
+                  aria-label="Why we ask for your date of birth"
+                  style={{ cursor: 'help', color: '#3e6775' }}
+                />
+              </Tooltip>
             </label>
             <Flex gap="middle" onBlur={handleDobBlur} className={styles.fieldWidth}>
               <Select
@@ -177,28 +194,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
               />
             </Flex>
             <span>
-              <Tooltip
-                title={
-                  <Space vertical size={4}>
-                    <span>
-                      Accounts require a minimum age of 13, and additional protections apply to
-                      users between 13 and 18.
-                    </span>
-                    <span>Your date of birth is never shown publicly.</span>
-                  </Space>
-                }
-                placement="topLeft"
-                styles={{
-                  root: { maxWidth: '320px' },
-                }}
-              >
-                <InfoCircleOutlined
-                  tabIndex={0}
-                  aria-label="Why we ask for your date of birth"
-                  style={{ cursor: 'help' }}
-                />
-              </Tooltip>{' '}
-              OpenReview requires date of birth for age verification.{' '}
               <span className={styles.warningText}>
                 Your date of birth can <strong>NOT</strong> be changed after registration.
               </span>
@@ -346,12 +341,19 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
                 maxLength={64}
                 required
               />
-              <Icon
-                name="info-sign"
-                extraClasses="password-tooltip"
-                tooltip="Password must be between 10 and 64 characters long and contain at least one
+              <Tooltip
+                title="Password must be between 10 and 64 characters long and contain at least one
               uppercase letter, one lowercase letter and one digit."
-              />
+                styles={{
+                  root: { maxWidth: '320px' },
+                }}
+              >
+                <InfoCircleFilled
+                  tabIndex={0}
+                  aria-label="Why we ask for your date of birth"
+                  style={{ cursor: 'help', color: '#3e6775' }}
+                />
+              </Tooltip>
             </div>
             <div className="claim-button-row">
               <input
