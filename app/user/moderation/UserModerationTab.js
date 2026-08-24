@@ -901,6 +901,7 @@ const UserModerationQueue = ({
         setProfileToPreview={setProfileToPreview}
         contentToShow={[
           'names',
+          'dob',
           'emails',
           'links',
           'history',
