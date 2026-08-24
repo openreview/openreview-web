@@ -527,12 +527,15 @@ export default function ProfileEditor({
                   loadedProfile?.dob?.value ? (
                     'Your date of birth has been saved and cannot be changed.'
                   ) : (
-                    <span>
-                      OpenReview requires date of birth for age verification.{' '}
-                      <span className={stepsStyles.warningText}>
+                    <>
+                      <div>
+                        OpenReview requires date of birth for age verification. Your date of
+                        birth is never shown publicly.
+                      </div>
+                      <div className={stepsStyles.warningText}>
                         Your date of birth can <strong>NOT</strong> be changed once saved.
-                      </span>{' '}
-                    </span>
+                      </div>
+                    </>
                   )
                 }
               >

@@ -21,6 +21,10 @@
       margin-bottom: 0.25rem;
     }
 
+    section + section {
+      margin-top: 1.5rem;
+    }
+
     .hint {
       vertical-align: bottom;
     }
