@@ -32,7 +32,7 @@ const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
 const nameConfirmationLabel = Selector('label[for="name-confirmation"]')
 
-const dobMonthSelect = Selector('.ant-select-selector')
+const dobMonthSelect = Selector('.ant-select')
 const dobDayInput = Selector('input[placeholder="DD"]')
 const dobYearInput = Selector('input[placeholder="YYYY"]')
 const dobMonthOption = (monthLabel: string) =>
