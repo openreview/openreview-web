@@ -1,4 +1,9 @@
 {
+  "compilerOptions": {
+    "typescript": {
+      "options": { "esModuleInterop": true }
+    }
+  },
   "stopOnFirstFail": true,
   "selectorTimeout": 30000,
   "assertionTimeout": 10000,
