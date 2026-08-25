@@ -26,6 +26,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v6
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: openreview
+          repositories: openreview-cloud
+      - name: Checkout openreview-cloud
+        uses: actions/checkout@v6
+        with:
+          repository: openreview/openreview-cloud
+          path: openreview-cloud
+          token: ${{ steps.app-token.outputs.token }}
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v3
@@ -40,25 +54,10 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           skip_install: true
-      - name: Run deploy script
+      - name: Build and deploy to Cloud Run
         run: |
-          instance_prefix='openreview-dev-'
-
-          instances=$(gcloud compute instances list | grep "$instance_prefix" | grep RUNNING | tr -s ' ' | cut -d' ' -f1,2)
-
-          instances_arr=(${instances// / })
-
-          instance_names=()
-          zones=()
-          for i in ${!instances_arr[@]}; do
-            if echo "${instances_arr[$i]}" | grep -q "$instance_prefix"; then
-              instance_names+=(${instances_arr[$i]})
-            else
-              zones+=(${instances_arr[$i]})
-            fi
-          done
-
-          for i in ${!instance_names[@]}; do
-            echo Deploying to ${instance_names[$i]}
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command "bash bin/build-web.sh ${TAG} && bash bin/deploy-web.sh ${TAG}"
-          done
+          gcloud builds submit \
+            --config openreview-cloud/Terraform/dev/web-cloudrun/build/cloudbuild.yaml \
+            --substitutions=_WEB_REF=${TAG} \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            openreview-cloud/Terraform/dev/web-cloudrun/build
