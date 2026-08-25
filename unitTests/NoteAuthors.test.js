@@ -1,8 +1,13 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import { NoteAuthorsV2 } from '../components/NoteAuthors'
+import api from '../lib/api-client'
 import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
+beforeEach(() => {
+  api.get = jest.fn(() => Promise.resolve())
+})
 
 describe('NoteAuthorsV2', () => {
   // Reviewer can see forum note but not authors/authorids
@@ -25,7 +30,7 @@ describe('NoteAuthorsV2', () => {
   })
 
   // object authors has no authorids field
-  test('renders institutions when there are only authors', () => {
+  test('renders institutions when there are only authors', async () => {
     const authors = {
       value: [
         {
@@ -44,9 +49,117 @@ describe('NoteAuthorsV2', () => {
         showAuthorInstitutions
       />
     )
-    expect(container.querySelector('.note-authors-institutions')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'First Last' })).toBeInTheDocument()
-    expect(screen.getByText(/Test Domain/)).toBeInTheDocument()
+    await waitFor(() => {
+      expect(container.querySelector('.note-authors-institutions')).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'First Last' })).toBeInTheDocument()
+      expect(screen.getByText(/Test Domain/)).toBeInTheDocument()
+    })
+  })
+
+  test('consolidate domains that user entered which map to the same institution object', async () => {
+    // both ustc.edu.cn and mail.ustc.edu.cn map to institution object ustc.edu
+    // so they are consolidated and the fullname from institution object should be used
+    api.get = jest.fn(() => ({
+      institutions: [
+        {
+          id: 'ustc.edu',
+          fullname: 'University of Science and Technology of China',
+          domains: ['ustc.edu', 'ustc.edu.cn', 'mail.ustc.edu.cn'],
+        },
+        {
+          id: 'umass.edu',
+          fullname: 'University of Massachusetts at Amherst',
+          domains: ['umass.edu'],
+        },
+      ],
+    }))
+    const authors = {
+      value: [
+        {
+          fullname: 'Author One',
+          username: '~Authro_One1',
+          institutions: [
+            { domain: 'test.domain', name: 'Test Domain' },
+            { domain: 'umass.edu', name: 'UMASS' },
+          ],
+        },
+        {
+          fullname: 'Author Two',
+          username: '~Authro_Two1',
+          institutions: [
+            {
+              domain: 'mail.ustc.edu.cn',
+              name: 'University of Science and Technology of China',
+            },
+            {
+              domain: 'ustc.edu.cn',
+              name: 'Some Other Name',
+            },
+          ],
+        },
+        {
+          fullname: 'Author Three',
+          username: '~Author_Three1',
+          institutions: [
+            {
+              domain: 'ustc.edu.cn',
+              name: 'University of Science and Technology of China',
+            },
+          ],
+        },
+      ],
+      readers: ['everyone'],
+    }
+    const { container } = render(
+      <NoteAuthorsV2
+        authors={authors}
+        authorIds={undefined}
+        noteReaders={['everyone']}
+        showAuthorInstitutions
+      />
+    )
+
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith('/settings/institutions', {
+        domains: ['test.domain', 'umass.edu', 'mail.ustc.edu.cn', 'ustc.edu.cn'],
+      })
+
+      expect(container.querySelectorAll('.note-authors-institutions>div')).toHaveLength(3) // test,umass,single ustc
+      expect(screen.queryByText(/Some Other Name/)).not.toBeInTheDocument() // replaced by institution obj fullname
+      expect(screen.queryByText(/ustc\.edu\.cn/)).not.toBeInTheDocument() // both replaced by institution id ustc.edu
+      expect(screen.queryByText(/mail\.ustc\.edu\.cn/)).not.toBeInTheDocument()
+
+      const authorTwo = screen.getByRole('link', { name: 'Author Two' })
+      expect(authorTwo.nextSibling.textContent).toEqual('3') // no duplicated ustc
+
+      const authorThree = screen.getByRole('link', { name: 'Author Three' })
+      expect(authorThree.nextSibling.textContent).toEqual('3')
+    })
+  })
+
+  test('skip institution consolidation when there are more than 20 unique domains', async () => {
+    const authors = {
+      value: Array.from({ length: 21 }, (_, i) => ({
+        fullname: `Author ${i}`,
+        username: `~Author_${i}1`,
+        institutions: [{ domain: `domain${i}`, name: `Domain ${i}` }],
+      })),
+      readers: ['everyone'],
+    }
+    const { container } = render(
+      <NoteAuthorsV2
+        authors={authors}
+        authorIds={undefined}
+        noteReaders={['everyone']}
+        showAuthorInstitutions
+      />
+    )
+
+    await waitFor(() => {
+      expect(container.querySelectorAll('.note-authors-institutions>div')).toHaveLength(21)
+      expect(api.get).not.toHaveBeenCalled()
+      expect(screen.getByText('Domain 20 (domain20)')).toBeInTheDocument()
+    })
   })
 
   // email author added with object author schema has no profile link
