@@ -227,6 +227,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: openreview
+          repositories: openreview-cloud
+      - name: Checkout openreview-cloud
+        uses: actions/checkout@v6
+        with:
+          repository: openreview/openreview-cloud
+          path: openreview-cloud
+          token: ${{ steps.app-token.outputs.token }}
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v3
@@ -241,7 +255,14 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           skip_install: true
-      - name: Deploy to dev
+      - name: Build and deploy web to Cloud Run
+        run: |
+          gcloud builds submit \
+            --config openreview-cloud/Terraform/dev/web-cloudrun/build/cloudbuild.yaml \
+            --substitutions=_WEB_REF=master \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            openreview-cloud/Terraform/dev/web-cloudrun/build
+      - name: Deploy openreview-py to dev
         run: |
           instance_prefix='openreview-dev-'
 
@@ -263,7 +284,5 @@ jobs:
           for i in ${!instance_names[@]}; do
             echo Deploying to ${instance_names[$i]}
 
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/build-web.sh' --quiet
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/deploy-web.sh' --quiet
             gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/deploy-openreview-py.sh' --quiet
           done
