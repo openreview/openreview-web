@@ -223,6 +223,10 @@ jobs:
 
     needs: build
 
+    concurrency:
+      group: dev-web-deploy
+      cancel-in-progress: false
+
     if: github.ref == 'refs/heads/master' && (github.event_name != 'repository_dispatch' || github.event.action != 'openreview-api-updated')
     steps:
       - name: Checkout code
@@ -259,7 +263,7 @@ jobs:
         run: |
           gcloud builds submit \
             --config openreview-cloud/Terraform/dev/web-cloudrun/build/cloudbuild.yaml \
-            --substitutions=_WEB_REF=master \
+            --substitutions=_WEB_REF=${{ github.sha }} \
             --project ${{ secrets.GCP_PROJECT_ID }} \
             openreview-cloud/Terraform/dev/web-cloudrun/build
       - name: Deploy openreview-py to dev

@@ -21,6 +21,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    concurrency:
+      group: dev-web-deploy
+      cancel-in-progress: false
+
     env:
       TAG: ${{ github.event.inputs.tag }}
 
@@ -58,6 +62,6 @@ jobs:
         run: |
           gcloud builds submit \
             --config openreview-cloud/Terraform/dev/web-cloudrun/build/cloudbuild.yaml \
-            --substitutions=_WEB_REF=${TAG} \
+            --substitutions="^::^_WEB_REF=${TAG}" \
             --project ${{ secrets.GCP_PROJECT_ID }} \
             openreview-cloud/Terraform/dev/web-cloudrun/build
