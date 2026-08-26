@@ -3,8 +3,7 @@ import isEqual from 'lodash/isEqual'
 import uniqBy from 'lodash/uniqBy'
 import zip from 'lodash/zip'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import api from '../lib/api-client'
+import { getUniqueInstitutions } from '../lib/forum-utils'
 import { prettyId } from '../lib/utils'
 import ExpandableList from './ExpandableList'
 import Icon from './Icon'
@@ -104,9 +103,16 @@ export const NoteAuthorsV2 = ({
   signatures,
   noteReaders,
   showAuthorInstitutions,
+  officialInstitutions,
 }) => {
   if (showAuthorInstitutions && authorsProp?.value && !authorIdsProp?.value) {
-    return <NoteAuthorsWithInstitutions authors={authorsProp} noteReaders={noteReaders} />
+    return (
+      <NoteAuthorsWithInstitutions
+        authors={authorsProp}
+        noteReaders={noteReaders}
+        officialInstitutions={officialInstitutions}
+      />
+    )
   }
 
   // forum note pass raw authors (for NoteAuthorsWithInstitutions)
@@ -200,61 +206,45 @@ export const NoteAuthorsV2 = ({
   )
 }
 
-export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
-  const [uniqueInstitutions, setUniqueInstitutions] = useState([])
+export function consolidateInstitutions(authorInstitutions, officialInstitutions) {
+  if (!officialInstitutions?.length) return authorInstitutions
+
+  return uniqBy(
+    authorInstitutions.map((authorInstitution) => {
+      const official = officialInstitutions.find(
+        (p) =>
+          p.id === authorInstitution.domain || p.domains?.includes(authorInstitution.domain)
+      )
+      return official
+        ? {
+            ...authorInstitution,
+            name: official.fullname ?? authorInstitution.name,
+            domain: official.id,
+            domains: official.domains,
+          }
+        : authorInstitution
+    }),
+    (p) => p.domain
+  )
+}
+
+export const NoteAuthorsWithInstitutions = ({
+  authors,
+  noteReaders,
+  officialInstitutions,
+}) => {
   let showPrivateLabel = false
   const sortedReaders = noteReaders ? [...noteReaders].sort() : []
   if (Array.isArray(authors?.readers) && !isEqual(sortedReaders, authors.readers.sort())) {
     showPrivateLabel = !authors.readers.includes('everyone')
   }
 
-  const deduplicateInstitutions = async () => {
-    const uniqueInstitutionsFromAuthor = uniqBy(
-      authors.value
-        .map((p) => p.institutions)
-        .flat()
-        .filter((p) => p?.domain),
-      (p) => p.domain
-    )
-
-    if (
-      uniqueInstitutionsFromAuthor.length === 0 ||
-      uniqueInstitutionsFromAuthor.length > 20
-    ) {
-      setUniqueInstitutions(uniqueInstitutionsFromAuthor)
-      return
-    }
-
-    try {
-      const { institutions } = await api.get('/settings/institutions', {
-        domains: uniqueInstitutionsFromAuthor.map((p) => p.domain),
-      })
-      const resolvedInstitutions = uniqueInstitutionsFromAuthor.map((authorInstitution) => {
-        const official = institutions?.find(
-          (p) =>
-            p.id === authorInstitution.domain || p.domains?.includes(authorInstitution.domain)
-        )
-        return official
-          ? {
-              ...authorInstitution,
-              name: official.fullname ?? authorInstitution.name,
-              domain: official.id,
-              domains: official.domains,
-            }
-          : authorInstitution
-      })
-      setUniqueInstitutions(uniqBy(resolvedInstitutions, (p) => p.domain))
-    } catch (_) {
-      setUniqueInstitutions(uniqueInstitutionsFromAuthor)
-    }
-  }
-
-  useEffect(() => {
-    if (!authors?.value) return
-    deduplicateInstitutions()
-  }, [authors])
-
   if (!authors?.value) return null
+
+  const uniqueInstitutions = consolidateInstitutions(
+    getUniqueInstitutions(authors.value),
+    officialInstitutions
+  )
 
   const institutionIndexMap = new Map(
     uniqueInstitutions.flatMap((institution, index) =>
