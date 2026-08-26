@@ -79,8 +79,8 @@ export default function ProfileEditor({
       key: 'personal',
       title: 'Personal Info',
       content: isNewProfile
-        ? `Gender, Pronouns${loadedProfile?.dob?.value ? '' : ' and Date of Birth'}`
-        : `Gender, Pronouns${loadedProfile?.dob?.value ? '' : ', Date of Birth'} and Profile Visibility`,
+        ? 'Gender, Pronouns and Date of Birth'
+        : 'Gender, Pronouns, Date of Birth and Profile Visibility',
       status: getStepStatus('personal'),
     },
     { step: 2, key: 'emails', title: 'Emails', status: getStepStatus('emails') },
@@ -524,19 +524,12 @@ export default function ProfileEditor({
               <ProfileSection
                 title="Date Of Birth"
                 instructions={
-                  loadedProfile?.dob?.value ? (
-                    'Your date of birth has been saved and cannot be changed.'
-                  ) : (
-                    <>
-                      <div>
-                        OpenReview requires date of birth for age verification. Your date of
-                        birth is never shown publicly.
-                      </div>
-                      <div className={stepsStyles.warningText}>
-                        Your date of birth can <strong>NOT</strong> be changed once saved.
-                      </div>
-                    </>
-                  )
+                  <>
+                    <div>
+                      OpenReview requires date of birth for age verification. Your date of
+                      birth is never shown publicly.
+                    </div>
+                  </>
                 }
               >
                 <BirthDateSection
@@ -544,7 +537,6 @@ export default function ProfileEditor({
                   updateDateOfBirth={(dateOfBirth) =>
                     setProfile({ type: 'dob', data: dateOfBirth })
                   }
-                  savedDateOfBirth={loadedProfile?.dob?.value}
                 />
               </ProfileSection>
             }
