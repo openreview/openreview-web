@@ -1,24 +1,65 @@
 'use client'
 
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState, useEffect } from 'react'
+import { InfoCircleFilled } from '@ant-design/icons'
+import { Checkbox, Col, Flex, Input, Row, Select, Space, Tooltip } from 'antd'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import utc from 'dayjs/plugin/utc'
+import { useState, useEffect, useRef } from 'react'
 import BasicModal from '../../components/BasicModal'
 import Icon from '../../components/Icon'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
 import api from '../../lib/api-client'
 import { isInstitutionEmail, isValidEmail, isValidPassword } from '../../lib/utils'
 
+import styles from './Signup.module.scss'
+
+dayjs.extend(customParseFormat)
+dayjs.extend(utc)
+
+const monthOptions = [
+  { label: 'January (1)', value: '01' },
+  { label: 'February (2)', value: '02' },
+  { label: 'March (3)', value: '03' },
+  { label: 'April (4)', value: '04' },
+  { label: 'May (5)', value: '05' },
+  { label: 'June (6)', value: '06' },
+  { label: 'July (7)', value: '07' },
+  { label: 'August (8)', value: '08' },
+  { label: 'September (9)', value: '09' },
+  { label: 'October (10)', value: '10' },
+  { label: 'November (11)', value: '11' },
+  { label: 'December (12)', value: '12' },
+]
+
+const getDobError = (dobString) => {
+  const dob = dayjs(dobString, 'YYYY-MM-DD', true)
+  if (!dob.isValid()) return 'Please enter a valid date of birth.'
+  if (dob.isAfter(dayjs().subtract(13, 'year').startOf('day')))
+    return 'OpenReview profiles require an age of 13 or over.'
+  if (dob.isBefore(dayjs().subtract(100, 'year').startOf('day')))
+    return 'Please enter a valid date of birth.'
+  return null
+}
+
 const SignupForm = ({ setSignupConfirmation }) => {
   const [fullName, setFullName] = useState('')
   const [confirmFullName, setConfirmFullName] = useState(false)
   const [nameConfirmed, setNameConfirmed] = useState(false)
+  const [dobConfirmed, setDobConfirmed] = useState(false)
   const [isComposing, setIsComposing] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState(null)
+  const [dobMM, setDobMM] = useState(null)
+  const [dobDD, setDobDD] = useState(null)
+  const [dobYYYY, setDobYYYY] = useState(null)
+  const lastDobError = useRef(null)
 
   const registerUser = async (email, password) => {
+    const dob = dayjs
+      .utc(`${dobYYYY}-${dobMM}-${dobDD.padStart(2, '0')}`, 'YYYY-MM-DD', true)
+      .valueOf()
     let bodyData = {}
-    bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken }
+    bodyData = { email, password, fullname: fullName.trim(), token: turnstileToken, dob }
 
     try {
       await api.post('/register', bodyData)
@@ -42,64 +83,143 @@ const SignupForm = ({ setSignupConfirmation }) => {
     }
   }, [fullName, isComposing])
 
+  useEffect(() => {
+    if (!dobMM || !dobDD || dobYYYY?.length !== 4) {
+      lastDobError.current = null
+      setDobConfirmed(false)
+      return
+    }
+    const error = getDobError(`${dobYYYY}-${dobMM}-${dobDD.padStart(2, '0')}`)
+    setDobConfirmed(!error)
+    if (error && error !== lastDobError.current) promptError(error)
+    lastDobError.current = error
+  }, [dobYYYY, dobMM, dobDD])
+
+  const handleDobBlur = (e) => {
+    if (e.currentTarget.contains(e.relatedTarget)) return
+    if (!dobMM && !dobDD && !dobYYYY) return
+    if (!dobMM || !dobDD || dobYYYY?.length !== 4) {
+      promptError('Please enter a valid date of birth.')
+    }
+  }
+
   return (
     <div className="signup-form-container">
-      <form onSubmit={(e) => e.preventDefault()}>
-        <div className="row">
-          <div className="form-group col-xs-12">
-            <label htmlFor="first-input" className="mb-2">
-              Enter your full name as you would write it as the author of a paper
-            </label>
-            <input
-              type="text"
-              id="first-input"
-              className="form-control"
-              value={fullName}
-              onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
-              onCompositionEnd={() => setIsComposing(false)}
-              onChange={(e) => {
-                setFullName(e.target.value)
-              }}
-              placeholder="Full name"
-              autoComplete="name"
-            />
-          </div>
-        </div>
-        <div className=" checkbox">
-          <label className="name-confirmation">
-            <input
-              type="checkbox"
-              checked={confirmFullName}
-              disabled={!fullName.length}
-              onChange={() => {
-                if (!fullName) {
-                  setConfirmFullName(false)
-                  return
-                }
-                setConfirmFullName((confirmFullNameProp) => !confirmFullNameProp)
-              }}
-            />
+      <Flex vertical gap="small">
+        <label htmlFor="first-input" className={styles.titleText}>
+          Enter your full name as you would write it as the author of a paper
+        </label>
+        <Input
+          id="first-input"
+          className={styles.fieldWidth}
+          value={fullName}
+          onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
+          onCompositionEnd={() => setIsComposing(false)}
+          onChange={(e) => {
+            setFullName(e.target.value)
+          }}
+          placeholder="Full name"
+          autoComplete="name"
+        />
+        <Space align="start">
+          <Checkbox
+            id="name-confirmation"
+            checked={confirmFullName}
+            disabled={!fullName.length}
+            onChange={(e) => setConfirmFullName(fullName ? e.target.checked : false)}
+          />
+          <label
+            htmlFor="name-confirmation"
+            className={`${styles.nameConfirmation} ${fullName.length ? '' : styles.disabled}`}
+          >
             I confirm that this name is typed exactly as it would appear as an author in my
             publications. I understand that any future changes to my name will require
             moderation by the OpenReview.net Staff.
           </label>
-        </div>
-      </form>
+        </Space>
+      </Flex>
 
       {confirmFullName && (
         <>
           <hr className="spacer" />
+          <Flex vertical gap="small">
+            <label htmlFor="dob-input" className={styles.titleText}>
+              Enter your date of birth{' '}
+              <Tooltip
+                title={
+                  <Space vertical size={4}>
+                    <span>OpenReview requires date of birth for age verification.</span>
+                    <span>Your date of birth is never shown publicly.</span>
+                  </Space>
+                }
+                styles={{
+                  root: { maxWidth: '320px' },
+                }}
+              >
+                <InfoCircleFilled
+                  tabIndex={0}
+                  aria-label="Why we ask for your date of birth"
+                  style={{
+                    cursor: 'help',
+                    color: '#3e6775',
+                    fontSize: '1rem',
+                  }}
+                />
+              </Tooltip>
+            </label>
+            <Flex gap="middle" onBlur={handleDobBlur} className={styles.fieldWidth}>
+              <Select
+                options={monthOptions}
+                value={dobMM}
+                onChange={(value) => {
+                  setDobMM(value)
+                }}
+                placeholder="Month"
+                popupMatchSelectWidth={false}
+                style={{ flex: '2 1 0', width: 'auto' }}
+              />
+              <Input
+                value={dobDD}
+                onChange={(e) => {
+                  setDobDD(e.target.value.replace(/\D/g, '').slice(0, 2))
+                }}
+                placeholder="DD"
+                inputMode="numeric"
+                style={{ flex: '1 1 0' }}
+              />
+              <Input
+                value={dobYYYY}
+                onChange={(e) => {
+                  setDobYYYY(e.target.value.replace(/\D/g, '').slice(0, 4))
+                }}
+                placeholder="YYYY"
+                inputMode="numeric"
+                style={{ flex: '1.5 1 0' }}
+              />
+            </Flex>
+            <span>
+              <span className={styles.warningText}>
+                Your date of birth can <strong>NOT</strong> be changed after registration.
+              </span>
+            </span>
+          </Flex>
 
-          <NewProfileForm registerUser={registerUser} nameConfirmed={nameConfirmed} />
+          {dobConfirmed && (
+            <>
+              <hr className="spacer" />
 
-          <ConfirmNameModal
-            fullName={fullName}
-            onConfirm={() => {
-              setNameConfirmed(true)
-              $('#confirm-name-modal').modal('hide')
-            }}
-            setTurnstileToken={setTurnstileToken}
-          />
+              <NewProfileForm registerUser={registerUser} nameConfirmed={nameConfirmed} />
+
+              <ConfirmNameModal
+                fullName={fullName}
+                onConfirm={() => {
+                  setNameConfirmed(true)
+                  $('#confirm-name-modal').modal('hide')
+                }}
+                setTurnstileToken={setTurnstileToken}
+              />
+            </>
+          )}
         </>
       )}
     </div>
@@ -225,12 +345,19 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
                 maxLength={64}
                 required
               />
-              <Icon
-                name="info-sign"
-                extraClasses="password-tooltip"
-                tooltip="Password must be between 10 and 64 characters long and contain at least one
+              <Tooltip
+                title="Password must be between 10 and 64 characters long and contain at least one
               uppercase letter, one lowercase letter and one digit."
-              />
+                styles={{
+                  root: { maxWidth: '320px' },
+                }}
+              >
+                <InfoCircleFilled
+                  tabIndex={0}
+                  aria-label="Why we ask for your date of birth"
+                  style={{ cursor: 'help', color: '#3e6775', fontSize: '1rem' }}
+                />
+              </Tooltip>
             </div>
             <div className="claim-button-row">
               <input
@@ -347,9 +474,11 @@ export default function Signup() {
       />
     )
   return (
-    <div className="col-sm-12 col-md-10 col-lg-8 col-md-offset-1 col-lg-offset-2">
-      <h1>Sign Up for OpenReview</h1>
-      <SignupForm setSignupConfirmation={setSignupConfirmation} />
-    </div>
+    <Row>
+      <Col xs={24} lg={{ span: 20, offset: 2 }} xl={{ span: 16, offset: 4 }}>
+        <h1>Sign Up for OpenReview</h1>
+        <SignupForm setSignupConfirmation={setSignupConfirmation} />
+      </Col>
+    </Row>
   )
 }

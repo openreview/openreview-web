@@ -82,6 +82,7 @@ const addSignatureToProfile = (profile) => {
     relations: addMetadata(profile, 'relations'),
     publications: profile.publications,
     yearOfBirth: profile.content.yearOfBirth?.toString(),
+    dob: profile.content.dob?.toString(),
   }
 }
 
