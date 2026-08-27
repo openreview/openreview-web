@@ -231,20 +231,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      - name: Generate GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.APP_CLIENT_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-          owner: openreview
-          repositories: openreview-cloud
-      - name: Checkout openreview-cloud
-        uses: actions/checkout@v6
-        with:
-          repository: openreview/openreview-cloud
-          path: openreview-cloud
-          token: ${{ steps.app-token.outputs.token }}
       - name: Authenticate with Google Cloud
         id: auth
         uses: google-github-actions/auth@v3
@@ -261,11 +247,16 @@ jobs:
           skip_install: true
       - name: Build and deploy web to Cloud Run
         run: |
-          gcloud builds submit \
-            --config openreview-cloud/Terraform/dev/web-cloudrun/build/cloudbuild.yaml \
+          BUILD_ID=$(gcloud builds triggers run openreview-web-dev-deploy \
+            --region=global --branch=main \
             --substitutions=_WEB_REF=${{ github.sha }} \
             --project ${{ secrets.GCP_PROJECT_ID }} \
-            openreview-cloud/Terraform/dev/web-cloudrun/build
+            --format='value(metadata.build.id)')
+          echo "Triggered Cloud Build: $BUILD_ID"
+          gcloud builds log --stream "$BUILD_ID" --project ${{ secrets.GCP_PROJECT_ID }} || true
+          STATUS=$(gcloud builds describe "$BUILD_ID" --project ${{ secrets.GCP_PROJECT_ID }} --format='value(status)')
+          echo "Final build status: $STATUS"
+          [ "$STATUS" = "SUCCESS" ] || exit 1
       - name: Deploy openreview-py to dev
         run: |
           instance_prefix='openreview-dev-'
