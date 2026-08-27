@@ -197,11 +197,6 @@ const SignupForm = ({ setSignupConfirmation }) => {
                 style={{ flex: '1.5 1 0' }}
               />
             </Flex>
-            <span>
-              <span className={styles.warningText}>
-                Your date of birth can <strong>NOT</strong> be changed after registration.
-              </span>
-            </span>
           </Flex>
 
           {dobConfirmed && (
