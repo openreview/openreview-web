@@ -4,6 +4,8 @@ import { ConfigProvider } from 'antd'
 const primaryColor = '#3e6775'
 const backgroundWhite = '#fffdfa'
 const orRed = '#8c1b13'
+const orRedLight = '#ee8a83'
+const alertRed = '#f2dede'
 const subtleGray = '#616161'
 const backgroundGray = '#dddddd'
 
@@ -30,6 +32,9 @@ const theme = {
       borderRadius: 3,
       borderRadiusSM: 3,
     },
+    Badge: {
+      colorPrimary: orRed,
+    },
     Select: {
       colorBorder: primaryColor,
       hoverBorderColor: '#4f7a8a',
@@ -46,6 +51,24 @@ const theme = {
       colorBgContainer: '#fffaf4',
       lineWidth: 2,
       colorTextPlaceholder: '#999',
+    },
+    DatePicker: {
+      colorBgContainer: '#fffaf4',
+      colorBorder: primaryColor,
+      hoverBorderColor: '#4f7a8a',
+      activeBorderColor: '#2e4f5a',
+      activeShadow: '0 0 0 transparent',
+      lineWidth: 2,
+      borderRadius: 0,
+      colorTextPlaceholder: '#999',
+      colorBgElevated: '#fffaf4',
+      colorPrimary: primaryColor,
+      cellHoverBg: 'rgba(55, 11, 7, 0.1)',
+      cellActiveWithRangeBg: 'rgba(0, 0, 255, 0.1)',
+      timeColumnWidth: 56,
+      timeCellHeight: 28,
+      colorError: orRed,
+      colorErrorBorderHover: orRed,
     },
     Checkbox: {
       colorPrimary: primaryColor,
@@ -80,12 +103,15 @@ const theme = {
     Alert: {
       colorInfoBg: backgroundGray,
       colorText: subtleGray,
+      colorError: orRed,
+      colorErrorBg: alertRed,
+      colorErrorBorder: orRedLight,
     },
     Descriptions: {
       paddingXs: 4,
     },
     Notification: {
-      colorErrorBg: '#f2dede',
+      colorErrorBg: alertRed,
       colorSuccessBg: '#dff0d8',
       colorInfoBg: '#dff0d8',
       width: '80vw',

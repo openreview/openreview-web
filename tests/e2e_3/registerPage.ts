@@ -1,8 +1,10 @@
+import dayjs from 'dayjs'
 import { Selector, ClientFunction, RequestLogger, Role } from 'testcafe'
 import {
   inactiveUser,
   inActiveUserNoPassword,
   inActiveUserNoPasswordNoEmail,
+  institutionEmailUser,
   getToken,
   getMessages,
   createPasswordResetRequest,
@@ -22,11 +24,51 @@ const confirmPasswordInputSelector = Selector('input').withAttribute(
   'placeholder',
   'Confirm new password'
 )
-const sendActivationLinkButtonSelector = Selector('button').withText('Send Activation Link')
-const claimProfileButtonSelector = Selector('button').withText('Claim Profile')
+
 const messageSelector = Selector('.ant-notification-notice-content').nth(-1)
+const notificationSelector = Selector('.ant-notification-notice')
+const notificationCloseButton = Selector('.ant-notification-notice-close')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
+const nameConfirmationLabel = Selector('label[for="name-confirmation"]')
+
+const dobMonthSelect = Selector('.ant-select')
+const dobDayInput = Selector('input[placeholder="DD"]')
+const dobYearInput = Selector('input[placeholder="YYYY"]')
+const dobMonthOption = (monthLabel: string) =>
+  Selector('.ant-select-item-option').withAttribute('title', monthLabel)
+const monthLabels = [
+  'January (1)',
+  'February (2)',
+  'March (3)',
+  'April (4)',
+  'May (5)',
+  'June (6)',
+  'July (7)',
+  'August (8)',
+  'September (9)',
+  'October (10)',
+  'November (11)',
+  'December (12)',
+]
+
+const enterDob = (t: TestController, month = 'January (1)', day = '11', year = '1990') =>
+  t
+    .click(dobMonthSelect)
+    .click(dobMonthOption(month))
+    .typeText(dobDayInput, day, { replace: true })
+    .typeText(dobYearInput, year, { replace: true })
+
+const maxStackedNotifications = 2 // notification.useNotification({ maxCount: 2 })
+const dismissNotifications = async (t: TestController) => {
+  for (
+    let i = 0;
+    i < maxStackedNotifications && (await notificationCloseButton.exists);
+    i += 1
+  ) {
+    await t.click(notificationCloseButton.nth(0))
+  }
+}
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
@@ -45,7 +87,57 @@ test('create new profile', async (t) => {
     )
     .ok()
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(nameConfirmationLabel)
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+
+  const currentYear = dayjs().year()
+
+  await t
+    .click(dobMonthSelect)
+    .click(dobMonthOption('January (1)'))
+    .typeText(dobDayInput, '1', { replace: true })
+    .typeText(dobYearInput, `${currentYear - 12}`, { replace: true })
+    .expect(messageSelector.innerText)
+    .eql('Error: OpenReview profiles require an age of 13 or over.')
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+  await dismissNotifications(t)
+
+  await t
+    .typeText(dobYearInput, `${currentYear - 101}`, { replace: true })
+    .expect(messageSelector.innerText)
+    .eql('Error: Please enter a valid date of birth.')
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+  await dismissNotifications(t)
+
+  // signup only prompts when the message changes, and Feb 31 repeats the message above,
+  // so assert the form stays hidden rather than the notification text
+  await t
+    .click(dobMonthSelect)
+    .click(dobMonthOption('February (2)'))
+    .typeText(dobDayInput, '31', { replace: true })
+    .typeText(dobYearInput, '1990', { replace: true })
+    .expect(emailAddressInputSelector.exists)
+    .notOk()
+  await dismissNotifications(t)
+
+  const thirteenToday = dayjs().subtract(13, 'year')
+  await t
+    .click(dobMonthSelect)
+    .click(dobMonthOption(monthLabels[thirteenToday.month()]))
+    .typeText(dobDayInput, `${thirteenToday.date()}`, { replace: true })
+    .typeText(dobYearInput, `${thirteenToday.year()}`, { replace: true })
+    .expect(emailAddressInputSelector.exists)
+    .ok()
+  await dismissNotifications(t)
+
+  await t
+    .click(dobMonthSelect)
+    .click(dobMonthOption('January (1)'))
+    .typeText(dobDayInput, '11', { replace: true })
+    .typeText(dobYearInput, '1990', { replace: true })
     .typeText(emailAddressInputSelector, 'melisa@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -121,7 +213,9 @@ test('create another new profile', async (t) => {
     )
     .ok()
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(nameConfirmationLabel)
+  await enterDob(t, 'March (3)', '5', '1985')
+  await t
     .typeText(emailAddressInputSelector, 'peter@test.com')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -170,7 +264,9 @@ test('create a new profile with an institutional email', async (t) => {
     )
     .ok()
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(nameConfirmationLabel)
+  await enterDob(t, 'July (7)', '20', '1992')
+  await t
     .typeText(emailAddressInputSelector, 'kevin@umass.edu')
     .expect(signupButtonSelector.hasAttribute('disabled'))
     .notOk('not enabled yet', { timeout: 5000 })
@@ -203,10 +299,9 @@ test('create a new profile with an institutional email', async (t) => {
 })
 
 test('sign up with invalid name', async (t) => {
+  await t.wait(100).typeText(fullNameInputSelector, '1').click(nameConfirmationLabel)
+  await enterDob(t)
   await t
-    .wait(100)
-    .typeText(fullNameInputSelector, '1')
-    .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
     .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
@@ -223,9 +318,9 @@ test('sign up with invalid name', async (t) => {
 })
 
 test('sign up with another invalid name', async (t) => {
+  await t.typeText(fullNameInputSelector, 'abc `', { speed: 0.8 }).click(nameConfirmationLabel)
+  await enterDob(t)
   await t
-    .typeText(fullNameInputSelector, 'abc `', { speed: 0.8 })
-    .click(Selector('label.name-confirmation'))
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
     .click(signupButtonSelector)
     .typeText(newPasswordInputSelector, strongPassword)
@@ -247,7 +342,9 @@ test('enter valid name invalid email and change to valid email and register', as
   await t
     .typeText(fullNameInputSelector, fullName) // must be new each test run
     .wait(500)
-    .click(Selector('label.name-confirmation'))
+    .click(nameConfirmationLabel)
+  await enterDob(t)
+  await t
     .typeText(emailAddressInputSelector, `${email}@test.com`)
     .click(signupButtonSelector)
     .expect(newPasswordInputSelector.exists)
@@ -362,8 +459,10 @@ test('update profile', async (t) => {
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
+    // the institution of the email of the profile must be in the history
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .click(Selector('div.institution-dropdown__option').nth(0))
+    .typeText(Selector('input.institution-dropdown__input'), 'umass.edu')
+    .click(Selector('div.institution-dropdown__option').withExactText('umass.edu'))
     .pressKey('tab')
     // add mandatory region
     .click(Selector('input.region-dropdown__placeholder'))
@@ -386,8 +485,8 @@ fixture`Activate`
 
 test('register a profile with an institutional email', async (t) => {
   await t
-    .click(nextSectiomButtonSelector)
-    .click(nextSectiomButtonSelector)
+    .click(nextSectiomButtonSelector) // personal
+    .click(nextSectiomButtonSelector) // emails
     .expect(
       Selector('p').withText(/Your email address could not be automatically verified/).exists
     )
@@ -427,8 +526,10 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('input.position-dropdown__placeholder').nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
+    // the institution of the email of the profile must be in the history
     .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .click(Selector('div.institution-dropdown__option').nth(0))
+    .typeText(Selector('input.institution-dropdown__input'), 'umass.edu')
+    .click(Selector('div.institution-dropdown__option').withExactText('umass.edu'))
     .pressKey('tab')
     // add mandatory region
     .click(Selector('input.region-dropdown__placeholder'))
@@ -438,6 +539,168 @@ test('register a profile with an institutional email', async (t) => {
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
     .eql('Your OpenReview profile has been successfully created')
+})
+
+// the api requires the institution of an institutional email to be in the history
+const institutionEmailDomain = 'umass.edu'
+const otherInstitutionDomain = 'abc.com'
+const otherInstitutionName = 'ABC Institution'
+
+const institutionEmailUserRole = Role(
+  `http://localhost:${process.env.NEXT_PORT}/login`,
+  async (t) => {
+    await t
+      .typeText(Selector('#email-input'), institutionEmailUser.email)
+      .typeText(Selector('#password-input'), institutionEmailUser.password)
+      .click(Selector('button').withText('Login to OpenReview'))
+  }
+)
+const institutionDomainInput = Selector('input.institution-dropdown__input')
+const historyDomainInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'Institution Domain')
+const historyNameInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'Institution Name')
+const historyStartInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'start year')
+const historyEndInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'end year')
+const historySection = Selector('div.history')
+const historySectionError = Selector('.ant-alert-error')
+const historyRowErrors = Selector('div.history').find('.history__error')
+const historyStep = Selector('.ant-steps-item').withText('History')
+
+// oxlint-disable-next-line no-unused-expressions
+fixture`Activate with an institution which is not the one of the email`
+  .page`http://localhost:${process.env.NEXT_PORT}/profile/activate?token=${institutionEmailUser.email}`
+
+test('register a profile with an institution which is not the one of the email', async (t) => {
+  await t
+    .click(nextSectiomButtonSelector) // personal
+    .click(nextSectiomButtonSelector) // emails
+    .click(nextSectiomButtonSelector) // links
+    .typeText(Selector('#homepage_url'), 'http://test.com', { paste: true })
+    .click(nextSectiomButtonSelector) // history
+    .click(nextSectiomButtonSelector) // expertise
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(notificationSelector.exists)
+    .notOk()
+    // user is taken back to the first step with error
+    .expect(historySection.exists)
+    .ok()
+    .expect(historyStep.hasClass('ant-steps-item-error'))
+    .ok()
+    .expect(historySectionError.innerText)
+    .contains("Career & Education History can't be empty.")
+
+    .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .wait(300)
+    .pressKey('M S space s t u d e n t tab')
+    .click(Selector('input.institution-dropdown__placeholder').nth(0))
+    .typeText(institutionDomainInput, otherInstitutionDomain)
+    .pressKey('enter')
+    .click(Selector('input.institution-dropdown__placeholder').nth(1))
+    .typeText(institutionDomainInput, otherInstitutionDomain)
+    .pressKey('enter')
+    .typeText(historyNameInputs.nth(1), otherInstitutionName)
+    .typeText(historyStartInputs.nth(1), '2020', { paste: true })
+    .typeText(historyEndInputs.nth(1), '2015', { paste: true })
+    .click(nextSectiomButtonSelector) // expertise
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messageSelector.innerText)
+    .eql('Error: There are errors in your Career & Education History.')
+    .click(notificationCloseButton)
+    .expect(notificationSelector.exists)
+    .notOk()
+    .expect(historySection.exists)
+    .ok()
+    .expect(historyRowErrors.count)
+    .eql(2)
+    .expect(historyRowErrors.nth(0).innerText)
+    .contains('Institution name is required')
+    .expect(historyRowErrors.nth(0).innerText)
+    .contains('Country/Region is required for current positions')
+    .expect(historyRowErrors.nth(1).innerText)
+    .contains('Position is required')
+    .expect(historyRowErrors.nth(1).innerText)
+    .contains('End date should be higher than start date')
+    // the empty history block is replaced by the per record errors
+    .expect(historySectionError.exists)
+    .notOk()
+
+    // drop the second record and complete the first one
+    .click(historyDomainInputs.nth(1).parent('div.row').find('[aria-label="remove history"]'))
+    .typeText(historyNameInputs.nth(0), otherInstitutionName)
+    // add mandatory region
+    .click(Selector('input.region-dropdown__placeholder'))
+    .click(Selector('div.country-dropdown__option').nth(3))
+
+    .click(nextSectiomButtonSelector)
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messageSelector.innerText)
+    .eql(
+      `Error: The institution of your email ${institutionEmailUser.email} must be added to the history`
+    )
+
+    // the error notification is an 80vw banner fixed at the top of the viewport,
+    // so it swallows the click on the History step; dismiss it first
+    .click(notificationCloseButton)
+    .expect(notificationSelector.exists)
+    .notOk()
+
+    // the profile is created once the institution of the email is in the history
+    .click(Selector('.ant-steps-item').withText('History'))
+    .click(Selector('input.institution-dropdown__placeholder').nth(0))
+    .typeText(institutionDomainInput, institutionEmailDomain)
+    .click(Selector('div.institution-dropdown__option').withExactText(institutionEmailDomain))
+    .pressKey('tab')
+    // add mandatory region again as selecting an institution resets country/region
+    .click(Selector('input.region-dropdown__placeholder'))
+    .click(Selector('div.country-dropdown__option').nth(3))
+    .click(nextSectiomButtonSelector)
+    .click(Selector('button').withText('Register for OpenReview'))
+    .expect(messageSelector.innerText)
+    .eql('Your OpenReview profile has been successfully created')
+})
+
+// oxlint-disable-next-line no-unused-expressions
+fixture`Edit the history of the institution of the email`
+
+test('replace the institution of the email in the history', async (t) => {
+  await t
+    .useRole(institutionEmailUserRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(Selector('.ant-steps-item').withText('History'))
+    .expect(historyDomainInputs.count)
+    .eql(1)
+    .expect(historyDomainInputs.nth(0).value)
+    .eql(institutionEmailDomain)
+    // add the history of another institution
+    .click(Selector('[aria-label="add another history"]'))
+    .click(Selector('input.position-dropdown__placeholder').nth(1))
+    .wait(300)
+    .pressKey('M S space s t u d e n t tab')
+    .click(Selector('input.institution-dropdown__placeholder').nth(1))
+    .typeText(institutionDomainInput, otherInstitutionDomain)
+    .pressKey('enter')
+    .typeText(historyNameInputs.nth(1), otherInstitutionName)
+    .click(Selector('input.region-dropdown__placeholder').nth(1))
+    .click(Selector('div.country-dropdown__option').nth(3))
+    // remove the history of the institution of the email
+    .click(historyDomainInputs.nth(0).parent('div.row').find('[aria-label="remove history"]'))
+    .expect(historyDomainInputs.count)
+    .eql(1)
+    .expect(historyDomainInputs.nth(0).value)
+    .eql(otherInstitutionDomain)
+    .click(Selector('button').withText('Save Profile Changes'))
+    .expect(messageSelector.innerText)
+    .eql(
+      `Error: The institution of your email ${institutionEmailUser.email} must be added to the history`
+    )
 })
 
 // oxlint-disable-next-line no-unused-expressions
@@ -630,7 +893,7 @@ test('add alternate email', async (t) => {
     .ok()
     .click(Selector('a').withText('Profile'))
     .click(Selector('a').withAttribute('href', '/profile/edit'))
-    .click(Selector('div[step="2"]').find('div[role="button"]')) // go to email section
+    .click(Selector('.ant-steps-item').withText('Emails')) // go to email section
     .expect(Selector('h4').withText('Emails').exists)
     .ok()
     .click(Selector('section').find('.glyphicon-plus-sign')) // add button
