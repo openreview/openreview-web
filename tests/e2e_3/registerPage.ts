@@ -59,15 +59,15 @@ const enterDob = (t: TestController, month = 'January (1)', day = '11', year = '
     .typeText(dobDayInput, day, { replace: true })
     .typeText(dobYearInput, year, { replace: true })
 
-const maxStackedNotifications = 2 // notification.useNotification({ maxCount: 2 })
+const clickAllNotificationCloseButtons = ClientFunction(() => {
+  document
+    .querySelectorAll<HTMLElement>('.ant-notification-notice-close')
+    .forEach((closeButton) => closeButton.click())
+})
+
 const dismissNotifications = async (t: TestController) => {
-  for (
-    let i = 0;
-    i < maxStackedNotifications && (await notificationCloseButton.exists);
-    i += 1
-  ) {
-    await t.click(notificationCloseButton.nth(0))
-  }
+  await clickAllNotificationCloseButtons()
+  await t.expect(notificationSelector.exists).notOk()
 }
 
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
