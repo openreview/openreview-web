@@ -34,6 +34,10 @@ dayjs.extend(relativeTime)
 
 const workflowGroupKeys = [
   {
+    field: 'program_chairs_id',
+    subGroupSuffixes: [],
+  },
+  {
     field: 'authors_id',
     subGroupSuffixes: ['/Accepted'],
   },
@@ -63,10 +67,6 @@ const workflowGroupKeys = [
   },
   {
     field: 'publication_chairs_id',
-    subGroupSuffixes: [],
-  },
-  {
-    field: 'program_chairs_id',
     subGroupSuffixes: [],
   },
 ]
