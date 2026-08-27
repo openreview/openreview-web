@@ -45,7 +45,7 @@ const DatetimePicker = ({
       return
     }
     if (showTime === false) {
-      onChange(date.tz('UTC', true).startOf('date').toISOString())
+      onChange(dayjs.utc(date.format('YYYY-MM-DD')).toISOString())
     } else {
       onChange(date.tz(timeZone ?? getDefaultTimezone().value, true).valueOf())
     }
