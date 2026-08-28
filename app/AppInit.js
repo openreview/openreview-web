@@ -5,6 +5,7 @@ import { marked } from 'marked'
 import { nanoid } from 'nanoid'
 import { useEffect, useState } from 'react'
 import BibtexModal from '../components/BibtexModal'
+import HumanVerificationModal from '../components/HumanVerificationModal'
 import usePrompt from '../hooks/usePrompt'
 import mathjaxConfig from '../lib/mathjax-config'
 import { allowedHtmlTags } from '../lib/utils'
@@ -105,6 +106,7 @@ export default function AppInit() {
       {notificationHolder}
       <StripeScript />
       {libarysLoaded && <BibtexModal />}
+      <HumanVerificationModal />
     </>
   )
 }
