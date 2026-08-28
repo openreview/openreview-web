@@ -299,6 +299,13 @@ module.exports = (function () {
       sort: options.sort,
     }
 
+    // Callers that only read a few fields can pass `select` to avoid transferring
+    // whole notes. Note that a select which omits `details.replies[*]...` entries
+    // drops details.replies from the response entirely, without an error.
+    if (options.select) {
+      query.select = options.select
+    }
+
     if (options['content.venueid']) {
       query['content.venueid'] = options['content.venueid']
     }
