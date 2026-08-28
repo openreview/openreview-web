@@ -1,4 +1,7 @@
 // jest.config.js
+// extreme UTC+ timezone (UTC+14, no DST) to check date handling logic
+process.env.TZ = 'Pacific/Kiritimati'
+
 const nextJest = require('next/jest')
 
 const createJestConfig = nextJest({

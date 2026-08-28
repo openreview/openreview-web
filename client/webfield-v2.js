@@ -299,6 +299,13 @@ module.exports = (function () {
       sort: options.sort,
     }
 
+    // Callers that only read a few fields can pass `select` to avoid transferring
+    // whole notes. Note that a select which omits `details.replies[*]...` entries
+    // drops details.replies from the response entirely, without an error.
+    if (options.select) {
+      query.select = options.select
+    }
+
     if (options['content.venueid']) {
       query['content.venueid'] = options['content.venueid']
     }
@@ -1304,43 +1311,51 @@ module.exports = (function () {
     return get('/groups', query).then(function (result) {
       var groups = result.groups
       var paperGroups = []
-      var anonPaperGroups = []
-      var memberIds = []
+      // Anonymous groups are indexed by paper number as they are classified: the
+      // per-member lookup below only ever wants one paper's groups, and scanning a
+      // flat array per member is quadratic (~30s of blocking main-thread work on a
+      // venue with ~11k submissions and 3 reviewers each).
+      var anonGroupsByNumber = {}
+      // A Set rather than `memberIds = memberIds.concat(...)`, which reallocates and
+      // copies the whole growing array once per group, and dedupes as it accumulates.
+      var memberIdSet = new Set()
+      var collectMemberIds = function (group) {
+        group.members.forEach(function (member) {
+          if (member.indexOf('~') === 0 || member.indexOf('@') > -1) {
+            memberIdSet.add(member)
+          }
+        })
+      }
       groups.forEach(function (group) {
         if (group.id.endsWith('/' + roleName)) {
           paperGroups.push(group)
-          memberIds = memberIds.concat(
-            group.members.filter(function (member) {
-              return member.indexOf('~') === 0 || member.indexOf('@') > -1
-            })
-          )
+          collectMemberIds(group)
         } else if (_.includes(group.id, '/' + anonRoleName)) {
-          anonPaperGroups.push(group)
-          memberIds = memberIds.concat(
-            group.members.filter(function (member) {
-              return member.indexOf('~') === 0 || member.indexOf('@') > -1
-            })
-          )
+          var anonNumber = getNumberfromGroup(group.id, numberToken)
+          if (!anonGroupsByNumber[anonNumber]) {
+            anonGroupsByNumber[anonNumber] = []
+          }
+          anonGroupsByNumber[anonNumber].push(group)
+          collectMemberIds(group)
         }
       })
 
       var profileP = $.Deferred().resolve({ profiles: [] })
       if (options.withProfiles) {
-        profileP = post('/profiles/search', { ids: _.uniq(memberIds) })
+        profileP = post('/profiles/search', { ids: Array.from(memberIdSet) })
       }
 
       return profileP.then(function (result) {
         var profilesById = _.keyBy(result.profiles, 'id')
+
         var groupsByNumber = {}
         paperGroups.forEach(function (group) {
           var number = getNumberfromGroup(group.id, numberToken)
           var memberGroups = []
+          var numberAnonGroups = anonGroupsByNumber[number] || []
           group.members.forEach(function (member) {
-            var anonGroup = anonPaperGroups.find(function (anonGroup) {
-              return (
-                anonGroup.id.startsWith(venueId + '/' + numberToken + number) &&
-                (anonGroup.members[0] === member || anonGroup.id === member)
-              )
+            var anonGroup = numberAnonGroups.find(function (anonGroup) {
+              return anonGroup.members[0] === member || anonGroup.id === member
             })
             var deanonymizedMember = anonGroup ? anonGroup.members[0] : member
             var profile = profilesById[deanonymizedMember]
