@@ -36,11 +36,10 @@ const DocumentUploadSection = ({
   token,
   maxSize = 3,
   maxFileCount = 5,
+  acceptedFileTypes = ['pdf', 'jpg', 'jpeg', 'png'],
   instructions = 'Upload any files that you think are necessary to support your profile creation request. The documents will be deleted permanently after review from our moderation team.',
 }) => {
   const [documents, setDocuments] = useState([])
-
-  const acceptedFileTypes = ['pdf', 'jpg', 'jpeg', 'png']
 
   const isUploading = documents.some((file) => file.status === 'uploading')
   const pendingCount = documents.filter((file) => !file.url).length
@@ -114,8 +113,8 @@ const DocumentUploadSection = ({
         <div>{instructions}</div>
         <div>You may upload up to {inflect(maxFileCount, 'file', 'files', true)}.</div>
         <div>
-          Accepted formats: <strong>PDF</strong>, <strong>JPG</strong>, <strong>JPEG</strong>,
-          or <strong>PNG</strong>.
+          Accepted formats:{' '}
+          <strong>{acceptedFileTypes.map((p) => p.toUpperCase()).join(', ')}</strong>.
         </div>
         <div>
           Each file must be no larger than <strong>{maxSize} MB</strong>.
