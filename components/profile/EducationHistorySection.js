@@ -1,6 +1,6 @@
 import { AutoComplete, Input, Select } from 'antd'
 import { nanoid } from 'nanoid'
-import { useEffect, useReducer } from 'react'
+import { useEffect, useReducer, useRef } from 'react'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import api from '../../lib/api-client'
 import { getStartEndYear } from '../../lib/utils'
@@ -37,7 +37,10 @@ const EducationHistoryRow = ({
   const isIndependentResearcher = p.position === 'Independent Researcher'
   const invalidFieldMessages = invalidFields ? [...new Set(Object.values(invalidFields))] : []
 
+  const lastLookedUpDomain = useRef(p.institution?.domain)
+
   const updateDomain = async (domain, key) => {
+    lastLookedUpDomain.current = domain
     if (!domain) {
       setHistory({
         type: institutionDomainType,
@@ -124,7 +127,25 @@ const EducationHistoryRow = ({
           value={p.institution?.domain}
           style={{ width: '100%' }}
           status={invalidFields?.institutionDomain ? 'error' : undefined}
-          onChange={(e) => updateDomain(e ?? '', p.key)}
+          onChange={(e) => {
+            setHistory({
+              type: institutionDomainType,
+              data: {
+                value: {
+                  institutionDomain: e ?? '',
+                  institutionName: e ? (p.institution?.name ?? '') : '',
+                },
+                key: p.key,
+              },
+            })
+          }}
+          onSelect={(value) => updateDomain(value, p.key)}
+          onBlur={() => {
+            const currentDomain = p.institution?.domain ?? ''
+            if (currentDomain && currentDomain !== lastLookedUpDomain.current) {
+              updateDomain(currentDomain, p.key)
+            }
+          }}
           placeholder={institutionPlaceholder}
           showSearch={{ filterOption: true }}
           allowClear
