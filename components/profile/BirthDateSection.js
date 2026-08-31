@@ -1,10 +1,9 @@
 import dayjs from 'dayjs'
 import DatetimePicker from '../DatetimePicker'
 
-const BirthDateSection = ({ profileDateOfBirth, updateDateOfBirth, savedDateOfBirth }) => (
+const BirthDateSection = ({ profileDateOfBirth, updateDateOfBirth }) => (
   <div translate="no">
     <DatetimePicker
-      disabled={!!savedDateOfBirth}
       placeholder="Select your date of birth"
       autoFocus={false}
       showTime={false}

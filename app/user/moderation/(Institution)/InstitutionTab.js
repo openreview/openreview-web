@@ -41,6 +41,7 @@ export default function InstitutionTab() {
   const [page, setPage] = useState(1)
   const [countryOptions, setCountryOptions] = useState([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
   const [modalData, setModalData] = useState({})
   const [isEditMode, setIsEditMode] = useState(null)
 
@@ -48,17 +49,6 @@ export default function InstitutionTab() {
     if (!institutions) return null
     return institutions.slice(pageSize * (page - 1), pageSize * page)
   }, [institutions, page])
-
-  const loadInstitutionsDomains = async () => {
-    try {
-      const result = await api.get(`/settings/institutionDomains?cache=false`)
-
-      return result
-    } catch (error) {
-      promptError(error.message)
-      return []
-    }
-  }
 
   const loadCountryOptions = async () => {
     try {
@@ -74,14 +64,24 @@ export default function InstitutionTab() {
     }
   }
 
-  const loadAndFilterInstitutions = async (termOverride) => {
+  // An institution owns many domains, so searching by domain returns the single
+  // institution that owns it, keyed by its id rather than by the domain searched for.
+  const searchInstitutions = async (termOverride) => {
     const cleanTerm = (termOverride ?? searchTerm)?.trim()?.toLowerCase()
     setPage(1)
-    const domains = await loadInstitutionsDomains()
-    if (!cleanTerm.length) {
-      setInstitutions(domains)
-    } else {
-      setInstitutions(domains.filter((p) => p.toLowerCase().includes(cleanTerm)))
+    if (!cleanTerm?.length) {
+      setInstitutions(null)
+      return
+    }
+    setIsSearching(true)
+    try {
+      const result = await api.get('/settings/institutions', { domain: cleanTerm })
+      setInstitutions(result?.institutions ?? [])
+    } catch (error) {
+      promptError(error.message)
+      setInstitutions([])
+    } finally {
+      setIsSearching(false)
     }
   }
 
@@ -91,28 +91,14 @@ export default function InstitutionTab() {
     setIsEditMode(false)
   }
 
-  const openEditModal = async (institutionDomain) => {
+  const openEditModal = async (institution) => {
     if (!countryOptions.length) await loadCountryOptions()
-    try {
-      const result = await api.get('/settings/institutions', { domain: institutionDomain })
-      const institution = result.institutions[0]
-      if (!institution) {
-        promptError(`Institution ${institutionDomain} not found.`)
-        return
-      }
-      if (institution.id !== institutionDomain) {
-        promptError(`Id of ${institutionDomain} is ${institution.id}`)
-        return
-      }
-      setModalData({
-        ...institution,
-        domains: institution.domains.join(','),
-        webPages: institution.webPages?.join(',') ?? '',
-      })
-      setIsEditMode(true)
-    } catch (error) {
-      promptError(error.message)
-    }
+    setModalData({
+      ...institution,
+      domains: institution.domains?.join(',') ?? '',
+      webPages: institution.webPages?.join(',') ?? '',
+    })
+    setIsEditMode(true)
   }
 
   const handleModalOk = async () => {
@@ -121,45 +107,47 @@ export default function InstitutionTab() {
       promptError('Institution ID is required.')
       return
     }
+    const fullname = modalData.fullname?.trim()
+    const domains = (modalData.domains ?? '')
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean)
+    const webPages = (modalData.webPages ?? '')
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean)
 
     try {
       await api.post('/settings/institutions', {
         id: institutionId,
-        shortname: modalData.shortname?.trim() || null,
-        fullname: modalData.fullname?.trim() || null,
-        parent: modalData.parent?.trim() || null,
-        domains: modalData.domains
-          ? modalData.domains
-              .split(',')
-              .map((p) => p.trim())
-              .filter(Boolean)
-          : [],
+        // parent and shortname are not nullable in the API, an empty string clears them
+        shortname: modalData.shortname?.trim() ?? '',
+        parent: modalData.parent?.trim() ?? '',
+        ...(fullname ? { fullname } : {}),
+        ...(domains.length ? { domains } : {}),
         country: modalData.country || null,
         alphaTwoCode: modalData.alphaTwoCode || null,
         stateProvince: modalData.stateProvince?.trim() || null,
-        webPages: modalData.webPages
-          ? modalData.webPages
-              .split(',')
-              .map((p) => p.trim())
-              .filter(Boolean)
-          : null,
+        webPages: webPages.length ? webPages : null,
       })
       promptMessage(`${institutionId} ${isEditMode ? 'saved' : 'added'}.`)
       setIsEditMode(null)
       setModalData({})
-      await loadAndFilterInstitutions()
+      await searchInstitutions()
     } catch (error) {
       promptError(error.message)
     }
   }
 
-  const deleteInstitution = async (institutionId) => {
-    const confirmed = window.confirm(`Are you sure you want to delete ${institutionId}?`)
+  const deleteInstitution = async (institution) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${institution.id} and its domains ${institution.domains?.join(', ')}?`
+    )
     if (!confirmed) return
     try {
-      await api.delete(`/settings/institutions/${institutionId}`)
-      promptMessage(`${institutionId} is deleted.`)
-      await loadAndFilterInstitutions()
+      await api.delete(`/settings/institutions/${institution.id}`)
+      promptMessage(`${institution.id} is deleted.`)
+      await searchInstitutions()
     } catch (error) {
       promptError(error.message)
     }
@@ -184,18 +172,19 @@ export default function InstitutionTab() {
               const value = e.target.value ?? ''
               setSearchTerm(value)
               if (!value) {
-                loadAndFilterInstitutions('')
+                searchInstitutions('')
               }
             }}
-            onPressEnter={() => loadAndFilterInstitutions()}
+            onPressEnter={() => searchInstitutions()}
           />
         </Col>
         <Col>
           <Space>
             <Button
               type="primary"
+              loading={isSearching}
               styles={{ root: legacyStyles.formButton }}
-              onClick={() => loadAndFilterInstitutions()}
+              onClick={() => searchInstitutions()}
             >
               Search
             </Button>
@@ -211,42 +200,62 @@ export default function InstitutionTab() {
         </Col>
       </Row>
 
+      {!institutions && (
+        <p>Search an institution domain to edit or delete the institution that owns it.</p>
+      )}
+
       {institutionsToShow && (
         <>
           <Flex vertical gap="middle" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
-            {institutionsToShow.map((institutionDomain) => (
-              <Row key={institutionDomain} align="middle" gutter={[8, 0]}>
-                <Col flex="none">
-                  <Space size={4}>
-                    <Button
-                      size="small"
-                      type="primary"
-                      styles={{ root: legacyStyles.actionButton }}
-                      onClick={() => openEditModal(institutionDomain)}
-                    >
-                      <span style={{ top: '0px' }}>
-                        <Icon name="edit" />
-                      </span>
-                    </Button>
-                    <Button
-                      size="small"
-                      type="primary"
-                      styles={{ root: legacyStyles.actionButton }}
-                      onClick={() => deleteInstitution(institutionDomain)}
-                    >
-                      <span style={{ top: '0px' }}>
-                        <Icon name="trash" />
-                      </span>
-                    </Button>
-                  </Space>
-                </Col>
-                <Col flex="auto">{institutionDomain}</Col>
-              </Row>
-            ))}
+            {institutionsToShow.map((institution) => {
+              const otherDomains = (institution.domains ?? []).filter(
+                (p) => p !== institution.id
+              )
+              return (
+                <Row key={institution.id} align="middle" gutter={[8, 0]}>
+                  <Col flex="none">
+                    <Space size={4}>
+                      <Button
+                        size="small"
+                        type="primary"
+                        styles={{ root: legacyStyles.actionButton }}
+                        onClick={() => openEditModal(institution)}
+                      >
+                        <span style={{ top: '0px' }}>
+                          <Icon name="edit" />
+                        </span>
+                      </Button>
+                      <Button
+                        size="small"
+                        type="primary"
+                        styles={{ root: legacyStyles.actionButton }}
+                        onClick={() => deleteInstitution(institution)}
+                      >
+                        <span style={{ top: '0px' }}>
+                          <Icon name="trash" />
+                        </span>
+                      </Button>
+                    </Space>
+                  </Col>
+                  <Col flex="auto">
+                    <Space size={8} wrap>
+                      <strong>{institution.id}</strong>
+                      {institution.fullname && <span>{institution.fullname}</span>}
+                      {otherDomains.length > 0 && (
+                        <span style={{ color: '#8c8c8c' }}>
+                          +{otherDomains.length} domain
+                          {otherDomains.length > 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </Space>
+                  </Col>
+                </Row>
+              )
+            })}
           </Flex>
 
           {institutions.length === 0 ? (
-            <p>No matching domains found.</p>
+            <p>No matching institutions found.</p>
           ) : (
             <Pagination
               align="center"
