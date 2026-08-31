@@ -39,6 +39,7 @@ export default function Page() {
           token={token}
           instructions=""
           maxFileCount={1}
+          acceptedFileTypes={['pdf']}
         />
       </div>
     </CommonLayout>
