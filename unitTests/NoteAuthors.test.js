@@ -1,5 +1,5 @@
 import { render, screen } from '@testing-library/react'
-import { NoteAuthorsV2 } from '../components/NoteAuthors'
+import { NoteAuthorsV2, consolidateInstitutions } from '../components/NoteAuthors'
 import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -47,6 +47,104 @@ describe('NoteAuthorsV2', () => {
     expect(container.querySelector('.note-authors-institutions')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'First Last' })).toBeInTheDocument()
     expect(screen.getByText(/Test Domain/)).toBeInTheDocument()
+  })
+
+  test('consolidate domains that user entered which map to the same institution object', () => {
+    // both ustc.edu.cn and mail.ustc.edu.cn map to institution object ustc.edu
+    // so they are consolidated and the fullname from institution object should be used
+    const officialInstitutions = [
+      {
+        id: 'ustc.edu',
+        fullname: 'University of Science and Technology of China',
+        domains: ['ustc.edu', 'ustc.edu.cn', 'mail.ustc.edu.cn'],
+      },
+      {
+        id: 'umass.edu',
+        fullname: 'University of Massachusetts at Amherst',
+        domains: ['umass.edu'],
+      },
+    ]
+    const authors = {
+      value: [
+        {
+          fullname: 'Author One',
+          username: '~Authro_One1',
+          institutions: [
+            { domain: 'test.domain', name: 'Test Domain' },
+            { domain: 'umass.edu', name: 'UMASS' },
+          ],
+        },
+        {
+          fullname: 'Author Two',
+          username: '~Authro_Two1',
+          institutions: [
+            {
+              domain: 'mail.ustc.edu.cn',
+              name: 'University of Science and Technology of China',
+            },
+            {
+              domain: 'ustc.edu.cn',
+              name: 'Some Other Name',
+            },
+          ],
+        },
+        {
+          fullname: 'Author Three',
+          username: '~Author_Three1',
+          institutions: [
+            {
+              domain: 'ustc.edu.cn',
+              name: 'University of Science and Technology of China',
+            },
+          ],
+        },
+      ],
+      readers: ['everyone'],
+    }
+    const { container } = render(
+      <NoteAuthorsV2
+        authors={authors}
+        authorIds={undefined}
+        noteReaders={['everyone']}
+        showAuthorInstitutions
+        officialInstitutions={officialInstitutions}
+      />
+    )
+
+    expect(container.querySelectorAll('.note-authors-institutions>div')).toHaveLength(3) // test,umass,single ustc
+    expect(screen.queryByText(/Some Other Name/)).not.toBeInTheDocument() // replaced by institution obj fullname
+    expect(screen.queryByText(/ustc\.edu\.cn/)).not.toBeInTheDocument() // both replaced by institution id ustc.edu
+    expect(screen.queryByText(/mail\.ustc\.edu\.cn/)).not.toBeInTheDocument()
+
+    const authorTwo = screen.getByRole('link', { name: 'Author Two' })
+    expect(authorTwo.nextSibling.textContent).toEqual('3') // no duplicated ustc
+
+    const authorThree = screen.getByRole('link', { name: 'Author Three' })
+    expect(authorThree.nextSibling.textContent).toEqual('3')
+  })
+
+  test('render institutions as entered when officialInstitutions is not available', () => {
+    // officialInstitutions is null when the look up is skipped (20+ domains) or failed
+    const authors = {
+      value: Array.from({ length: 21 }, (_, i) => ({
+        fullname: `Author ${i}`,
+        username: `~Author_${i}1`,
+        institutions: [{ domain: `domain${i}`, name: `Domain ${i}` }],
+      })),
+      readers: ['everyone'],
+    }
+    const { container } = render(
+      <NoteAuthorsV2
+        authors={authors}
+        authorIds={undefined}
+        noteReaders={['everyone']}
+        showAuthorInstitutions
+        officialInstitutions={null}
+      />
+    )
+
+    expect(container.querySelectorAll('.note-authors-institutions>div')).toHaveLength(21)
+    expect(screen.getByText('Domain 20 (domain20)')).toBeInTheDocument()
   })
 
   // email author added with object author schema has no profile link
@@ -159,5 +257,36 @@ describe('NoteAuthorsV2', () => {
       'title',
       'Identities privately revealed to Conference Submission1 Reviewers'
     )
+  })
+})
+
+describe('consolidateInstitutions', () => {
+  const authorInstitutions = [
+    { domain: 'test.domain', name: 'Test Domain' },
+    { domain: 'mail.ustc.edu.cn', name: 'University of Science and Technology of China' },
+    { domain: 'ustc.edu.cn', name: 'Some Other Name' },
+  ]
+
+  test('merge domains of the same institution object and use its id and fullname', () => {
+    const officialInstitutions = [
+      {
+        id: 'ustc.edu',
+        fullname: 'University of Science and Technology of China',
+        domains: ['ustc.edu', 'ustc.edu.cn', 'mail.ustc.edu.cn'],
+      },
+    ]
+    expect(consolidateInstitutions(authorInstitutions, officialInstitutions)).toEqual([
+      { domain: 'test.domain', name: 'Test Domain' },
+      {
+        domain: 'ustc.edu',
+        domains: ['ustc.edu', 'ustc.edu.cn', 'mail.ustc.edu.cn'],
+        name: 'University of Science and Technology of China',
+      },
+    ])
+  })
+
+  test('return author institutions as entered when there are no official institutions', () => {
+    expect(consolidateInstitutions(authorInstitutions, null)).toEqual(authorInstitutions)
+    expect(consolidateInstitutions(authorInstitutions, [])).toEqual(authorInstitutions)
   })
 })
