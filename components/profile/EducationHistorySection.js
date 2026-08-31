@@ -63,11 +63,13 @@ const EducationHistoryRow = ({
       } else {
         institutionName = institution.fullname
       }
+      if (lastLookedUpDomain.current !== domain) return
       setHistory({
         type: institutionDomainType,
         data: { value: { institutionDomain: domain, institutionName }, key },
       })
     } catch (error) {
+      if (lastLookedUpDomain.current !== domain) return
       setHistory({
         type: institutionDomainType,
         data: { value: { institutionDomain: domain, institutionName: '' }, key },
@@ -203,7 +205,7 @@ const EducationHistoryRow = ({
           suffixIcon={null}
           optionRender={(option) => <div style={{ whiteSpace: 'normal' }}>{option.label}</div>}
           showSearch={{ optionFilterProp: 'label' }}
-          notFoundContent="No matching found"
+          notFoundContent="No match found"
           aria-label="Institution Country/Region"
         />
       </div>
@@ -317,6 +319,7 @@ const EducationHistorySection = ({
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
             recordCopy.institution = {
+              ...p.institution,
               domain: action.data.value.institutionDomain,
               name: action.data.value.institutionName,
             }
