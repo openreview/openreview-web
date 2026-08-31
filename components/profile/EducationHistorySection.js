@@ -1,26 +1,10 @@
+import { AutoComplete, Input, Select } from 'antd'
 import { nanoid } from 'nanoid'
-import dynamic from 'next/dynamic'
-/* globals promptError,$: false */
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer } from 'react'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import api from '../../lib/api-client'
 import { getStartEndYear } from '../../lib/utils'
-import Dropdown from '../Dropdown'
 import Icon from '../Icon'
-
-const CreatableDropdown = dynamic(
-  () => import('../Dropdown').then((mod) => mod.CreatableDropdown),
-  {
-    ssr: false,
-    loading: () => (
-      <input
-        className="form-control position-dropdown__placeholder"
-        value="loading..."
-        onChange={() => {}}
-      />
-    ),
-  }
-)
 
 const positionPlaceholder = 'Choose or type a position'
 const institutionPlaceholder = 'Choose or type an institution'
@@ -49,9 +33,6 @@ const EducationHistoryRow = ({
   countryOptions,
   isMobile,
 }) => {
-  const [isPositionClicked, setIsPositionClicked] = useState(false)
-  const [isDomainClicked, setIsDomainClicked] = useState(false)
-  const [isRegionClicked, setIsRegionClicked] = useState(false)
   const invalidFields = profileHistory?.find((q) => q.key === p.key)?.invalidFields
   const isIndependentResearcher = p.position === 'Independent Researcher'
   const invalidFieldMessages = invalidFields ? [...new Set(Object.values(invalidFields))] : []
@@ -95,169 +76,73 @@ const EducationHistoryRow = ({
     <div className="row">
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-2">Position</div>}
-        {isPositionClicked ? (
-          <CreatableDropdown
-            autofocus
-            clientOnly
-            defaultMenuIsOpen
-            hideArrow
-            disableMouseMove
-            isClearable
-            classNamePrefix="position-dropdown"
-            placeholder={positionPlaceholder}
-            isInvalid={invalidFields?.position}
-            defaultValue={p.position ? { value: p.position, label: p.position } : null}
-            onChange={(e) => {
-              setHistory({
-                type: posititonType,
-                data: { value: e ? e.value : '', key: p.key },
-              })
-              if (e) setIsPositionClicked(false)
-            }}
-            onBlur={(e) => {
-              if (e.target.value) {
-                setHistory({
-                  type: posititonType,
-                  data: { value: e.target.value, key: p.key },
-                })
-              }
-              setIsPositionClicked(false)
-            }}
-            options={positionOptions}
-          />
-        ) : (
-          <input
-            className={`form-control position-dropdown__placeholder ${
-              invalidFields?.position ? 'invalid-value' : ''
-            }`}
-            placeholder={positionPlaceholder}
-            value={p.position}
-            onClick={() => setIsPositionClicked(true)}
-            onFocus={() => setIsPositionClicked(true)}
-            onChange={() => {}}
-            aria-label="Position"
-          />
-        )}
-        {/* {invalidFields?.position && (
-          <span
-            className="invalid-value-icon"
-            data-toggle="tooltip"
-            data-placement="top"
-            title={invalidFields.position}
-          >
-            <Icon name="exclamation-sign" />
-          </span>
-        )} */}
+        <AutoComplete
+          options={positionOptions}
+          value={p.position}
+          style={{ width: '100%' }}
+          status={invalidFields?.position ? 'error' : undefined}
+          onChange={(e) =>
+            setHistory({
+              type: posititonType,
+              data: { value: e ?? '', key: p.key },
+            })
+          }
+          placeholder={positionPlaceholder}
+          showSearch={{ filterOption: true }}
+          allowClear
+          aria-label="Position"
+        />
       </div>
       <div className="col-md-1 history__value">
         {isMobile && <div className="small-heading col-md-1">Start</div>}
-        <input
-          className={`form-control ${invalidFields?.startYear ? 'invalid-value' : ''}`}
-          value={p.start ?? ''}
+        <Input
+          value={p.start}
+          status={invalidFields?.startYear ? 'error' : undefined}
           placeholder="start year"
           onChange={(e) =>
             setHistory({ type: startType, data: { value: e.target.value, key: p.key } })
           }
           aria-label="start year"
         />
-        {/* {invalidFields?.startYear && (
-          <span
-            className="invalid-value-icon"
-            data-toggle="tooltip"
-            data-placement="top"
-            title={invalidFields.startYear}
-          >
-            <Icon name="exclamation-sign" />
-          </span>
-        )} */}
       </div>
       <div className="col-md-1 history__value">
         {isMobile && <div className="small-heading col-md-1">End</div>}
-        <input
-          className={`form-control ${invalidFields?.endYear ? 'invalid-value' : ''}`}
-          value={p.end ?? ''}
+        <Input
+          value={p.end}
+          status={invalidFields?.endYear ? 'error' : undefined}
           placeholder="end year"
           onChange={(e) =>
             setHistory({ type: endType, data: { value: e.target.value, key: p.key } })
           }
           aria-label="end year"
         />
-        {/* {invalidFields?.endYear && (
-          <span
-            className="invalid-value-icon"
-            data-toggle="tooltip"
-            data-placement="top"
-            title={invalidFields.endYear}
-          >
-            <Icon name="exclamation-sign" />
-          </span>
-        )} */}
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-3">Institution Domain</div>}
-        {isDomainClicked && !isIndependentResearcher ? (
-          <CreatableDropdown
-            autofocus
-            clientOnly
-            defaultMenuIsOpen
-            hideArrow
-            disableMouseMove
-            virtualList
-            isClearable
-            classNamePrefix="institution-dropdown"
-            placeholder={institutionPlaceholder}
-            isInvalid={invalidFields?.institutionDomain}
-            defaultValue={
-              p.institution?.domain
-                ? { value: p.institution?.domain, label: p.institution?.domain }
-                : null
-            }
-            onChange={(e) => {
-              updateDomain(e?.value ?? '', p.key)
-              if (e) setIsDomainClicked(false)
-            }}
-            onBlur={(e) => {
-              if (e.target.value) {
-                updateDomain(e.target.value, p.key)
-                setIsDomainClicked(false)
-              }
-            }}
-            options={institutionDomainOptions}
-          />
-        ) : (
-          <input
-            className={`form-control institution-dropdown__placeholder ${
-              invalidFields?.institutionDomain ? 'invalid-value' : ''
-            }`}
-            placeholder={institutionPlaceholder}
-            value={p.institution?.domain}
-            disabled={isIndependentResearcher}
-            onClick={() => setIsDomainClicked(true)}
-            onFocus={() => setIsDomainClicked(true)}
-            onChange={() => {}}
-            aria-label="Institution Domain"
-          />
-        )}
-        {/* {invalidFields?.institutionDomain && (
-          <span
-            className="invalid-value-icon"
-            data-toggle="tooltip"
-            data-placement="top"
-            title={invalidFields.institutionDomain}
-          >
-            <Icon name="exclamation-sign" />
-          </span>
-        )} */}
+        <AutoComplete
+          options={institutionDomainOptions}
+          value={p.institution?.domain}
+          style={{ width: '100%' }}
+          status={invalidFields?.institutionDomain ? 'error' : undefined}
+          onChange={(e) => updateDomain(e ?? '', p.key)}
+          placeholder={institutionPlaceholder}
+          showSearch={{ filterOption: true }}
+          allowClear
+          aria-label="Institution Domain"
+          disabled={isIndependentResearcher}
+          styles={
+            isIndependentResearcher ? { input: { color: 'rgba(0, 0, 0, 0.25)' } } : undefined
+          }
+        />
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Name</div>}
-        <input
-          className={`form-control institution-dropdown__name ${
-            invalidFields?.institutionName ? 'invalid-value' : ''
-          }`}
-          placeholder="Institution Name"
-          value={p.institution?.name ?? ''}
+        <Input
+          value={p.institution?.name}
           disabled={isIndependentResearcher}
+          style={isIndependentResearcher ? { borderColor: '#d9d9d9' } : undefined}
+          status={invalidFields?.institutionName ? 'error' : undefined}
+          placeholder="Institution Name"
           onChange={(e) =>
             setHistory({
               type: institutionNameType,
@@ -266,16 +151,6 @@ const EducationHistoryRow = ({
           }
           aria-label="Institution Name"
         />
-        {/* {invalidFields?.institutionName && (
-          <span
-            className="invalid-value-icon"
-            data-toggle="tooltip"
-            data-placement="top"
-            title={invalidFields.institutionName}
-          >
-            <Icon name="exclamation-sign" />
-          </span>
-        )} */}
       </div>
       <div className="col-md-1 history__value">
         {history.length > 1 && (
@@ -291,57 +166,31 @@ const EducationHistoryRow = ({
       </div>
       <div className="col-md-2 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution Country/Region</div>}
-        {isRegionClicked ? (
-          <Dropdown
-            options={countryOptions}
-            onChange={(e) => {
-              setHistory({
-                type: institutionCountryType,
-                data: { value: e?.value, key: p.key },
-              })
-              if (e) setIsRegionClicked(false)
-            }}
-            isInvalid={invalidFields?.institutionCountryRegion}
-            value={countryOptions?.find((q) => q.value === p.institution?.country)}
-            placeholder={regionPlaceholder}
-            classNamePrefix="country-dropdown"
-            hideArrow
-            isClearable
-            defaultMenuIsOpen
-            autoFocus
-          />
-        ) : (
-          <input
-            className={`form-control region-dropdown__placeholder ${
-              invalidFields?.institutionCountryRegion ? 'invalid-value' : ''
-            }`}
-            placeholder={regionPlaceholder}
-            value={
-              countryOptions?.find((q) => q.value === p.institution?.country)?.label ?? ''
-            }
-            onClick={() => setIsRegionClicked(true)}
-            onFocus={() => setIsRegionClicked(true)}
-            onChange={() => {}}
-            aria-label="Institution Country/Region"
-          />
-        )}
-        {/* {invalidFields?.institutionCountryRegion && (
-          <span
-            className="invalid-value-icon"
-            data-toggle="tooltip"
-            data-placement="top"
-            title={invalidFields.institutionCountryRegion}
-          >
-            <Icon name="exclamation-sign" />
-          </span>
-        )} */}
+        <Select
+          options={countryOptions}
+          value={p.institution?.country}
+          placeholder={regionPlaceholder}
+          style={{ width: '100%' }}
+          status={invalidFields?.institutionCountryRegion ? 'error' : undefined}
+          onChange={(e) => {
+            setHistory({
+              type: institutionCountryType,
+              data: { value: e, key: p.key },
+            })
+          }}
+          allowClear
+          suffixIcon={null}
+          optionRender={(option) => <div style={{ whiteSpace: 'normal' }}>{option.label}</div>}
+          showSearch={{ optionFilterProp: 'label' }}
+          notFoundContent="No matching found"
+          aria-label="Institution Country/Region"
+        />
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution State/Province</div>}
-        <input
-          className="form-control institution-state"
+        <Input
+          value={p.institution?.stateProvince}
           placeholder="Institution State/Province"
-          value={p.institution?.stateProvince ?? ''}
           onChange={(e) =>
             setHistory({
               type: institutionStateProvinceType,
@@ -353,10 +202,9 @@ const EducationHistoryRow = ({
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Institution City</div>}
-        <input
-          className="form-control institution-city"
+        <Input
+          value={p.institution?.city}
           placeholder="Institution City"
-          value={p.institution?.city ?? ''}
           onChange={(e) =>
             setHistory({
               type: institutionCityType,
@@ -368,10 +216,9 @@ const EducationHistoryRow = ({
       </div>
       <div className="col-md-3 history__value">
         {isMobile && <div className="small-heading col-md-4">Department of Institution</div>}
-        <input
-          className="form-control institution-department"
+        <Input
+          value={p.institution?.department}
           placeholder="Department of Institution"
-          value={p.institution?.department ?? ''}
           onChange={(e) =>
             setHistory({
               type: institutionDepartmentType,
@@ -419,8 +266,7 @@ const EducationHistorySection = ({
           const recordCopy = { ...p }
           if (p.key === action.data.key) {
             recordCopy.position = action.data.value
-            if (action.data.value.toLowerCase().includes('independent')) {
-              recordCopy.position = 'Independent Researcher'
+            if (action.data.value === 'Independent Researcher') {
               recordCopy.institution = {
                 domain: 'independent-researcher.org',
                 name: 'Independent',
