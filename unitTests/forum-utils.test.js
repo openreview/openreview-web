@@ -12,7 +12,10 @@ describe('getUniqueInstitutions', () => {
           { name: 'No Domain Institution' },
         ],
       },
-      { fullname: 'Author Two', institutions: [{ domain: 'umass.edu', name: 'UMass Amherst' }] },
+      {
+        fullname: 'Author Two',
+        institutions: [{ domain: 'umass.edu', name: 'UMass Amherst' }],
+      },
       { fullname: 'Author Three', institutions: null },
     ]
     expect(getUniqueInstitutions(authors)).toEqual([{ domain: 'umass.edu', name: 'UMASS' }])
