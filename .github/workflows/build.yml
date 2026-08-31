@@ -20,8 +20,30 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Run lint
         run: npx --yes oxlint@1.51.0 --report-unused-disable-directives --quiet
+      - name: validate oxfmt
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff -z --name-only --diff-filter=ACMR \
+            "$BASE_SHA" HEAD > "$RUNNER_TEMP/changed-files"
+          files=()
+          while IFS= read -r -d '' f; do files+=("$f"); done < "$RUNNER_TEMP/changed-files"
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No files changed."
+            exit 0
+          fi
+          code=0
+          out=$(npx --yes oxfmt@0.36.0 --check "${files[@]}" 2>&1) || code=$?
+          echo "$out"
+          if [ "$code" -eq 2 ] && grep -q "Expected at least one target file" <<< "$out"; then
+            exit 0
+          fi
+          exit "$code"
 
   build:
     runs-on: ubuntu-latest
@@ -223,6 +245,10 @@ jobs:
 
     needs: build
 
+    concurrency:
+      group: dev-web-deploy
+      cancel-in-progress: false
+
     if: github.ref == 'refs/heads/master' && (github.event_name != 'repository_dispatch' || github.event.action != 'openreview-api-updated')
     steps:
       - name: Checkout code
@@ -241,7 +267,19 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           skip_install: true
-      - name: Deploy to dev
+      - name: Build and deploy web to Cloud Run
+        run: |
+          BUILD_ID=$(gcloud builds triggers run openreview-web-dev-deploy \
+            --region=global --branch=main \
+            --substitutions=_WEB_REF=${{ github.sha }} \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            --format='value(metadata.build.id)')
+          echo "Triggered Cloud Build: $BUILD_ID"
+          gcloud builds log --stream "$BUILD_ID" --project ${{ secrets.GCP_PROJECT_ID }} || true
+          STATUS=$(gcloud builds describe "$BUILD_ID" --project ${{ secrets.GCP_PROJECT_ID }} --format='value(status)')
+          echo "Final build status: $STATUS"
+          [ "$STATUS" = "SUCCESS" ] || exit 1
+      - name: Deploy openreview-py to dev
         run: |
           instance_prefix='openreview-dev-'
 
@@ -263,7 +301,5 @@ jobs:
           for i in ${!instance_names[@]}; do
             echo Deploying to ${instance_names[$i]}
 
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/build-web.sh' --quiet
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/deploy-web.sh' --quiet
             gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/deploy-openreview-py.sh' --quiet
           done

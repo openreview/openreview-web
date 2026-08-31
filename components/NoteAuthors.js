@@ -1,9 +1,9 @@
 import { Tooltip } from 'antd'
 import isEqual from 'lodash/isEqual'
-/* globals $: false */
 import uniqBy from 'lodash/uniqBy'
 import zip from 'lodash/zip'
 import Link from 'next/link'
+import { getUniqueInstitutions } from '../lib/forum-utils'
 import { prettyId } from '../lib/utils'
 import ExpandableList from './ExpandableList'
 import Icon from './Icon'
@@ -103,9 +103,16 @@ export const NoteAuthorsV2 = ({
   signatures,
   noteReaders,
   showAuthorInstitutions,
+  officialInstitutions,
 }) => {
   if (showAuthorInstitutions && authorsProp?.value && !authorIdsProp?.value) {
-    return <NoteAuthorsWithInstitutions authors={authorsProp} noteReaders={noteReaders} />
+    return (
+      <NoteAuthorsWithInstitutions
+        authors={authorsProp}
+        noteReaders={noteReaders}
+        officialInstitutions={officialInstitutions}
+      />
+    )
   }
 
   // forum note pass raw authors (for NoteAuthorsWithInstitutions)
@@ -199,7 +206,33 @@ export const NoteAuthorsV2 = ({
   )
 }
 
-export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
+export function consolidateInstitutions(authorInstitutions, officialInstitutions) {
+  if (!officialInstitutions?.length) return authorInstitutions
+
+  return uniqBy(
+    authorInstitutions.map((authorInstitution) => {
+      const official = officialInstitutions.find(
+        (p) =>
+          p.id === authorInstitution.domain || p.domains?.includes(authorInstitution.domain)
+      )
+      return official
+        ? {
+            ...authorInstitution,
+            name: official.fullname ?? authorInstitution.name,
+            domain: official.id,
+            domains: official.domains,
+          }
+        : authorInstitution
+    }),
+    (p) => p.domain
+  )
+}
+
+export const NoteAuthorsWithInstitutions = ({
+  authors,
+  noteReaders,
+  officialInstitutions,
+}) => {
   let showPrivateLabel = false
   const sortedReaders = noteReaders ? [...noteReaders].sort() : []
   if (Array.isArray(authors?.readers) && !isEqual(sortedReaders, authors.readers.sort())) {
@@ -207,16 +240,16 @@ export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
   }
 
   if (!authors?.value) return null
-  const uniqueInstitutions = uniqBy(
-    authors.value
-      .map((p) => p.institutions)
-      .flat()
-      .filter((p) => p?.domain),
-    (p) => p.domain
+
+  const uniqueInstitutions = consolidateInstitutions(
+    getUniqueInstitutions(authors.value),
+    officialInstitutions
   )
 
   const institutionIndexMap = new Map(
-    uniqueInstitutions.map((institution, index) => [institution.domain, index + 1])
+    uniqueInstitutions.flatMap((institution, index) =>
+      (institution.domains ?? [institution.domain]).map((domain) => [domain, index + 1])
+    )
   )
 
   const authorsLinks = authors.value.map((author) => {
@@ -232,9 +265,13 @@ export const NoteAuthorsWithInstitutions = ({ authors, noteReaders }) => {
       )
     }
 
-    const institutionNumbers = (author.institutions || []).map((institution) =>
-      institutionIndexMap.get(institution.domain)
-    )
+    const institutionNumbers = [
+      ...new Set(
+        (author.institutions || [])
+          .map((institution) => institutionIndexMap.get(institution?.domain))
+          .filter(Boolean)
+      ),
+    ]
 
     return (
       <span
