@@ -1,4 +1,4 @@
-import { Steps } from 'antd'
+import { Steps, Alert } from 'antd'
 import pick from 'lodash/pick'
 import { useCallback, useEffect, useReducer, useRef, useState } from 'react'
 import api from '../../lib/api-client'
@@ -48,6 +48,7 @@ export default function ProfileEditor({
   const [renderPublicationEditor, setRenderPublicationEditor] = useState(false)
   const [currentStepKey, setCurrentStepKey] = useState('names')
   const [invalidStepKeys, setInvalidStepKeys] = useState([])
+  const [historySectionError, setHistorySectionError] = useState(null)
   const stepRef = useRef(null)
   const renderPublicationsEditor = useCallback(() => {
     setRenderPublicationEditor((current) => !current)
@@ -78,8 +79,8 @@ export default function ProfileEditor({
       key: 'personal',
       title: 'Personal Info',
       content: isNewProfile
-        ? 'Gender, Pronouns and Birth Year'
-        : 'Gender, Pronouns, Birth Year and Profile Visibility',
+        ? 'Gender, Pronouns and Date of Birth'
+        : 'Gender, Pronouns, Date of Birth and Profile Visibility',
       status: getStepStatus('personal'),
     },
     { step: 2, key: 'emails', title: 'Emails', status: getStepStatus('emails') },
@@ -154,8 +155,17 @@ export default function ProfileEditor({
       data: profile.history?.map((p, index) => {
         if ((!invalidKeys && index === 0) || invalidKeys.includes(p.key))
           return { ...p, valid: false, invalidFields: keyErrorFieldMessageMap.get(p.key) }
-        return p
+        return { ...p, valid: true, invalidFields: undefined }
       }),
+    })
+    return { isValid: false, profileContent: null }
+  }
+
+  const promptInvalidHistorySection = (message) => {
+    setHistorySectionError(message)
+    setProfile({
+      type: 'history',
+      data: profile.history?.map((p) => ({ ...p, valid: true, invalidFields: undefined })),
     })
     return { isValid: false, profileContent: null }
   }
@@ -192,7 +202,6 @@ export default function ProfileEditor({
     let profileContent = {
       ...profile,
       names: profile.names.map((p) => (p.fullname ? p : null)).filter(Boolean),
-      yearOfBirth: profile.yearOfBirth ? Number.parseInt(profile.yearOfBirth, 10) : undefined,
       emails: profile.emails.map((p) => (p.email ? p : null)).filter(Boolean),
       links: undefined,
       ...profile.links,
@@ -212,6 +221,15 @@ export default function ProfileEditor({
     }
 
     let invalidRecord = null
+
+    // #region validate dob
+    if (!profile.dob?.value) {
+      promptError('Date of Birth is required. Please select your date of birth.')
+      setInvalidStepKeys((current) => [...current, 'personal'])
+      setProfile({ type: 'dob', data: { ...profile.dob, valid: false } })
+      return { isValid: false, profileContent: null }
+    }
+    // #endregion
 
     // #region validate emails
     if ((invalidRecord = profileContent.emails.find((p) => !isValidEmail(p.email)))) {
@@ -247,16 +265,13 @@ export default function ProfileEditor({
     const historyRecords = profileContent.history
     if (!historyRecords?.length) {
       setInvalidStepKeys((current) => [...current, 'history'])
-      promptError('There are errors in your Career & Education History.')
-      return null
+      return promptInvalidHistorySection("Career & Education History can't be empty.")
     }
     if (!historyRecords.find((p) => !p.end || p.end >= new Date().getFullYear())) {
       setInvalidStepKeys((current) => [...current, 'history'])
-      const keyErrorFieldMessageMap = new Map()
-      keyErrorFieldMessageMap.set(profile.history?.[0]?.key, {
-        endYear: 'Your Career & Education History must include at least one current position.',
-      })
-      return promptInvalidHistory([profile.history?.[0]?.key], keyErrorFieldMessageMap)
+      return promptInvalidHistorySection(
+        'Your Career & Education History must include at least one current position. You can leave end year of current positions blank.'
+      )
     }
 
     const invalidKeys = []
@@ -291,12 +306,17 @@ export default function ProfileEditor({
       }
       if (institutionDomain && !isValidDomain(institutionDomain)) {
         invalidKeys.push(key)
-        invalidFieldErrorMap.institutionDomain = `${institutionDomain} is not a valid domain. Domains should not contain "http", "www", or and special characters like "?" or "/".`
+        invalidFieldErrorMap.institutionDomain = `${institutionDomain} is not a valid domain. Domains should be in the format of the email domain for your institution (e.g. umass.edu).`
       }
-      if (end && !isValidYear(end)) {
+      if (end !== null && !isValidYear(end)) {
         invalidKeys.push(key)
         invalidFieldErrorMap.endYear = 'End date should be a valid year'
       }
+      if (start !== null && !isValidYear(start)) {
+        invalidKeys.push(key)
+        invalidFieldErrorMap.startYear = 'start date should be a valid year'
+      }
+
       if (end && !start) {
         invalidKeys.push(key)
         invalidFieldErrorMap.startYear = 'Start date can not be empty'
@@ -306,7 +326,7 @@ export default function ProfileEditor({
         invalidFieldErrorMap.startYear = 'End date should be higher than start date'
         invalidFieldErrorMap.endYear = 'End date should be higher than start date'
       }
-      if ((!end || end >= new Date().getFullYear()) && !institutionCountryRegion) {
+      if ((end === null || end >= new Date().getFullYear()) && !institutionCountryRegion) {
         invalidKeys.push(key)
         invalidFieldErrorMap.institutionCountryRegion =
           'Country/Region is required for current positions'
@@ -438,6 +458,7 @@ export default function ProfileEditor({
         pick(p, ['relation', 'username', 'name', 'email', 'start', 'end', 'readers'])
       ),
       preferredEmail: profileContent.emails.find((p) => p.preferred)?.email,
+      dob: profileContent.dob?.value,
       homepage: profileContent.homepage?.value?.trim(),
       gscholar: profileContent.gscholar?.value?.trim(),
       dblp: profileContent.dblp?.value?.trim(),
@@ -452,6 +473,7 @@ export default function ProfileEditor({
 
   const handleSubmit = async () => {
     setInvalidStepKeys([])
+    setHistorySectionError(null)
     const { isValid, profileContent, profileReaders } = validateCleanProfile()
     if (isValid) {
       await submitHandler(profileContent, profileReaders, publicationIdsToUnlink)
@@ -497,17 +519,27 @@ export default function ProfileEditor({
                 updatePronoun={(pronouns) => setProfile({ type: 'pronouns', data: pronouns })}
               />
             </ProfileSection>
-            <ProfileSection
-              title="Year Of Birth"
-              instructions="This information is solely used by OpenReview to disambiguate user profiles. It will never be released publicly or shared with venue organizers. (Optional)"
-            >
-              <BirthDateSection
-                profileYearOfBirth={profile?.yearOfBirth}
-                updateYearOfBirth={(yearOfBirth) =>
-                  setProfile({ type: 'yearOfBirth', data: yearOfBirth })
+
+            {
+              <ProfileSection
+                title="Date Of Birth"
+                instructions={
+                  <>
+                    <div>
+                      OpenReview requires date of birth for age verification. Your date of
+                      birth is never shown publicly.
+                    </div>
+                  </>
                 }
-              />
-            </ProfileSection>
+              >
+                <BirthDateSection
+                  profileDateOfBirth={profile?.dob}
+                  updateDateOfBirth={(dateOfBirth) =>
+                    setProfile({ type: 'dob', data: dateOfBirth })
+                  }
+                />
+              </ProfileSection>
+            }
             {!hidePublicationEditor && (
               <ProfileSection
                 title="Profile Visibility"
@@ -609,6 +641,13 @@ export default function ProfileEditor({
           conflict of interest detection, author deduplication, analysis of career path history, and
           tallies of institutional diversity. For ongoing positions, leave the End field blank."
           >
+            {historySectionError && (
+              <Alert
+                type="error"
+                title={historySectionError}
+                style={{ marginBottom: '.5rem' }}
+              />
+            )}
             <EducationHistorySection
               profileHistory={profile?.history}
               positions={positions}
@@ -691,7 +730,7 @@ export default function ProfileEditor({
     if (
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/pronouns')) ||
       saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/gender')) ||
-      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/yearOfBirth'))
+      saveProfileErrors.some((errorPath) => errorPath?.startsWith('content/dob'))
     ) {
       setInvalidStepKeys((current) => [...current, 'personal'])
     }
@@ -721,8 +760,17 @@ export default function ProfileEditor({
     if (loadedProfile) {
       setProfile({ type: 'reset', data: loadedProfile })
       setInvalidStepKeys([])
+      setHistorySectionError(null)
     }
   }, [loadedProfile])
+
+  useEffect(() => {
+    if (!invalidStepKeys.length) return
+    const firstInvalidStepKey = stepsItems.find((p) => invalidStepKeys.includes(p.key))?.key
+    if (firstInvalidStepKey && firstInvalidStepKey !== currentStepKey) {
+      setCurrentStepKey(firstInvalidStepKey)
+    }
+  }, [invalidStepKeys])
 
   useEffect(() => {
     const loadOptions = async () => {

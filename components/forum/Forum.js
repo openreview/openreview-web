@@ -1,9 +1,5 @@
 'use client'
 
-/* globals $: false */
-/* globals typesetMathJax: false */
-/* globals promptError: false */
-
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import debounce from 'lodash/debounce'
@@ -87,6 +83,7 @@ export default function Forum({
   prefilledValues,
   query,
   editInvitationIdToHide,
+  officialInstitutions,
 }) {
   const { user, isRefreshing } = useUser()
   const [parentNote, setParentNote] = useState(forumNote)
@@ -1013,6 +1010,7 @@ export default function Forum({
         note={parentNote}
         updateNote={updateParentNote}
         deleteOrRestoreNote={deleteOrRestoreNote}
+        officialInstitutions={officialInstitutions}
       />
 
       {repliesLoaded && (

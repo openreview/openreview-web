@@ -21,6 +21,10 @@
       margin-bottom: 0.25rem;
     }
 
+    section + section {
+      margin-top: 1.5rem;
+    }
+
     .hint {
       vertical-align: bottom;
     }
@@ -107,66 +111,6 @@
       }
     }
 
-    .gender-dropdown {
-      margin-top: 5px;
-      margin-bottom: 5px;
-      &__control {
-        max-width: 500px;
-        background-color: #fffaf4;
-        border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
-        padding: 0 0.75rem;
-      }
-      &__value-container {
-        padding: 0;
-      }
-      &__menu {
-        max-width: 500px;
-      }
-
-      > div {
-        cursor: pointer;
-        color: constants.$subtleGray;
-        padding: 0.25rem 0.75rem;
-      }
-      .active {
-        background-color: constants.$mediumBlue;
-        color: #fff;
-        outline: 0px solid transparent;
-      }
-    }
-
-    .pronouns-dropdown {
-      margin-top: 5px;
-      margin-bottom: 5px;
-      &__control {
-        max-width: 500px;
-        background-color: #fffaf4;
-        border: 2px solid color.adjust(constants.$mediumBlue, $lightness: 10%);
-        padding: 0 0.75rem;
-      }
-      &__value-container {
-        padding: 0;
-      }
-      &__menu {
-        max-width: 500px;
-      }
-
-      > div {
-        cursor: pointer;
-        color: constants.$subtleGray;
-        padding: 0.25rem 0.75rem;
-      }
-      .active {
-        background-color: constants.$mediumBlue;
-        color: #fff;
-        outline: 0px solid transparent;
-      }
-    }
-
-    .year-of-birth {
-      max-width: 500px;
-    }
-
     .names {
       &__value {
         padding-left: 0;
@@ -251,6 +195,16 @@
         margin-bottom: 5px;
         input {
           text-overflow: ellipsis;
+        }
+      }
+      &__error {
+        clear: both;
+        padding-left: 0;
+        margin-bottom: 5px;
+        color: constants.$orRed;
+        font-size: 0.8125rem;
+        .glyphicon {
+          padding-right: 0.25rem;
         }
       }
       .glyphicon-minus-sign {

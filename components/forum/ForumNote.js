@@ -12,7 +12,7 @@ import OtherVersions from './OtherVersions'
 
 dayjs.extend(relativeTime)
 
-function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
+function ForumNote({ note, updateNote, deleteOrRestoreNote, officialInstitutions }) {
   const { id, content, details, signatures, editInvitations, deleteInvitation } = note
 
   const pastDue = note.ddate && note.ddate < Date.now()
@@ -103,6 +103,7 @@ function ForumNote({ note, updateNote, deleteOrRestoreNote }) {
             signatures={signatures}
             noteReaders={note.readers}
             showAuthorInstitutions={true}
+            officialInstitutions={officialInstitutions}
           />
         </h3>
       </div>

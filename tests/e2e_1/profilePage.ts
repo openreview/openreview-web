@@ -1379,15 +1379,11 @@ test('validate current history', async (t) => {
       paste: true,
     })
     .click(saveProfileButton)
-    .expect(errorMessageSelector.innerText)
-    .eql('Error: There are errors in your Career & Education History.')
-    .expect(
-      Selector('span.invalid-value-icon').withAttribute(
-        'data-original-title',
-        'Your Career & Education History must include at least one current position.'
-      ).exists
+
+    .expect(Selector('.ant-alert-error').innerText)
+    .contains(
+      'Your Career & Education History must include at least one current position. You can leave end year of current positions blank.'
     )
-    .ok()
     // add current end date
     .typeText(firstHistoryEndInput, new Date().getFullYear().toString(), {
       replace: true,
@@ -1396,6 +1392,8 @@ test('validate current history', async (t) => {
     .click(saveProfileButton)
     .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
+    .expect(Selector('.ant-alert-error').exists)
+    .notOk()
     .expect(errorMessageSelector.innerText)
     .eql('Your profile information has been successfully updated')
 

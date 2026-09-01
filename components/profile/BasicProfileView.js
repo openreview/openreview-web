@@ -1,6 +1,8 @@
 import { EnvironmentFilled, SafetyCertificateOutlined } from '@ant-design/icons'
-import { Col, Flex, Row, Space, Tooltip } from 'antd'
+import { Col, Flex, Row, Space, Tag, Tooltip } from 'antd'
 import copy from 'copy-to-clipboard'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import ServiceRoles from '../../app/profile/ServiceRoles'
@@ -8,7 +10,14 @@ import { prettyList } from '../../lib/utils'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 
-import { colors, profile as profileStyles } from '../../lib/legacy-bootstrap-styles'
+import {
+  colors,
+  getBootstrap337LabelColor,
+  moderation as moderationStyles,
+  profile as profileStyles,
+} from '../../lib/legacy-bootstrap-styles'
+
+dayjs.extend(utc)
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -206,6 +215,38 @@ const ProfileExpertise = ({ expertise }) => (
   </Row>
 )
 
+const DateOfBirth = ({ dob }) => {
+  const dateOfBirth = dayjs.utc(dob)
+  if (!dateOfBirth.isValid()) return null
+
+  const age = dayjs.utc().diff(dateOfBirth, 'year')
+  const isMinor = age >= 13 && age < 18
+
+  return (
+    <Space>
+      <span>{`${dateOfBirth.format('MMMM DD, YYYY')} - ${age} years old`}</span>
+      {age < 13 && (
+        <Tag
+          color={getBootstrap337LabelColor('error')}
+          variant="solid"
+          styles={{ root: moderationStyles.statusTag }}
+        >
+          Under 13
+        </Tag>
+      )}
+      {age >= 13 && age < 18 && (
+        <Tag
+          color={getBootstrap337LabelColor('warning')}
+          variant="solid"
+          styles={{ root: moderationStyles.statusTag }}
+        >
+          Minor
+        </Tag>
+      )}
+    </Space>
+  )
+}
+
 const BasicProfileView = ({
   profile,
   publicProfile,
@@ -229,6 +270,12 @@ const BasicProfileView = ({
               <ProfileName key={name.username || name.fullname} name={name} />
             ))}
           </Space>
+        </ProfileViewSection>
+      )}
+
+      {contentToShow.includes('dob') && profile.dob !== null && profile.dob !== undefined && (
+        <ProfileViewSection title="Date of Birth">
+          <DateOfBirth dob={profile.dob} />
         </ProfileViewSection>
       )}
 
