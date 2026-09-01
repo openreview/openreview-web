@@ -43,6 +43,9 @@ const theme = {
       lineWidth: 2,
       optionSelectedBg: primaryColor,
       optionSelectedColor: backgroundWhite,
+      optionSelectedFontWeight: 400,
+      colorError: orRed,
+      colorErrorHover: orRed,
     },
     Input: {
       colorBorder: primaryColor,
@@ -51,6 +54,8 @@ const theme = {
       colorBgContainer: '#fffaf4',
       lineWidth: 2,
       colorTextPlaceholder: '#999',
+      colorError: orRed,
+      colorErrorBorderHover: orRed,
     },
     DatePicker: {
       colorBgContainer: '#fffaf4',
@@ -91,6 +96,13 @@ const theme = {
     },
     Modal: {
       contentBg: backgroundWhite,
+      colorBgMask: 'rgba(44, 58, 74, 0.5)',
+      borderRadiusLG: 0,
+      boxShadow: 'none',
+      titleColor: '#2c3a4a',
+      titleFontSize: 24,
+      titleLineHeight: 1.35,
+      fontWeightStrong: 400,
     },
     Dropdown: {
       controlItemBgHover: backgroundGray,

@@ -7,7 +7,7 @@ import { formatDateTime, getDeviceFromUserAgent, getRejectionReasons } from '../
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
-import IdentityDocumentsSection from './IdentityDocumentsSection'
+import { IdentityDocumentsSection, ParentalConsentSection } from './IdentityDocumentsSection'
 import MessagesSection from './MessagesSection'
 import PastStatesSection from './PastStatesSection'
 import ProfilePublications from './ProfilePublications'
@@ -270,25 +270,18 @@ const ProfilePreviewModal = ({
           <>
             {profileDocuments?.some((document) => document.type === 'parentalConsent') && (
               <ProfileViewSection title="Parental Consent">
-                <IdentityDocumentsSection
-                  profileId={profileToPreview.id}
-                  profileDocuments={profileDocuments.filter(
-                    (document) => document.type === 'parentalConsent'
-                  )}
-                />
+                <ParentalConsentSection profileDocuments={profileDocuments} />
               </ProfileViewSection>
             )}
             {profileDocuments?.some((document) => document.type !== 'parentalConsent') && (
               <ProfileViewSection title="Identity Documents">
                 <IdentityDocumentsSection
                   profileId={profileToPreview.id}
-                  profileDocuments={profileDocuments.filter(
-                    (document) => document.type !== 'parentalConsent'
-                  )}
+                  profileDocuments={profileDocuments}
+                  isProfileActivatable={isProfileActivatable}
                   loadIdentityDocuments={loadIdentityDocuments}
-                  deleteAllLabel={isProfileActivatable ? 'Activate with ID check' : undefined}
-                  onBeforeDeleteAll={isProfileActivatable ? tagAndActivateProfile : undefined}
-                  onAfterDeleteAll={isProfileActivatable ? loadTags : undefined}
+                  tagAndActivateProfile={tagAndActivateProfile}
+                  loadTags={loadTags}
                 />
               </ProfileViewSection>
             )}
