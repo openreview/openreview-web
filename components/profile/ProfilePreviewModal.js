@@ -1,7 +1,9 @@
-import { Button, Flex, Input, Modal, Select, Space } from 'antd'
+import { Button, Flex, Input, Modal, Select, Space, Tooltip } from 'antd'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
-import { getRejectionReasons } from '../../lib/utils'
+import { formatDateTime, getDeviceFromUserAgent, getRejectionReasons } from '../../lib/utils'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
@@ -10,6 +12,8 @@ import MessagesSection from './MessagesSection'
 import PastStatesSection from './PastStatesSection'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
+
+dayjs.extend(relativeTime)
 
 const ProfilePreviewModal = ({
   profileToPreview,
@@ -24,6 +28,7 @@ const ProfilePreviewModal = ({
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
   const [profileDocuments, setProfileDocuments] = useState(null)
+  const [loginActivity, setLoginActivity] = useState(null)
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
@@ -41,6 +46,10 @@ const ProfilePreviewModal = ({
   const [tagInvitation, setTagInvitation] = useState(tagInvitationOptions[0].value)
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
   const isProfileActivatable = profileToPreview?.state === 'Rejected' || needsModeration
+  const showLoginActivity =
+    loginActivity &&
+    loginActivity.notifyUnusualLogins !== false &&
+    loginActivity.knownLocations?.length > 0
 
   const tagAndActivateProfile = async () => {
     await api.post('/tags', {
@@ -102,6 +111,15 @@ const ProfilePreviewModal = ({
     }
   }
 
+  const loadLoginActivity = async () => {
+    try {
+      const result = await api.get('/profiles/activity', { id: profileToPreview.id })
+      setLoginActivity(result)
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
   const deleteTag = async (tag) => {
     try {
       await api.post('/tags', {
@@ -156,6 +174,7 @@ const ProfilePreviewModal = ({
     setRejectionMessage('')
     setIsRejecting(false)
     setTags([])
+    setLoginActivity(null)
     setTagInvitation(tagInvitationOptions[0].value)
     setError(null)
     const currentInstitutionName = profileToPreview?.history?.find(
@@ -166,6 +185,7 @@ const ProfilePreviewModal = ({
     if (profileToPreview && contentToShow?.includes('tags')) loadTags()
     if (profileToPreview && contentToShow?.includes('identityDocuments'))
       loadIdentityDocuments()
+    if (profileToPreview && contentToShow?.includes('loginActivity')) loadLoginActivity()
   }, [profileToPreview?.id])
 
   if (!profileToPreview) return null
@@ -197,6 +217,23 @@ const ProfilePreviewModal = ({
           moderation={true}
           contentToShow={contentToShow}
         />
+        {contentToShow?.includes('loginActivity') && showLoginActivity && (
+          <ProfileViewSection title="Login Activity">
+            <Flex vertical>
+              {loginActivity.knownLocations.map((location, index) => (
+                <span key={index}>
+                  {location.city}
+                  {' - '}
+                  <Tooltip title={formatDateTime(location.lastSeen)}>
+                    <span>{dayjs(location.lastSeen).fromNow()}</span>
+                  </Tooltip>
+                  {' - '}
+                  {getDeviceFromUserAgent(location.userAgent)}
+                </span>
+              ))}
+            </Flex>
+          </ProfileViewSection>
+        )}
         {contentToShow?.includes('publications') && (
           <ProfileViewSection title="Publications">
             <ProfilePublications
