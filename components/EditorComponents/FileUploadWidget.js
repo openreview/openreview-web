@@ -1,6 +1,5 @@
 import { nanoid } from 'nanoid'
-import { useContext, useEffect, useRef, useState } from 'react'
-import useTurnstileToken from '../../hooks/useTurnstileToken'
+import { useContext, useRef, useState } from 'react'
 import api from '../../lib/api-client'
 import { prettyField } from '../../lib/utils'
 import EditorComponentContext from '../EditorComponentContext'
@@ -15,20 +14,13 @@ const FileUploadWidget = () => {
   const fileInputRef = useRef(null)
   const [isLoading, setIsLoading] = useState(false)
   const [uploadPercentage, setUploadPercentage] = useState(2)
-  const [hasHumanVerificationError, setHasHumanVerificationError] = useState(false)
-  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
-    'fileUpload',
-    hasHumanVerificationError
-  )
-
-  const pendingFileRef = useRef(null)
 
   const fieldName = Object.keys(field)[0]
   const [fileName, setFileName] = useState(prettyField(fieldName))
   const maxSize = field[fieldName].value?.param?.maxSize
   const extensions = field[fieldName].value?.param?.extensions?.map((p) => `.${p}`)
 
-  const uploadSingleFileChunk = async (chunk, index, chunkCount, clientUploadId, token) => {
+  const uploadSingleFileChunk = async (chunk, index, chunkCount, clientUploadId) => {
     const data = new FormData()
     data.append('invitationId', invitation.id)
     data.append('name', fieldName)
@@ -41,7 +33,6 @@ const FileUploadWidget = () => {
       ? await Promise.resolve({ url: 'preview url' })
       : await api.put('/attachment/chunk', data, {
           contentType: 'unset',
-          'cf-turnstile-token': token,
         })
     if (result.url) {
       // upload is completed
@@ -58,7 +49,7 @@ const FileUploadWidget = () => {
     }
   }
 
-  const uploadFile = async (file, token) => {
+  const uploadFile = async (file) => {
     setIsLoading(true)
     try {
       const chunkSize = 1024 * 1000 * 5 // 5mb
@@ -76,33 +67,18 @@ const FileUploadWidget = () => {
       const sendChunksPromises = chunks.reduce(
         (oldPromises, currentChunk, i) =>
           oldPromises.then(() =>
-            uploadSingleFileChunk(currentChunk, i, chunkCount, clientUploadId, token)
+            uploadSingleFileChunk(currentChunk, i, chunkCount, clientUploadId)
           ),
         Promise.resolve()
       )
       await sendChunksPromises
       setFileName(file.name)
-      pendingFileRef.current = null
     } catch (apiError) {
-      if (apiError.name === 'HumanVerificationRequiredError' && !noteEditorPreview) {
-        pendingFileRef.current = file
-        setHasHumanVerificationError(true)
-      } else {
-        promptError(apiError.message)
-        fileInputRef.current.value = ''
-      }
+      promptError(apiError.message)
+      fileInputRef.current.value = ''
     }
     setIsLoading(false)
   }
-
-  useEffect(() => {
-    if (!(turnstileToken && hasHumanVerificationError && pendingFileRef.current)) return
-
-    setHasHumanVerificationError(false)
-    uploadFile(pendingFileRef.current, turnstileToken)
-
-    // oxlint-disable-next-line eslint-plugin-react-hooks/exhaustive-deps
-  }, [turnstileToken, hasHumanVerificationError])
 
   const handleFileSelected = async (e) => {
     const file = e.target.files[0]
@@ -111,14 +87,12 @@ const FileUploadWidget = () => {
       promptError(`File is too large. File size limit is ${maxSize} mb`)
       return
     }
-    await uploadFile(file, turnstileToken)
+    await uploadFile(file)
   }
 
   const handleDeleteFile = () => {
     onChange({ fieldName, value: undefined })
     fileInputRef.current.value = ''
-    pendingFileRef.current = null
-    setHasHumanVerificationError(false)
   }
 
   return (
@@ -134,7 +108,7 @@ const FileUploadWidget = () => {
         type="primary"
         className={`${styles.selectFileButton} ${error ? styles.invalidValue : ''}`}
         onClick={() => fileInputRef.current?.click()}
-        disabled={isLoading || hasHumanVerificationError}
+        disabled={isLoading}
         loading={isLoading}
       >{`Choose ${prettyField(fieldName)}`}</SpinnerButton>
       {isLoading && (
@@ -148,7 +122,6 @@ const FileUploadWidget = () => {
           />
         </div>
       )}
-      <div ref={turnstileContainerRef} />
       {value && (
         <>
           <span className={styles.fileUrl}>{`${fileName} (${value})`}</span>
