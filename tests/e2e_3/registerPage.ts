@@ -456,17 +456,19 @@ test('update profile', async (t) => {
     .click(nextSectiomButtonSelector) // links
     .typeText(Selector('#homepage_url'), 'http://homepage.do', { paste: true })
     .click(nextSectiomButtonSelector) // history
-    .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .click(positionInputs.nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
     // the institution of the email of the profile must be in the history
-    .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .typeText(Selector('input.institution-dropdown__input'), 'umass.edu')
-    .click(Selector('div.institution-dropdown__option').withExactText('umass.edu'))
+    .click(historyDomainInputs.nth(0))
+    .typeText(historyDomainInputs.nth(0), 'umass.edu')
+    .click(visibleOptions.withExactText('umass.edu'))
     .pressKey('tab')
+    // let the institution lookup commit before touching region, as it resets country/region
+    .wait(300)
     // add mandatory region
-    .click(Selector('input.region-dropdown__placeholder'))
-    .click(Selector('div.country-dropdown__option').nth(3))
+    .click(regionInputs.nth(0))
+    .click(visibleOptions.nth(3))
 
     .click(nextSectiomButtonSelector) // last section expertise
     .expect(Selector('p').withText('last updated September 24, 2024').exists)
@@ -523,17 +525,19 @@ test('register a profile with an institutional email', async (t) => {
     .click(nextSectiomButtonSelector) // links
     .typeText(Selector('#homepage_url'), 'http://kevinmalone.com', { paste: true })
     .click(nextSectiomButtonSelector) // history
-    .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .click(positionInputs.nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
     // the institution of the email of the profile must be in the history
-    .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .typeText(Selector('input.institution-dropdown__input'), 'umass.edu')
-    .click(Selector('div.institution-dropdown__option').withExactText('umass.edu'))
+    .click(historyDomainInputs.nth(0))
+    .typeText(historyDomainInputs.nth(0), 'umass.edu')
+    .click(visibleOptions.withExactText('umass.edu'))
     .pressKey('tab')
+    // let the institution lookup commit before touching region, as it resets country/region
+    .wait(300)
     // add mandatory region
-    .click(Selector('input.region-dropdown__placeholder'))
-    .click(Selector('div.country-dropdown__option').nth(3))
+    .click(regionInputs.nth(0))
+    .click(visibleOptions.nth(3))
 
     .click(nextSectiomButtonSelector)
     .click(Selector('button').withText('Register for OpenReview'))
@@ -555,7 +559,13 @@ const institutionEmailUserRole = Role(
       .click(Selector('button').withText('Login to OpenReview'))
   }
 )
-const institutionDomainInput = Selector('input.institution-dropdown__input')
+const positionInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'Position')
+const regionInputs = Selector('div.history')
+  .find('input')
+  .withAttribute('aria-label', 'Institution Country/Region')
+const visibleOptions = Selector('.ant-select-item-option').filterVisible()
 const historyDomainInputs = Selector('div.history')
   .find('input')
   .withAttribute('aria-label', 'Institution Domain')
@@ -596,15 +606,16 @@ test('register a profile with an institution which is not the one of the email',
     .expect(historySectionError.innerText)
     .contains("Career & Education History can't be empty.")
 
-    .click(Selector('input.position-dropdown__placeholder').nth(0))
+    .click(positionInputs.nth(0))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
-    .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .typeText(institutionDomainInput, otherInstitutionDomain)
-    .pressKey('enter')
-    .click(Selector('input.institution-dropdown__placeholder').nth(1))
-    .typeText(institutionDomainInput, otherInstitutionDomain)
-    .pressKey('enter')
+    // custom domains are committed on blur (tab), then the failed lookup clears the name
+    .typeText(historyDomainInputs.nth(0), otherInstitutionDomain)
+    .pressKey('tab')
+    .wait(300)
+    .typeText(historyDomainInputs.nth(1), otherInstitutionDomain)
+    .pressKey('tab')
+    .wait(300)
     .typeText(historyNameInputs.nth(1), otherInstitutionName)
     .typeText(historyStartInputs.nth(1), '2020', { paste: true })
     .typeText(historyEndInputs.nth(1), '2015', { paste: true })
@@ -635,8 +646,8 @@ test('register a profile with an institution which is not the one of the email',
     .click(historyDomainInputs.nth(1).parent('div.row').find('[aria-label="remove history"]'))
     .typeText(historyNameInputs.nth(0), otherInstitutionName)
     // add mandatory region
-    .click(Selector('input.region-dropdown__placeholder'))
-    .click(Selector('div.country-dropdown__option').nth(3))
+    .click(regionInputs.nth(0))
+    .click(visibleOptions.nth(3))
 
     .click(nextSectiomButtonSelector)
     .click(Selector('button').withText('Register for OpenReview'))
@@ -653,13 +664,15 @@ test('register a profile with an institution which is not the one of the email',
 
     // the profile is created once the institution of the email is in the history
     .click(Selector('.ant-steps-item').withText('History'))
-    .click(Selector('input.institution-dropdown__placeholder').nth(0))
-    .typeText(institutionDomainInput, institutionEmailDomain)
-    .click(Selector('div.institution-dropdown__option').withExactText(institutionEmailDomain))
+    .click(historyDomainInputs.nth(0))
+    .typeText(historyDomainInputs.nth(0), institutionEmailDomain, { replace: true })
+    .click(visibleOptions.withExactText(institutionEmailDomain))
     .pressKey('tab')
+    // let the institution lookup commit before touching region, as it resets country/region
+    .wait(300)
     // add mandatory region again as selecting an institution resets country/region
-    .click(Selector('input.region-dropdown__placeholder'))
-    .click(Selector('div.country-dropdown__option').nth(3))
+    .click(regionInputs.nth(0))
+    .click(visibleOptions.nth(3))
     .click(nextSectiomButtonSelector)
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
@@ -681,15 +694,16 @@ test('replace the institution of the email in the history', async (t) => {
     .eql(institutionEmailDomain)
     // add the history of another institution
     .click(Selector('[aria-label="add another history"]'))
-    .click(Selector('input.position-dropdown__placeholder').nth(1))
+    .click(positionInputs.nth(1))
     .wait(300)
     .pressKey('M S space s t u d e n t tab')
-    .click(Selector('input.institution-dropdown__placeholder').nth(1))
-    .typeText(institutionDomainInput, otherInstitutionDomain)
-    .pressKey('enter')
+    // custom domains are committed on blur (tab), then the failed lookup clears the name
+    .typeText(historyDomainInputs.nth(1), otherInstitutionDomain)
+    .pressKey('tab')
+    .wait(300)
     .typeText(historyNameInputs.nth(1), otherInstitutionName)
-    .click(Selector('input.region-dropdown__placeholder').nth(1))
-    .click(Selector('div.country-dropdown__option').nth(3))
+    .click(regionInputs.nth(1))
+    .click(visibleOptions.nth(3))
     // remove the history of the institution of the email
     .click(historyDomainInputs.nth(0).parent('div.row').find('[aria-label="remove history"]'))
     .expect(historyDomainInputs.count)
