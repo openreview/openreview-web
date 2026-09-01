@@ -91,6 +91,13 @@ const theme = {
     },
     Modal: {
       contentBg: backgroundWhite,
+      colorBgMask: 'rgba(44, 58, 74, 0.5)',
+      borderRadiusLG: 0,
+      boxShadow: 'none',
+      titleColor: '#2c3a4a',
+      titleFontSize: 24,
+      titleLineHeight: 1.35,
+      fontWeightStrong: 400,
     },
     Dropdown: {
       controlItemBgHover: backgroundGray,
