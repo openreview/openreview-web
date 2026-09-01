@@ -246,7 +246,6 @@ export const IdentityDocumentsSection = ({
       loadIdentityDocuments()
       if (shouldActiveProfile) loadTags?.()
     } catch (error) {
-      console.log('error:', error)
       promptError(error.message)
     }
   }
