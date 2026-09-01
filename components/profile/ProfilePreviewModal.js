@@ -5,6 +5,7 @@ import { getRejectionReasons } from '../../lib/utils'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
+import { IdentityDocumentsSection, ParentalConsentSection } from './IdentityDocumentsSection'
 import MessagesSection from './MessagesSection'
 import PastStatesSection from './PastStatesSection'
 import ProfilePublications from './ProfilePublications'
@@ -22,6 +23,7 @@ const ProfilePreviewModal = ({
 }) => {
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
+  const [profileDocuments, setProfileDocuments] = useState(null)
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
@@ -38,6 +40,17 @@ const ProfilePreviewModal = ({
   ]
   const [tagInvitation, setTagInvitation] = useState(tagInvitationOptions[0].value)
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
+  const isProfileActivatable = profileToPreview?.state === 'Rejected' || needsModeration
+
+  const tagAndActivateProfile = async () => {
+    await api.post('/tags', {
+      profile: profileToPreview.id,
+      label: 'user sent document',
+      signature: `${process.env.SUPER_USER}/Support`,
+      invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+    })
+    await api.post('/profile/moderate', { id: profileToPreview.id, decision: 'accept' })
+  }
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
     setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
@@ -72,6 +85,18 @@ const ProfilePreviewModal = ({
         profile: profileToPreview.id,
       })
       setTags(result.tags)
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
+  const loadIdentityDocuments = async () => {
+    try {
+      const { profileDocuments } = await api.get('/profile-documents', {
+        profileId: profileToPreview.id,
+        trash: true,
+      })
+      setProfileDocuments(profileDocuments)
     } catch (apiError) {
       setError(apiError)
     }
@@ -139,6 +164,8 @@ const ProfilePreviewModal = ({
     setRejectReasons(getRejectionReasons(currentInstitutionName))
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
     if (profileToPreview && contentToShow?.includes('tags')) loadTags()
+    if (profileToPreview && contentToShow?.includes('identityDocuments'))
+      loadIdentityDocuments()
   }, [profileToPreview?.id])
 
   if (!profileToPreview) return null
@@ -201,6 +228,27 @@ const ProfilePreviewModal = ({
               pastStates={profileToPreview.pastStates}
             />
           </ProfileViewSection>
+        )}
+        {contentToShow?.includes('identityDocuments') && (
+          <>
+            {profileDocuments?.some((document) => document.type === 'parentalConsent') && (
+              <ProfileViewSection title="Parental Consent">
+                <ParentalConsentSection profileDocuments={profileDocuments} />
+              </ProfileViewSection>
+            )}
+            {profileDocuments?.some((document) => document.type !== 'parentalConsent') && (
+              <ProfileViewSection title="Identity Documents">
+                <IdentityDocumentsSection
+                  profileId={profileToPreview.id}
+                  profileDocuments={profileDocuments}
+                  isProfileActivatable={isProfileActivatable}
+                  loadIdentityDocuments={loadIdentityDocuments}
+                  tagAndActivateProfile={tagAndActivateProfile}
+                  loadTags={loadTags}
+                />
+              </ProfileViewSection>
+            )}
+          </>
         )}
         <Flex vertical gap="small">
           <Space wrap={true}>

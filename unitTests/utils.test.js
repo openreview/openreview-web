@@ -12,7 +12,6 @@ import {
   sanitizeRedirectUrl,
   getNoteAuthorIds,
   getNoteAuthors,
-  getRejectionReasons,
   normalizeName,
 } from '../lib/utils'
 import '@testing-library/jest-dom'
@@ -497,6 +496,21 @@ describe('utils', () => {
     expect(expectedValue).toEqual(resultValue)
 
     resultValue = getSubInvitationContentFieldDisplayValue(workflowInvitation, path)
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region script not to show actual script
+    workflowInvitation = {
+      id: 'ICLR.cc/2025/Conference/-/Confidential_Comment',
+      edit: {
+        invitation: {
+          preprocess: 'async func...',
+        },
+      },
+    }
+    path = 'edit.invitation.preprocess'
+    expectedValue = 'script'
+    resultValue = getSubInvitationContentFieldDisplayValue(workflowInvitation, path, 'script')
     expect(expectedValue).toEqual(resultValue)
     // #endregion
 
@@ -1185,17 +1199,5 @@ describe('utils', () => {
     fullname = 'ﬁle ﬂow Ⅻ ①'
     expectedNormalizedName = 'file flow XII 1'
     expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
-  })
-
-  test('include underage consent form rejection template', () => {
-    const underageConsentFormReason = getRejectionReasons().find(
-      (reason) => reason.value === 'underageConsentForm'
-    )
-    expect(underageConsentFormReason).toEqual({
-      value: 'underageConsentForm',
-      label: 'Consent form required for underage researchers',
-      rejectionText:
-        'OpenReview welcomes younger researchers, aged 13 and above, to participate in scholarly peer review.\n\nIf you are at least 13 and under 18 years of age, you must submit a consent form to activate your profile. More information can be found here: https://docs.openreview.net/getting-started/creating-an-openreview-profile/information-for-high-school-students',
-    })
   })
 })

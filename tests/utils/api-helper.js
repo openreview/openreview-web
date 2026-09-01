@@ -13,6 +13,8 @@ export const baseGroupId = 'TestVenue'
 export const subGroupId = 'TestVenue/2020'
 export const conferenceGroupId = 'TestVenue/2020/Conference'
 export const conferenceSubmissionInvitationId = `${conferenceGroupId}/-/Submission`
+// /register rejects a missing dob when the API sets profile.requireDob
+export const defaultDob = Date.UTC(1990, 0, 1)
 
 export const hasTaskUser = {
   fullname: 'FirstA LastA',
@@ -47,11 +49,19 @@ export const mergeUser = {
   password: strongPassword,
   tildeId: '~FirstF_LastF1',
 }
+export const institutionEmailUser = {
+  fullname: 'FirstG LastG',
+  email: 'test@umass.edu',
+  password: strongPassword,
+  activate: false,
+}
 // #endregion
 
 export async function setupRegister(superUserToken) {
   // create inactive user
   await createUser(inactiveUser)
+  // create inactive user with an institutional email
+  await createUser(institutionEmailUser)
   await createProfile(
     inActiveUserNoPassword.fullname,
     inActiveUserNoPassword.email,
@@ -135,6 +145,7 @@ export async function createUser({
       email,
       password,
       fullname,
+      dob: defaultDob,
     },
     { version: 2 }
   )
@@ -160,6 +171,7 @@ export async function createUser({
         },
       ],
       gender: '',
+      dob: defaultDob,
       homepage,
       gscholar: '',
       dblp: '',

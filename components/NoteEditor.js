@@ -1,7 +1,6 @@
 import { intersection, isEmpty } from 'lodash'
 import throttle from 'lodash/throttle'
-import { useEffect, useCallback, useReducer, useState, useContext, useRef } from 'react'
-import useTurnstileToken from '../hooks/useTurnstileToken'
+import { useEffect, useCallback, useReducer, useState, useContext } from 'react'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { getNoteContentValues } from '../lib/forum-utils'
@@ -267,11 +266,6 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
-  const [hasHumanVerificationError, setHasHumanVerificationError] = useState(false)
-  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
-    'noteEditor',
-    hasHumanVerificationError
-  )
   const { noteEditorPreview } = useContext(WebFieldContext) ?? {}
   if (noteEditorPreview)
     customValidator = () => ({
@@ -564,7 +558,7 @@ const NoteEditor = ({
         noteReaderValues: await getNoteReaderValues(roleNames, invitation, noteEditorData),
         editReaderValues: await getEditReaderValues(roleNames, invitation, noteEditorData),
         editWriterValues: getEditWriterValues(),
-        ...(replyToNote && { replyto: replyToNote.id }),
+        ...(!note?.id && replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,
       }
 
@@ -591,9 +585,7 @@ const NoteEditor = ({
             invitationObj: invitation,
             noteObj: note,
           })
-      const result = await api.post('/notes/edits', editToPost, {
-        'cf-turnstile-token': turnstileToken,
-      })
+      const result = await api.post('/notes/edits', editToPost)
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })
@@ -601,11 +593,6 @@ const NoteEditor = ({
       closeNoteEditor()
       onNoteCreated(createdNote)
     } catch (error) {
-      if (error.name === 'HumanVerificationRequiredError' && !noteEditorPreview) {
-        setHasHumanVerificationError(true)
-        setIsSubmitting(false)
-        return
-      }
       if (error.errors) {
         setErrors(
           error.errors.map((p) => {
@@ -818,8 +805,6 @@ const NoteEditor = ({
           />
         </div>
       )}
-
-      <div className={styles.turnstileContainer} ref={turnstileContainerRef} />
 
       {Object.values(loading).some((p) => p) ? (
         <LoadingSpinner inline />
