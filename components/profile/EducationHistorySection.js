@@ -44,7 +44,7 @@ const EducationHistoryRow = ({
     if (!domain) {
       setHistory({
         type: institutionDomainType,
-        data: { value: { institutionDomain: '', institutionName: '' }, key },
+        data: { value: { institutionDomain: '', institutionName: '' }, key, isCommit: true },
       })
       return
     }
@@ -66,13 +66,17 @@ const EducationHistoryRow = ({
       if (lastLookedUpDomain.current !== domain) return
       setHistory({
         type: institutionDomainType,
-        data: { value: { institutionDomain: domain, institutionName }, key },
+        data: { value: { institutionDomain: domain, institutionName }, key, isCommit: true },
       })
     } catch (error) {
       if (lastLookedUpDomain.current !== domain) return
       setHistory({
         type: institutionDomainType,
-        data: { value: { institutionDomain: domain, institutionName: '' }, key },
+        data: {
+          value: { institutionDomain: domain, institutionName: '' },
+          key,
+          isCommit: true,
+        },
       })
     }
   }
@@ -319,7 +323,7 @@ const EducationHistorySection = ({
           const recordCopy = { ...p, institution: { ...p.institution } }
           if (p.key === action.data.key) {
             recordCopy.institution = {
-              ...p.institution,
+              ...(action.data.isCommit ? {} : p.institution),
               domain: action.data.value.institutionDomain,
               name: action.data.value.institutionName,
             }
