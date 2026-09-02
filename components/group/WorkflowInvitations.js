@@ -737,8 +737,6 @@ const WorkflowStageHeader = ({ workflowStage }) => {
   const formattedPeriodEnd = formatDateTime(periodEnd, periodDateOptions)
 
   return (
-    // motion.div with layout="position" like the invitation rows, so the header slides with
-    // them when a row expands instead of snapping ahead of them
     <motion.div layout="position" transition={{ duration: 0.5 }} style={{ width: '110%' }}>
       <Flex align="baseline" gap="middle">
         <Typography.Title level={5} style={{ fontSize: '1.125rem', marginBottom: 0 }}>
