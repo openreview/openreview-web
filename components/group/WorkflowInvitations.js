@@ -1,10 +1,11 @@
+import { Divider, Flex, Tag, Typography } from 'antd'
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { motion } from 'framer-motion'
-import { orderBy, sortBy, get } from 'lodash'
+import { orderBy, sortBy, get, minBy, max } from 'lodash'
 /* globals promptError,promptMessage,$: false */
 import { useEffect, useRef, useState } from 'react'
 import useSocket from '../../hooks/useSocket'
@@ -31,6 +32,29 @@ dayjs.extend(isSameOrBefore)
 dayjs.extend(timezone)
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
+
+const isDateInFuture = (cdate) => cdate > Date.now()
+const isDateInPast = (expDateOrCDate) => expDateOrCDate <= Date.now()
+const getInvitationExpDate = (invitation) =>
+  invitation.expdate ?? invitation.edit?.invitation?.expdate
+
+const getStageStatus = (invitationsOfWorkflowStage) => {
+  if (invitationsOfWorkflowStage.every((p) => isDateInFuture(p.cdate))) {
+    return { stageStatus: 'Not Started', stageStatusColor: 'default' }
+  }
+
+  const stageInvitations = invitationsOfWorkflowStage.filter((p) => p.isStageInvitation)
+  const runInvitations = invitationsOfWorkflowStage.filter((p) => !p.isStageInvitation)
+
+  if (
+    stageInvitations.every((p) => isDateInPast(getInvitationExpDate(p))) &&
+    runInvitations.every((p) => isDateInPast(p.cdate))
+  ) {
+    return { stageStatus: 'Completed', stageStatusColor: 'success' }
+  }
+
+  return { stageStatus: 'Running', stageStatusColor: 'processing' }
+}
 
 const workflowGroupKeys = [
   {
@@ -663,6 +687,76 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   )
 }
 
+const getSortedWorkflowStages = (invitations, workflowStageOrder = []) => {
+  if (!invitations || invitations.length === 0) return []
+  const getWorkflowStageName = (p) => p.content?.workflow_stage_name?.value
+  const uniqueWorkflowStageNames = [
+    ...new Set(invitations.map(getWorkflowStageName).filter(Boolean)),
+  ]
+  const sortedWorkflowStages = sortBy(
+    uniqueWorkflowStageNames.map((name) => {
+      const invitationsOfWorkflowStageName = invitations.filter(
+        (p) => getWorkflowStageName(p) === name
+      )
+      return {
+        workflowStageName: name,
+        invitationsOfWorkflowStageName: sortBy(invitationsOfWorkflowStageName, 'cdate'),
+        periodStart: minBy(invitationsOfWorkflowStageName, 'cdate')?.cdate,
+        periodEnd: max(invitationsOfWorkflowStageName.map(getInvitationExpDate)),
+      }
+    }),
+    [
+      (p) => {
+        const stageIndex = workflowStageOrder.indexOf(p.workflowStageName)
+        return stageIndex === -1 ? Infinity : stageIndex
+      },
+      'periodStart',
+    ]
+  )
+  const invitationsWithoutWorkflowStage = invitations.filter((p) => !getWorkflowStageName(p))
+  if (invitationsWithoutWorkflowStage.length > 0) {
+    sortedWorkflowStages.push({
+      workflowStageName: 'Unknown Workflow Stage',
+      invitationsOfWorkflowStageName: invitationsWithoutWorkflowStage,
+    })
+  }
+  return sortedWorkflowStages
+}
+
+const WorkflowStageHeader = ({ workflowStage }) => {
+  const { workflowStageName, invitationsOfWorkflowStageName, periodStart, periodEnd } =
+    workflowStage
+  const { stageStatus, stageStatusColor } = getStageStatus(invitationsOfWorkflowStageName)
+  const periodDateOptions = {
+    second: undefined,
+    minute: undefined,
+    hour: undefined,
+    year: undefined,
+  }
+  const formattedPeriodStart = formatDateTime(periodStart, periodDateOptions)
+  const formattedPeriodEnd = formatDateTime(periodEnd, periodDateOptions)
+
+  return (
+    // motion.div with layout="position" like the invitation rows, so the header slides with
+    // them when a row expands instead of snapping ahead of them
+    <motion.div layout="position" transition={{ duration: 0.5 }} style={{ width: '110%' }}>
+      <Flex align="baseline" gap="middle">
+        <Typography.Title level={5} style={{ fontSize: '1.125rem', marginBottom: 0 }}>
+          {prettyField(workflowStageName)}
+        </Typography.Title>
+        <Tag variant="outlined" color={stageStatusColor}>
+          {stageStatus}
+        </Tag>
+        <Typography.Text type="secondary" italic>
+          {formattedPeriodStart}
+          {formattedPeriodEnd && ` – ${formattedPeriodEnd}`}
+        </Typography.Text>
+      </Flex>
+      <Divider styles={{ root: { margin: '0.25rem 0' } }} />
+    </motion.div>
+  )
+}
+
 const WorkFlowInvitations = ({ group }) => {
   const groupId = group.id
   const submissionName = group.content?.submission_name?.value
@@ -676,6 +770,11 @@ const WorkFlowInvitations = ({ group }) => {
   const workflowInvitationsRef = useRef({})
   const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
   const [workflowTasks, setWorkflowTasks] = useState([])
+
+  const workflowStages = getSortedWorkflowStages(
+    workflowInvitations,
+    group.content?.workflow_stages?.value
+  )
 
   const sortWorkflowInvitations = (invitations) => {
     // return sortBy(invitations, 'cdate')
@@ -1094,6 +1193,7 @@ const WorkFlowInvitations = ({ group }) => {
       clearTimeout(eventsHandler)
     }
   }, [events?.uniqueId])
+
   return (
     <>
       {workflowGroups.size > 0 && (
@@ -1174,73 +1274,94 @@ const WorkFlowInvitations = ({ group }) => {
 
             <hr />
             <div className="invitation-workflow-container">
-              {workflowInvitations.map((stepObj) => {
-                const {
-                  id,
-                  isExpired,
-                  sectionClass,
-                  invitationTasks,
-                  isMissingValue,
-                  formattedDate,
-                  subInvitations,
-                  startEndDateContent,
-                  isStageInvitation,
-                } = stepObj
-                return (
-                  <motion.div
-                    layout="position"
-                    key={id}
-                    transition={{ duration: 0.5 }}
-                    ref={(el) => {
-                      workflowInvitationsRef.current[id] = el
-                    }}
-                    className="motion-div"
-                  >
+              <Flex vertical gap="middle">
+                {workflowStages.map((workflowStage) => {
+                  const { workflowStageName, invitationsOfWorkflowStageName } = workflowStage
+                  return (
                     <div
-                      className={`workflow-invitation-container${isExpired ? ' expired' : ''}${sectionClass}`}
+                      key={workflowStageName ?? 'no-workflow-stage'}
+                      className="workflow-stage-container"
                     >
-                      <div
-                        className={`invitation-cdate${isMissingValue ? ' missing-value' : ''}`}
-                      >
-                        {formattedDate}
-                      </div>
-                      <div className="edit-invitation-info">
-                        <WorkflowInvitationRow
-                          invitation={stepObj}
-                          subInvitations={subInvitations}
-                          isDomainGroup={group.id !== group.domain}
-                          processLogs={processLogs}
-                          isExpired={isExpired}
-                          loadWorkflowInvitations={loadAllInvitations}
-                          isMissingValue={isMissingValue}
-                          collapsedWorkflowInvitationIds={collapsedWorkflowInvitationIds}
-                          handleExpandCollapseSubInvitations={
-                            handleExpandCollapseSubInvitations
-                          }
-                          workflowTasks={workflowTasks}
-                          isStageInvitation={isStageInvitation}
-                        />
+                      {workflowStageName && (
+                        <WorkflowStageHeader workflowStage={workflowStage} />
+                      )}
+                      {invitationsOfWorkflowStageName.map((stepObj) => {
+                        const {
+                          id,
+                          isExpired,
+                          sectionClass,
+                          invitationTasks,
+                          isMissingValue,
+                          formattedDate,
+                          subInvitations,
+                          startEndDateContent,
+                          isStageInvitation,
+                        } = stepObj
+                        return (
+                          <motion.div
+                            layout="position"
+                            key={id}
+                            transition={{ duration: 0.5 }}
+                            ref={(el) => {
+                              workflowInvitationsRef.current[id] = el
+                            }}
+                            className="motion-div"
+                          >
+                            <div
+                              className={`workflow-invitation-container${isExpired ? ' expired' : ''}${sectionClass}`}
+                            >
+                              <div
+                                className={`invitation-cdate${isMissingValue ? ' missing-value' : ''}`}
+                              >
+                                {formattedDate}
+                              </div>
+                              <div className="edit-invitation-info">
+                                <WorkflowInvitationRow
+                                  invitation={stepObj}
+                                  subInvitations={subInvitations}
+                                  isDomainGroup={group.id !== group.domain}
+                                  processLogs={processLogs}
+                                  isExpired={isExpired}
+                                  loadWorkflowInvitations={loadAllInvitations}
+                                  isMissingValue={isMissingValue}
+                                  collapsedWorkflowInvitationIds={
+                                    collapsedWorkflowInvitationIds
+                                  }
+                                  handleExpandCollapseSubInvitations={
+                                    handleExpandCollapseSubInvitations
+                                  }
+                                  workflowTasks={workflowTasks}
+                                  isStageInvitation={isStageInvitation}
+                                />
 
-                        {subInvitations.length > 0 &&
-                          subInvitations.map((subInvitation) => (
-                            <SubInvitationRow
-                              key={subInvitation.id}
-                              subInvitation={subInvitation}
-                              workflowInvitation={stepObj}
-                              loadWorkflowInvitations={loadAllInvitations}
-                              domainObject={group.content}
-                              setMissingValueInvitationIds={setMissingValueInvitationIds}
-                              workflowInvitationsRef={workflowInvitationsRef}
-                              collapsedWorkflowInvitationIds={collapsedWorkflowInvitationIds}
-                              workflowTasks={workflowTasks}
-                            />
-                          ))}
-                      </div>
-                      <div className="start-end-date">{startEndDateContent}</div>
+                                {subInvitations.length > 0 &&
+                                  subInvitations.map((subInvitation) => (
+                                    <SubInvitationRow
+                                      key={subInvitation.id}
+                                      subInvitation={subInvitation}
+                                      workflowInvitation={stepObj}
+                                      loadWorkflowInvitations={loadAllInvitations}
+                                      domainObject={group.content}
+                                      setMissingValueInvitationIds={
+                                        setMissingValueInvitationIds
+                                      }
+                                      workflowInvitationsRef={workflowInvitationsRef}
+                                      collapsedWorkflowInvitationIds={
+                                        collapsedWorkflowInvitationIds
+                                      }
+                                      workflowTasks={workflowTasks}
+                                    />
+                                  ))}
+                              </div>
+                              <div className="start-end-date">{startEndDateContent}</div>
+                            </div>
+                          </motion.div>
+                        )
+                      })}
                     </div>
-                  </motion.div>
-                )
-              })}
+                  )
+                })}
+              </Flex>
               {stageInvitations.length > 0 && (
                 <AddStageInvitationSection
                   stageInvitations={stageInvitations}
