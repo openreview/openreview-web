@@ -270,7 +270,10 @@ const ProfilePreviewModal = ({
           <>
             {profileDocuments?.some((document) => document.type === 'parentalConsent') && (
               <ProfileViewSection title="Parental Consent">
-                <ParentalConsentSection profileDocuments={profileDocuments} />
+                <ParentalConsentSection
+                  profileDocuments={profileDocuments}
+                  loadIdentityDocuments={loadIdentityDocuments}
+                />
               </ProfileViewSection>
             )}
             {profileDocuments?.some((document) => document.type !== 'parentalConsent') && (
