@@ -3,7 +3,8 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
-import { formatDateTime, getDeviceFromUserAgent, getRejectionReasons } from '../../lib/utils'
+import { formatDateTime, getDeviceFromUserAgent } from '../../lib/utils'
+import { getModerationRejectionReasons, moderateProfile } from '../../lib/profiles'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
@@ -30,6 +31,7 @@ const ProfilePreviewModal = ({
   const [profileDocuments, setProfileDocuments] = useState(null)
   const [loginActivity, setLoginActivity] = useState(null)
   const [rejectionMessage, setRejectionMessage] = useState('')
+  const [selectedReasons, setSelectedReasons] = useState([])
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
   const [error, setError] = useState(null)
@@ -58,7 +60,7 @@ const ProfilePreviewModal = ({
       signature: `${process.env.SUPER_USER}/Support`,
       invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
     })
-    await api.post('/profile/moderate', { id: profileToPreview.id, decision: 'accept' })
+    await moderateProfile(profileToPreview.id, 'accept')
   }
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
@@ -172,6 +174,7 @@ const ProfilePreviewModal = ({
 
   useEffect(() => {
     setRejectionMessage('')
+    setSelectedReasons([])
     setIsRejecting(false)
     setTags([])
     setLoginActivity(null)
@@ -180,7 +183,7 @@ const ProfilePreviewModal = ({
     const currentInstitutionName = profileToPreview?.history?.find(
       (p) => !p.end || p.end >= new Date().getFullYear()
     )?.institution?.name
-    setRejectReasons(getRejectionReasons(currentInstitutionName))
+    getModerationRejectionReasons(currentInstitutionName).then(setRejectReasons)
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
     if (profileToPreview && contentToShow?.includes('tags')) loadTags()
     if (profileToPreview && contentToShow?.includes('identityDocuments'))
@@ -263,6 +266,7 @@ const ProfilePreviewModal = ({
             <PastStatesSection
               email={profileToPreview.preferredEmail}
               pastStates={profileToPreview.pastStates}
+              profileId={profileToPreview.id}
             />
           </ProfileViewSection>
         )}
@@ -366,7 +370,11 @@ const ProfilePreviewModal = ({
                 <Button
                   type="primary"
                   onClick={async () => {
-                    await rejectUser(rejectionReasons[0]?.rejectionText, profileToPreview.id)
+                    await rejectUser(
+                      rejectionReasons[0]?.rejectionText,
+                      profileToPreview.id,
+                      rejectionReasons[0]?.label ? [rejectionReasons[0].label] : undefined
+                    )
                     showNextProfile(profileToPreview.id)
                   }}
                 >
@@ -386,6 +394,7 @@ const ProfilePreviewModal = ({
                 getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 onChange={(value) => {
                   const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+                  setSelectedReasons(value)
                   setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
                 }}
               />
@@ -421,7 +430,10 @@ const ProfilePreviewModal = ({
               <Button
                 type="primary"
                 onClick={async () => {
-                  await rejectUser(rejectionMessage, profileToPreview.id)
+                  const labels = rejectionReasons
+                    .filter((r) => selectedReasons.includes(r.value))
+                    .map((r) => r.label)
+                  await rejectUser(rejectionMessage, profileToPreview.id, labels)
                   showNextProfile(profileToPreview.id)
                 }}
               >

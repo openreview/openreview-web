@@ -11,8 +11,34 @@ import {
   moderation as legacyStyles,
 } from '../../lib/legacy-bootstrap-styles'
 
-const PastStatesSection = ({ email, pastStates }) => {
+const formatStateDate = (date) =>
+  formatDateTime(date, {
+    day: '2-digit',
+    month: 'short',
+    year: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: undefined,
+    timeZoneName: undefined,
+    hour12: false,
+  })
+
+const PastStatesSection = ({ email, pastStates, profileId }) => {
+  const [statusEdits, setStatusEdits] = useState(null)
   const [messages, setMessages] = useState([])
+
+  const loadStatusEdits = async () => {
+    try {
+      const apiRes = await api.get('/profiles/edits', {
+        'profile.id': profileId,
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_State`,
+        sort: 'tcdate:desc',
+      })
+      setStatusEdits(apiRes.edits ?? [])
+    } catch (apiError) {
+      setStatusEdits([])
+    }
+  }
 
   const loadMessages = async () => {
     try {
@@ -27,9 +53,66 @@ const PastStatesSection = ({ email, pastStates }) => {
       /* empty */
     }
   }
+
   useEffect(() => {
-    loadMessages()
-  }, [email])
+    setStatusEdits(null)
+    setMessages([])
+    if (profileId) {
+      loadStatusEdits()
+    } else {
+      setStatusEdits([])
+    }
+  }, [profileId])
+
+  // Messages are the legacy source of the state history; only fall back to them
+  // when the profile has no moderation profile edits.
+  useEffect(() => {
+    if (statusEdits?.length === 0) loadMessages()
+  }, [statusEdits, email])
+
+  if (statusEdits?.length > 0) {
+    return (
+      <Flex vertical gap={2}>
+        {statusEdits.map((edit) => {
+          const status = edit.content?.state?.value
+          const reason = edit.content?.reason?.value
+          const labels = edit.content?.labels?.value
+
+          return (
+            <div key={edit.id}>
+              <Space size="small" align="center" wrap>
+                <span>{formatStateDate(edit.tcdate)}</span>
+                <Tag
+                  color={getBootstrap337LabelColor(getProfileStateLabelClass(status))}
+                  variant="solid"
+                  styles={{ root: legacyStyles.statusTag }}
+                >
+                  {status}
+                </Tag>
+                <span style={{ color: colors.subtleGray, fontSize: '0.85em' }}>
+                  {edit.tauthor ?? edit.signatures?.[0]}
+                </span>
+              </Space>
+
+              {(labels?.length || reason) && (
+                <span
+                  title={reason}
+                  style={{
+                    overflow: 'hidden',
+                    whiteSpace: 'nowrap',
+                    textOverflow: 'ellipsis',
+                    display: 'block',
+                  }}
+                >
+                  {labels?.length ? labels.join(', ') : reason}
+                </span>
+              )}
+            </div>
+          )
+        })}
+      </Flex>
+    )
+  }
 
   return (
     <Flex vertical gap={2}>
@@ -42,18 +125,7 @@ const PastStatesSection = ({ email, pastStates }) => {
         return (
           <div key={index}>
             <Space size="small" align="center" wrap>
-              <span>
-                {formatDateTime(pastState.date, {
-                  day: '2-digit',
-                  month: 'short',
-                  year: '2-digit',
-                  hour: '2-digit',
-                  minute: '2-digit',
-                  second: undefined,
-                  timeZoneName: undefined,
-                  hour12: false,
-                })}
-              </span>
+              <span>{formatStateDate(pastState.date)}</span>
               <Tag
                 color={getBootstrap337LabelColor(getProfileStateLabelClass(pastState.state))}
                 variant="solid"
