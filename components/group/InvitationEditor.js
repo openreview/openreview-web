@@ -1,17 +1,17 @@
-/* globals promptLogin,promptError: false */
-import { useEffect, useReducer, useState } from 'react'
 import { get } from 'lodash'
-import styles from '../../styles/components/InvitationContentEditor.module.scss'
+import { useEffect, useReducer, useState } from 'react'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
 import { classNames } from '../../lib/utils'
 import EditorComponentContext from '../EditorComponentContext'
-import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
-import EditorWidget from '../webfield/EditorWidget'
-import Icon from '../Icon'
-import useUser from '../../hooks/useUser'
-import SpinnerButton from '../SpinnerButton'
-import api from '../../lib/api-client'
 import ContentFieldEditor from '../EditorComponents/ContentFieldEditor'
+import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
 import EditSignatures from '../EditSignatures'
+import Icon from '../Icon'
+import SpinnerButton from '../SpinnerButton'
+import EditorWidget from '../webfield/EditorWidget'
+
+import styles from '../../styles/components/InvitationContentEditor.module.scss'
 
 // For editing invitation
 const InvitationEditor = ({
@@ -116,7 +116,12 @@ const InvitationEditor = ({
         }
       })
       Object.entries(editContentFields).forEach(([field, value]) => {
-        editContent[field] = { value: invitationEditorData[field] }
+        editContent[field] = {
+          value:
+            invitationEditorData[field] === undefined
+              ? { delete: true }
+              : invitationEditorData[field],
+        }
       })
       editToPost.content = editContent
 

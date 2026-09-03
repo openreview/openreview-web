@@ -1429,10 +1429,10 @@
         width: 110%;
 
         &.section-passed {
-          background-color: lighten(#c8e6c9, 10%);
+          background-color: #f6ffed;
         }
         &.section-active {
-          background-color: lighten(#bbdefb, 10%);
+          background-color: #e6f4ff;
         }
         &.section-scheduled {
           background-color: #eeeeee;
