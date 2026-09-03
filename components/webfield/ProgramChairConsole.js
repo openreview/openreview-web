@@ -541,14 +541,20 @@ return officialReviews.length;
 
 /**
  * @name ProgramChairConsoleConfig.sacStatuspropertiesAllowed
- * @description Query-search properties override for SAC status (direct paper assignment mode).
+ * @description Query-search properties override for SAC status (direct paper assignment mode), it also support function string
  * @type {Object}
  * @default built-in SAC defaults
  * @example
  * {
  *   "sacStatuspropertiesAllowed": {
+ *     "number": ["number"],
  *     "name": ["sacProfile.preferredName"],
- *     "email": ["sacProfile.preferredEmail"]
+ *     "email": ["sacProfile.preferredEmail"],
+ *     "hasSubmissionWithFewerThan3Reviews": `
+ *           const assignedNotes = row.notes
+ *           const hasSubmission = assignedNotes.some(note => (note.officialReviews?.length ?? 0) < 3)
+ *           return hasSubmission ? 'yes' : 'no'
+ *         `
  *   }
  * }
  */
