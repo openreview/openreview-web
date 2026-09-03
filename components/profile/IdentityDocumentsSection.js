@@ -1,4 +1,5 @@
 import { Button, Flex, Image, Space } from 'antd'
+import { useState } from 'react'
 import api from '../../lib/api-client'
 import { formatDateTime, inflect } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
@@ -9,7 +10,7 @@ const pdfThumbnail = '/images/pdf_icon_blue.svg'
 const deletedThumbnail =
   'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="76" height="100"><rect width="76" height="100" fill="%23f5f5f5"/></svg>'
 
-const DocumentMetadata = ({ item, loadIdentityDocuments, inline = false }) => {
+const DocumentMetadata = ({ item, loadIdentityDocuments, onDeleted, inline = false }) => {
   const properties = [
     { label: 'File Name', value: item.filename },
     { label: 'Document Type', value: item.type },
@@ -28,12 +29,13 @@ const DocumentMetadata = ({ item, loadIdentityDocuments, inline = false }) => {
         ]
       : []),
   ]
-  const isDeletable = item.type !== 'parentalConsent' && !item.ddate
+  const isDeletable = !item.ddate
 
   const deleteDocument = async () => {
     try {
       await api.delete(`/profile-documents/${item.id}`)
-      loadIdentityDocuments()
+      loadIdentityDocuments?.()
+      onDeleted?.(item.id)
       promptMessage(`${item.id} has been deleted`)
     } catch (error) {
       promptError(error.message)
@@ -63,6 +65,8 @@ const DocumentMetadata = ({ item, loadIdentityDocuments, inline = false }) => {
 }
 
 export const ProfileDocumentsPreview = ({ profileDocuments, loadIdentityDocuments }) => {
+  const [previewOpen, setPreviewOpen] = useState(false)
+
   if (!profileDocuments) return <LoadingSpinner inline />
   if (!profileDocuments.length) return 'No Documents'
 
@@ -84,10 +88,16 @@ export const ProfileDocumentsPreview = ({ profileDocuments, loadIdentityDocument
     })
   )
 
+  const handleDeleted = (deletedId) => {
+    if (!items.some((item) => item.id !== deletedId && !item.ddate)) setPreviewOpen(false)
+  }
+
   return (
     <Image.PreviewGroup
       items={items.map((item) => ({ src: item.src }))}
       preview={{
+        open: previewOpen,
+        onOpenChange: (open) => setPreviewOpen(open),
         imageRender: (originalNode, { current }) => {
           const item = items[current]
           if (!item) return originalNode
@@ -131,7 +141,11 @@ export const ProfileDocumentsPreview = ({ profileDocuments, loadIdentityDocument
           return (
             <>
               {content}
-              <DocumentMetadata item={item} loadIdentityDocuments={loadIdentityDocuments} />
+              <DocumentMetadata
+                item={item}
+                loadIdentityDocuments={loadIdentityDocuments}
+                onDeleted={handleDeleted}
+              />
             </>
           )
         },
@@ -209,11 +223,16 @@ export const ProfileDocumentsPreview = ({ profileDocuments, loadIdentityDocument
   )
 }
 
-export const ParentalConsentSection = ({ profileDocuments }) => {
+export const ParentalConsentSection = ({ profileDocuments, loadIdentityDocuments }) => {
   const parentalConsentDocuments = profileDocuments?.filter(
     (document) => document.type === 'parentalConsent'
   )
-  return <ProfileDocumentsPreview profileDocuments={parentalConsentDocuments} />
+  return (
+    <ProfileDocumentsPreview
+      profileDocuments={parentalConsentDocuments}
+      loadIdentityDocuments={loadIdentityDocuments}
+    />
+  )
 }
 
 export const IdentityDocumentsSection = ({
@@ -252,7 +271,10 @@ export const IdentityDocumentsSection = ({
 
   return (
     <div>
-      <ProfileDocumentsPreview profileDocuments={identityDocuments} />
+      <ProfileDocumentsPreview
+        profileDocuments={identityDocuments}
+        loadIdentityDocuments={loadIdentityDocuments}
+      />
       {shouldShowActionButton && (
         <Space>
           <Button
