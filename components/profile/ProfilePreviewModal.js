@@ -4,7 +4,11 @@ import relativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import { formatDateTime, getDeviceFromUserAgent } from '../../lib/utils'
-import { getModerationRejectionReasons, moderateProfile } from '../../lib/profiles'
+import {
+  getModerationRejectionReasons,
+  getProfileVerifications,
+  moderateProfile,
+} from '../../lib/profiles'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
@@ -32,6 +36,7 @@ const ProfilePreviewModal = ({
   const [loginActivity, setLoginActivity] = useState(null)
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [selectedReasons, setSelectedReasons] = useState([])
+  const [verifications, setVerifications] = useState(null)
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
   const [error, setError] = useState(null)
@@ -176,6 +181,10 @@ const ProfilePreviewModal = ({
     setRejectionMessage('')
     setSelectedReasons([])
     setIsRejecting(false)
+    setVerifications(null)
+    if (profileToPreview?.id) {
+      getProfileVerifications(profileToPreview.id).then(setVerifications)
+    }
     setTags([])
     setLoginActivity(null)
     setTagInvitation(tagInvitationOptions[0].value)
@@ -218,6 +227,7 @@ const ProfilePreviewModal = ({
           profile={profileToPreview}
           showLinkText={true}
           moderation={true}
+          verifications={verifications}
           contentToShow={contentToShow}
         />
         {contentToShow?.includes('loginActivity') && showLoginActivity && (
