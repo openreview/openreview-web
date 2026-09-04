@@ -95,7 +95,7 @@ describe('DropdownDerivedOptionsWidget (authors has special handling getting the
     const providerProps = {
       value: {
         field: authorReferenceField,
-        noteEditorValue: { authors: [] },
+        editorValue: { authors: [] },
       },
     }
 
