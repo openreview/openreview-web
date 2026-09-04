@@ -8,12 +8,9 @@ import EditorComponentContext from '../EditorComponentContext'
 import styles from '../../styles/components/DropdownWidget.module.scss'
 
 const DropdownWidget = () => {
-  const { field, onChange, value, clearError, noteEditorValue } =
-    useContext(EditorComponentContext)
+  const { field, onChange, value, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
-  const isAuthorDerivedField =
-    field[fieldName]?.value?.param?.enum?.[0] === '${3/authors/value/*/username}'
   const isArrayType = fieldType?.endsWith('[]')
   const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
   const [dropdownOptions, setDropdownOptions] = useState([])
@@ -54,7 +51,6 @@ const DropdownWidget = () => {
   }
 
   useEffect(() => {
-    if (isAuthorDerivedField) return
     const enumValues = field[fieldName].value?.param?.enum
     const itemsValues = field[fieldName].value?.param?.items
     let options = []
@@ -101,25 +97,6 @@ const DropdownWidget = () => {
     }
   }, [])
 
-  useEffect(() => {
-    if (!isAuthorDerivedField) return
-    const authors = noteEditorValue?.authors ?? []
-    const authorOptions = authors.map((p) => ({
-      label: p.fullname,
-      value: p.username,
-    }))
-    setDropdownOptions(authorOptions)
-
-    // drop any selected reviewer whose author has been removed from the note
-    if (Array.isArray(value)) {
-      const optionValues = authorOptions.map((p) => p.value)
-      const filteredValue = value.filter((p) => optionValues.includes(p))
-      if (filteredValue.length !== value.length) {
-        onChange({ fieldName, value: filteredValue.length ? filteredValue : undefined })
-      }
-    }
-  }, [noteEditorValue?.authors])
-
   if (!dropdownOptions.length) return null
 
   return (
@@ -129,13 +106,11 @@ const DropdownWidget = () => {
         onChange={dropdownChangeHandler}
         value={
           allowMultiSelect
-            ? value
-                ?.map((p) =>
-                  dropdownOptions.find((q) =>
-                    typeof p === 'object' ? isEqual(q.value, p) : q.value == p
-                  )
+            ? value?.map((p) =>
+                dropdownOptions.find((q) =>
+                  typeof p === 'object' ? isEqual(q.value, p) : q.value == p
                 )
-                .filter(Boolean)
+              )
             : dropdownOptions.filter((p) => p.value == value)
         }
         isClearable={true}
