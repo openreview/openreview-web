@@ -1,27 +1,74 @@
 /* globals promptError: false */
-import { Flex, Space, Tag } from 'antd'
+import { Flex, Space, Tag, Tooltip, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import { formatDateTime } from '../../lib/utils'
 
 import {
-  colors,
   getBootstrap337LabelColor,
   getProfileStateLabelClass,
   moderation as legacyStyles,
 } from '../../lib/legacy-bootstrap-styles'
 
-const formatStateDate = (date) =>
-  formatDateTime(date, {
-    day: '2-digit',
-    month: 'short',
-    year: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: undefined,
-    timeZoneName: undefined,
-    hour12: false,
-  })
+const detailLineStyle = { display: 'block', maxWidth: '100%' }
+
+// Shows the complete moderation message on hover: wide enough to read and with the
+// message's own line breaks preserved.
+const ReasonTooltip = ({ reason, children }) => (
+  <Tooltip
+    title={reason && <span style={{ whiteSpace: 'pre-wrap' }}>{reason}</span>}
+    styles={{ root: { maxWidth: 480 } }}
+  >
+    {children}
+  </Tooltip>
+)
+
+// One row of the state history. Both sources (Profile_State edits and the legacy
+// pastStates + messages fallback) render through this, so the two stay visually
+// identical: date, state tag, who set it, the moderation labels inline, and an
+// optional second line only for details too long to sit on the row (a free-text
+// reason without labels, or the legacy message link).
+const PastStateRow = ({ date, state, setBy, labels, reason, children }) => (
+  <div>
+    <Space size="small" align="center" wrap>
+      <Typography.Text>
+        {formatDateTime(date, {
+          day: '2-digit',
+          month: 'short',
+          year: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+          second: undefined,
+          timeZoneName: undefined,
+          hour12: false,
+        })}
+      </Typography.Text>
+      <Tag
+        color={getBootstrap337LabelColor(getProfileStateLabelClass(state))}
+        variant="solid"
+        styles={{ root: legacyStyles.statusTag }}
+      >
+        {state}
+      </Tag>
+
+      {setBy && (
+        <Typography.Text type="secondary" style={{ fontSize: '0.85em' }}>
+          {setBy}
+        </Typography.Text>
+      )}
+
+      {labels?.length > 0 && (
+        <ReasonTooltip reason={reason}>
+          <Typography.Text style={{ fontSize: '0.85em' }}>
+            {labels.join(', ')}
+          </Typography.Text>
+        </ReasonTooltip>
+      )}
+    </Space>
+
+    {children}
+  </div>
+)
 
 const PastStatesSection = ({ email, pastStates, profileId }) => {
   const [statusEdits, setStatusEdits] = useState(null)
@@ -74,40 +121,26 @@ const PastStatesSection = ({ email, pastStates, profileId }) => {
     return (
       <Flex vertical gap={2}>
         {statusEdits.map((edit) => {
-          const status = edit.content?.state?.value
-          const reason = edit.content?.reason?.value
           const labels = edit.content?.labels?.value
+          const reason = edit.content?.reason?.value
 
           return (
-            <div key={edit.id}>
-              <Space size="small" align="center" wrap>
-                <span>{formatStateDate(edit.tcdate)}</span>
-                <Tag
-                  color={getBootstrap337LabelColor(getProfileStateLabelClass(status))}
-                  variant="solid"
-                  styles={{ root: legacyStyles.statusTag }}
-                >
-                  {status}
-                </Tag>
-                <span style={{ color: colors.subtleGray, fontSize: '0.85em' }}>
-                  {edit.tauthor ?? edit.signatures?.[0]}
-                </span>
-              </Space>
-
-              {(labels?.length || reason) && (
-                <span
-                  title={reason}
-                  style={{
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    textOverflow: 'ellipsis',
-                    display: 'block',
-                  }}
-                >
-                  {labels?.length ? labels.join(', ') : reason}
-                </span>
+            <PastStateRow
+              key={edit.id}
+              date={edit.tcdate}
+              state={edit.content?.state?.value}
+              setBy={edit.tauthor ?? edit.signatures?.[0]}
+              labels={labels}
+              reason={reason}
+            >
+              {!labels?.length && reason && (
+                <ReasonTooltip reason={reason}>
+                  <Typography.Text ellipsis style={detailLineStyle}>
+                    {reason}
+                  </Typography.Text>
+                </ReasonTooltip>
               )}
-            </div>
+            </PastStateRow>
           )
         })}
       </Flex>
@@ -123,43 +156,27 @@ const PastStatesSection = ({ email, pastStates, profileId }) => {
         })
 
         return (
-          <div key={index}>
-            <Space size="small" align="center" wrap>
-              <span>{formatStateDate(pastState.date)}</span>
-              <Tag
-                color={getBootstrap337LabelColor(getProfileStateLabelClass(pastState.state))}
-                variant="solid"
-                styles={{ root: legacyStyles.statusTag }}
-              >
-                {pastState.state}
-              </Tag>
-
-              {pastState.setBy && (
-                <span style={{ color: colors.subtleGray, fontSize: '0.85em' }}>
-                  {pastState.setBy}
-                </span>
-              )}
-            </Space>
-
+          <PastStateRow
+            key={index}
+            date={pastState.date}
+            state={pastState.state}
+            setBy={pastState.setBy}
+          >
             {message && (
-              <a
+              <Typography.Link
                 href={`${process.env.API_V2_URL}/messages?id=${message.id}`}
                 target="_blank"
                 rel="noreferrer"
-                style={{
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                  display: 'block',
-                }}
+                ellipsis
+                style={detailLineStyle}
               >
                 {message.content.text.replace(
                   /Your OpenReview profile (could not be activated|has been deactivated) for the following reason:\n/,
                   ''
                 )}
-              </a>
+              </Typography.Link>
             )}
-          </div>
+          </PastStateRow>
         )
       })}
     </Flex>
