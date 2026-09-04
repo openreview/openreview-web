@@ -107,7 +107,7 @@ export default function NavSm({
                   className={legacyNavStyles.navDrawerSubLink}
                   onClick={closeDrawer}
                 >
-                  Password &amp; Security
+                  Security settings
                 </Link>
               </>
             )}

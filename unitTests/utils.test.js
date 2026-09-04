@@ -13,12 +13,65 @@ import {
   getNoteAuthorIds,
   getNoteAuthors,
   normalizeName,
+  getDeviceFromUserAgent,
 } from '../lib/utils'
 import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 describe('utils', () => {
+  test('describe browser and os in getDeviceFromUserAgent', () => {
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+      )
+    ).toEqual('Chrome on Windows')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15'
+      )
+    ).toEqual('Safari on macOS')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
+      )
+    ).toEqual('Edge on macOS')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
+      )
+    ).toEqual('Safari on iOS')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0.6478.54 Mobile/15E148 Safari/604.1'
+      )
+    ).toEqual('Chrome on iOS')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0.0.0 Mobile Safari/537.36'
+      )
+    ).toEqual('Samsung Internet on Android')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0'
+      )
+    ).toEqual('Firefox on Linux')
+
+    // browser-only and os-only matches
+    expect(getDeviceFromUserAgent('curl/8.6.0')).toEqual('API client')
+    expect(getDeviceFromUserAgent('openreview-py/1.49.2 (Python/3.11)')).toEqual(
+      'openreview-py'
+    )
+    expect(
+      getDeviceFromUserAgent('Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko')
+    ).toEqual('Windows')
+
+    // client-controlled values are never returned raw
+    expect(getDeviceFromUserAgent('some unrecognized client')).toEqual('Unknown device')
+    expect(getDeviceFromUserAgent(undefined)).toEqual('Device not reported')
+    expect(getDeviceFromUserAgent('')).toEqual('Device not reported')
+  })
+
   test('convert string to object in stringToObject', () => {
     let prefilledValues = {}
     expect(stringToObject(prefilledValues)).toEqual(undefined)

@@ -131,6 +131,16 @@ const theme = {
     Tooltip: {
       colorBgSpotlight: 'rgba(44, 58, 74, 0.9)',
     },
+    Switch: {
+      colorPrimary: primaryColor,
+      colorPrimaryHover: '#4f7a8a',
+      colorTextQuaternary: '#efece3',
+      colorTextTertiary: '#e2ded1',
+      handleBg: backgroundWhite,
+      trackHeight: 24,
+      trackMinWidth: 46,
+      handleSize: 20,
+    },
   },
 }
 
