@@ -663,9 +663,6 @@ const RelationsSection = ({
         </div>
       )}
       {relations.map((relation) => {
-        // A relation can be vouched for while their profile is waiting for the moderation
-        // team or after the moderation team rejected it. Keep in sync with the Vouch
-        // invitation preprocess in openreview-py.
         const isVouchable = vouchableProfileStates.includes(
           relationProfileStates?.[relation.username]
         )
