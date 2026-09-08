@@ -6,6 +6,13 @@ import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/DropdownWidget.module.scss'
 
+const getSourceFieldName = (fieldDefinition) => {
+  const firstToken = fieldDefinition?.value?.param?.enum?.[0]?.split('/')?.[1]
+  if (firstToken === 'authors') return firstToken
+  const secondLastToken = fieldDefinition?.value?.param?.enum?.[0]?.split('/')?.slice(-2)?.[0] // last token is value
+  return secondLastToken
+}
+
 const DropdownDerivedOptionsWidget = () => {
   const { field, onChange, value, clearError, editorValue } =
     useContext(EditorComponentContext)
@@ -13,7 +20,7 @@ const DropdownDerivedOptionsWidget = () => {
   const fieldType = field[fieldName]?.value?.param?.type
   const allowMultiSelect = fieldType?.endsWith('[]')
   const dataType = allowMultiSelect ? fieldType?.slice(0, -2) : fieldType
-  const sourceFieldName = field[fieldName]?.value?.param?.enum?.[0]?.split('/')?.[1]
+  const sourceFieldName = getSourceFieldName(field[fieldName])
   const sourceValue = editorValue?.[sourceFieldName]
   const [dropdownOptions, setDropdownOptions] = useState([])
 
