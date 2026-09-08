@@ -1,9 +1,8 @@
-/* globals promptMessage,promptError,$: false */
-
-import { Tab, TabList, TabPanel, TabPanels, Tabs } from '../Tabs'
-import EditorSection from '../EditorSection'
-import { InvitationCodeV2 } from './InvitationCode'
+import { useMemo } from 'react'
 import { prettyField } from '../../lib/utils'
+import EditorSection from '../EditorSection'
+import { AntdTabs } from '../Tabs'
+import { InvitationCodeV2 } from './InvitationCode'
 
 export default function InvitationProcessFunctionsV2({
   invitation,
@@ -14,37 +13,37 @@ export default function InvitationProcessFunctionsV2({
   const contentScripts = Object.keys(invitation.content ?? {}).filter(
     (key) => key.endsWith('_script') && typeof invitation.content[key].value === 'string'
   )
+  const items = useMemo(
+    () =>
+      contentScripts.map((fieldName) => ({
+        key: fieldName,
+        label: prettyField(fieldName),
+        children: (
+          <InvitationCodeV2
+            invitation={invitation}
+            profileId={profileId}
+            loadInvitation={loadInvitation}
+            codeType={`content.${fieldName}.value`}
+            isMetaInvitation={isMetaInvitation}
+            alwaysShowEditor
+            noTitle
+          />
+        ),
+      })),
+    [invitation]
+  )
+
   if (contentScripts.length === 0) {
     return null
   }
 
   return (
     <EditorSection title="Content Process Functions" className="process-functions">
-      <Tabs>
-        <TabList>
-          {contentScripts.map((fieldName, i) => (
-            <Tab key={fieldName} id={fieldName} active={i === 0}>
-              {prettyField(fieldName)}
-            </Tab>
-          ))}
-        </TabList>
-
-        <TabPanels>
-          {contentScripts.map((fieldName) => (
-            <TabPanel key={fieldName} id={fieldName}>
-              <InvitationCodeV2
-                invitation={invitation}
-                profileId={profileId}
-                loadInvitation={loadInvitation}
-                codeType={`content.${fieldName}.value`}
-                isMetaInvitation={isMetaInvitation}
-                alwaysShowEditor
-                noTitle
-              />
-            </TabPanel>
-          ))}
-        </TabPanels>
-      </Tabs>
+      <AntdTabs
+        type="card"
+        styles={{ header: { marginBottom: 0 }, root: { marginTop: '1rem' } }}
+        items={items}
+      />
     </EditorSection>
   )
 }

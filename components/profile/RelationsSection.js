@@ -43,6 +43,7 @@ const mergeVouchTagsType = 'mergeVouchTags'
 // #endregion
 
 const vouchInvitationId = `${process.env.SUPER_USER}/Support/-/Vouch`
+const vouchableProfileStates = ['Needs Moderation', 'Rejected']
 
 const encodeVouchLabel = (relation) =>
   JSON.stringify({
@@ -234,7 +235,9 @@ export const RelationRow = ({
                       icon={<SafetyCertificateOutlined />}
                       loading={isVouching}
                       aria-label="Vouch for this user"
-                    />
+                    >
+                      Vouch
+                    </Button>
                   </Tooltip>
                 </Popconfirm>
               )}
@@ -589,7 +592,12 @@ const RelationsSection = ({
       const { profiles } = await api.getAllProfilesByIds(usernames)
       setRelationProfileStates(
         Object.fromEntries(
-          profiles.map((candidateProfile) => [candidateProfile.id, candidateProfile.state])
+          profiles.flatMap((candidateProfile) => {
+            const allUserNames = (candidateProfile.content.names ?? []).map(
+              (p) => p.username ?? []
+            )
+            return allUserNames.map((p) => [p, candidateProfile.state])
+          })
         )
       )
     } catch {}
@@ -655,7 +663,9 @@ const RelationsSection = ({
         </div>
       )}
       {relations.map((relation) => {
-        const isRejected = relationProfileStates?.[relation.username] === 'Rejected'
+        const isVouchable = vouchableProfileStates.includes(
+          relationProfileStates?.[relation.username]
+        )
         const isSavedPublicRelation =
           relation.username &&
           savedRelations?.find(
@@ -672,7 +682,7 @@ const RelationsSection = ({
             relationReaderOptions={relationReaderOptions}
             isMobile={isMobile}
             user={user}
-            showVouchButton={isRejected && isSavedPublicRelation}
+            showVouchButton={isVouchable && isSavedPublicRelation}
             vouchLimit={lifetimeVouchLimit}
           />
         )

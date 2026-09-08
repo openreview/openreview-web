@@ -1,9 +1,9 @@
-import { useContext, useState } from 'react'
 import dayjs from 'dayjs'
-import DatetimePicker from '../DatetimePicker'
-import EditorComponentContext from '../EditorComponentContext'
-import { TimezoneDropdown } from '../Dropdown'
+import { useContext, useState } from 'react'
 import { getDefaultTimezone, prettyField } from '../../lib/utils'
+import DatetimePicker from '../DatetimePicker'
+import { TimezoneDropdown } from '../Dropdown'
+import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/DatePickerWidget.module.scss'
 
@@ -29,7 +29,7 @@ const DatePickerWidget = (props) => {
   }
 
   return (
-    <div className={`${styles.datePickerContainer} ${error ? styles.invalidValue : ''}`}>
+    <div className={styles.datePickerContainer}>
       <DatetimePicker
         existingValue={value}
         timeZone={timeZone}
@@ -39,6 +39,7 @@ const DatePickerWidget = (props) => {
         disabledDate={disabledDate}
         showTime={props.showTime}
         getPopupContainer={(trigger) => trigger.parentElement}
+        invalid={!!error}
       />
       {props.showTime !== false && (
         <div className={styles.timeZonePicker}>

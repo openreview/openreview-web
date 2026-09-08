@@ -369,6 +369,11 @@ export default function Page() {
         </div>
       </div>
       <div className={`${styles.section} ${styles.qna}`}>
+        <p>
+          If you have questions about making a donation to support OpenReview, please email{' '}
+          <a href="mailto:donations@openreview.net">donations@openreview.net</a> or call{' '}
+          <a href="tel:+14134865231">413-486-5231</a>.
+        </p>
         <strong>What is OpenReview?</strong>
         <ul>
           <li>

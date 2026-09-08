@@ -3,6 +3,7 @@
 import { Drawer } from 'antd'
 import truncate from 'lodash/truncate'
 import Link from 'next/link'
+import LeaveImpersonationLink from './LeaveImpersonationLink'
 import LogoutLink from './LogoutLink'
 import NavSearch from './NavSearch'
 
@@ -106,11 +107,17 @@ export default function NavSm({
                   className={legacyNavStyles.navDrawerSubLink}
                   onClick={closeDrawer}
                 >
-                  Password &amp; Security
+                  Security settings
                 </Link>
               </>
             )}
             <hr className={legacyNavStyles.navDrawerDivider} />
+            {user.impersonator && (
+              <LeaveImpersonationLink
+                className={legacyNavStyles.navDrawerLink}
+                onClick={closeDrawer}
+              />
+            )}
             <LogoutLink className={legacyNavStyles.navDrawerLink} onClick={closeDrawer} />
           </>
         ) : (

@@ -3,6 +3,7 @@
 import { Dropdown } from 'antd'
 import truncate from 'lodash/truncate'
 import Link from 'next/link'
+import LeaveImpersonationLink from './LeaveImpersonationLink'
 import LogoutLink from './LogoutLink'
 import NavSearch from './NavSearch'
 
@@ -28,12 +29,21 @@ export default function NavLg({ user, notificationCountSlot, dropdownOpen, setDr
               href="/profile/password-security"
               className={legacyNavStyles.navDropdownItem}
             >
-              Password &amp; Security
+              Security settings
             </Link>
           ),
           style: { padding: 0 },
         },
         { type: 'divider' },
+        ...(user.impersonator
+          ? [
+              {
+                key: 'leave-impersonation',
+                label: <LeaveImpersonationLink className={legacyNavStyles.navDropdownItem} />,
+                style: { padding: 0 },
+              },
+            ]
+          : []),
         {
           key: 'logout',
           label: <LogoutLink className={legacyNavStyles.navDropdownItem} />,

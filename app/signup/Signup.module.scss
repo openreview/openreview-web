@@ -10,10 +10,6 @@
       margin-bottom: 2rem;
     }
 
-    #first-input {
-      max-width: 510px;
-    }
-
     .signup-form-container {
       margin-top: 1.5rem;
       margin-bottom: 2rem;
@@ -29,12 +25,6 @@
         @media #{constants.$tablet} {
           margin-bottom: 0;
         }
-      }
-      .name-confirmation {
-        color: #333;
-      }
-      label {
-        color: constants.$orRed;
       }
       .help-block {
         font-size: 0.75rem;
@@ -67,10 +57,6 @@
           .email-tooltip {
             margin-right: 0.25rem;
           }
-        }
-
-        .password-tooltip {
-          color: constants.$mediumBlue;
         }
 
         @media #{constants.$phone-only} {
@@ -111,5 +97,20 @@
         color: #333;
       }
     }
+  }
+}
+
+.fieldWidth {
+  max-width: 510px;
+}
+.titleText {
+  color: constants.$orRed;
+}
+.nameConfirmation {
+  cursor: pointer;
+  font-weight: normal;
+
+  &.disabled {
+    cursor: not-allowed;
   }
 }

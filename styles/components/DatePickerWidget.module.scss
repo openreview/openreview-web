@@ -9,17 +9,6 @@
     max-width: 80%;
     flex-direction: row;
   }
-
-  :global {
-    .rc-picker-input > input {
-      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-      font-size: 0.875rem;
-      height: 30px;
-    }
-    .rc-picker-clear {
-      top: 0;
-    }
-  }
 }
 
 .timeZonePicker {
@@ -34,13 +23,5 @@
 
   .timeZoneDropdown {
     width: 100%;
-  }
-}
-
-.invalidValue {
-  :global {
-    .rc-picker-input {
-      border-color: constants.$orRed;
-    }
   }
 }

@@ -55,11 +55,9 @@ export default function ProfileMergeTab() {
   const updateRequestStatus = async (noteId) => {
     try {
       const profileMergeNotesP = api.get('/notes', { id: noteId })
-      const decisionResultsP = api.getAll(
-        '/notes/edits',
-        { 'note.id': noteId },
-        { resultsKey: 'edits' }
-      )
+      const decisionResultsP = api
+        .get('/notes/edits', { 'note.id': noteId })
+        .then((result) => result.edits)
       const [profileMergeNotesResults, decisionResults] = await Promise.all([
         profileMergeNotesP,
         decisionResultsP,
@@ -107,7 +105,7 @@ export default function ProfileMergeTab() {
       const profileMergeNotesP = api.get('/notes', {
         invitation: profileMergeInvitationId,
       })
-      const decisionResultsP = api.getAll(
+      const decisionResultsP = api.getAllWithAfter(
         '/notes/edits',
         { invitation: profileMergeDecisionInvitationId },
         { resultsKey: 'edits' }

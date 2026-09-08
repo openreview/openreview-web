@@ -63,8 +63,20 @@ describe('DatetimePicker', () => {
     expect(onChange).toHaveBeenCalledWith('2000-01-01T00:00:00.000Z')
   })
 
+  test('showing same entered date after selection for birth date selector', async () => {
+    const onChange = jest.fn()
+
+    render(<DatetimePicker onChange={onChange} showTime={false} />)
+
+    const input = screen.getByPlaceholderText('Select datetime')
+    await userEvent.type(input, '1997-05-27{enter}')
+
+    expect(onChange).toHaveBeenCalledWith('1997-05-27T00:00:00.000Z')
+    expect(input).toHaveValue('1997-05-27')
+  })
+
   test('call onChange when user select today', async () => {
-    const today = dayjs.utc().startOf('day').toISOString()
+    const today = dayjs.utc(dayjs().format('YYYY-MM-DD')).toISOString()
     const onChange = jest.fn()
 
     render(<DatetimePicker onChange={onChange} showTime={false} />)

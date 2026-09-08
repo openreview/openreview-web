@@ -590,7 +590,8 @@ const InvitationGeneralEditV2 = ({
   isMetaInvitation,
 }) => {
   const [isSaving, setIsSaving] = useState(false)
-  const isNoteInvitation = invitation.edit?.note
+  const showHumanVerificationRequired =
+    invitation.edit?.note || invitation.tag || invitation.edge
   const generalInfoReducer = (state, action) => {
     switch (action.type) {
       case 'activationDateTimezone':
@@ -636,7 +637,7 @@ const InvitationGeneralEditV2 = ({
     expDateTimezone: getDefaultTimezone()?.value,
     deletionDateTimezone: getDefaultTimezone()?.value,
     signatures: invitation.signatures?.join(', '),
-    ...(isNoteInvitation && {
+    ...(showHumanVerificationRequired && {
       humanVerificationRequired: invitation.humanVerificationRequired
         ? JSON.stringify(invitation.humanVerificationRequired, null, 2)
         : null,
@@ -666,7 +667,7 @@ const InvitationGeneralEditV2 = ({
         : parseInt(generalInfo.minReplies, 10)
 
     let humanVerificationRequired
-    if (isNoteInvitation && generalInfo.humanVerificationRequired?.trim()) {
+    if (showHumanVerificationRequired && generalInfo.humanVerificationRequired?.trim()) {
       try {
         humanVerificationRequired = JSON.parse(generalInfo.humanVerificationRequired)
       } catch {
@@ -903,7 +904,7 @@ const InvitationGeneralEditV2 = ({
         </div>
       </div>
 
-      {isNoteInvitation && (
+      {showHumanVerificationRequired && (
         <div className="row d-flex">
           <span className="info-title edit-title">Human Verification:</span>
           <div className="info-edit-control">

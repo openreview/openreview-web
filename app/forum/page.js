@@ -8,6 +8,7 @@ import Forum from '../../components/forum/Forum'
 import LegacyForum from '../../components/forum/LegacyForum'
 import api from '../../lib/api-client'
 import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import { getUniqueInstitutions } from '../../lib/forum-utils'
 import { getConferenceName, getIssn, getJournalName } from '../../lib/utils'
 import serverAuth from '../auth'
 import CommonLayout from '../CommonLayout'
@@ -138,7 +139,15 @@ export async function generateMetadata({ searchParams }) {
       redirectPath: pathToRedirectTo,
       challengeRequired,
       errorMessage,
-    } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress, clearanceToken)
+    } = await getForumNote(
+      token,
+      userAgent,
+      queryId,
+      invitationId,
+      query,
+      remoteIpAddress,
+      clearanceToken
+    )
     if (errorMessage || challengeRequired || !forumNote) return fallbackMetadata
     if (pathToRedirectTo) return {}
 
@@ -252,7 +261,15 @@ export default async function page({ searchParams }) {
     redirectPath: pathToRedirectTo,
     challengeRequired,
     errorMessage,
-  } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress, clearanceToken)
+  } = await getForumNote(
+    token,
+    userAgent,
+    queryId,
+    invitationId,
+    query,
+    remoteIpAddress,
+    clearanceToken
+  )
   if (challengeRequired) {
     redirect(`/challenge?redirect=${encodeURIComponent(`/forum?${stringify(query)}`)}`)
   }
@@ -277,6 +294,25 @@ export default async function page({ searchParams }) {
     banner = venueHomepageLink(groupId)
   }
   if (version === 2) {
+    const authorsValue = forumNote.content?.authors?.value
+    const uniqueInstitutions = authorsValue?.find((p) => p.institutions)
+      ? getUniqueInstitutions(authorsValue)
+      : []
+
+    let officialInstitutions = null
+    if (uniqueInstitutions.length > 0 && uniqueInstitutions.length <= 20) {
+      try {
+        const { institutions } = await api.get(
+          '/settings/institutions',
+          { domains: uniqueInstitutions.map((p) => p.domain) },
+          { accessToken: token, remoteIpAddress }
+        )
+        officialInstitutions = institutions ?? null
+      } catch (_) {
+        officialInstitutions = null
+      }
+    }
+
     return (
       <CommonLayout banner={<Banner>{banner}</Banner>}>
         <div className={styles.forum}>
@@ -286,6 +322,7 @@ export default async function page({ searchParams }) {
             selectedInvitationId={query.invitationId}
             prefilledValues={pickBy(query, (_, key) => key.startsWith('edit.note.'))}
             query={query}
+            officialInstitutions={officialInstitutions}
           />
         </div>
       </CommonLayout>

@@ -236,7 +236,7 @@ const EmailsSection = ({
           <Icon name="warning-sign" />
           <p>
             Please note: Your email address could not be automatically verified.
-            <br /> Accounts that cannot be automatically verified may take up to 2 weeks to be
+            <br /> Accounts that cannot be automatically verified will need to be manually
             activated. To expedite the process, we recommend using an email address from a
             recognized company or institution (for example, your employer, university, or
             research lab), or completing your profile information as thoroughly as possible to

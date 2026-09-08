@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react'
 import { Tabs as ATabs } from 'antd'
+import { useEffect, useRef } from 'react'
 import Icon from './Icon'
 
 const ORStyles = {
@@ -69,6 +69,6 @@ export function TabPanel({ id, className, children }) {
   )
 }
 
-export function AntdTabs({ items, ...props }) {
-  return <ATabs {...props} items={items} styles={ORStyles} />
+export function AntdTabs({ items, styles, ...props }) {
+  return <ATabs {...props} items={items} styles={{ ...ORStyles, ...styles }} />
 }
