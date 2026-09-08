@@ -726,7 +726,7 @@ const getSortedWorkflowStages = (invitations, workflowStageOrder = []) => {
   return sortedWorkflowStages
 }
 
-const WorkflowStageHeader = ({ workflowStage, stageIndex, stageStatus }) => {
+const WorkflowStageHeader = ({ workflowStage, stageIndex }) => {
   const { workflowStageName, invitationsOfWorkflowStageName } = workflowStage
   const { token } = theme.useToken()
 
@@ -741,9 +741,6 @@ const WorkflowStageHeader = ({ workflowStage, stageIndex, stageStatus }) => {
       <Typography.Text type="secondary">
         {inflect(invitationsOfWorkflowStageName.length, 'step', 'steps', true)}
       </Typography.Text>
-      <Tag variant="outlined" color={stageStatus.stageStatusColor}>
-        {stageStatus.stageStatus}
-      </Tag>
     </Flex>
   )
 }
@@ -1405,10 +1402,16 @@ const WorkFlowInvitations = ({ group }) => {
                         <WorkflowStageHeader
                           workflowStage={workflowStage}
                           stageIndex={stageIndex}
-                          stageStatus={stageStatus}
                         />
                       ),
-                      extra: <WorkflowStagePeriod workflowStage={workflowStage} />,
+                      extra: (
+                        <Flex style={{ minWidth: '200px' }} justify="space-between">
+                          <Tag variant="outlined" color={stageStatus.stageStatusColor}>
+                            {stageStatus.stageStatus}
+                          </Tag>
+                          <WorkflowStagePeriod workflowStage={workflowStage} />
+                        </Flex>
+                      ),
                       forceRender: true,
                       styles: {
                         header: {
