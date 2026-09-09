@@ -1,5 +1,5 @@
 import { CaretRightOutlined } from '@ant-design/icons'
-import { Collapse, Flex, Tag, Typography, theme } from 'antd'
+import { Button, Collapse, Flex, Tag, Typography, theme } from 'antd'
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -346,18 +346,41 @@ const WorkflowInvitationRow = ({
     }
   }
 
+  const activationDateInvitation = subInvitations.find((p) => {
+    const contentFields = Object.keys(p.edit?.content ?? {})
+    return contentFields.length === 1 && contentFields[0] === 'activation_date'
+  })
+
+  const setCDateToNow = async () => {
+    try {
+      await api.post('/invitations/edits', {
+        content: { activation_date: { value: dayjs().valueOf() } },
+        invitations: activationDateInvitation.id,
+      })
+      loadWorkflowInvitations()
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   return (
     <>
       <div className="edit-invitation-container">
         <div className="invitation-content">
-          <div className="invitation-id-container">
+          <Flex
+            justify="left"
+            align="center"
+            gap="small"
+            className="invitation-id-container"
+            style={{ paddingTop: '0.25rem' }}
+          >
             <div
               className="collapse-invitation"
               onClick={() => handleExpandCollapseSubInvitations(invitation.id)}
             >
               <CaretRightOutlined
                 rotate={isCollapsed ? 0 : 90}
-                style={{ color: token.colorLink, marginRight: '0.5rem', cursor: 'pointer' }}
+                style={{ color: token.colorLink, cursor: 'pointer' }}
               />
             </div>
             <span
@@ -392,7 +415,12 @@ const WorkflowInvitationRow = ({
             <div className="expire-link" onClick={expireRestoreInvitation}>
               <a>{isExpired ? 'Enable' : 'Disable'}</a>
             </div>
-          </div>
+            {!isStageInvitation && activationDateInvitation && (
+              <Button type="primary" size="small" disabled={isExpired} onClick={setCDateToNow}>
+                Run Now
+              </Button>
+            )}
+          </Flex>
           {(invitation.instructions ?? invitation.description) && (
             <div className="invitation-description">
               <Markdown text={invitation.instructions ?? invitation.description} />
@@ -1405,8 +1433,12 @@ const WorkFlowInvitations = ({ group }) => {
                         />
                       ),
                       extra: (
-                        <Flex style={{ minWidth: '200px' }} justify="space-between">
-                          <Tag variant="outlined" color={stageStatus.stageStatusColor}>
+                        <Flex style={{ minWidth: '220px' }} justify="space-between">
+                          <Tag
+                            variant="outlined"
+                            color={stageStatus.stageStatusColor}
+                            style={{ minWidth: '96px', textAlign: 'center' }}
+                          >
                             {stageStatus.stageStatus}
                           </Tag>
                           <WorkflowStagePeriod workflowStage={workflowStage} />

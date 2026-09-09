@@ -1492,10 +1492,6 @@
               flex-grow: 1;
 
               .invitation-id-container {
-                display: flex;
-                justify-content: left;
-                align-items: center;
-
                 .collapse-invitation {
                   color: constants.$mediumBlue;
                 }
@@ -1505,11 +1501,9 @@
                   color: black;
                   font-weight: 700;
                   font-size: 1rem;
-                  margin-right: 0.25rem;
                 }
 
                 .invitation-invitee {
-                  margin-left: 0.5rem;
                   display: inline-block;
                   white-space: nowrap;
                   vertical-align: bottom;
@@ -1526,7 +1520,6 @@
                 }
 
                 .expire-link {
-                  margin-left: 0.5rem;
                   text-decoration: none;
                   cursor: pointer;
                   a {
