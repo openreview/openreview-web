@@ -1,13 +1,14 @@
 'use client'
 
-/* globals promptError: false */
-import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { useEffect, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import WebFieldContext from '../../components/WebFieldContext'
-import LoadingSpinner from '../../components/LoadingSpinner'
 import { setBannerContent } from '../../bannerSlice'
+import ExternalLinkNotice from '../../components/ExternalLinkNotice'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import WebFieldContext from '../../components/WebFieldContext'
 import CommonLayout from '../CommonLayout'
+
 import styles from './Group.module.scss'
 
 export default function ComponentGroup({ componentObj, editBanner }) {
@@ -17,6 +18,7 @@ export default function ComponentGroup({ componentObj, editBanner }) {
     ['ProgramChairConsole', 'SeniorAreaChairConsole'].includes(componentObj?.component) &&
     webComponentProps.displayReplyInvitations?.length
   const dispatch = useDispatch()
+  const containerRef = useRef(null)
 
   useEffect(() => {
     if (!componentObj) return
@@ -59,11 +61,12 @@ export default function ComponentGroup({ componentObj, editBanner }) {
     >
       <div className={styles.group}>
         <WebFieldContext.Provider value={webComponentProps}>
-          <div id="group-container">
+          <div id="group-container" ref={containerRef}>
             <WebComponent
               appContext={{ setBannerContent: (e) => dispatch(setBannerContent(e)) }}
             />
           </div>
+          <ExternalLinkNotice containerRef={containerRef} />
         </WebFieldContext.Provider>
       </div>
     </CommonLayout>
