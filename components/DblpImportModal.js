@@ -1,14 +1,12 @@
-/* globals $,clearMessage,promptError: false */
-
 import { nanoid } from 'nanoid'
 import { useState, useRef, useEffect } from 'react'
 import { useDispatch } from 'react-redux'
 import { setBannerContent } from '../bannerSlice'
 import {
-  getDblpPublicationsFromXmlUrl,
   getAllPapersByGroupId,
   postOrUpdatePaper,
   getAllPapersImportedByOtherProfiles,
+  getDblpPublicationsFromSparQL,
 } from '../lib/profiles'
 import { deburrString, getNameString, inflect } from '../lib/utils'
 import DblpPublicationTable from './DblpPublicationTable'
@@ -115,8 +113,8 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
 
     try {
       const { notes: allDblpPublications, possibleNames } =
-        await getDblpPublicationsFromXmlUrl(
-          `${url.trim()}.xml`,
+        await getDblpPublicationsFromSparQL(
+          url,
           profileId,
           profileNames.map((p) => getNameString(p))
         )
