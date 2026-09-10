@@ -12,8 +12,20 @@ const DropdownWidget = () => {
     useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
-  const isAuthorDerivedField =
-    field[fieldName]?.value?.param?.enum?.[0] === '${3/authors/value/*/username}'
+  // An enum entry like `${3/authors/value/*/username}` or `${3/decision_options/value}` is a
+  // reference to a sibling field in the same edit: the allowed values are derived at edit time
+  // from that field's current value, so the API can validate this field is a subset of it.
+  const enumReference = field[fieldName]?.value?.param?.enum?.[0]
+  const referenceSegments =
+    typeof enumReference === 'string' && /^\$\{\d+\/.+\}$/.test(enumReference)
+      ? enumReference.slice(2, -1).split('/') // e.g. ['3', 'authors', 'value', '*', 'username']
+      : null
+  const referencedFieldName = referenceSegments?.[1]
+  const referencedItemProp =
+    referenceSegments && referenceSegments.indexOf('*') !== -1
+      ? referenceSegments[referenceSegments.indexOf('*') + 1]
+      : null
+  const isReferenceDerivedField = Boolean(referencedFieldName)
   const isArrayType = fieldType?.endsWith('[]')
   const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
   const [dropdownOptions, setDropdownOptions] = useState([])
@@ -54,7 +66,7 @@ const DropdownWidget = () => {
   }
 
   useEffect(() => {
-    if (isAuthorDerivedField) return
+    if (isReferenceDerivedField) return
     const enumValues = field[fieldName].value?.param?.enum
     const itemsValues = field[fieldName].value?.param?.items
     let options = []
@@ -101,24 +113,28 @@ const DropdownWidget = () => {
     }
   }, [])
 
+  const referencedFieldValue = noteEditorValue?.[referencedFieldName]
   useEffect(() => {
-    if (!isAuthorDerivedField) return
-    const authors = noteEditorValue?.authors ?? []
-    const authorOptions = authors.map((p) => ({
-      label: p.fullname,
-      value: p.username,
-    }))
-    setDropdownOptions(authorOptions)
+    if (!isReferenceDerivedField) return
+    const siblingValues = Array.isArray(referencedFieldValue) ? referencedFieldValue : []
+    const referenceOptions = siblingValues
+      .map((p) =>
+        referencedItemProp
+          ? { label: p?.fullname ?? p?.[referencedItemProp] ?? p, value: p?.[referencedItemProp] }
+          : { label: p, value: p }
+      )
+      .filter((p) => p.value != null && p.value !== '')
+    setDropdownOptions(referenceOptions)
 
-    // drop any selected reviewer whose author has been removed from the note
+    // drop any selected value whose source option has been removed from the referenced field
     if (Array.isArray(value)) {
-      const optionValues = authorOptions.map((p) => p.value)
+      const optionValues = referenceOptions.map((p) => p.value)
       const filteredValue = value.filter((p) => optionValues.includes(p))
       if (filteredValue.length !== value.length) {
         onChange({ fieldName, value: filteredValue.length ? filteredValue : undefined })
       }
     }
-  }, [noteEditorValue?.authors])
+  }, [referencedFieldValue])
 
   if (!dropdownOptions.length) return null
 
