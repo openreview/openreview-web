@@ -61,7 +61,7 @@ export default function ExternalLinkNotice({ containerRef }) {
       onCancel={() => setExternalLink(null)}
     >
       <Typography.Paragraph>
-        This site is outside OpenReview and we are not responsible for its content or safety.
+        This site is outside OpenReview. OpenReview is not responsible for its content or safety.
       </Typography.Paragraph>
       <Typography.Paragraph style={{ overflowWrap: 'anywhere' }}>
         {externalLink}
