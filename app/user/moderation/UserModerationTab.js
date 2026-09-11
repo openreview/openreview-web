@@ -27,14 +27,13 @@ import Icon from '../../../components/Icon'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 import api from '../../../lib/api-client'
-import { formatProfileData } from '../../../lib/profiles'
 import {
-  formatDateTime,
-  getRejectionReasons,
-  inflect,
-  isValidDomain,
-  prettyId,
-} from '../../../lib/utils'
+  formatProfileData,
+  getModerationBlockLabels,
+  getModerationRejectionReasons,
+  moderateProfile,
+} from '../../../lib/profiles'
+import { formatDateTime, inflect, isValidDomain, prettyId } from '../../../lib/utils'
 
 import styles from './moderation.module.scss'
 import {
@@ -60,12 +59,17 @@ export const RejectionModal = ({
   signedNotes,
 }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
+  const [rejectionReasons, setRejectionReasons] = useState([])
+  const [selectedReasons, setSelectedReasons] = useState([])
 
   const currentInstitutionName = profileToReject?.content?.history?.find(
     (p) => !p.end || p.end >= new Date().getFullYear()
   )?.institution?.name
 
-  const rejectionReasons = getRejectionReasons(currentInstitutionName)
+  useEffect(() => {
+    if (!profileToReject) return
+    getModerationRejectionReasons(currentInstitutionName).then(setRejectionReasons)
+  }, [profileToReject?.id])
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
     setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
@@ -81,11 +85,16 @@ export const RejectionModal = ({
       destroyOnHidden={true}
       onCancel={() => {
         setRejectionMessage('')
+        setSelectedReasons([])
         setProfileToReject(null)
       }}
       onOk={() => {
+        const labels = rejectionReasons
+          .filter((r) => selectedReasons.includes(r.value))
+          .map((r) => r.label)
         setRejectionMessage('')
-        rejectUser(rejectionMessage, profileToReject.id)
+        setSelectedReasons([])
+        rejectUser(rejectionMessage, profileToReject.id, labels)
         setProfileToReject(null)
       }}
       width={{
@@ -104,6 +113,7 @@ export const RejectionModal = ({
           getPopupContainer={(triggerNode) => triggerNode.parentElement}
           onChange={(value) => {
             const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+            setSelectedReasons(value)
             setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
           }}
         />
@@ -171,7 +181,13 @@ const BlockModal = ({
   reload,
 }) => {
   const [blockTag, setBlockTag] = useState('')
+  const [blockLabelOptions, setBlockLabelOptions] = useState([])
   const actionIsBlock = profileToBlockUnblock?.state !== 'Blocked'
+
+  useEffect(() => {
+    if (!profileToBlockUnblock || !actionIsBlock) return
+    getModerationBlockLabels().then(setBlockLabelOptions)
+  }, [profileToBlockUnblock?.id])
 
   const blockUser = async (profile) => {
     if (!profile) return
@@ -179,16 +195,13 @@ const BlockModal = ({
     try {
       await api.post('/tags', {
         profile: profileToBlockUnblock.id,
-        label: blockTag.trim(),
+        label: blockTag,
         signature: `${process.env.SUPER_USER}/Support`,
         invitation: `${process.env.SUPER_USER}/Support/-/Profile_Blocked_Status`,
         readers: [`${process.env.SUPER_USER}/Support`],
       })
 
-      await api.post('/profile/moderate', {
-        id: profile.id,
-        decision: 'block',
-      })
+      await moderateProfile(profile.id, 'block', blockTag, [blockTag])
       setBlockTag('')
     } catch (error) {
       promptError(error.message)
@@ -218,10 +231,7 @@ const BlockModal = ({
         })
       }
 
-      await api.post('/profile/moderate', {
-        id: profile.id,
-        decision: 'unblock',
-      })
+      await moderateProfile(profile.id, 'unblock')
     } catch (error) {
       promptError(error.message)
     }
@@ -256,10 +266,13 @@ const BlockModal = ({
     >
       <Flex vertical gap="small" align="flex-start">
         {actionIsBlock && (
-          <Input
-            placeholder="a tag to be added to this profile such as block reason"
-            value={blockTag}
-            onChange={(e) => setBlockTag(e.target.value)}
+          <Select
+            style={{ width: '100%' }}
+            placeholder="Choose the block reason..."
+            options={blockLabelOptions.map((label) => ({ value: label, label }))}
+            getPopupContainer={(triggerNode) => triggerNode.parentElement}
+            value={blockTag || undefined}
+            onChange={(value) => setBlockTag(value)}
           />
         )}
         {actionIsBlock && signedNotes.length > 0 && (
@@ -411,7 +424,7 @@ const UserModerationQueue = ({
   const acceptUser = async (profileId, showSuccessMessage = true) => {
     try {
       setIdsLoading((p) => [...p, profileId])
-      await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
+      await moderateProfile(profileId, 'accept')
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -463,7 +476,7 @@ const UserModerationQueue = ({
     setProfileToBlockUnblock(profile)
   }
 
-  const rejectUser = async (rejectionMessage, id) => {
+  const rejectUser = async (rejectionMessage, id, labels) => {
     let interpretedRejectionMessage = rejectionMessage
     if (interpretedRejectionMessage.includes('{{documentVerificationLink}}')) {
       try {
@@ -496,11 +509,7 @@ const UserModerationQueue = ({
       }
     }
     try {
-      await api.post('/profile/moderate', {
-        id,
-        decision: 'reject',
-        reason: interpretedRejectionMessage,
-      })
+      await moderateProfile(id, 'reject', interpretedRejectionMessage, labels)
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -536,10 +545,7 @@ const UserModerationQueue = ({
     )
     if (confirmResult) {
       try {
-        await api.post('/profile/moderate', {
-          id: profile.id,
-          decision: actionIsDelete ? 'delete' : 'restore',
-        })
+        await moderateProfile(profile.id, actionIsDelete ? 'delete' : 'restore')
       } catch (error) {
         promptError(error.message)
       }

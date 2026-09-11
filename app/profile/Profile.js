@@ -5,7 +5,7 @@ import BasicProfileView from '../../components/profile/BasicProfileView'
 import ProfilePublications from '../../components/profile/ProfilePublications'
 import ProfileViewSection from '../../components/profile/ProfileViewSection'
 import api from '../../lib/api-client'
-import { getCoAuthorsFromPublications } from '../../lib/profiles'
+import { getCoAuthorsFromPublications, getProfileVerifications } from '../../lib/profiles'
 import serverAuth from '../auth'
 import CoAuthorsList from './CoAuthorsList'
 
@@ -90,6 +90,13 @@ export default async function Profile({
   }
   const { publications, count, coAuthors } = await loadPublications()
 
+  // Verification records readable by the viewer, shown as badges next to the data
+  // they verify. Guests still see the public ones.
+  const verifications = await getProfileVerifications(profile.id ?? profile.preferredId, {
+    accessToken: token,
+    remoteIpAddress,
+  })
+
   return (
     <Flex vertical gap="small" className={styles.profileContainer}>
       <h1 style={{ fontWeight: 'bold', fontSize: '2.25rem', marginBottom: 0 }}>
@@ -108,6 +115,7 @@ export default async function Profile({
             profile={profile}
             publicProfile={publicProfile}
             serviceRoles={serviceRoles}
+            verifications={verifications}
           />
         </Col>
         <Col xs={24} lg={8} className={styles.publicationsSection}>
