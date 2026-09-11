@@ -47,7 +47,7 @@ export default function ExternalLinkNotice({ containerRef }) {
       open={!!externalLink}
       zIndex={1080}
       mousePosition={{ x: 0, y: 0 }}
-      title="You are leaving OpenReview"
+      title="You're leaving OpenReview"
       closable={false}
       styles={{
         container: { padding: '2.5rem' },
@@ -61,11 +61,14 @@ export default function ExternalLinkNotice({ containerRef }) {
       onCancel={() => setExternalLink(null)}
     >
       <Typography.Paragraph>
-        This site is outside OpenReview. OpenReview is not responsible for its content or
-        safety.
+        This link was posted by a user and takes you to a site OpenReview doesn&apos;t control:
       </Typography.Paragraph>
       <Typography.Paragraph style={{ overflowWrap: 'anywhere' }}>
         {externalLink}
+      </Typography.Paragraph>
+      <Typography.Paragraph>
+        OpenReview doesn&apos;t review, endorse, or take responsibility for content on external
+        sites. Check the address above before continuing.
       </Typography.Paragraph>
     </Modal>
   )
