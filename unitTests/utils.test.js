@@ -14,6 +14,7 @@ import {
   getNoteAuthors,
   normalizeName,
   getDeviceFromUserAgent,
+  prettyContentValue,
 } from '../lib/utils'
 import '@testing-library/jest-dom'
 
@@ -1252,5 +1253,21 @@ describe('utils', () => {
     fullname = 'ﬁle ﬂow Ⅻ ①'
     expectedNormalizedName = 'file flow XII 1'
     expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+  })
+
+  test('return author list object in prettyContentValue for author{} type', () => {
+    const reciprocal_reviewers = [
+      { username: '~Test_User1', fullname: 'Test User' },
+      { username: 'test@email.com', fullname: 'Email User' },
+    ]
+    expect(prettyContentValue(reciprocal_reviewers, 'author{}')).toEqual({
+      isObjAuthorList: true,
+      authors: reciprocal_reviewers,
+    })
+
+    // fallback to string if presentation is not author{}
+    expect(prettyContentValue(reciprocal_reviewers, 'string')).toEqual(
+      JSON.stringify(reciprocal_reviewers, undefined, 2).replace(/"/g, '')
+    )
   })
 })
