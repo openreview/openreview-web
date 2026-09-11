@@ -363,7 +363,7 @@ const NoteEditor = ({
             field: { [fieldName]: fieldDescription },
             onChange: setNoteEditorData,
             value: fieldValue,
-            noteEditorValue: noteEditorData,
+            editorValue: noteEditorData,
             isWebfield: false,
             error,
             setErrors,
