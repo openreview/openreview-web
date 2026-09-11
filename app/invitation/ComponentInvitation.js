@@ -1,18 +1,19 @@
 'use client'
 
-/* globals promptError: false */
-import { use, useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
+import { use, useEffect, useRef, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import WebFieldContext from '../../components/WebFieldContext'
-import LoadingSpinner from '../../components/LoadingSpinner'
 import { setBannerContent } from '../../bannerSlice'
+import ExternalLinkNotice from '../../components/ExternalLinkNotice'
+import LoadingSpinner from '../../components/LoadingSpinner'
+import WebFieldContext from '../../components/WebFieldContext'
 
 export default function ComponentInvitation({ componentObjP }) {
   const componentObj = use(componentObjP)
   const [WebComponent, setWebComponent] = useState(null)
   const [webComponentProps, setWebComponentProps] = useState({})
   const dispatch = useDispatch()
+  const containerRef = useRef(null)
 
   useEffect(() => {
     if (!componentObj) return
@@ -47,7 +48,7 @@ export default function ComponentInvitation({ componentObjP }) {
 
   return (
     <WebFieldContext.Provider value={webComponentProps}>
-      <div id="invitation-container">
+      <div id="invitation-container" ref={containerRef}>
         {WebComponent && webComponentProps ? (
           <WebComponent
             appContext={{ setBannerContent: (e) => dispatch(setBannerContent(e)) }}
@@ -56,6 +57,7 @@ export default function ComponentInvitation({ componentObjP }) {
           <LoadingSpinner />
         )}
       </div>
+      <ExternalLinkNotice containerRef={containerRef} />
     </WebFieldContext.Provider>
   )
 }
