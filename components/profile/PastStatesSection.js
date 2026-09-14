@@ -128,7 +128,7 @@ const PastStatesSection = ({ email, pastStates, profileId }) => {
             <PastStateRow
               key={edit.id}
               date={edit.tcdate}
-              state={edit.content?.state?.value}
+              state={edit.profile?.state}
               setBy={edit.tauthor ?? edit.signatures?.[0]}
               labels={labels}
               reason={reason}
