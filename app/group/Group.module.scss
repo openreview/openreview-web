@@ -1390,34 +1390,492 @@
         }
       }
 
+      // Every section heading — Timeline, Ongoing, Groups: the title with its action beside it,
+      // then a line on what the section holds.
+      .workflow-section-heading {
+        display: flex;
+        align-items: baseline;
+        gap: 1rem;
+        margin-bottom: 0.25rem;
+
+        h4 {
+          margin-bottom: 0;
+        }
+      }
+      .workflow-section-intro {
+        margin: 0 0 0.75rem;
+        font-size: 0.8125rem;
+        font-style: italic;
+        color: #6b6b6b;
+      }
+
+      // Column headers for the stage list: the stage filter over the stage names, the months over
+      // the stage bars.
       .workflow-invitations-header {
         display: flex;
-        color: #6b6b6b;
-        align-items: baseline;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.25rem;
+        // As wide as the stage list below, so the months sit over the stage bars.
         width: 110%;
 
-        .cdate-header {
-          width: 10%;
-          margin-right: 0.5rem;
-          font-size: 0.7rem;
-          font-style: italic;
+        .workflow-invitations-filter {
+          flex: 1 1 auto;
+          min-width: 0;
         }
-        .invtations-header {
-          width: 75%;
-          font-size: 1rem;
-          display: flex;
-          align-items: center;
+      }
 
-          .collapse-invitation {
-            color: constants.$mediumBlue;
-            margin-right: 0.25rem;
+      .stage-filter {
+        // the glyph sits on the label's text line
+        .stage-status-glyph svg {
+          display: block;
+        }
+      }
+
+
+      // Ongoing: everything available for as long as the venue runs.
+      .ongoing-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+
+        .ongoing-step {
+          border-top: 1px solid #f0ece4;
+          padding-top: 0.5rem;
+        }
+        .ongoing-stage {
+          font-size: 0.75rem;
+          color: #6b6b6b;
+          margin-bottom: 0.125rem;
+        }
+      }
+
+      // An ongoing step inside its stage: no bar, just a word where the bar would be.
+      .timeline-track .track-ongoing {
+        position: absolute;
+        left: 0;
+        top: 0;
+        padding-left: 0.25rem;
+        line-height: 18px;
+        font-size: 0.75rem;
+        font-style: italic;
+        color: #6b6b6b;
+        white-space: nowrap;
+      }
+
+      // Every editor opened on this page — a sub-invitation edit, Add, a recruitment action, Add a
+      // stage — sits in one bounded panel, so it reads as a form being filled in rather than loose
+      // page content. Scoped to this page: InvitationEditor is shared with three others.
+      .workflow-editor {
+        box-sizing: border-box;
+        max-width: 60rem;
+        margin: 0.5rem 0 0.75rem;
+        padding: 0.75rem 1rem 1rem;
+        border: 1px solid #c1cdcf;
+        border-radius: 2px;
+        background: constants.$backgroundWhite;
+        box-shadow: none;
+
+        // The shared field widgets cap themselves at 80% for the wide editors elsewhere in the app;
+        // inside this panel the fields run to its border instead. The selectors match the CSS-module
+        // names (Next keeps File_class__hash), so renaming a widget module means updating this.
+        [class*='Widget_'],
+        [class*='EditorComponentHeader_description'],
+        [class*='ContentFieldEditor_'],
+        .nav-tabs {
+          max-width: 100%;
+        }
+      }
+
+      // Stage status as a glyph, coloured from the platform palette; every colour clears 3:1
+      // against the page (teal 6.08, green 5.37, grey 5.25).
+      .stage-status-icon,
+      .stage-status-glyph {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        &.processing {
+          color: constants.$mediumBlue;
+        }
+        &.success {
+          color: #3c763d;
+        }
+        &.default {
+          color: #6b6b6b;
+        }
+      }
+
+      // Shared date axis. Every position is a percentage of the venue's own date range, so the
+      // track scales with the column instead of assuming a conference calendar.
+      .timeline-track {
+        position: relative;
+        height: 18px;
+        align-self: center;
+
+        &.with-labels {
+          height: 22px;
+        }
+
+        .timeline-month {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          border-left: 1px solid #e6e1d8;
+
+          &:first-child {
+            border-left: 0;
+          }
+        }
+        .timeline-month-label {
+          position: absolute;
+          bottom: 0;
+          left: 50%;
+          transform: translateX(-50%);
+          font-size: 0.7rem;
+          font-style: normal;
+          color: #6b6b6b;
+        }
+        // Sits beside the stage bar, flipping to its left when the axis runs out of room.
+        .stage-period {
+          position: absolute;
+          top: 0;
+          line-height: 18px;
+          white-space: nowrap;
+          font-size: 0.75rem;
+          margin-left: 0.75rem;
+
+          &.before-bar {
+            margin-left: 0;
+            margin-right: 0.75rem;
+          }
+        }
+        .timeline-now {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          border-left: 1px dashed constants.$orRed;
+          z-index: 3;
+        }
+
+        // The envelope is the stage span; the bars inside it are the individual step invitations.
+        .stage-envelope {
+          position: absolute;
+          top: 1px;
+          height: 15px;
+          box-sizing: border-box;
+          border: 1px dashed;
+          min-width: 3px;
+        }
+        .stage-window {
+          position: absolute;
+          top: 6px;
+          height: 6px;
+          opacity: 0.85;
+          min-width: 3px;
+          z-index: 2;
+        }
+        .stage-moment {
+          position: absolute;
+          top: 5px;
+          width: 8px;
+          height: 8px;
+          margin-left: -4px;
+          transform: rotate(45deg);
+          z-index: 2;
+        }
+        // A window that ends past the axis fades out at the edge instead of stopping there.
+        .stage-envelope.open-end,
+        .stage-window.open-end,
+        .step-window.open-end {
+          -webkit-mask-image: linear-gradient(to right, black 80%, transparent);
+          mask-image: linear-gradient(to right, black 80%, transparent);
+        }
+
+        // Platform colours, not antd's: teal is the primary, completed is the Bootstrap success trio
+        // the platform already uses, scheduled is its neutral greys. A scheduled stage's marks are
+        // hollow, like a step that has not started yet.
+        &.success {
+          .stage-envelope {
+            border-color: #d6e9c6;
+            background: #dff0d8;
+          }
+          .stage-window,
+          .stage-moment {
+            background: #3c763d;
+          }
+        }
+        &.processing {
+          .stage-envelope {
+            border-color: #c1cdcf;
+            background: #f0f1ef;
+          }
+          .stage-window,
+          .stage-moment {
+            background: constants.$mediumBlue;
+          }
+        }
+        &.default {
+          .stage-envelope {
+            border-color: constants.$lightGray;
+            background: constants.$sandyBrown;
+          }
+          .stage-window,
+          .stage-moment {
+            box-sizing: border-box;
+            background: constants.$backgroundWhite;
+            border: 1px solid #6b6b6b;
+          }
+        }
+      }
+
+      // A step's own bar, on the same axis as its stage envelope. Fill encodes time, not status:
+      // solid = its window contains today, hollow = not started, muted = done.
+      .step-track {
+        .step-window {
+          position: absolute;
+          top: 6px;
+          height: 7px;
+          min-width: 3px;
+          box-sizing: border-box;
+        }
+        .step-moment {
+          position: absolute;
+          top: 5px;
+          width: 8px;
+          height: 8px;
+          margin-left: -4px;
+          transform: rotate(45deg);
+        }
+        .step-dates {
+          position: absolute;
+          top: 0;
+          white-space: nowrap;
+          margin-left: 0.75rem;
+
+          &.before-bar {
+            margin-left: 0;
+            margin-right: 0.75rem;
+          }
+
+          .cdate {
+            display: flex;
+            gap: 0.375rem;
+            font-size: 0.75rem;
+            font-style: italic;
+            color: #6b6b6b;
             cursor: pointer;
-            font-size: 0.85rem;
+
+            br {
+              display: none;
+            }
+            .activation-date.highlight,
+            .due-date.highlight {
+              font-weight: 900;
+            }
+          }
+        }
+
+        // Muted marks use the lightest teal that still clears 3:1 against the page (#7c97a0).
+        &.running {
+          .step-window,
+          .step-moment {
+            background: constants.$mediumBlue;
+          }
+        }
+        &.upcoming {
+          .step-window,
+          .step-moment {
+            background: constants.$backgroundWhite;
+            border: 1px solid #7c97a0;
+          }
+        }
+        &.done {
+          .step-window,
+          .step-moment {
+            background: #7c97a0;
+          }
+        }
+      }
+
+      // The pre-stages workflow page (WorkflowInvitationsLegacy), for venues without
+      // `workflow_stages`. These are the rules the staged timeline replaced, kept as master had
+      // them and scoped so the two pages never style each other.
+      &.workflow-legacy {
+        .workflow-invitations-header {
+          display: flex;
+          color: #6b6b6b;
+          align-items: baseline;
+          gap: 0;
+          margin-bottom: 0;
+          width: 110%;
+
+          .cdate-header {
+            width: 10%;
+            margin-right: 0.5rem;
+            font-size: 0.7rem;
+            font-style: italic;
+          }
+          .invtations-header {
+            width: 75%;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+
+            .collapse-invitation {
+              color: constants.$mediumBlue;
+              margin-right: 0.25rem;
+              cursor: pointer;
+              font-size: 0.85rem;
+            }
+            .missing-value {
+              color: red;
+            }
+          }
+        }
+
+        .workflow-invitation-container {
+          &.section-passed {
+            background-color: lighten(#c8e6c9, 10%);
+          }
+          &.section-active {
+            background-color: lighten(#bbdefb, 10%);
           }
 
-          .missing-value {
-            color: red;
+          .edit-invitation-info {
+            width: 75%;
+
+            .edit-invitation-container .invitation-content .invitation-id-container {
+              display: flex;
+              justify-content: left;
+              align-items: center;
+
+              .workflow-invitation-id {
+                margin-right: 0.25rem;
+              }
+              .invitation-invitee,
+              .expire-link {
+                margin-left: 0.5rem;
+              }
+            }
           }
+        }
+      }
+
+      // One line: the schedule, then the process log. A long or raw log is clipped with an ellipsis
+      // — the full text is in the tooltip and behind "logs" — so a stack trace can't push the
+      // configuration down the page. Upright and dark so it reads as the live state, apart from
+      // the italic invitee above it and the grey description below.
+      .step-status {
+        display: flex;
+        align-items: baseline;
+        gap: 0.5rem;
+        margin-top: 0.125rem;
+        font-size: 0.8125rem;
+        color: constants.$darkBlue;
+
+        .step-status-text {
+          flex: 0 1 auto;
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        a {
+          flex: 0 0 auto;
+        }
+
+        &.error {
+          color: constants.$orRed;
+          font-weight: 700;
+        }
+      }
+
+      // Steps nest under their stage: the caret sits under the stage number, the status and
+      // description line up under the step title, and the bar sits on the title's line.
+      .workflow-invitation-container.in-stage {
+        flex-wrap: wrap;
+
+        .edit-invitation-info {
+          // A zero basis keeps a long status line from claiming the whole line and pushing the
+          // bar below it; the opened-step block below still takes a full line of its own.
+          flex: 1 1 0;
+          padding-left: 1.75rem;
+
+          .edit-invitation-container .invitation-content {
+            max-width: none;
+
+            // Letting the title row wrap keeps the invitee visible; without it the invitee is
+            // the one shrinkable item in the row and collapses to an ellipsis.
+            // The caret is taken out of the flex flow and the row padded by its width, so when a
+            // long title pushes the invitee and Disable onto a second line, that line starts under
+            // the title instead of under the caret.
+            .invitation-id-container {
+              flex-wrap: wrap;
+              position: relative;
+              padding-left: 1.375rem;
+
+              .collapse-invitation {
+                position: absolute;
+                left: 0;
+                top: 0.25rem;
+              }
+
+              // The title always owns the first line and the invitee and actions the second, so
+              // Disable lands in the same place on every step instead of wherever the width allows.
+              .workflow-invitation-id {
+                flex: 0 0 100%;
+                white-space: normal;
+              }
+            }
+            .invitation-invitee {
+              max-width: none;
+              white-space: normal;
+            }
+          }
+        }
+        .step-status {
+          padding-left: 1.25rem;
+        }
+
+        // An opened step spans beneath its row, across the bar column, lined up under its title.
+        // It keeps the edit-invitation-info class so the existing sub-invitation styles still apply.
+        // The mock's rule: a line down the opened step, alongside its description and every Edit
+        // group. It sits in the margin, so the text stays lined up under the step title (3rem).
+        // A collapsed step has no content here, so the line only appears when a step is open.
+        .edit-invitation-info.step-expanded {
+          flex: 0 0 calc(100% - 2.125rem);
+          box-sizing: border-box;
+          margin-left: 2.125rem;
+          padding-left: 0.875rem;
+          padding-right: 6.5rem;
+          border-left: 2px solid #c1cdcf;
+
+          .invitation-description {
+            color: constants.$subtleGray;
+            font-size: 0.875rem;
+            margin: 0.5rem 0 0.25rem;
+            max-width: 60rem;
+
+            p {
+              margin-bottom: 0;
+            }
+          }
+        }
+        .step-track {
+          align-self: flex-start;
+          margin-top: 0.3rem;
+        }
+      }
+
+      .timeline-track {
+        .over-bar {
+          background: constants.$backgroundWhite;
+          padding: 0 0.25rem;
+          z-index: 4;
+        }
+        .step-dates .cdate .due-date::before {
+          content: '– ';
         }
       }
 
@@ -1474,7 +1932,7 @@
 
         .edit-invitation-info {
           flex-grow: 1;
-          width: 75%;
+          min-width: 0;
           .edit-invitation-container {
             display: flex;
             flex-direction: column;
@@ -1621,6 +2079,80 @@
           color: #6b6b6b;
           flex-grow: 1;
         }
+      }
+
+      .committee-container {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        max-width: 80%;
+
+        .committee-card {
+          border: 1px solid constants.$backgroundGray;
+          border-left: 3px solid constants.$backgroundGray;
+          padding: 0.75rem 1rem;
+
+          &.active {
+            border-left-color: constants.$mediumBlue;
+          }
+
+          .committee-card-header {
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+
+            .group-id {
+              color: black;
+              font-weight: 700;
+              font-size: 1rem;
+              margin-right: 0.25rem;
+            }
+            .member-count {
+              margin-left: 0.5rem;
+              color: #a86500;
+            }
+            // A child group that is not part of recruitment, e.g. Authors/Accepted.
+            .committee-subgroup {
+              display: flex;
+              align-items: baseline;
+              gap: 0.25rem;
+              margin-left: 0.5rem;
+              padding-left: 0.5rem;
+              border-left: 1px solid constants.$borderGray;
+
+              .member-count {
+                margin-left: 0.25rem;
+              }
+            }
+            .committee-actions {
+              margin-left: auto;
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+            }
+          }
+
+          .group-description {
+            color: constants.$subtleGray;
+            p {
+              margin-bottom: 0;
+            }
+          }
+
+          .committee-editor {
+            margin-top: 0.75rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid constants.$borderGray;
+
+            .committee-editor-source {
+              font-size: 0.75rem;
+              font-style: italic;
+              color: #6b6b6b;
+              text-align: right;
+            }
+          }
+        }
+
       }
 
       .add-stage {
