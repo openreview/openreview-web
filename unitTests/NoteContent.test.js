@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
-import '@testing-library/jest-dom'
-import { NoteContentV2 } from '../components/NoteContent'
 import { marked } from 'marked'
+import { NoteContentV2 } from '../components/NoteContent'
+import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('marked', () => {
@@ -181,5 +181,35 @@ describe('NoteContentV2', () => {
     )
 
     expect(screen.getByText('orcid:12345')).not.toHaveAttribute('href')
+  })
+
+  test('render author{} field as profile links', () => {
+    const props = {
+      id: 'some id',
+      content: {
+        reciprocal_reviewers: {
+          value: [
+            { username: '~Author_One1', fullname: 'Author One' },
+            { username: '~Author_Two1', fullname: 'Author Two' },
+          ],
+        },
+      },
+      presentation: [{ name: 'reciprocal_reviewers', order: 1, type: 'author{}' }],
+    }
+
+    render(<NoteContentV2 {...props} />)
+
+    expect(screen.getAllByRole('link').length).toEqual(2)
+    expect(screen.getByRole('link', { name: 'Author One' })).toHaveAttribute(
+      'href',
+      '/profile?id=~Author_One1'
+    )
+    expect(screen.getByRole('link', { name: 'Author Two' })).toHaveAttribute(
+      'href',
+      '/profile?id=~Author_Two1'
+    )
+    expect(screen.getByText('Reciprocal Reviewers:').parentElement).toHaveTextContent(
+      'Author One, Author Two'
+    )
   })
 })

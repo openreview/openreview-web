@@ -162,7 +162,7 @@ const responseDBLPXML = `<?xml version="1.0"?>
 `
 
 const dblpMock = RequestMock()
-  .onRequestTo('https://dblp.org/pid/95/7448-1.xml')
+  .onRequestTo('https://dblp.org/pid/95/7448-1.xml?app=OpenReview')
   .respond(responseDBLPXML, 200, {
     'access-control-allow-origin': '*',
     'content-type': 'application/xml',
