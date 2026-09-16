@@ -276,8 +276,9 @@ const AreaChairConsoleMenuBar = ({
           .map((invitation) => {
             const getCustomStageReplies = (p) => [
               ...(p.customStageReviewReplies?.[camelCase(invitation.name)] ?? []),
-              ...(p.metaReviewData?.customStageMetaReviewReplies?.[camelCase(invitation.name)] ??
-                []),
+              ...(p.metaReviewData?.customStageMetaReviewReplies?.[
+                camelCase(invitation.name)
+              ] ?? []),
             ]
             return (invitation.extraDisplayFields ?? [])
               .map((extraDisplayField) => ({

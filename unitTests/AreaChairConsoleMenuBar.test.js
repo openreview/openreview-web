@@ -1,6 +1,6 @@
 import { screen, render } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import AreaChairConsoleMenuBar from '../components/webfield/AreaChairConsoleMenuBar'
+import '@testing-library/jest-dom'
 
 let baseMenuBarProps
 
@@ -300,7 +300,9 @@ describe('AreaChairConsoleMenuBar', () => {
       },
       metaReviewData: {
         customStageMetaReviewReplies: {
-          aiReviewDetection: [{ searchValue: 'Uncertain', content: { score: { value: 0.5 } } }],
+          aiReviewDetection: [
+            { searchValue: 'Uncertain', content: { score: { value: 0.5 } } },
+          ],
         },
       },
     }

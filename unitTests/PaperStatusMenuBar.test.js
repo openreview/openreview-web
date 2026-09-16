@@ -1,7 +1,7 @@
 import { screen } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import PaperStatusMenuBar from '../components/webfield/ProgramChairConsole/PaperStatusMenuBar'
 import { renderWithWebFieldContext } from './util'
+import '@testing-library/jest-dom'
 
 let baseMenuBarProps
 

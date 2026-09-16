@@ -87,7 +87,9 @@ const AssignedPaperRow = ({
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
-          customStageReviewReplies={Object.values(rowData.customStageReviewReplies ?? {}).flat()}
+          customStageReviewReplies={Object.values(
+            rowData.customStageReviewReplies ?? {}
+          ).flat()}
         />
       </td>
       {displayReplyInvitations?.length && (
@@ -1161,7 +1163,8 @@ const AreaChairConsole = ({ appContext }) => {
           const metaReviewReplies = customStageReplies.filter(
             (p) => p.replyto === note.id || allMetaReviews.some((r) => r.id === p.replyto)
           )
-          if (reviewReplies.length) customStageReviewReplies[camelCase(curr.name)] = reviewReplies
+          if (reviewReplies.length)
+            customStageReviewReplies[camelCase(curr.name)] = reviewReplies
           if (metaReviewReplies.length)
             customStageMetaReviewReplies[camelCase(curr.name)] = metaReviewReplies
         })

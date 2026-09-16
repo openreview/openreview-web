@@ -1,11 +1,11 @@
-import { useContext } from 'react'
 import camelCase from 'lodash/camelCase'
 import upperFirst from 'lodash/upperFirst'
+import { useContext } from 'react'
+import { pluralizeString, prettyField, prettyId } from '../../../lib/utils'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
-import { pluralizeString, prettyField, prettyId } from '../../../lib/utils'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,

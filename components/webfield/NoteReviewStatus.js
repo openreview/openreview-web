@@ -1,20 +1,20 @@
 /* globals $,promptMessage,promptError: false */
 
+import copy from 'copy-to-clipboard'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
+import upperFirst from 'lodash/upperFirst'
 // modified from noteReviewStatus.hbs handlebar template
 import Link from 'next/link'
 import { useContext, useState } from 'react'
-import upperFirst from 'lodash/upperFirst'
-import copy from 'copy-to-clipboard'
-import relativeTime from 'dayjs/plugin/relativeTime'
-import dayjs from 'dayjs'
 import api from '../../lib/api-client'
+import { pluralizeString, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
 import BasicModal from '../BasicModal'
 import Collapse from '../Collapse'
 import ErrorAlert from '../ErrorAlert'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteList from '../NoteList'
 import WebFieldContext from '../WebFieldContext'
-import { pluralizeString, prettyField, prettyId, prettyInvitationId } from '../../lib/utils'
 import ProfileLink from './ProfileLink'
 
 dayjs.extend(relativeTime)

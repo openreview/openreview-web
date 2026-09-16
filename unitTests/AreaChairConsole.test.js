@@ -2550,7 +2550,11 @@ describe('AreaChairConsole', () => {
         emailReplyTo: 'pc@aaai.org',
         extraExportColumns: undefined,
         customStageInvitations: [
-          { name: 'AI_Review_Detection', displayField: 'label', extraDisplayFields: ['score'] },
+          {
+            name: 'AI_Review_Detection',
+            displayField: 'label',
+            extraDisplayFields: ['score'],
+          },
           { name: 'Second_Round_Review', displayField: 'final_recommendation' },
           { name: 'Meta_Review_Confirmation', displayField: 'confirmation' },
         ],
@@ -2617,9 +2621,7 @@ describe('AreaChairConsole', () => {
         screen.getByText('Final Recommendation: second round says accept')
       ).toBeInTheDocument()
       expect(screen.getByText('Meta Review Confirmation (Meta Review1):')).toBeInTheDocument()
-      expect(
-        screen.getByText('Confirmation: I confirm the meta review')
-      ).toBeInTheDocument()
+      expect(screen.getByText('Confirmation: I confirm the meta review')).toBeInTheDocument()
       // replies to reviews are not rendered in the meta review status column
       expect(screen.queryByText('AI Review Detection:')).not.toBeInTheDocument()
       expect(screen.queryByText('Label: AI')).not.toBeInTheDocument()
