@@ -273,23 +273,32 @@ const AreaChairConsoleMenuBar = ({
       : []),
     ...(customStageInvitations?.length > 0
       ? customStageInvitations
-          .map((invitation) =>
-            invitation.extraDisplayFields
-              ?.map((extraDisplayField) => ({
+          .map((invitation) => {
+            const getCustomStageReplies = (p) => [
+              ...(p.customStageReviewReplies?.[camelCase(invitation.name)] ?? []),
+              ...(p.metaReviewData?.customStageMetaReviewReplies?.[camelCase(invitation.name)] ??
+                []),
+            ]
+            return (invitation.extraDisplayFields ?? [])
+              .map((extraDisplayField) => ({
                 label: `${prettyId(invitation.name)} - ${prettyField(extraDisplayField)}`,
                 value: `${invitation.name} ${extraDisplayField}`,
                 getValue: (p) =>
-                  p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
-                    ?.content?.[extraDisplayField]?.value ?? 'N/A',
+                  getCustomStageReplies(p)
+                    .map((q) => q.content?.[extraDisplayField]?.value)
+                    .filter((q) => q !== undefined && q !== null)
+                    .join(' ') || 'N/A',
               }))
               .concat({
                 label: prettyField(invitation.displayField),
                 value: invitation.name,
                 getValue: (p) =>
-                  p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
-                    ?.searchValue,
+                  getCustomStageReplies(p)
+                    .map((q) => q.searchValue)
+                    .filter((q) => q !== undefined && q !== null)
+                    .join(' '),
               })
-          )
+          })
           .flat()
       : []),
     ...(sortOptionsConfig ?? []),
