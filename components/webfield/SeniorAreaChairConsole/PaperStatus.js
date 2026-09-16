@@ -96,6 +96,7 @@ const PaperRow = ({
           shortPhrase={shortPhrase}
           submissionName={submissionName}
           reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName, reviewersId)}
+          customStageReviewReplies={Object.values(rowData.customStageReviewReplies ?? {}).flat()}
         />
       </td>
       <td>

@@ -318,4 +318,59 @@ return officialReview.length;
 
     expect(allLabels.filter((p) => p.includes('Three')).length).toBe(0) // not added
   })
+
+  test('custom stage sort options read review replies and fall back to meta review data', () => {
+    const providerProps = {
+      value: {
+        reviewerName: 'Reviewers',
+        anonReviewerName: 'Reviewer_',
+        officialReviewName: 'Offical_Review',
+        customStageInvitations: [
+          {
+            name: 'AI_Review_Detection',
+            displayField: 'label',
+            extraDisplayFields: ['score'],
+          },
+        ],
+      },
+    }
+    const componentProps = { reviewRatingName: 'rating' }
+    renderWithWebFieldContext(<PaperStatusMenuBar {...componentProps} />, providerProps)
+
+    const displayFieldOption = baseMenuBarProps.sortOptions.find((p) => p.label === 'Label')
+    const extraFieldOption = baseMenuBarProps.sortOptions.find(
+      (p) => p.label === 'AI Review Detection - Score'
+    )
+
+    // replies to reviews, one per review
+    const rowWithReviewReplies = {
+      customStageReviewReplies: {
+        aiReviewDetection: [
+          { searchValue: 'AI', content: { score: { value: 0.9 } } },
+          { searchValue: 'Human', content: { score: { value: 0.1 } } },
+        ],
+      },
+      metaReviewData: {},
+    }
+    expect(displayFieldOption.getValue(rowWithReviewReplies)).toEqual('AI Human')
+    expect(extraFieldOption.getValue(rowWithReviewReplies)).toEqual('0.9 0.1')
+
+    // forum/meta review reply keeps the existing behavior
+    const rowWithForumReply = {
+      metaReviewData: {
+        customStageReviews: {
+          aiReviewDetection: {
+            searchValue: 'Uncertain',
+            content: { score: { value: 0.5 } },
+          },
+        },
+      },
+    }
+    expect(displayFieldOption.getValue(rowWithForumReply)).toEqual('Uncertain')
+    expect(extraFieldOption.getValue(rowWithForumReply)).toEqual(0.5)
+
+    // rows without custom stage replies do not break sorting
+    expect(displayFieldOption.getValue({ metaReviewData: {} })).toEqual(undefined)
+    expect(extraFieldOption.getValue({ metaReviewData: {} })).toEqual('N/A')
+  })
 })
