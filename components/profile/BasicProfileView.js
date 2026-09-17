@@ -1,12 +1,18 @@
-import { EnvironmentFilled, SafetyCertificateOutlined } from '@ant-design/icons'
-import { Col, Flex, Row, Space, Tag, Tooltip } from 'antd'
+import {
+  CheckOutlined,
+  EnvironmentFilled,
+  FolderOutlined,
+  SafetyCertificateOutlined,
+} from '@ant-design/icons'
+import { Col, Flex, Popover, Row, Space, Tag, Tooltip } from 'antd'
 import copy from 'copy-to-clipboard'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
+import { orderBy } from 'lodash'
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import ServiceRoles from '../../app/profile/ServiceRoles'
-import { prettyList } from '../../lib/utils'
+import { formatDateTime, normalizeName, prettyId, prettyList } from '../../lib/utils'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 
@@ -18,6 +24,63 @@ import {
 } from '../../lib/legacy-bootstrap-styles'
 
 dayjs.extend(utc)
+
+const matchedColor = getBootstrap337LabelColor('success')
+const disputedColor = getBootstrap337LabelColor('warning')
+
+const AssertionPopover = ({ assertion: { signatures, source, tcdate }, children }) => (
+  <Popover
+    content={
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'auto auto',
+          gap: '0.125rem 0.75rem',
+        }}
+      >
+        {source && (
+          <>
+            <span>Document:</span>
+            <span>{source}</span>
+          </>
+        )}
+        <span>By:</span>
+        <span>{prettyId(signatures[0])}</span>
+        <span>Date</span>
+        <span>{formatDateTime(tcdate)}</span>
+      </div>
+    }
+  >
+    {children}
+  </Popover>
+)
+
+const AssertionCheck = ({ assertion, disputed = false }) => (
+  <AssertionPopover assertion={assertion}>
+    <CheckOutlined
+      style={{ color: disputed ? disputedColor : matchedColor, marginLeft: '0.25rem' }}
+    />
+  </AssertionPopover>
+)
+
+const AssertedRecord = ({ assertion, disputed = false, indented = false, children }) => (
+  <div
+    style={{
+      display: 'flex',
+      gap: '0.5rem',
+      background: disputed ? '#fdf8f0' : '#ecf0f2',
+      borderRadius: 3,
+      padding: '6px 8px',
+      margin: indented ? '2px -8px 0 0.75rem' : '0.25rem -8px 0',
+      color: colors.subtleGray,
+    }}
+  >
+    <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
+    <AssertionPopover assertion={assertion}>
+      <FolderOutlined style={{ color: disputed ? disputedColor : colors.mediumDarkBlue }} />
+    </AssertionPopover>
+  </div>
+)
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -49,6 +112,53 @@ const ProfileName = ({ name }) => (
     {name.preferred && <small style={{ color: colors.orRed }}>(Preferred)</small>}
   </ProfileItem>
 )
+
+const NamesSection = ({ names, profileEdits }) => {
+  const normalizedProfileNames = names.map((p) => normalizeName(p.fullname))
+  const namesAsserted = orderBy(
+    profileEdits.flatMap((p) => {
+      if (!p.profile.content?.fullname) return []
+      const normalizedValue = normalizeName(p.profile.content.fullname.value)
+      return {
+        value: p.profile.content.fullname.value,
+        source: p.content?.source?.value,
+        signatures: p.signatures,
+        tcdate: p.tcdate,
+        normalizedValue,
+        existInProfile:
+          normalizedProfileNames.find((q) => q === normalizedValue) !== undefined,
+      }
+    }),
+    ['tcdate'],
+    ['desc']
+  )
+
+  return (
+    <>
+      <Space separator={<span>{`,\u00a0`}</span>} wrap={true} size={0}>
+        {names.map((name) => {
+          const latestNameAssertion = namesAsserted.find(
+            (p) => p.normalizedValue === normalizeName(name.fullname)
+          )
+          return (
+            <span key={name.username || name.fullname} style={{ display: 'inline-flex' }}>
+              <ProfileName name={name} />
+              {latestNameAssertion && <AssertionCheck assertion={latestNameAssertion} />}
+            </span>
+          )
+        })}
+      </Space>
+
+      {namesAsserted
+        .filter((p) => !p.existInProfile)
+        .map((assertion) => (
+          <AssertedRecord key={`${assertion.value}-${assertion.tcdate}`} assertion={assertion}>
+            {assertion.value}
+          </AssertedRecord>
+        ))}
+    </>
+  )
+}
 
 const ProfileEmail = ({ email, publicProfile, allowCopyEmail }) => {
   const copyEmailToClipboard = () => {
@@ -151,6 +261,96 @@ const ProfileHistory = ({ history }) => (
   </Row>
 )
 
+const historyIdentity = (record) =>
+  [
+    record?.institution?.domain,
+    record?.position?.toLowerCase(),
+    record?.start ?? '',
+    record?.end ?? '',
+  ].join('|')
+
+const correspondingRecord = (records, asserted) => {
+  const domain = asserted?.institution?.domain
+  const start = asserted?.start
+  if (!domain || !start) return undefined
+  const candidates = records.filter(
+    (record) => record.institution?.domain === domain && record.start === start
+  )
+  return candidates.length === 1 ? candidates[0] : undefined
+}
+
+const HistorySection = ({ history, profileEdits }) => {
+  const records = history ?? []
+  const historyAsserted = orderBy(
+    profileEdits.flatMap((p) => {
+      if (!p.profile.content?.history) return []
+      const { value } = p.profile.content.history
+      const identity = historyIdentity(value)
+      const existInProfile = records.some((record) => historyIdentity(record) === identity)
+      return {
+        value,
+        source: p.content?.source?.value,
+        signatures: p.signatures,
+        tcdate: p.tcdate,
+        identity,
+        existInProfile,
+        contradicts: existInProfile ? undefined : correspondingRecord(records, value),
+      }
+    }),
+    ['tcdate'],
+    ['desc']
+  )
+
+  return (
+    <Flex vertical gap="small">
+      {records.length > 0 ? (
+        records.map((record) => {
+          const identity = historyIdentity(record)
+          const agreeing = historyAsserted.find(
+            (p) => p.existInProfile && p.identity === identity
+          )
+          const contradicting = historyAsserted.filter((p) => p.contradicts === record)
+          return (
+            <div key={nanoid()}>
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <ProfileHistory history={record} />
+                </div>
+                {agreeing && <AssertionCheck assertion={agreeing} />}
+                {!agreeing && contradicting.length > 0 && (
+                  <AssertionCheck assertion={contradicting[0]} disputed />
+                )}
+              </div>
+              {contradicting.map((assertion) => (
+                <AssertedRecord
+                  key={`${assertion.identity}-${assertion.tcdate}`}
+                  assertion={assertion}
+                  disputed
+                  indented
+                >
+                  <ProfileHistory history={assertion.value} />
+                </AssertedRecord>
+              ))}
+            </div>
+          )
+        })
+      ) : (
+        <p className="empty-message">No history added</p>
+      )}
+      {historyAsserted
+        .filter((p) => !p.existInProfile && !p.contradicts)
+        .map((assertion) => (
+          <AssertedRecord
+            key={`${assertion.identity}-${assertion.tcdate}`}
+            assertion={assertion}
+          >
+            <ProfileHistory history={assertion.value} />
+          </AssertedRecord>
+        ))}
+    </Flex>
+  )
+}
+
 const ProfileRelation = ({ relation }) => (
   <Row align="top" gutter={[15, 15]}>
     <Col xs={12} sm={6}>
@@ -220,7 +420,6 @@ const DateOfBirth = ({ dob }) => {
   if (!dateOfBirth.isValid()) return null
 
   const age = dayjs.utc().diff(dateOfBirth, 'year')
-  const isMinor = age >= 13 && age < 18
 
   return (
     <Space>
@@ -247,6 +446,49 @@ const DateOfBirth = ({ dob }) => {
   )
 }
 
+const DateOfBirthSection = ({ dob, profileEdits }) => {
+  const dobAsserted = orderBy(
+    profileEdits.flatMap((p) => {
+      if (!p.profile.content?.dob) return []
+      const { value } = p.profile.content.dob
+      return {
+        value,
+        source: p.content?.source?.value,
+        signatures: p.signatures,
+        tcdate: p.tcdate,
+        existInProfile: value === dob,
+      }
+    }),
+    ['tcdate'],
+    ['desc']
+  )
+
+  const agreeing = dobAsserted.find((p) => p.existInProfile)
+  const contradicting = dobAsserted.filter((p) => !p.existInProfile)
+
+  return (
+    <>
+      <Space>
+        <DateOfBirth dob={dob} />
+        {agreeing && <AssertionCheck assertion={agreeing} />}
+        {!agreeing && contradicting.length > 0 && (
+          <AssertionCheck assertion={contradicting[0]} disputed />
+        )}
+      </Space>
+      {contradicting.map((assertion) => (
+        <AssertedRecord
+          key={`${assertion.value}-${assertion.tcdate}`}
+          assertion={assertion}
+          disputed
+          indented
+        >
+          {dayjs.utc(assertion.value).format('MMMM DD, YYYY')}
+        </AssertedRecord>
+      ))}
+    </>
+  )
+}
+
 const BasicProfileView = ({
   profile,
   publicProfile,
@@ -254,7 +496,9 @@ const BasicProfileView = ({
   showLinkText = false,
   moderation = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
+  profileEdits = [],
 }) => {
+  const activeProfileEdits = profileEdits.filter((p) => !p.ddate)
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
   const sortedNames = [
     ...uniqueNames.filter((p) => p.preferred),
@@ -265,17 +509,13 @@ const BasicProfileView = ({
     <Flex vertical gap="large">
       {contentToShow.includes('names') && (
         <ProfileViewSection title="Names">
-          <Space separator={<span>{`,\u00a0`}</span>} wrap={true} size={0}>
-            {sortedNames.map((name, i) => (
-              <ProfileName key={name.username || name.fullname} name={name} />
-            ))}
-          </Space>
+          <NamesSection names={sortedNames} profileEdits={activeProfileEdits} />
         </ProfileViewSection>
       )}
 
       {contentToShow.includes('dob') && profile.dob !== null && profile.dob !== undefined && (
         <ProfileViewSection title="Date of Birth">
-          <DateOfBirth dob={profile.dob} />
+          <DateOfBirthSection dob={profile.dob} profileEdits={activeProfileEdits} />
         </ProfileViewSection>
       )}
 
@@ -310,15 +550,7 @@ const BasicProfileView = ({
 
       {contentToShow.includes('history') && (
         <ProfileViewSection title="Career &amp; Education History">
-          <Flex vertical gap="small">
-            {profile.history?.length > 0 ? (
-              profile.history.map((history) => (
-                <ProfileHistory key={nanoid()} history={history} />
-              ))
-            ) : (
-              <p className="empty-message">No history added</p>
-            )}
-          </Flex>
+          <HistorySection history={profile.history} profileEdits={activeProfileEdits} />
         </ProfileViewSection>
       )}
 

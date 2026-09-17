@@ -1,3 +1,4 @@
+import { DownOutlined, RightOutlined, SearchOutlined } from '@ant-design/icons'
 import { Button, Col, Flex, Input, Row, Select, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -7,6 +8,7 @@ import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
 import { formatDateTime, isValidEmail } from '../../../lib/utils'
+import IdentityDocumentReviewPanel from './IdentityDocumentReviewPanel'
 
 import { moderation as legacyStyles } from '../../../lib/legacy-bootstrap-styles'
 
@@ -54,7 +56,12 @@ const UploadLinkForm = () => {
   return (
     <>
       <h4>Generate Document Upload Link</h4>
-      <Flex gap="small" align="center" wrap style={legacyStyles.filterForm}>
+      <Flex
+        gap="small"
+        align="center"
+        wrap
+        style={{ ...legacyStyles.filterForm, maxWidth: '44rem' }}
+      >
         <Input
           placeholder="Tilde ID or email"
           style={{ ...legacyStyles.formInput, flex: '1 1 250px' }}
@@ -86,11 +93,12 @@ const UploadLinkForm = () => {
 
 const IdentityDocumentsTab = () => {
   const [profileWithIdentityDocuments, setProfileWithIdentityDocuments] = useState(null)
+  const [profileEditInvitations, setProfileEditInvitations] = useState([])
+  const [selectedProfileId, setSelectedProfileId] = useState(null)
 
   const loadProfilesWithIdentityDocuments = async () => {
     try {
       const { documents } = await api.get('/profile-documents/identity/')
-
       const profilesById = documents.reduce((profiles, { profileId, tcdate }) => {
         const profile = profiles[profileId]
         if (profile) {
@@ -116,8 +124,22 @@ const IdentityDocumentsTab = () => {
     }
   }
 
+  const loadProfileEditInvitations = async () => {
+    const profileEditInvitaitonIds = [
+      `${process.env.SUPER_USER}/Support/-/Identity_Verification`,
+      `${process.env.SUPER_USER}/Support/-/Affiliation_Verification`,
+    ]
+    try {
+      const { invitations } = await api.get('/invitations', { ids: profileEditInvitaitonIds })
+      setProfileEditInvitations(invitations ?? [])
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
   useEffect(() => {
     loadProfilesWithIdentityDocuments()
+    loadProfileEditInvitations()
   }, [])
 
   const renderDocumentsList = () => {
@@ -146,26 +168,50 @@ const IdentityDocumentsTab = () => {
         </Row>
         <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
           {profileWithIdentityDocuments.map(
-            ({ profileId, documentCount, minTcdate, maxTcdate }) => (
-              <Row key={profileId} align="middle" gutter={[8, 8]}>
-                <Col xs={6} lg={8}>
-                  <Link href={`/user/moderation?id=${profileId}`}>{profileId}</Link>
-                </Col>
-                <Col xs={6} lg={4}>
-                  {documentCount}
-                </Col>
-                <Col xs={6} lg={6}>
-                  <Tooltip title={formatDateTime(minTcdate)}>
-                    <span>{dayjs(minTcdate).fromNow()}</span>
-                  </Tooltip>
-                </Col>
-                <Col xs={6} lg={6}>
-                  <Tooltip title={formatDateTime(maxTcdate)}>
-                    <span>{dayjs(maxTcdate).fromNow()}</span>
-                  </Tooltip>
-                </Col>
-              </Row>
-            )
+            ({ profileId, documentCount, minTcdate, maxTcdate }) => {
+              const isSelected = selectedProfileId === profileId
+              return (
+                <div key={profileId}>
+                  <Row align="middle" gutter={[8, 8]}>
+                    <Col xs={6} lg={8}>
+                      <Flex align="center" gap="small">
+                        <a
+                          role="button"
+                          tabIndex={0}
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => setSelectedProfileId(isSelected ? null : profileId)}
+                        >
+                          {isSelected ? <DownOutlined /> : <RightOutlined />} {profileId}
+                        </a>
+                        <Link href={`/user/moderation?id=${profileId}`}>
+                          <SearchOutlined />
+                        </Link>
+                      </Flex>
+                    </Col>
+                    <Col xs={6} lg={4}>
+                      {documentCount}
+                    </Col>
+                    <Col xs={6} lg={6}>
+                      <Tooltip title={formatDateTime(minTcdate)}>
+                        <span>{dayjs(minTcdate).fromNow()}</span>
+                      </Tooltip>
+                    </Col>
+                    <Col xs={6} lg={6}>
+                      <Tooltip title={formatDateTime(maxTcdate)}>
+                        <span>{dayjs(maxTcdate).fromNow()}</span>
+                      </Tooltip>
+                    </Col>
+                  </Row>
+                  {isSelected && (
+                    <IdentityDocumentReviewPanel
+                      profileId={profileId}
+                      profileEditInvitations={profileEditInvitations}
+                      reloadProfileList={loadProfilesWithIdentityDocuments}
+                    />
+                  )}
+                </div>
+              )
+            }
           )}
         </Flex>
       </>
@@ -173,14 +219,14 @@ const IdentityDocumentsTab = () => {
   }
 
   return (
-    <>
-      <UploadLinkForm />
-      <h4 style={{ marginTop: '3rem' }}>
+    <Flex vertical gap="large">
+      <h4>
         Profiles pending identity document check
         {profileWithIdentityDocuments ? ` (${profileWithIdentityDocuments.length})` : ''}
       </h4>
       {renderDocumentsList()}
-    </>
+      <UploadLinkForm />
+    </Flex>
   )
 }
 

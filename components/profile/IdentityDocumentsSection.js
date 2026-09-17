@@ -235,17 +235,14 @@ export const ParentalConsentSection = ({ profileDocuments, loadIdentityDocuments
   )
 }
 
-export const IdentityDocumentsSection = ({
+export const IdentityDocumentActions = ({
   profileId,
-  profileDocuments,
+  identityDocuments,
   isProfileActivatable,
   loadIdentityDocuments,
-  tagAndActivateProfile,
-  loadTags,
+  activateProfile,
+  onActivated,
 }) => {
-  const identityDocuments = profileDocuments?.filter(
-    (document) => document.type !== 'parentalConsent'
-  )
   const shouldShowActionButton = identityDocuments?.some(({ ddate }) => !ddate)
 
   const deleteAllDocuments = async (shouldActiveProfile = false) => {
@@ -254,7 +251,7 @@ export const IdentityDocumentsSection = ({
     )
     if (!confirmDelete) return
     try {
-      if (shouldActiveProfile) await tagAndActivateProfile?.()
+      if (shouldActiveProfile) await activateProfile()
 
       const { deletedCount } = await api.delete(
         `/profile-documents/identity/profiles/${profileId}`
@@ -263,11 +260,39 @@ export const IdentityDocumentsSection = ({
         `${inflect(deletedCount, 'document has', 'documents have', true)} been deleted`
       )
       loadIdentityDocuments()
-      if (shouldActiveProfile) loadTags?.()
+      if (shouldActiveProfile) onActivated()
     } catch (error) {
       promptError(error.message)
     }
   }
+
+  if (!shouldShowActionButton) return null
+
+  return (
+    <Space>
+      <Button type="primary" onClick={() => deleteAllDocuments()}>
+        {isProfileActivatable ? 'Delete Documents Only' : 'Delete Identity Documents'}
+      </Button>
+      {isProfileActivatable && (
+        <Button type="primary" onClick={() => deleteAllDocuments(true)}>
+          Activate with ID check
+        </Button>
+      )}
+    </Space>
+  )
+}
+
+export const IdentityDocumentsSection = ({
+  profileId,
+  profileDocuments,
+  isProfileActivatable,
+  loadIdentityDocuments,
+  activateProfile,
+  onActivated,
+}) => {
+  const identityDocuments = profileDocuments?.filter(
+    (document) => document.type !== 'parentalConsent'
+  )
 
   return (
     <div>
@@ -275,26 +300,16 @@ export const IdentityDocumentsSection = ({
         profileDocuments={identityDocuments}
         loadIdentityDocuments={loadIdentityDocuments}
       />
-      {shouldShowActionButton && (
-        <Space>
-          <Button
-            type="primary"
-            style={{ marginTop: '.25rem' }}
-            onClick={() => deleteAllDocuments()}
-          >
-            {isProfileActivatable ? 'Delete Documents Only' : 'Delete Identity Documents'}
-          </Button>
-          {isProfileActivatable && (
-            <Button
-              type="primary"
-              style={{ marginTop: '.25rem' }}
-              onClick={() => deleteAllDocuments(true)}
-            >
-              Activate with ID check
-            </Button>
-          )}
-        </Space>
-      )}
+      <Flex wrap gap="small" style={{ marginTop: '.25rem' }}>
+        <IdentityDocumentActions
+          profileId={profileId}
+          identityDocuments={identityDocuments}
+          isProfileActivatable={isProfileActivatable}
+          loadIdentityDocuments={loadIdentityDocuments}
+          activateProfile={activateProfile}
+          onActivated={onActivated}
+        />
+      </Flex>
     </div>
   )
 }

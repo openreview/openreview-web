@@ -19,7 +19,7 @@ export default async function page() {
   if (!hasAccess) return <ErrorDisplay message={errorMessage} />
 
   return (
-    <CommonLayout banner={null}>
+    <CommonLayout banner={null} fullWidth>
       <header>
         <h1>User Moderation</h1>
       </header>

@@ -1,14 +1,16 @@
-import { Button, Flex, Input, Modal, Select, Space, Tooltip } from 'antd'
+import { Button, Flex, Modal, Select, Space, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
-import { formatDateTime, getDeviceFromUserAgent, getRejectionReasons } from '../../lib/utils'
+import { acceptProfile } from '../../lib/profile-moderation'
+import { formatDateTime, getDeviceFromUserAgent } from '../../lib/utils'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
 import { IdentityDocumentsSection, ParentalConsentSection } from './IdentityDocumentsSection'
 import MessagesSection from './MessagesSection'
+import ModerationActions from './ModerationActions'
 import PastStatesSection from './PastStatesSection'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
@@ -28,10 +30,8 @@ const ProfilePreviewModal = ({
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
   const [profileDocuments, setProfileDocuments] = useState(null)
+  const [profileEdits, setProfileEdits] = useState([])
   const [loginActivity, setLoginActivity] = useState(null)
-  const [rejectionMessage, setRejectionMessage] = useState('')
-  const [isRejecting, setIsRejecting] = useState(false)
-  const [rejectionReasons, setRejectReasons] = useState([])
   const [error, setError] = useState(null)
   const [isLoadingTags, setIsLoadingTags] = useState(false)
   const [openTagOptions, setOpenTagOptions] = useState(false)
@@ -42,20 +42,6 @@ const ProfilePreviewModal = ({
     loginActivity &&
     loginActivity.notifyUnusualLogins !== false &&
     loginActivity.knownLocations?.length > 0
-
-  const tagAndActivateProfile = async () => {
-    await api.post('/tags', {
-      profile: profileToPreview.id,
-      label: 'user sent document',
-      signature: `${process.env.SUPER_USER}/Support`,
-      invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
-    })
-    await api.post('/profile/moderate', { id: profileToPreview.id, decision: 'accept' })
-  }
-
-  const updateMessageForPastRejectProfile = (messageToAdd) => {
-    setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
-  }
 
   const loadPublications = async () => {
     let apiRes
@@ -98,6 +84,17 @@ const ProfilePreviewModal = ({
         trash: true,
       })
       setProfileDocuments(profileDocuments)
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
+  const loadProfileEdits = async () => {
+    try {
+      const { edits } = await api.get('/profiles/edits', {
+        'profile.id': profileToPreview.id,
+      })
+      setProfileEdits(edits ?? [])
     } catch (apiError) {
       setError(apiError)
     }
@@ -165,15 +162,11 @@ const ProfilePreviewModal = ({
   }, [profileToPreview, needsModeration])
 
   useEffect(() => {
-    setRejectionMessage('')
-    setIsRejecting(false)
     setTags([])
+    setProfileEdits([])
     setLoginActivity(null)
     setError(null)
-    const currentInstitutionName = profileToPreview?.history?.find(
-      (p) => !p.end || p.end >= new Date().getFullYear()
-    )?.institution?.name
-    setRejectReasons(getRejectionReasons(currentInstitutionName))
+    if (profileToPreview) loadProfileEdits()
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
     if (profileToPreview && contentToShow?.includes('tags')) loadTags()
     if (profileToPreview && contentToShow?.includes('identityDocuments'))
@@ -209,6 +202,7 @@ const ProfilePreviewModal = ({
           showLinkText={true}
           moderation={true}
           contentToShow={contentToShow}
+          profileEdits={profileEdits}
         />
         {contentToShow?.includes('loginActivity') && showLoginActivity && (
           <ProfileViewSection title="Login Activity">
@@ -276,8 +270,8 @@ const ProfilePreviewModal = ({
                   profileDocuments={profileDocuments}
                   isProfileActivatable={isProfileActivatable}
                   loadIdentityDocuments={loadIdentityDocuments}
-                  tagAndActivateProfile={tagAndActivateProfile}
-                  loadTags={loadTags}
+                  activateProfile={() => acceptProfile(profileToPreview.id)}
+                  onActivated={loadTags}
                 />
               </ProfileViewSection>
             )}
@@ -325,94 +319,19 @@ const ProfilePreviewModal = ({
             </Flex>
           )}
           {needsModeration && (
-            <Flex justify="space-between" wrap>
-              <Button type="primary" onClick={() => showNextProfile(profileToPreview.id)}>
-                Skip
-              </Button>
-
-              <Flex wrap gap="small">
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    showNextProfile(profileToPreview.id)
-                    acceptUser(profileToPreview.id, false)
-                  }}
-                >
-                  Accept
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={() => {
-                    setIsRejecting(true)
-                  }}
-                >
-                  Show Reject Options
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={async () => {
-                    await rejectUser(rejectionReasons[0]?.rejectionText, profileToPreview.id)
-                    showNextProfile(profileToPreview.id)
-                  }}
-                >
-                  Reject
-                </Button>
-              </Flex>
-            </Flex>
-          )}
-          {isRejecting && (
-            <Flex vertical gap="small" align="flex-start">
-              <Select
-                allowClear
-                mode="multiple"
-                style={{ width: '100%' }}
-                placeholder="Choose rejection reason(s)..."
-                options={rejectionReasons}
-                getPopupContainer={(triggerNode) => triggerNode.parentElement}
-                onChange={(value) => {
-                  const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
-                  setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
-                }}
-              />
-              <Space wrap>
-                <Button
-                  type="primary"
-                  onClick={() =>
-                    updateMessageForPastRejectProfile(
-                      "Submitting invalid info is a violation of OpenReview's Terms and Conditions (https://openreview.net/legal/terms) which may result in terminating your access to the system."
-                    )
-                  }
-                >
-                  Add Invalid Info Warning
-                </Button>
-                <Button
-                  type="primary"
-                  onClick={() =>
-                    updateMessageForPastRejectProfile(
-                      'If invalid info is submitted again, your email will be blocked.'
-                    )
-                  }
-                >
-                  Add Last Notice Warning
-                </Button>
-              </Space>
-              <Input.TextArea
-                autoSize={{ minRows: 5 }}
-                value={rejectionMessage}
-                onChange={(e) => {
-                  setRejectionMessage(e.target.value)
-                }}
-              />
-              <Button
-                type="primary"
-                onClick={async () => {
-                  await rejectUser(rejectionMessage, profileToPreview.id)
-                  showNextProfile(profileToPreview.id)
-                }}
-              >
-                Reject
-              </Button>
-            </Flex>
+            <ModerationActions
+              key={profileToPreview.id}
+              profile={profileToPreview}
+              onSkip={() => showNextProfile(profileToPreview.id)}
+              onAccept={() => {
+                showNextProfile(profileToPreview.id)
+                acceptUser(profileToPreview.id, false)
+              }}
+              onReject={async (message) => {
+                await rejectUser(message, profileToPreview.id)
+                showNextProfile(profileToPreview.id)
+              }}
+            />
           )}
         </Flex>
       </Flex>

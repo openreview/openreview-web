@@ -27,6 +27,7 @@ import Icon from '../../../components/Icon'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 import api from '../../../lib/api-client'
+import { acceptProfile, rejectProfile } from '../../../lib/profile-moderation'
 import { formatProfileData } from '../../../lib/profiles'
 import {
   formatDateTime,
@@ -35,6 +36,7 @@ import {
   isValidDomain,
   prettyId,
 } from '../../../lib/utils'
+import ActionButton from './ActionButton'
 
 import styles from './moderation.module.scss'
 import {
@@ -43,15 +45,6 @@ import {
   getProfileStateLabelClass,
   moderation as legacyStyles,
 } from '../../../lib/legacy-bootstrap-styles'
-
-const ActionButton = (props) => (
-  <Button
-    type="primary"
-    size="small"
-    styles={{ root: legacyStyles.actionButton }}
-    {...props}
-  />
-)
 
 export const RejectionModal = ({
   profileToReject,
@@ -411,7 +404,7 @@ const UserModerationQueue = ({
   const acceptUser = async (profileId, showSuccessMessage = true) => {
     try {
       setIdsLoading((p) => [...p, profileId])
-      await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
+      await acceptProfile(profileId)
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -464,43 +457,8 @@ const UserModerationQueue = ({
   }
 
   const rejectUser = async (rejectionMessage, id) => {
-    let interpretedRejectionMessage = rejectionMessage
-    if (interpretedRejectionMessage.includes('{{documentVerificationLink}}')) {
-      try {
-        const { url } = await api.post('/profile-documents/upload-link', {
-          profileId: id,
-          type: 'identity',
-        })
-        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
-          '{{documentVerificationLink}}',
-          url
-        )
-      } catch (error) {
-        promptError(error.message)
-        return
-      }
-    }
-    if (interpretedRejectionMessage.includes('{{underageConsentLink}}')) {
-      try {
-        const { url } = await api.post('/profile-documents/upload-link', {
-          profileId: id,
-          type: 'parentalConsent',
-        })
-        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
-          '{{underageConsentLink}}',
-          url
-        )
-      } catch (error) {
-        promptError(error.message)
-        return
-      }
-    }
     try {
-      await api.post('/profile/moderate', {
-        id,
-        decision: 'reject',
-        reason: interpretedRejectionMessage,
-      })
+      await rejectProfile(id, rejectionMessage)
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
