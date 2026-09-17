@@ -875,6 +875,7 @@ const UserModerationQueue = ({
         showPreviousProfile={showPreviousProfile}
         acceptUser={acceptUser}
         rejectUser={rejectUser}
+        reload={reload}
       />
     </div>
   )

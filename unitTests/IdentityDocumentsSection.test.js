@@ -196,8 +196,8 @@ describe('IdentityDocumentsSection', () => {
   test('delete all documents when delete documents button is clicked', async () => {
     window.confirm = jest.fn(() => true)
     const loadIdentityDocuments = jest.fn()
-    const tagAndActivateProfile = jest.fn()
-    const loadTags = jest.fn()
+    const activateProfile = jest.fn()
+    const onActivated = jest.fn()
     api.delete = jest.fn(() => Promise.resolve({ deletedCount: 1 }))
     global.promptMessage = jest.fn()
 
@@ -223,8 +223,8 @@ describe('IdentityDocumentsSection', () => {
       ],
       isProfileActivatable: true,
       loadIdentityDocuments,
-      tagAndActivateProfile,
-      loadTags,
+      activateProfile,
+      onActivated,
     }
 
     render(<IdentityDocumentsSection {...props} />)
@@ -236,16 +236,16 @@ describe('IdentityDocumentsSection', () => {
       expect(api.delete).toHaveBeenCalledWith('/profile-documents/identity/profiles/~Test_Id1')
       expect(global.promptMessage).toHaveBeenCalledWith('1 document has been deleted')
       expect(loadIdentityDocuments).toHaveBeenCalled()
-      expect(tagAndActivateProfile).not.toHaveBeenCalled()
-      expect(loadTags).not.toHaveBeenCalled()
+      expect(activateProfile).not.toHaveBeenCalled()
+      expect(onActivated).not.toHaveBeenCalled()
     })
   })
 
   test('delete all documents and activate profile when activate with id check button is clicked', async () => {
     window.confirm = jest.fn(() => true)
     const loadIdentityDocuments = jest.fn()
-    const tagAndActivateProfile = jest.fn()
-    const loadTags = jest.fn()
+    const activateProfile = jest.fn()
+    const onActivated = jest.fn()
     api.delete = jest.fn(() => Promise.resolve({ deletedCount: 1 }))
     global.promptMessage = jest.fn()
 
@@ -271,8 +271,8 @@ describe('IdentityDocumentsSection', () => {
       ],
       isProfileActivatable: true,
       loadIdentityDocuments,
-      tagAndActivateProfile,
-      loadTags,
+      activateProfile,
+      onActivated,
     }
 
     render(<IdentityDocumentsSection {...props} />)
@@ -286,8 +286,8 @@ describe('IdentityDocumentsSection', () => {
       expect(api.delete).toHaveBeenCalledWith('/profile-documents/identity/profiles/~Test_Id1')
       expect(global.promptMessage).toHaveBeenCalledWith('1 document has been deleted')
       expect(loadIdentityDocuments).toHaveBeenCalled()
-      expect(tagAndActivateProfile).toHaveBeenCalled()
-      expect(loadTags).toHaveBeenCalled()
+      expect(activateProfile).toHaveBeenCalled()
+      expect(onActivated).toHaveBeenCalled()
     })
   })
 })

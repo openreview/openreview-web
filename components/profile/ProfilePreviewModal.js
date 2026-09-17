@@ -26,6 +26,7 @@ const ProfilePreviewModal = ({
   showPreviousProfile,
   acceptUser,
   rejectUser,
+  reload,
 }) => {
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
@@ -271,7 +272,7 @@ const ProfilePreviewModal = ({
                   isProfileActivatable={isProfileActivatable}
                   loadIdentityDocuments={loadIdentityDocuments}
                   activateProfile={() => acceptProfile(profileToPreview.id)}
-                  onActivated={loadTags}
+                  onActivated={reload}
                 />
               </ProfileViewSection>
             )}
