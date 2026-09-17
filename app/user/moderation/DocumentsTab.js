@@ -91,7 +91,7 @@ const UploadLinkForm = () => {
   )
 }
 
-const IdentityDocumentsTab = () => {
+const DocumentsTab = () => {
   const [profileWithIdentityDocuments, setProfileWithIdentityDocuments] = useState(null)
   const [profileEditInvitations, setProfileEditInvitations] = useState([])
   const [selectedProfileId, setSelectedProfileId] = useState(null)
@@ -230,4 +230,4 @@ const IdentityDocumentsTab = () => {
   )
 }
 
-export default IdentityDocumentsTab
+export default DocumentsTab
