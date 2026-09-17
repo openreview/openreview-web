@@ -10,9 +10,13 @@ import ModerationActions from '../../../components/profile/ModerationActions'
 import ProfileEditInvitationEditor from '../../../components/profile/ProfileEditInvitationEditor'
 import ProfileViewSection from '../../../components/profile/ProfileViewSection'
 import api from '../../../lib/api-client'
-import { acceptProfile, rejectProfile } from '../../../lib/profile-moderation'
+import {
+  acceptProfile,
+  deleteIdentityDocuments,
+  rejectProfile,
+} from '../../../lib/profile-moderation'
 import { formatProfileData } from '../../../lib/profiles'
-import { formatDateTime, prettyInvitationId, prettyList } from '../../../lib/utils'
+import { formatDateTime, inflect, prettyInvitationId, prettyList } from '../../../lib/utils'
 import ActionButton from './ActionButton'
 
 const profileContentToShow = [
@@ -222,6 +226,34 @@ const IdentityDocumentReviewPanel = ({
     }
   }
 
+  const deleteAllIdentityDocuments = async () => {
+    const { deletedCount } = await deleteIdentityDocuments(profileId)
+    promptMessage(
+      `${inflect(deletedCount, 'document has', 'documents have', true)} been deleted`
+    )
+  }
+
+  const handleDeleteAll = async () => {
+    try {
+      await deleteAllIdentityDocuments()
+      await loadIdentityDocuments()
+      reloadProfileList()
+    } catch (apiError) {
+      promptError(apiError.message)
+    }
+  }
+
+  const handleActivateWithIdCheck = async () => {
+    try {
+      await acceptProfile(profileId)
+      await deleteAllIdentityDocuments()
+      await Promise.all([loadProfile(), loadIdentityDocuments()])
+      reloadProfileList()
+    } catch (apiError) {
+      promptError(apiError.message)
+    }
+  }
+
   return (
     <Row gutter={[16, 16]} style={{ padding: '1rem 0' }}>
       <Col xs={24} lg={12}>
@@ -233,12 +265,8 @@ const IdentityDocumentReviewPanel = ({
                 profileId={profileId}
                 identityDocuments={identityDocuments}
                 isProfileActivatable={isProfileActivatable}
-                loadIdentityDocuments={async () => {
-                  await loadIdentityDocuments()
-                  reloadProfileList()
-                }}
-                activateProfile={() => acceptProfile(profileId)}
-                onActivated={loadProfile}
+                onDeleteAll={handleDeleteAll}
+                onActivateWithIdCheck={handleActivateWithIdCheck}
               />
             </Flex>
           </ProfileViewSection>

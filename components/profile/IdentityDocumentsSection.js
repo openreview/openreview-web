@@ -1,7 +1,7 @@
 import { Button, Flex, Image, Space } from 'antd'
 import { useState } from 'react'
 import api from '../../lib/api-client'
-import { formatDateTime, inflect } from '../../lib/utils'
+import { formatDateTime } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 
 import styles from '../../styles/components/IdentityDocumentsSection.module.scss'
@@ -239,42 +239,27 @@ export const IdentityDocumentActions = ({
   profileId,
   identityDocuments,
   isProfileActivatable,
-  loadIdentityDocuments,
-  activateProfile,
-  onActivated,
+  onDeleteAll,
+  onActivateWithIdCheck,
 }) => {
   const shouldShowActionButton = identityDocuments?.some(({ ddate }) => !ddate)
 
-  const deleteAllDocuments = async (shouldActiveProfile = false) => {
+  const withConfirmation = (action) => () => {
     const confirmDelete = window.confirm(
       `Identity documents of ${profileId} will be deleted. This action cannot be undone.`
     )
-    if (!confirmDelete) return
-    try {
-      if (shouldActiveProfile) await activateProfile()
-
-      const { deletedCount } = await api.delete(
-        `/profile-documents/identity/profiles/${profileId}`
-      )
-      promptMessage(
-        `${inflect(deletedCount, 'document has', 'documents have', true)} been deleted`
-      )
-      loadIdentityDocuments()
-      if (shouldActiveProfile) onActivated()
-    } catch (error) {
-      promptError(error.message)
-    }
+    if (confirmDelete) action()
   }
 
   if (!shouldShowActionButton) return null
 
   return (
     <Space>
-      <Button type="primary" onClick={() => deleteAllDocuments()}>
+      <Button type="primary" onClick={withConfirmation(onDeleteAll)}>
         {isProfileActivatable ? 'Delete Documents Only' : 'Delete Identity Documents'}
       </Button>
       {isProfileActivatable && (
-        <Button type="primary" onClick={() => deleteAllDocuments(true)}>
+        <Button type="primary" onClick={withConfirmation(onActivateWithIdCheck)}>
           Activate with ID check
         </Button>
       )}
@@ -287,8 +272,8 @@ export const IdentityDocumentsSection = ({
   profileDocuments,
   isProfileActivatable,
   loadIdentityDocuments,
-  activateProfile,
-  onActivated,
+  onDeleteAll,
+  onActivateWithIdCheck,
 }) => {
   const identityDocuments = profileDocuments?.filter(
     (document) => document.type !== 'parentalConsent'
@@ -305,9 +290,8 @@ export const IdentityDocumentsSection = ({
           profileId={profileId}
           identityDocuments={identityDocuments}
           isProfileActivatable={isProfileActivatable}
-          loadIdentityDocuments={loadIdentityDocuments}
-          activateProfile={activateProfile}
-          onActivated={onActivated}
+          onDeleteAll={onDeleteAll}
+          onActivateWithIdCheck={onActivateWithIdCheck}
         />
       </Flex>
     </div>

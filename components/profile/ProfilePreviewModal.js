@@ -3,8 +3,8 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
-import { acceptProfile } from '../../lib/profile-moderation'
-import { formatDateTime, getDeviceFromUserAgent } from '../../lib/utils'
+import { deleteIdentityDocuments } from '../../lib/profile-moderation'
+import { formatDateTime, getDeviceFromUserAgent, inflect } from '../../lib/utils'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
@@ -26,7 +26,6 @@ const ProfilePreviewModal = ({
   showPreviousProfile,
   acceptUser,
   rejectUser,
-  reload,
 }) => {
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
@@ -87,6 +86,33 @@ const ProfilePreviewModal = ({
       setProfileDocuments(profileDocuments)
     } catch (apiError) {
       setError(apiError)
+    }
+  }
+
+  const deleteAllIdentityDocuments = async () => {
+    const { deletedCount } = await deleteIdentityDocuments(profileToPreview.id)
+    promptMessage(
+      `${inflect(deletedCount, 'document has', 'documents have', true)} been deleted`
+    )
+    await loadIdentityDocuments()
+  }
+
+  const handleDeleteAll = async () => {
+    try {
+      await deleteAllIdentityDocuments()
+    } catch (apiError) {
+      promptError(apiError.message)
+    }
+  }
+
+  const handleActivateWithIdCheck = async () => {
+    const activated = await acceptUser(profileToPreview.id, false)
+    if (!activated) return
+    try {
+      await deleteAllIdentityDocuments()
+      showNextProfile(profileToPreview.id)
+    } catch (apiError) {
+      promptError(apiError.message)
     }
   }
 
@@ -271,8 +297,8 @@ const ProfilePreviewModal = ({
                   profileDocuments={profileDocuments}
                   isProfileActivatable={isProfileActivatable}
                   loadIdentityDocuments={loadIdentityDocuments}
-                  activateProfile={() => acceptProfile(profileToPreview.id)}
-                  onActivated={reload}
+                  onDeleteAll={handleDeleteAll}
+                  onActivateWithIdCheck={handleActivateWithIdCheck}
                 />
               </ProfileViewSection>
             )}

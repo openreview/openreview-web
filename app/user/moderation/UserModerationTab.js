@@ -412,9 +412,11 @@ const UserModerationQueue = ({
       if (showSuccessMessage) {
         promptMessage(`${prettyId(profileId)} is now active`)
       }
+      return true
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileId))
+      return false
     }
   }
 
@@ -875,7 +877,6 @@ const UserModerationQueue = ({
         showPreviousProfile={showPreviousProfile}
         acceptUser={acceptUser}
         rejectUser={rejectUser}
-        reload={reload}
       />
     </div>
   )
