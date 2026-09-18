@@ -48,7 +48,11 @@ const ProfileEditsSection = ({ profileEdits }) => {
                   {state}
                 </Tag>
               )}
-              {labels.length > 0 && <span>{labels.join(', ')}</span>}
+              {labels.map((label) => (
+                <Tag key={label} variant="outlined">
+                  {label}
+                </Tag>
+              ))}
               {edit.signatures?.length > 0 && (
                 <small style={{ color: '#757575' }}>{prettyList(edit.signatures)}</small>
               )}
