@@ -4,15 +4,24 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { sortBy } from 'lodash'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
 import { formatDateTime, isValidEmail } from '../../../lib/utils'
 import IdentityDocumentReviewPanel from './IdentityDocumentReviewPanel'
+import ParentalConsentReviewPanel from './ParentalConsentReviewPanel'
 
 import { moderation as legacyStyles } from '../../../lib/legacy-bootstrap-styles'
 
 dayjs.extend(relativeTime)
+
+const identityInvitationIds = [
+  `${process.env.SUPER_USER}/Support/-/Identity_Verification`,
+  `${process.env.SUPER_USER}/Support/-/Affiliation_Verification`,
+]
+const parentalConsentInvitationId = `${process.env.SUPER_USER}/Support/-/Parent_Consent`
+const profileStateInvitationId = `${process.env.SUPER_USER}/Support/-/Profile_State`
 
 const UploadLinkForm = () => {
   const [term, setTerm] = useState('')
@@ -91,10 +100,9 @@ const UploadLinkForm = () => {
   )
 }
 
-const DocumentsTab = () => {
+const IdentityDocumentQueue = ({ profileEditInvitations, profileStateInvitation }) => {
   const [profileWithIdentityDocuments, setProfileWithIdentityDocuments] = useState(null)
-  const [profileEditInvitations, setProfileEditInvitations] = useState([])
-  const [selectedProfileId, setSelectedProfileId] = useState(null)
+  const [expandedProfileId, setExpandedProfileId] = useState(null)
 
   const loadProfilesWithIdentityDocuments = async () => {
     try {
@@ -124,22 +132,8 @@ const DocumentsTab = () => {
     }
   }
 
-  const loadProfileEditInvitations = async () => {
-    const profileEditInvitaitonIds = [
-      `${process.env.SUPER_USER}/Support/-/Identity_Verification`,
-      `${process.env.SUPER_USER}/Support/-/Affiliation_Verification`,
-    ]
-    try {
-      const { invitations } = await api.get('/invitations', { ids: profileEditInvitaitonIds })
-      setProfileEditInvitations(invitations ?? [])
-    } catch (error) {
-      promptError(error.message)
-    }
-  }
-
   useEffect(() => {
     loadProfilesWithIdentityDocuments()
-    loadProfileEditInvitations()
   }, [])
 
   const renderDocumentsList = () => {
@@ -169,7 +163,7 @@ const DocumentsTab = () => {
         <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '600px' }}>
           {profileWithIdentityDocuments.map(
             ({ profileId, documentCount, minTcdate, maxTcdate }) => {
-              const isSelected = selectedProfileId === profileId
+              const isExpanded = expandedProfileId === profileId
               return (
                 <div key={profileId}>
                   <Row align="middle" gutter={[8, 8]}>
@@ -179,9 +173,9 @@ const DocumentsTab = () => {
                           role="button"
                           tabIndex={0}
                           style={{ cursor: 'pointer' }}
-                          onClick={() => setSelectedProfileId(isSelected ? null : profileId)}
+                          onClick={() => setExpandedProfileId(isExpanded ? null : profileId)}
                         >
-                          {isSelected ? <DownOutlined /> : <RightOutlined />} {profileId}
+                          {isExpanded ? <DownOutlined /> : <RightOutlined />} {profileId}
                         </a>
                         <Link href={`/user/moderation?id=${profileId}`}>
                           <SearchOutlined />
@@ -202,10 +196,11 @@ const DocumentsTab = () => {
                       </Tooltip>
                     </Col>
                   </Row>
-                  {isSelected && (
+                  {isExpanded && (
                     <IdentityDocumentReviewPanel
                       profileId={profileId}
                       profileEditInvitations={profileEditInvitations}
+                      profileStateInvitation={profileStateInvitation}
                       reloadProfileList={loadProfilesWithIdentityDocuments}
                     />
                   )}
@@ -219,12 +214,67 @@ const DocumentsTab = () => {
   }
 
   return (
-    <Flex vertical gap="large">
+    <>
       <h4>
         Profiles pending identity document check
         {profileWithIdentityDocuments ? ` (${profileWithIdentityDocuments.length})` : ''}
       </h4>
       {renderDocumentsList()}
+    </>
+  )
+}
+
+const DocumentsTab = () => {
+  const searchParams = useSearchParams()
+  const selectedProfileId = searchParams.get('consent')
+
+  const [profileEditInvitations, setProfileEditInvitations] = useState([])
+
+  const identityInvitations = profileEditInvitations.filter((p) =>
+    identityInvitationIds.includes(p.id)
+  )
+  const parentalConsentInvitation = profileEditInvitations.find(
+    (p) => p.id === parentalConsentInvitationId
+  )
+  const profileStateInvitation = profileEditInvitations.find(
+    (p) => p.id === profileStateInvitationId
+  )
+
+  const loadProfileEditInvitations = async () => {
+    try {
+      const { invitations } = await api.get('/invitations', {
+        ids: [...identityInvitationIds, parentalConsentInvitationId, profileStateInvitationId],
+      })
+      setProfileEditInvitations(invitations ?? [])
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    loadProfileEditInvitations()
+  }, [])
+
+  if (selectedProfileId) {
+    return (
+      <Flex vertical gap="large">
+        <h4>Parental Consent Review: {selectedProfileId}</h4>
+        <ParentalConsentReviewPanel
+          key={selectedProfileId}
+          profileId={selectedProfileId}
+          invitation={parentalConsentInvitation}
+          profileStateInvitation={profileStateInvitation}
+        />
+      </Flex>
+    )
+  }
+
+  return (
+    <Flex vertical gap="large">
+      <IdentityDocumentQueue
+        profileEditInvitations={identityInvitations}
+        profileStateInvitation={profileStateInvitation}
+      />
       <UploadLinkForm />
     </Flex>
   )

@@ -11,6 +11,7 @@ import utc from 'dayjs/plugin/utc'
 import { orderBy } from 'lodash'
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
+import { Fragment } from 'react'
 import ServiceRoles from '../../app/profile/ServiceRoles'
 import { formatDateTime, normalizeName, prettyId, prettyList } from '../../lib/utils'
 import Icon from '../Icon'
@@ -28,7 +29,10 @@ dayjs.extend(utc)
 const matchedColor = getBootstrap337LabelColor('success')
 const disputedColor = getBootstrap337LabelColor('warning')
 
-const AssertionPopover = ({ assertion: { signatures, source, tcdate }, children }) => (
+const AssertionPopover = ({
+  assertion: { signatures, source, tcdate, comment, details = [] },
+  children,
+}) => (
   <Popover
     content={
       <div
@@ -44,10 +48,22 @@ const AssertionPopover = ({ assertion: { signatures, source, tcdate }, children 
             <span>{source}</span>
           </>
         )}
+        {details.map(([label, value]) => (
+          <Fragment key={label}>
+            <span>{label}:</span>
+            <span>{value}</span>
+          </Fragment>
+        ))}
         <span>By:</span>
         <span>{prettyId(signatures[0])}</span>
         <span>Date</span>
         <span>{formatDateTime(tcdate)}</span>
+        {comment && (
+          <>
+            <span>Comment:</span>
+            <span>{comment}</span>
+          </>
+        )}
       </div>
     }
   >
@@ -122,6 +138,7 @@ const NamesSection = ({ names, profileEdits }) => {
       return {
         value: p.profile.content.fullname.value,
         source: p.content?.source?.value,
+        comment: p.content?.comment?.value,
         signatures: p.signatures,
         tcdate: p.tcdate,
         normalizedValue,
@@ -290,6 +307,7 @@ const HistorySection = ({ history, profileEdits }) => {
       return {
         value,
         source: p.content?.source?.value,
+        comment: p.content?.comment?.value,
         signatures: p.signatures,
         tcdate: p.tcdate,
         identity,
@@ -415,7 +433,31 @@ const ProfileExpertise = ({ expertise }) => (
   </Row>
 )
 
-const DateOfBirth = ({ dob }) => {
+const MinorTag = ({ parentalConsent }) => {
+  const minorTagProps = {
+    color: getBootstrap337LabelColor('warning'),
+    variant: 'solid',
+    styles: { root: moderationStyles.statusTag },
+  }
+  if (!parentalConsent) return <Tag {...minorTagProps}>Minor</Tag>
+
+  const { relation, name, email, start, end } = parentalConsent
+  const details = [
+    ['Relation', relation],
+    ['Name', name],
+    ['Email', email],
+    ['Years', [start, end].filter(Boolean).join(' – ')],
+  ].filter(([, value]) => value)
+  return (
+    <AssertionPopover assertion={{ ...parentalConsent, details }}>
+      <Tag {...minorTagProps}>
+        Minor <CheckOutlined />
+      </Tag>
+    </AssertionPopover>
+  )
+}
+
+const DateOfBirth = ({ dob, parentalConsent }) => {
   const dateOfBirth = dayjs.utc(dob)
   if (!dateOfBirth.isValid()) return null
 
@@ -433,15 +475,7 @@ const DateOfBirth = ({ dob }) => {
           Under 13
         </Tag>
       )}
-      {age >= 13 && age < 18 && (
-        <Tag
-          color={getBootstrap337LabelColor('warning')}
-          variant="solid"
-          styles={{ root: moderationStyles.statusTag }}
-        >
-          Minor
-        </Tag>
-      )}
+      {age >= 13 && age < 18 && <MinorTag parentalConsent={parentalConsent} />}
     </Space>
   )
 }
@@ -454,6 +488,7 @@ const DateOfBirthSection = ({ dob, profileEdits }) => {
       return {
         value,
         source: p.content?.source?.value,
+        comment: p.content?.comment?.value,
         signatures: p.signatures,
         tcdate: p.tcdate,
         existInProfile: value === dob,
@@ -466,10 +501,25 @@ const DateOfBirthSection = ({ dob, profileEdits }) => {
   const agreeing = dobAsserted.find((p) => p.existInProfile)
   const contradicting = dobAsserted.filter((p) => !p.existInProfile)
 
+  const latestParentalConsent = orderBy(
+    profileEdits.flatMap((p) => {
+      const relation = p.profile.content?.relations?.value
+      if (!relation) return []
+      return {
+        ...relation,
+        comment: p.content?.comment?.value,
+        signatures: p.signatures,
+        tcdate: p.tcdate,
+      }
+    }),
+    ['tcdate'],
+    ['desc']
+  )[0]
+
   return (
     <>
       <Space>
-        <DateOfBirth dob={dob} />
+        <DateOfBirth dob={dob} parentalConsent={latestParentalConsent} />
         {agreeing && <AssertionCheck assertion={agreeing} />}
         {!agreeing && contradicting.length > 0 && (
           <AssertionCheck assertion={contradicting[0]} disputed />

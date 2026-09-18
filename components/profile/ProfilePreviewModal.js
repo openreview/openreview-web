@@ -1,6 +1,7 @@
 import { Button, Flex, Modal, Select, Space, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import { deleteIdentityDocuments } from '../../lib/profile-moderation'
@@ -12,6 +13,7 @@ import { IdentityDocumentsSection, ParentalConsentSection } from './IdentityDocu
 import MessagesSection from './MessagesSection'
 import ModerationActions from './ModerationActions'
 import PastStatesSection from './PastStatesSection'
+import ProfileEditsSection from './ProfileEditsSection'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
 
@@ -26,15 +28,17 @@ const ProfilePreviewModal = ({
   showPreviousProfile,
   acceptUser,
   rejectUser,
+  profileStateInvitation,
 }) => {
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
   const [profileDocuments, setProfileDocuments] = useState(null)
-  const [profileEdits, setProfileEdits] = useState([])
+  const [profileEdits, setProfileEdits] = useState(null)
   const [loginActivity, setLoginActivity] = useState(null)
   const [error, setError] = useState(null)
   const [isLoadingTags, setIsLoadingTags] = useState(false)
   const [openTagOptions, setOpenTagOptions] = useState(false)
+  const router = useRouter()
 
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
   const isProfileActivatable = profileToPreview?.state === 'Rejected' || needsModeration
@@ -190,7 +194,7 @@ const ProfilePreviewModal = ({
 
   useEffect(() => {
     setTags([])
-    setProfileEdits([])
+    setProfileEdits(null)
     setLoginActivity(null)
     setError(null)
     if (profileToPreview) loadProfileEdits()
@@ -229,7 +233,7 @@ const ProfilePreviewModal = ({
           showLinkText={true}
           moderation={true}
           contentToShow={contentToShow}
-          profileEdits={profileEdits}
+          profileEdits={profileEdits ?? []}
         />
         {contentToShow?.includes('loginActivity') && showLoginActivity && (
           <ProfileViewSection title="Login Activity">
@@ -272,22 +276,44 @@ const ProfilePreviewModal = ({
             <MessagesSection email={profileToPreview.preferredEmail} rejectMessagesOnly />
           </ProfileViewSection>
         )}
-        {contentToShow?.includes('pastStates') && profileToPreview.pastStates && (
-          <ProfileViewSection title="Past States">
-            <PastStatesSection
-              email={profileToPreview.preferredEmail}
-              pastStates={profileToPreview.pastStates}
-            />
-          </ProfileViewSection>
-        )}
+        {contentToShow?.includes('profileEdits') &&
+          profileEdits &&
+          (profileEdits.length > 0 ? (
+            <ProfileViewSection title="Profile Edits">
+              <ProfileEditsSection profileEdits={profileEdits} />
+            </ProfileViewSection>
+          ) : (
+            profileToPreview.pastStates && (
+              <ProfileViewSection title="Past States">
+                <PastStatesSection
+                  email={profileToPreview.preferredEmail}
+                  pastStates={profileToPreview.pastStates}
+                />
+              </ProfileViewSection>
+            )
+          ))}
         {contentToShow?.includes('identityDocuments') && (
           <>
             {profileDocuments?.some((document) => document.type === 'parentalConsent') && (
               <ProfileViewSection title="Parental Consent">
-                <ParentalConsentSection
-                  profileDocuments={profileDocuments}
-                  loadIdentityDocuments={loadIdentityDocuments}
-                />
+                <Flex vertical gap="small" align="flex-start">
+                  <ParentalConsentSection
+                    profileDocuments={profileDocuments}
+                    loadIdentityDocuments={loadIdentityDocuments}
+                  />
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={() => {
+                      setProfileToPreview(null)
+                      router.push(
+                        `/user/moderation?tab=documents&consent=${profileToPreview.id}`
+                      )
+                    }}
+                  >
+                    Review Parental Consent
+                  </Button>
+                </Flex>
               </ProfileViewSection>
             )}
             {profileDocuments?.some((document) => document.type !== 'parentalConsent') && (
@@ -349,13 +375,14 @@ const ProfilePreviewModal = ({
             <ModerationActions
               key={profileToPreview.id}
               profile={profileToPreview}
+              profileStateInvitation={profileStateInvitation}
               onSkip={() => showNextProfile(profileToPreview.id)}
               onAccept={() => {
                 showNextProfile(profileToPreview.id)
                 acceptUser(profileToPreview.id, false)
               }}
-              onReject={async (message) => {
-                await rejectUser(message, profileToPreview.id)
+              onReject={async (message, labels) => {
+                await rejectUser(message, profileToPreview.id, labels)
                 showNextProfile(profileToPreview.id)
               }}
             />

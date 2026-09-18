@@ -51,14 +51,16 @@ export const RejectionModal = ({
   setProfileToReject,
   rejectUser,
   signedNotes,
+  profileStateInvitation,
 }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
+  const [rejectionLabels, setRejectionLabels] = useState([])
 
   const currentInstitutionName = profileToReject?.content?.history?.find(
     (p) => !p.end || p.end >= new Date().getFullYear()
   )?.institution?.name
 
-  const rejectionReasons = getRejectionReasons(currentInstitutionName)
+  const rejectionReasons = getRejectionReasons(profileStateInvitation, currentInstitutionName)
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
     setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
@@ -74,11 +76,13 @@ export const RejectionModal = ({
       destroyOnHidden={true}
       onCancel={() => {
         setRejectionMessage('')
+        setRejectionLabels([])
         setProfileToReject(null)
       }}
       onOk={() => {
         setRejectionMessage('')
-        rejectUser(rejectionMessage, profileToReject.id)
+        setRejectionLabels([])
+        rejectUser(rejectionMessage, profileToReject.id, rejectionLabels)
         setProfileToReject(null)
       }}
       width={{
@@ -97,6 +101,7 @@ export const RejectionModal = ({
           getPopupContainer={(triggerNode) => triggerNode.parentElement}
           onChange={(value) => {
             const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+            setRejectionLabels(rejectOptions.map((p) => p.label))
             setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
           }}
         />
@@ -288,6 +293,7 @@ const UserModerationQueue = ({
   onlyModeration = true,
   reload,
   shouldReload,
+  profileStateInvitation,
   showSortButton = false,
 }) => {
   const searchParams = useSearchParams()
@@ -458,9 +464,9 @@ const UserModerationQueue = ({
     setProfileToBlockUnblock(profile)
   }
 
-  const rejectUser = async (rejectionMessage, id) => {
+  const rejectUser = async (rejectionMessage, id, labels) => {
     try {
-      await rejectProfile(id, rejectionMessage)
+      await rejectProfile(id, rejectionMessage, labels)
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -849,6 +855,7 @@ const UserModerationQueue = ({
         setProfileToReject={setProfileToReject}
         rejectUser={rejectUser}
         signedNotes={signedNotes}
+        profileStateInvitation={profileStateInvitation}
       />
       <BlockModal
         profileToBlockUnblock={profileToBlockUnblock}
@@ -868,7 +875,7 @@ const UserModerationQueue = ({
           'relations',
           'expertise',
           'publications',
-          'pastStates',
+          'profileEdits',
           'tags',
           'identityDocuments',
           'loginActivity',
@@ -877,6 +884,7 @@ const UserModerationQueue = ({
         showPreviousProfile={showPreviousProfile}
         acceptUser={acceptUser}
         rejectUser={rejectUser}
+        profileStateInvitation={profileStateInvitation}
       />
     </div>
   )
@@ -885,6 +893,22 @@ const UserModerationQueue = ({
 export default function UserModerationTab() {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
+  const [profileStateInvitation, setProfileStateInvitation] = useState(null)
+
+  const loadProfileStateInvitation = async () => {
+    try {
+      const { invitations } = await api.get('/invitations', {
+        id: `${process.env.SUPER_USER}/Support/-/Profile_State`,
+      })
+      setProfileStateInvitation(invitations?.[0] ?? null)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    loadProfileStateInvitation()
+  }, [])
 
   const getModerationStatus = async () => {
     try {
@@ -956,12 +980,14 @@ export default function UserModerationTab() {
         onlyModeration={false}
         reload={reload}
         shouldReload={shouldReload}
+        profileStateInvitation={profileStateInvitation}
       />
 
       <UserModerationQueue
         title="New Profiles Pending Moderation"
         reload={reload}
         shouldReload={shouldReload}
+        profileStateInvitation={profileStateInvitation}
         showSortButton
       />
     </>

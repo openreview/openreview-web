@@ -40,23 +40,17 @@ const constructProfileEdit = (invitation, profileId, formData) => {
   }
 }
 
-const positionType = 'updatePosition'
-const startType = 'updateStart'
-const endType = 'updateEnd'
-const institutionDomainType = 'updateInstitutionDomain'
-const institutionNameType = 'updateInstitutionName'
-
 const historyReducer = (record, { type, value }) => {
   switch (type) {
-    case positionType:
+    case 'updatePosition':
       return { ...record, position: value }
-    case startType:
+    case 'updateStart':
       return { ...record, start: value }
-    case endType:
+    case 'updateEnd':
       return { ...record, end: value }
-    case institutionDomainType:
+    case 'updateInstitutionDomain':
       return { ...record, institution: { ...record.institution, domain: value } }
-    case institutionNameType:
+    case 'updateInstitutionName':
       return { ...record, institution: { ...record.institution, name: value } }
     default:
       return record
@@ -93,7 +87,9 @@ const HistoryForm = ({ positions, institutionDomains }) => {
           options={positions}
           placeholder="Choose or type a position"
           value={history.position ?? ''}
-          onChange={(position) => setHistory({ type: positionType, value: position ?? '' })}
+          onChange={(position) =>
+            setHistory({ type: 'updatePosition', value: position ?? '' })
+          }
           showSearch={{ filterOption: true }}
         />
         <InputNumber
@@ -104,7 +100,7 @@ const HistoryForm = ({ positions, institutionDomains }) => {
           controls={false}
           placeholder="Start year"
           value={history.start ?? null}
-          onChange={(start) => setHistory({ type: startType, value: start ?? undefined })}
+          onChange={(start) => setHistory({ type: 'updateStart', value: start ?? undefined })}
         />
         <InputNumber
           style={year}
@@ -114,7 +110,7 @@ const HistoryForm = ({ positions, institutionDomains }) => {
           controls={false}
           placeholder="End year"
           value={history.end ?? null}
-          onChange={(end) => setHistory({ type: endType, value: end ?? undefined })}
+          onChange={(end) => setHistory({ type: 'updateEnd', value: end ?? undefined })}
         />
       </Flex>
       <Flex gap="small" wrap>
@@ -124,7 +120,7 @@ const HistoryForm = ({ positions, institutionDomains }) => {
           placeholder="Choose or type an institution domain"
           value={history.institution?.domain ?? ''}
           onChange={(domain) =>
-            setHistory({ type: institutionDomainType, value: domain ?? '' })
+            setHistory({ type: 'updateInstitutionDomain', value: domain ?? '' })
           }
           showSearch={{ filterOption: true }}
         />
@@ -132,7 +128,95 @@ const HistoryForm = ({ positions, institutionDomains }) => {
           style={{ flex: '1 1 14rem' }}
           placeholder="Institution name"
           value={history.institution?.name ?? ''}
-          onChange={(e) => setHistory({ type: institutionNameType, value: e.target.value })}
+          onChange={(e) =>
+            setHistory({ type: 'updateInstitutionName', value: e.target.value })
+          }
+        />
+      </Flex>
+    </Flex>
+  )
+}
+
+const relationReducer = (record, { type, value }) => {
+  switch (type) {
+    case 'updateRelation':
+      return { ...record, relation: value }
+    case 'updateRelationName':
+      return { ...record, name: value }
+    case 'updateRelationEmail':
+      return { ...record, email: value }
+    case 'updateRelationStart':
+      return { ...record, start: value }
+    case 'updateRelationEnd':
+      return { ...record, end: value }
+    default:
+      return record
+  }
+}
+
+const RelationForm = () => {
+  const { field, onChange, clearError } = useContext(EditorComponentContext)
+  const fieldName = Object.keys(field)[0]
+  const [relation, setRelation] = useReducer(relationReducer, { relation: 'Parent' })
+
+  useEffect(() => {
+    const name = relation.name?.trim()
+    const email = relation.email?.trim().toLowerCase()
+    const record = {
+      ...(relation.relation && { relation: relation.relation }),
+      ...(name && { name }),
+      ...(email && { email }),
+      ...(relation.start && { start: relation.start }),
+      ...(relation.end && { end: relation.end }),
+    }
+    clearError?.()
+    onChange({ fieldName, value: Object.keys(record).length ? record : undefined })
+  }, [relation])
+
+  return (
+    <Flex vertical gap="small">
+      <Flex gap="small" wrap>
+        <Input
+          style={{ flex: '1 1 10rem' }}
+          placeholder="Relation"
+          value={relation.relation ?? ''}
+          onChange={(e) => setRelation({ type: 'updateRelation', value: e.target.value })}
+        />
+        <Input
+          style={{ flex: '2 1 12rem' }}
+          placeholder="Parent name"
+          value={relation.name ?? ''}
+          onChange={(e) => setRelation({ type: 'updateRelationName', value: e.target.value })}
+        />
+        <Input
+          style={{ flex: '2 1 12rem' }}
+          placeholder="Parent email"
+          value={relation.email ?? ''}
+          onChange={(e) => setRelation({ type: 'updateRelationEmail', value: e.target.value })}
+        />
+      </Flex>
+      <Flex gap="small" wrap>
+        <InputNumber
+          min={1900}
+          max={2100}
+          precision={0}
+          controls={false}
+          placeholder="Start year"
+          value={relation.start ?? null}
+          onChange={(start) =>
+            setRelation({ type: 'updateRelationStart', value: start ?? undefined })
+          }
+        />
+        <InputNumber
+          min={1900}
+          max={2100}
+          precision={0}
+          controls={false}
+          placeholder="End year"
+          value={relation.end ?? null}
+          onChange={(end) =>
+            setRelation({ type: 'updateRelationEnd', value: end ?? undefined })
+          }
         />
       </Flex>
     </Flex>
@@ -193,6 +277,7 @@ const ProfileEditInvitationEditor = ({ invitation, profileId, onEditPosted }) =>
           institutionDomains={historyOptions.institutionDomains}
         />
       )
+    if (fieldName === 'relations') return <RelationForm />
     return <EditorWidget />
   }
 

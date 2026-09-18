@@ -2,12 +2,12 @@ import { Col, Collapse, Flex, Image, Row, Select, Typography } from 'antd'
 import { useEffect, useState } from 'react'
 import ErrorAlert from '../../../components/ErrorAlert'
 import Icon from '../../../components/Icon'
-import ImageViewer from '../../../components/ImageViewer'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import BasicProfileView from '../../../components/profile/BasicProfileView'
 import { IdentityDocumentActions } from '../../../components/profile/IdentityDocumentsSection'
 import ModerationActions from '../../../components/profile/ModerationActions'
 import ProfileEditInvitationEditor from '../../../components/profile/ProfileEditInvitationEditor'
+import ProfileEditsSection from '../../../components/profile/ProfileEditsSection'
 import ProfileViewSection from '../../../components/profile/ProfileViewSection'
 import api from '../../../lib/api-client'
 import {
@@ -16,8 +16,9 @@ import {
   rejectProfile,
 } from '../../../lib/profile-moderation'
 import { formatProfileData } from '../../../lib/profiles'
-import { formatDateTime, inflect, prettyInvitationId, prettyList } from '../../../lib/utils'
+import { formatDateTime, inflect, prettyInvitationId } from '../../../lib/utils'
 import ActionButton from './ActionButton'
+import DocumentViewer from './DocumentViewer'
 
 const profileContentToShow = [
   'names',
@@ -28,8 +29,6 @@ const profileContentToShow = [
   'relations',
   'expertise',
 ]
-
-const documentViewerHeight = '70vh'
 
 const DocumentReader = ({ profileDocuments, onDelete }) => {
   if (!profileDocuments) return <LoadingSpinner inline />
@@ -45,28 +44,7 @@ const DocumentReader = ({ profileDocuments, onDelete }) => {
         defaultActiveKey={firstAvailable ? [firstAvailable.id] : []}
         styles={{ body: { paddingInline: 0 } }}
         items={profileDocuments.map((document) => {
-          const src = `${process.env.API_V2_URL}/profile-documents/${document.id}`
           const isDeleted = Boolean(document.ddate)
-          const viewer =
-            document.extension === 'pdf' ? (
-              <iframe
-                title={document.filename ?? document.id}
-                src={src}
-                style={{
-                  width: '100%',
-                  height: documentViewerHeight,
-                  border: '1px solid #f0f0f0',
-                  borderRadius: 4,
-                  background: '#fff',
-                }}
-              />
-            ) : (
-              <ImageViewer
-                src={src}
-                alt={document.filename ?? 'Identity document'}
-                height={documentViewerHeight}
-              />
-            )
           return {
             key: document.id,
             showArrow: !isDeleted,
@@ -103,7 +81,7 @@ const DocumentReader = ({ profileDocuments, onDelete }) => {
                 )}
               </Flex>
             ),
-            children: isDeleted ? null : viewer,
+            children: isDeleted ? null : <DocumentViewer document={document} />,
           }
         })}
       />
@@ -111,31 +89,10 @@ const DocumentReader = ({ profileDocuments, onDelete }) => {
   )
 }
 
-const PostedAssertions = ({ profileEdits }) => {
-  if (!profileEdits.length) return <p className="empty-message">Nothing verified yet</p>
-  return (
-    <Flex vertical gap={4}>
-      {profileEdits.map((edit) => (
-        <div key={edit.id}>
-          <strong>{prettyInvitationId(edit.invitation)}</strong>
-          {' — '}
-          <small style={{ color: '#757575' }}>
-            {[
-              edit.signatures?.length ? prettyList(edit.signatures) : null,
-              edit.tcdate ? formatDateTime(edit.tcdate, { second: undefined }) : null,
-            ]
-              .filter(Boolean)
-              .join(' · ')}
-          </small>
-        </div>
-      ))}
-    </Flex>
-  )
-}
-
 const IdentityDocumentReviewPanel = ({
   profileId,
   profileEditInvitations,
+  profileStateInvitation,
   reloadProfileList,
 }) => {
   const [profile, setProfile] = useState(null)
@@ -216,9 +173,9 @@ const IdentityDocumentReviewPanel = ({
     }
   }
 
-  const handleReject = async (rejectionMessage) => {
+  const handleReject = async (rejectionMessage, labels) => {
     try {
-      await rejectProfile(profile.id, rejectionMessage)
+      await rejectProfile(profile.id, rejectionMessage, labels)
       await loadProfile()
       reloadProfileList()
     } catch (apiError) {
@@ -290,7 +247,7 @@ const IdentityDocumentReviewPanel = ({
           )}
 
           <ProfileViewSection title="Profile Edits">
-            <PostedAssertions profileEdits={profileEdits} />
+            <ProfileEditsSection profileEdits={profileEdits} />
           </ProfileViewSection>
 
           {profileEditInvitations.length > 0 && (
@@ -327,6 +284,7 @@ const IdentityDocumentReviewPanel = ({
             <ModerationActions
               key={profileId}
               profile={profile}
+              profileStateInvitation={profileStateInvitation}
               onAccept={handleAccept}
               onReject={handleReject}
             />
