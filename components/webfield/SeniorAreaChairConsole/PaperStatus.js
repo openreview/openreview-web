@@ -1,6 +1,7 @@
+import Link from 'next/link'
 /* globals $: false */
 import { useContext, useEffect, useState } from 'react'
-import Link from 'next/link'
+import { pluralizeString, prettyField } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -9,7 +10,6 @@ import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStat
 import { AcPcConsoleNoteReviewStatus, LatestReplies } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
 import PaperStatusMenuBar from '../ProgramChairConsole/PaperStatusMenuBar'
-import { pluralizeString, prettyField } from '../../../lib/utils'
 import SelectAllCheckBox from '../SelectAllCheckbox'
 
 const PaperRow = ({
@@ -96,6 +96,9 @@ const PaperRow = ({
           shortPhrase={shortPhrase}
           submissionName={submissionName}
           reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName, reviewersId)}
+          customStageReviewReplies={Object.values(
+            rowData.customStageReviewReplies ?? {}
+          ).flat()}
         />
       </td>
       <td>

@@ -87,6 +87,9 @@ const AssignedPaperRow = ({
           referrerUrl={referrerUrl}
           shortPhrase={shortPhrase}
           submissionName={submissionName}
+          customStageReviewReplies={Object.values(
+            rowData.customStageReviewReplies ?? {}
+          ).flat()}
         />
       </td>
       {displayReplyInvitations?.length && (
@@ -752,7 +755,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
 
 /**
  * @name AreaChairConsoleConfig.customStageInvitations
- * @description config the custom stage replies to be shown under meta review status column. Each object can have 3 fields: name: construct the invitation id to fiter note replies, displayField: the field name to read from the custom stage note, extraDisplayFields: an string array with more fields to show from the custom stage note. Compared to the customStageInvitations config in PC/SAC console, it does not have role or repliesPerSubmission
+ * @description config the custom stage replies to be shown in the console. Replies to an official review are rendered under that review in the review status column, replies to a meta review or to the forum are shown under the meta review status column with the invitation prefix (e.g. Meta Review1) to distinguish them. Each object can have 3 fields: name: construct the invitation id to fiter note replies, displayField: the field name to read from the custom stage note, extraDisplayFields: an string array with more fields to show from the custom stage note. Compared to the customStageInvitations config in PC/SAC console, it does not have role or repliesPerSubmission
  * @type {object[]}
  * @default no default value
  * @example
@@ -1028,10 +1031,6 @@ const AreaChairConsole = ({ appContext }) => {
         title: formatProfileContent(profile.content).title,
       }))
 
-      const customStageInvitationIds = customStageInvitations
-        ? customStageInvitations.map((p) => `/-/${p.name}`)
-        : []
-
       const tableRows = notes.map((note) => {
         const assignedReviewers =
           result[1].find((p) => p.number === note.number)?.reviewers ?? []
@@ -1125,28 +1124,50 @@ const AreaChairConsole = ({ appContext }) => {
           }))
         }
 
-        const customStageReviews = customStageInvitations?.reduce((prev, curr) => {
-          const customStageReview = note.details.replies.find((p) =>
-            p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
-          )
-          if (!customStageReview) return prev
-          const customStageValue = customStageReview?.content?.[curr.displayField]?.value
+        const getCustomStageReplies = (curr) => {
+          const invitationSuffix = `/-/${curr.name}`
           const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
-          return {
-            ...prev,
-            [camelCase(curr.name)]: {
-              searchValue: customStageValue,
-              name: prettyId(curr.name),
-              value: customStageValue,
-              displayField: prettyField(curr.displayField),
-              extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
-                field: prettyField(field),
-                value: customStageReview?.content?.[field]?.value,
-              })),
-              ...customStageReview,
-            },
-          }
-        }, {})
+          return note.details.replies
+            .filter((p) => p.invitations.some((q) => q.includes(invitationSuffix)))
+            .map((customStageReview) => {
+              const customStageValue = customStageReview.content?.[curr.displayField]?.value
+              const matchedInvitationId = customStageReview.invitations.find((q) =>
+                q.includes(invitationSuffix)
+              )
+              const invitationPrefix = matchedInvitationId.split('/-/')[0].split('/').pop()
+              return {
+                searchValue: customStageValue,
+                name: prettyId(curr.name),
+                source:
+                  invitationPrefix === `${submissionName}${note.number}`
+                    ? null
+                    : prettyId(invitationPrefix),
+                value: customStageValue,
+                displayField: prettyField(curr.displayField),
+                extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
+                  field: prettyField(field),
+                  value: customStageReview.content?.[field]?.value,
+                })),
+                ...customStageReview,
+              }
+            })
+        }
+
+        const customStageReviewReplies = {}
+        const customStageMetaReviewReplies = {}
+        customStageInvitations?.forEach((curr) => {
+          const customStageReplies = getCustomStageReplies(curr)
+          const reviewReplies = customStageReplies.filter((p) =>
+            officialReviews.some((r) => r.id === p.replyto)
+          )
+          const metaReviewReplies = customStageReplies.filter(
+            (p) => p.replyto === note.id || allMetaReviews.some((r) => r.id === p.replyto)
+          )
+          if (reviewReplies.length)
+            customStageReviewReplies[camelCase(curr.name)] = reviewReplies
+          if (metaReviewReplies.length)
+            customStageMetaReviewReplies[camelCase(curr.name)] = metaReviewReplies
+        })
         return {
           note,
           reviewers: result[1]
@@ -1169,6 +1190,7 @@ const AreaChairConsole = ({ appContext }) => {
             }),
           reviewerProfiles: assignedReviewerProfiles,
           officialReviews,
+          customStageReviewReplies,
           reviewProgressData: {
             reviewers: assignedReviewerProfiles,
             numReviewersAssigned: assignedReviewers.length,
@@ -1203,7 +1225,7 @@ const AreaChairConsole = ({ appContext }) => {
                 }
               return []
             }),
-            customStageReviews,
+            customStageMetaReviewReplies,
           },
           messageSignature: anonymousAreaChairIdByNumber[note.number],
           ...(ithenticateInvitationId && {
