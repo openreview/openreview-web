@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import UnlinkPublicationButton from './UnlinkPublicationButton'
 import { buildNoteTitle, buildNoteUrl } from '../lib/utils'
+import UnlinkPublicationButton from './UnlinkPublicationButton'
 
 const NoteTitle = ({ id, forum, invitation, content, signatures, options = {} }) => (
   <h4>
@@ -93,10 +93,15 @@ export const NoteTitleV2 = ({
 
     {options.pdfLink && content.pdf?.value && (
       <Link
-        href={`/attachment?id=${id}&name=pdf`}
+        href={
+          content.pdf.value.startsWith('http')
+            ? content.pdf.value
+            : `/attachment?id=${id}&name=pdf`
+        }
         className="pdf-link"
         title="Download PDF"
         target="_blank"
+        rel="noopener noreferrer"
       >
         <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
       </Link>
