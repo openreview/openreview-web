@@ -275,4 +275,123 @@ describe('History Section', () => {
     ).toBeInTheDocument()
     expect(within(popover).getByText('Diploma')).toBeInTheDocument()
   })
+
+  test('render history contradicting with edit', async () => {
+    const profileEditCreationDate = new Date('2023-01-01T00:00:00Z').getTime()
+    const props = {
+      profile: {
+        names: [],
+        history: [
+          {
+            position: 'Researcher',
+            institution: {
+              name: 'UMass',
+              domain: 'umass.edu',
+            },
+            start: 1999,
+            end: 2000,
+          },
+        ],
+      },
+      serviceRoles: [],
+      contentToShow: ['history'],
+      profileEdits: [
+        {
+          profile: {
+            content: {
+              history: {
+                value: {
+                  position: 'Intern',
+                  institution: {
+                    name: 'University of Massachusetts Amherst',
+                    domain: 'umass.edu',
+                  },
+                  start: 1999,
+                  end: 1999,
+                },
+              },
+            },
+          },
+          content: { source: { value: 'Degree' } },
+          signatures: ['~Some_Moderator1'],
+          tcdate: profileEditCreationDate,
+        },
+      ],
+    }
+
+    render(<BasicProfileView {...props} />)
+
+    screen.debug()
+
+    const checkmark = screen.getByRole('img', { name: 'check' })
+    expect(checkmark).toBeInTheDocument()
+    expect(checkmark).toHaveStyle({ color: 'rgb(240, 173, 78)' }) // contradicting check
+    await userEvent.hover(checkmark)
+    const popover = await screen.findByRole('tooltip')
+    expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
+    expect(
+      within(popover).getByText(formatDateTime(profileEditCreationDate))
+    ).toBeInTheDocument()
+    expect(within(popover).getByText('Degree')).toBeInTheDocument()
+  })
+
+  test('render history confirmed by edit but removed by user', async () => {
+    const profileEditCreationDate = new Date('2023-01-01T00:00:00Z').getTime()
+    const props = {
+      profile: {
+        names: [],
+        history: [
+          {
+            position: 'Researcher',
+            institution: {
+              name: 'Google',
+              domain: 'google.com',
+            },
+            start: 2001,
+            end: 2002,
+          },
+        ],
+      },
+      serviceRoles: [],
+      contentToShow: ['history'],
+      profileEdits: [
+        {
+          profile: {
+            content: {
+              history: {
+                value: {
+                  position: 'Intern',
+                  institution: {
+                    name: 'UMass',
+                    domain: 'umass.edu',
+                  },
+                  start: 1999,
+                  end: 2000,
+                },
+              },
+            },
+          },
+          content: { source: { value: 'Diploma' } },
+          signatures: ['~Some_Moderator1'],
+          tcdate: profileEditCreationDate,
+        },
+      ],
+    }
+
+    render(<BasicProfileView {...props} />)
+
+    expect(screen.getByText('Google')).toBeInTheDocument()
+    expect(screen.getByText('UMass')).toBeInTheDocument() // asserted record no longer in profile
+    expect(screen.queryByRole('img', { name: 'check' })).not.toBeInTheDocument()
+
+    const folderIcon = screen.getByRole('img', { name: 'folder' })
+    expect(folderIcon).toHaveStyle({ color: 'rgb(63, 105, 120)' }) // missing
+    await userEvent.hover(folderIcon)
+    const popover = await screen.findByRole('tooltip')
+    expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
+    expect(
+      within(popover).getByText(formatDateTime(profileEditCreationDate))
+    ).toBeInTheDocument()
+    expect(within(popover).getByText('Diploma')).toBeInTheDocument()
+  })
 })
