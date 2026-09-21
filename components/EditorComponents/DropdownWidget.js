@@ -14,8 +14,7 @@ const acceptsCustomValue = (enumValues) =>
   enumValues.every((p) => typeof p === 'string')
 
 const DropdownWidget = () => {
-  const { field, onChange, value, clearError, noteEditorValue } =
-    useContext(EditorComponentContext)
+  const { field, onChange, value, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
   const isAuthorDerivedField =
@@ -155,13 +154,11 @@ const DropdownWidget = () => {
         onChange={dropdownChangeHandler}
         value={
           allowMultiSelect
-            ? value
-                ?.map((p) =>
-                  dropdownOptions.find((q) =>
-                    typeof p === 'object' ? isEqual(q.value, p) : q.value == p
-                  )
+            ? value?.map((p) =>
+                dropdownOptions.find((q) =>
+                  typeof p === 'object' ? isEqual(q.value, p) : q.value == p
                 )
-                .filter(Boolean)
+              )
             : dropdownOptions.filter((p) => p.value == value)
         }
         isClearable={true}
