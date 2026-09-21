@@ -674,10 +674,8 @@ const WorkFlowInvitations = ({ group }) => {
   const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationsRef = useRef({})
-  // Ids of the invitations the process logs are loaded for, and the ids reported by the
-  // workflow events since the last refresh.
-  const processLogInvitationIdsRef = useRef([])
-  const pendingLogInvitationIdsRef = useRef(new Set())
+  const dateProcessInvitationIdsRef = useRef([])
+  const invitationIdsPendingRefreshRef = useRef(new Set())
   const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
   const [workflowTasks, setWorkflowTasks] = useState([])
 
@@ -891,9 +889,6 @@ const WorkFlowInvitations = ({ group }) => {
     }
   }
 
-  // The timeline only shows the process log status of the invitations with date process
-  // functions, so the logs are loaded one invitation at a time instead of by venue prefix:
-  // a venue with thousands of submissions has hundreds of thousands of process logs.
   const loadProcessLogs = async (invitationIds) => {
     if (!invitationIds?.length) return []
     try {
@@ -905,8 +900,6 @@ const WorkFlowInvitations = ({ group }) => {
           })
         )
       )
-      // A running log has no edate yet and is sorted first so that it takes precedence
-      // over the last finished log of the invitation.
       return orderBy(
         results.flatMap((p) => p.logs ?? []),
         ['edate'],
@@ -918,10 +911,9 @@ const WorkFlowInvitations = ({ group }) => {
     }
   }
 
-  // Replace the logs of the invitations that reported an update, keeping the rest as they are.
   const refreshProcessLogs = async (invitationIds) => {
     const idsToRefresh = invitationIds.filter((id) =>
-      processLogInvitationIdsRef.current.includes(id)
+      dateProcessInvitationIdsRef.current.includes(id)
     )
     if (!idsToRefresh.length) return
     const logs = await loadProcessLogs(idsToRefresh)
@@ -1060,10 +1052,10 @@ const WorkFlowInvitations = ({ group }) => {
         exclusionWorkflowInvitations,
         invitations
       )
-      processLogInvitationIdsRef.current = filteredInvitations.flatMap((p) =>
+      dateProcessInvitationIdsRef.current = filteredInvitations.flatMap((p) =>
         p.dateprocesses?.length > 0 ? p.id : []
       )
-      const logs = await loadProcessLogs(processLogInvitationIdsRef.current)
+      const logs = await loadProcessLogs(dateProcessInvitationIdsRef.current)
       setProcessLogs(logs)
       const invitationsToShowInWorkflow = filteredInvitations.map((stepObj) => {
         return formatWorkflowInvitation(
@@ -1114,15 +1106,12 @@ const WorkFlowInvitations = ({ group }) => {
   }, [groupId])
 
   useEffect(() => {
-    if (!events) return
-    const eventInvitationId = events.data?.invitation
-    const eventInvitationIds = eventInvitationId
-      ? [eventInvitationId]
-      : processLogInvitationIdsRef.current
-    eventInvitationIds.forEach((id) => pendingLogInvitationIdsRef.current.add(id))
+    const eventInvitationId = events?.data?.invitation
+    if (!eventInvitationId) return
+    invitationIdsPendingRefreshRef.current.add(eventInvitationId)
     const eventsHandler = setTimeout(() => {
-      const invitationIdsToRefresh = [...pendingLogInvitationIdsRef.current]
-      pendingLogInvitationIdsRef.current.clear()
+      const invitationIdsToRefresh = [...invitationIdsPendingRefreshRef.current]
+      invitationIdsPendingRefreshRef.current.clear()
       refreshProcessLogs(invitationIdsToRefresh)
     }, 5000)
 

@@ -25,8 +25,6 @@ const group = {
   content: { submission_name: { value: 'Submission' } },
 }
 
-// A workflow invitation with date processes (its logs are shown in the timeline) and one
-// without (it has no log status to show)
 const dateProcessInvitation = {
   id: 'ICLR.cc/2027/Conference/-/Submission',
   domain: 'ICLR.cc/2027/Conference',
@@ -58,7 +56,6 @@ describe('WorkflowInvitations', () => {
   test('load process logs by invitation id, only for invitations with date processes', async () => {
     render(<WorkflowInvitations group={group} />)
 
-    // one query per invitation with date processes, no prefix query of the whole venue
     await waitFor(() => expect(getProcessLogQueries().length).toEqual(1))
     expect(getProcessLogQueries()[0]).toEqual(
       expect.objectContaining({ invitation: dateProcessInvitation.id })
@@ -115,6 +112,24 @@ describe('WorkflowInvitations', () => {
     expect(
       getProcessLogQueries().every((query) => query.invitation === dateProcessInvitation.id)
     ).toBe(true)
+  })
+
+  test('ignore workflow events without an invitation', async () => {
+    const { rerender } = render(<WorkflowInvitations group={group} />)
+
+    await waitFor(() => expect(getProcessLogQueries().length).toEqual(1))
+
+    socketEvent = {
+      eventName: 'date-process-updated',
+      data: { status: 'ok' },
+      uniqueId: 'some event id',
+    }
+    jest.useFakeTimers()
+    rerender(<WorkflowInvitations group={group} />)
+    jest.advanceTimersByTime(5000)
+    jest.useRealTimers()
+
+    await waitFor(() => expect(getProcessLogQueries().length).toEqual(1))
   })
 
   test('ignore workflow events of invitations not shown in the timeline', async () => {
