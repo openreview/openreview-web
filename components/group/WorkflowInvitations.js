@@ -674,6 +674,8 @@ const WorkFlowInvitations = ({ group }) => {
   const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationsRef = useRef({})
+  const invitationIdsWithLogsRef = useRef([])
+  const pendingRefreshIdsRef = useRef(new Set())
   const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
   const [workflowTasks, setWorkflowTasks] = useState([])
 
@@ -887,23 +889,38 @@ const WorkFlowInvitations = ({ group }) => {
     }
   }
 
-  const loadProcessLogs = async () => {
+  const loadProcessLogs = async (invitationIds) => {
+    if (!invitationIds?.length) return []
     try {
-      const response = await api.getAll(
-        '/logs/process',
-        {
-          invitation: `${groupId}.*`,
-          select: 'id,sdate,edate,invitation,status,log',
-        },
-        { resultsKey: 'logs' }
+      const results = await Promise.all(
+        invitationIds.map((invitationId) =>
+          api.get('/logs/process', {
+            invitation: invitationId,
+            select: 'id,sdate,edate,invitation,status,log',
+          })
+        )
       )
-      const logs = orderBy(response, ['edate'], ['desc'])
-      setProcessLogs(logs)
-      return logs
+      return orderBy(
+        results.flatMap((p) => p.logs ?? []),
+        ['edate'],
+        ['desc']
+      )
     } catch (error) {
       promptError(error.message)
       return []
     }
+  }
+
+  const refreshProcessLogs = async (invitationIds) => {
+    const idsToRefresh = invitationIds.filter((id) =>
+      invitationIdsWithLogsRef.current.includes(id)
+    )
+    if (!idsToRefresh.length) return
+    const logs = await loadProcessLogs(idsToRefresh)
+    setProcessLogs((existingLogs) => [
+      ...existingLogs.filter((p) => !idsToRefresh.includes(p.invitation)),
+      ...logs,
+    ])
   }
 
   const filterWorkflowInvitations = (
@@ -1005,11 +1022,10 @@ const WorkFlowInvitations = ({ group }) => {
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])
     try {
-      const [groups, invitations, stageInvitations, logs] = await Promise.all([
+      const [groups, invitations, stageInvitations] = await Promise.all([
         getAllGroupsP,
         getAllInvitationsP,
         getStageInvitationTemplatesP,
-        loadProcessLogs(),
       ])
 
       const mainGroups = groups.filter((p) => p.parent === group.id)
@@ -1036,6 +1052,11 @@ const WorkFlowInvitations = ({ group }) => {
         exclusionWorkflowInvitations,
         invitations
       )
+      invitationIdsWithLogsRef.current = filteredInvitations.flatMap((p) =>
+        p.dateprocesses?.length > 0 ? p.id : []
+      )
+      const logs = await loadProcessLogs(invitationIdsWithLogsRef.current)
+      setProcessLogs(logs)
       const invitationsToShowInWorkflow = filteredInvitations.map((stepObj) => {
         return formatWorkflowInvitation(
           stepObj,
@@ -1085,9 +1106,13 @@ const WorkFlowInvitations = ({ group }) => {
   }, [groupId])
 
   useEffect(() => {
-    if (!events) return
+    const eventInvitationId = events?.data?.invitation
+    if (!eventInvitationId) return
+    pendingRefreshIdsRef.current.add(eventInvitationId)
     const eventsHandler = setTimeout(() => {
-      loadProcessLogs()
+      const invitationIdsToRefresh = [...pendingRefreshIdsRef.current]
+      pendingRefreshIdsRef.current.clear()
+      refreshProcessLogs(invitationIdsToRefresh)
     }, 5000)
 
     return () => {
