@@ -107,25 +107,6 @@ const DropdownWidget = () => {
     }
   }, [])
 
-  useEffect(() => {
-    if (!isAuthorDerivedField) return
-    const authors = noteEditorValue?.authors ?? []
-    const authorOptions = authors.map((p) => ({
-      label: p.fullname,
-      value: p.username,
-    }))
-    setDropdownOptions(authorOptions)
-
-    // drop any selected reviewer whose author has been removed from the note
-    if (Array.isArray(value)) {
-      const optionValues = authorOptions.map((p) => p.value)
-      const filteredValue = value.filter((p) => optionValues.includes(p))
-      if (filteredValue.length !== value.length) {
-        onChange({ fieldName, value: filteredValue.length ? filteredValue : undefined })
-      }
-    }
-  }, [noteEditorValue?.authors])
-
   if (isCustomValueEnum) {
     const suggestedEnumValues = field[fieldName].value.param.enum.filter((p) => p !== '.*')
     return (
