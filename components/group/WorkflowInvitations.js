@@ -674,8 +674,8 @@ const WorkFlowInvitations = ({ group }) => {
   const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationsRef = useRef({})
-  const dateProcessInvitationIdsRef = useRef([])
-  const invitationIdsPendingRefreshRef = useRef(new Set())
+  const invitationIdsWithLogsRef = useRef([])
+  const pendingRefreshIdsRef = useRef(new Set())
   const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
   const [workflowTasks, setWorkflowTasks] = useState([])
 
@@ -913,7 +913,7 @@ const WorkFlowInvitations = ({ group }) => {
 
   const refreshProcessLogs = async (invitationIds) => {
     const idsToRefresh = invitationIds.filter((id) =>
-      dateProcessInvitationIdsRef.current.includes(id)
+      invitationIdsWithLogsRef.current.includes(id)
     )
     if (!idsToRefresh.length) return
     const logs = await loadProcessLogs(idsToRefresh)
@@ -1052,10 +1052,10 @@ const WorkFlowInvitations = ({ group }) => {
         exclusionWorkflowInvitations,
         invitations
       )
-      dateProcessInvitationIdsRef.current = filteredInvitations.flatMap((p) =>
+      invitationIdsWithLogsRef.current = filteredInvitations.flatMap((p) =>
         p.dateprocesses?.length > 0 ? p.id : []
       )
-      const logs = await loadProcessLogs(dateProcessInvitationIdsRef.current)
+      const logs = await loadProcessLogs(invitationIdsWithLogsRef.current)
       setProcessLogs(logs)
       const invitationsToShowInWorkflow = filteredInvitations.map((stepObj) => {
         return formatWorkflowInvitation(
@@ -1108,10 +1108,10 @@ const WorkFlowInvitations = ({ group }) => {
   useEffect(() => {
     const eventInvitationId = events?.data?.invitation
     if (!eventInvitationId) return
-    invitationIdsPendingRefreshRef.current.add(eventInvitationId)
+    pendingRefreshIdsRef.current.add(eventInvitationId)
     const eventsHandler = setTimeout(() => {
-      const invitationIdsToRefresh = [...invitationIdsPendingRefreshRef.current]
-      invitationIdsPendingRefreshRef.current.clear()
+      const invitationIdsToRefresh = [...pendingRefreshIdsRef.current]
+      pendingRefreshIdsRef.current.clear()
       refreshProcessLogs(invitationIdsToRefresh)
     }, 5000)
 
