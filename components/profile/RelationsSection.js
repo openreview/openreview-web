@@ -43,6 +43,7 @@ const mergeVouchTagsType = 'mergeVouchTags'
 // #endregion
 
 const vouchInvitationId = `${process.env.SUPER_USER}/Support/-/Vouch`
+const vouchableProfileStates = ['Needs Moderation', 'Rejected']
 
 const encodeVouchLabel = (relation) =>
   JSON.stringify({
@@ -662,7 +663,9 @@ const RelationsSection = ({
         </div>
       )}
       {relations.map((relation) => {
-        const isRejected = relationProfileStates?.[relation.username] === 'Rejected'
+        const isVouchable = vouchableProfileStates.includes(
+          relationProfileStates?.[relation.username]
+        )
         const isSavedPublicRelation =
           relation.username &&
           savedRelations?.find(
@@ -679,7 +682,7 @@ const RelationsSection = ({
             relationReaderOptions={relationReaderOptions}
             isMobile={isMobile}
             user={user}
-            showVouchButton={isRejected && isSavedPublicRelation}
+            showVouchButton={isVouchable && isSavedPublicRelation}
             vouchLimit={lifetimeVouchLimit}
           />
         )

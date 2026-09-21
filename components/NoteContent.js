@@ -1,7 +1,6 @@
 'use client'
 
-/* globals DOMPurify,marked: false */
-
+import { Space } from 'antd'
 import union from 'lodash/union'
 import { marked } from 'marked'
 import React, { useState, useEffect } from 'react'
@@ -13,6 +12,7 @@ import {
   classNames,
 } from '../lib/utils'
 import Icon from './Icon'
+import ProfileLink from './webfield/ProfileLink'
 
 function NoteContent({
   id,
@@ -250,6 +250,38 @@ export const NoteContentV2 = ({
         const showPrivateIcon =
           fieldReaders && noteReaders && !noteReaders.every((p, j) => p === fieldReaders[j])
 
+        const renderFieldValue = () => {
+          if (fieldValue.isObjAuthorList) {
+            return (
+              <Space size={0} separator={',\u00a0'} wrap>
+                {fieldValue.authors.map(({ username, fullname }) => (
+                  <ProfileLink key={username ?? fullname} id={username} name={fullname} />
+                ))}
+              </Space>
+            )
+          }
+          if (fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/')) {
+            return (
+              <span className="note-content-value">
+                <DownloadLink
+                  noteId={id}
+                  fieldName={fieldName}
+                  fieldValue={fieldValue}
+                  isReference={isEdit}
+                  isV2
+                />
+              </span>
+            )
+          }
+          return (
+            <NoteContentValue
+              content={fieldValue}
+              enableMarkdown={enableMarkdown}
+              fullMarkdown={fullMarkdown}
+            />
+          )
+        }
+
         return (
           <div key={fieldName}>
             <NoteContentField name={fieldName} customFieldName={customFieldName} />{' '}
@@ -262,23 +294,7 @@ export const NoteContentV2 = ({
                   .join(', ')}`}
               />
             )}
-            {fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/') ? (
-              <span className="note-content-value">
-                <DownloadLink
-                  noteId={id}
-                  fieldName={fieldName}
-                  fieldValue={fieldValue}
-                  isReference={isEdit}
-                  isV2
-                />
-              </span>
-            ) : (
-              <NoteContentValue
-                content={fieldValue}
-                enableMarkdown={enableMarkdown}
-                fullMarkdown={fullMarkdown}
-              />
-            )}
+            {renderFieldValue()}
           </div>
         )
       })}
