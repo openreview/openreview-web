@@ -55,6 +55,17 @@ describe('VenueRequestTab', () => {
                 value: undefined,
               },
             },
+            invitations: ['openreview.net/Support/Venue_Request/-/Conference_Review_Workflow'],
+            apiVersion: 2,
+          },
+          {
+            id: 'arr commitment not deployed',
+            content: {
+              venue_id: {
+                value: undefined,
+              },
+            },
+            invitations: ['openreview.net/Support/Venue_Request/-/ARR_Commitment_Workflow'],
             apiVersion: 2,
           },
         ],
@@ -89,7 +100,16 @@ describe('VenueRequestTab', () => {
         expect.objectContaining({
           newRequestNotes: expect.arrayContaining([
             { id: 'v1 not deployed', apiVersion: 1 },
-            { id: 'v2 not deployed', apiVersion: 2 },
+            {
+              id: 'v2 not deployed',
+              apiVersion: 2,
+              workflowLabel: 'Conference Review Workflow',
+            },
+            {
+              id: 'arr commitment not deployed',
+              apiVersion: 2,
+              workflowLabel: 'ARR Commitment Workflow',
+            },
             { id: 'journal not deployed', apiVersion: 2, journal: true },
           ]),
         })

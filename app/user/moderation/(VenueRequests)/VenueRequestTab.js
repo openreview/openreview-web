@@ -4,6 +4,7 @@ import { orderBy, sortBy } from 'lodash'
 import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
 import api from '../../../../lib/api-client'
+import { prettyInvitationId } from '../../../../lib/utils'
 import VenueRequestList from './VenueRequestList'
 
 dayjs.extend(relativeTime)
@@ -22,10 +23,10 @@ export default function VenueRequestTab() {
           select: `id,forum,cdate,content['Abbreviated Venue Name'],content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         {
-          invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/Conference_Review_Workflow`,
+          invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/.*`,
           sort: 'cdate',
           details: 'replies',
-          select: `id,forum,cdate,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+          select: `id,forum,cdate,invitations,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         { includeVersion: true }
       )
@@ -70,6 +71,7 @@ export default function VenueRequestTab() {
         apiVersion: p.journal ? 2 : p.apiVersion,
         status: p.apiVersion === 2 || p.journal ? p.content.status?.value : undefined,
         journal: p.journal,
+        workflowLabel: p.invitations?.[0] ? prettyInvitationId(p.invitations[0]) : undefined,
       }))
 
       setVenueRequestNotes(orderBy(allVenueRequests, ['cdate'], ['desc']))

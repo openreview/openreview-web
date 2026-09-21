@@ -95,6 +95,7 @@ describe('VenuestTab', () => {
           {
             id: 'v2 deployed no comment',
             content: { venue_id: { value: 'v2_no_comment' } },
+            invitations: ['openreview.net/Support/Venue_Request/-/ARR_Commitment_Workflow'],
             apiVersion: 2,
             cdate: newest,
           },
@@ -153,7 +154,10 @@ describe('VenuestTab', () => {
           venueRequestNotes: [
             // no comment request in front sorted by cdate desc
             // followed by with comment request sorted by cdate of latest comment
-            expect.objectContaining({ id: 'v2 deployed no comment' }),
+            expect.objectContaining({
+              id: 'v2 deployed no comment',
+              workflowLabel: 'ARR Commitment Workflow',
+            }),
             expect.objectContaining({
               id: 'journal deployed no comment',
               journal: true,
