@@ -102,6 +102,7 @@ describe('VenuestTab', () => {
           {
             id: 'v2 deployed with comment',
             content: { venue_id: { value: 'v2_with_comment' } },
+            invitations: ['openreview.net/Support/Venue_Request/-/Conference_Review_Workflow'],
             apiVersion: 2,
             details: {
               replies: [
@@ -126,11 +127,13 @@ describe('VenuestTab', () => {
           {
             id: 'journal deployed no comment',
             content: { venue_id: { value: 'journal_no_comment' } },
+            invitations: ['openreview.net/Support/-/Journal_Request'],
             cdate: betweenNewestAndSecondNewest,
           },
           {
             id: 'journal deployed with comment',
             content: { venue_id: { value: 'journal_with_comment' } },
+            invitations: ['openreview.net/Support/-/Journal_Request'],
             details: {
               replies: [
                 {
@@ -160,15 +163,15 @@ describe('VenuestTab', () => {
             }),
             expect.objectContaining({
               id: 'journal deployed no comment',
-              journal: true,
               apiVersion: 2,
+              workflowLabel: 'Journal Request',
             }),
             expect.objectContaining({ id: 'v1 deployed no comment' }),
             expect.objectContaining({ id: 'v1 deployed with comment' }),
             expect.objectContaining({
               id: 'journal deployed with comment',
-              journal: true,
               apiVersion: 2,
+              workflowLabel: 'Journal Request',
             }),
             expect.objectContaining({ id: 'v2 deployed with comment' }),
           ],

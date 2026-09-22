@@ -89,6 +89,7 @@ describe('VenueRequestTab', () => {
                 value: undefined,
               },
             },
+            invitations: ['openreview.net/Support/-/Journal_Request'],
           },
         ],
       })
@@ -110,7 +111,11 @@ describe('VenueRequestTab', () => {
               apiVersion: 2,
               workflowLabel: 'ARR Commitment Workflow',
             },
-            { id: 'journal not deployed', apiVersion: 2, journal: true },
+            {
+              id: 'journal not deployed',
+              apiVersion: 2,
+              workflowLabel: 'Journal Request',
+            },
           ]),
         })
       )

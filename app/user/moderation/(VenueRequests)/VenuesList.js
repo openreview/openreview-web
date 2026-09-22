@@ -45,7 +45,6 @@ const VenuesList = ({ venueRequestNotes }) => {
             latestComment,
             apiVersion,
             status,
-            journal,
             workflowLabel,
           } = venueRequestNote
 
@@ -59,8 +58,7 @@ const VenuesList = ({ venueRequestNotes }) => {
                   rel="noreferrer"
                 >
                   {abbreviatedName}
-                  {apiVersion === 2 && !journal && workflowLabel && <Tag>{workflowLabel}</Tag>}
-                  {journal && <Tag>journal</Tag>}
+                  {apiVersion === 2 && <Tag>{workflowLabel}</Tag>}
                 </a>
               </Col>
               <Col xs={24} md={9} lg={9}>

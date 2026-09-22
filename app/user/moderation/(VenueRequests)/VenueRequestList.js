@@ -30,7 +30,6 @@ const VenueRequestList = ({ newRequestNotes }) => {
             cdate,
             apiVersion,
             status,
-            journal,
             workflowLabel,
           } = newRequest
           return (
@@ -43,8 +42,7 @@ const VenueRequestList = ({ newRequestNotes }) => {
                   rel="noreferrer"
                 >
                   {abbreviatedName}
-                  {apiVersion === 2 && !journal && workflowLabel && <Tag>{workflowLabel}</Tag>}
-                  {journal && <Tag>journal</Tag>}
+                  {apiVersion === 2 && <Tag>{workflowLabel}</Tag>}
                 </a>
               </Col>
 
