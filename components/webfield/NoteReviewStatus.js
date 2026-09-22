@@ -214,6 +214,55 @@ Click on the link below to go to the ${prettyField(
   )
 }
 
+const CustomStageReplyFieldValue = ({ value }) => {
+  if (typeof value === 'string' && value.startsWith('https')) {
+    return (
+      <a href={value} target="_blank" rel="nofollow noreferrer">
+        {value}
+      </a>
+    )
+  }
+  return value
+}
+
+// custom stage replies to a review (e.g. AI review detection), shown under the review they reply to
+const CustomStageReviewReplies = ({ review, customStageReviewReplies, note, referrerUrl }) => {
+  const reviewReplies = customStageReviewReplies?.filter((p) => p.replyto === review?.id)
+  if (!reviewReplies?.length) return null
+
+  return (
+    <>
+      {reviewReplies.map((reply) => (
+        <div key={reply.id} className="custom-stage-reply">
+          <strong>{reply.name}:</strong>
+          {reply.value && (
+            <div>
+              {reply.displayField}: <CustomStageReplyFieldValue value={reply.value} />
+            </div>
+          )}
+          {reply.extraDisplayFields?.map(({ field, value }) => {
+            if (!value) return null
+            return (
+              <div key={field}>
+                {field}: <CustomStageReplyFieldValue value={value} />
+              </div>
+            )
+          })}
+          <div>
+            <a
+              href={`/forum?id=${note.forum}&noteId=${reply.id}&referrer=${referrerUrl}`}
+              target="_blank"
+              rel="nofollow noreferrer"
+            >
+              Read {reply.name}
+            </a>
+          </div>
+        </div>
+      ))}
+    </>
+  )
+}
+
 export const AcPcConsoleReviewerStatusRow = ({
   officialReviews,
   reviewer,
@@ -229,6 +278,7 @@ export const AcPcConsoleReviewerStatusRow = ({
   showActivity = true,
   messageSignature,
   preferredEmailInvitationId,
+  customStageReviewReplies,
 }) => {
   const [updateLastSent, setUpdateLastSent] = useState(true)
   const completedReview = officialReviews.find((p) => p.anonymousId === reviewer.anonymousId)
@@ -319,6 +369,12 @@ export const AcPcConsoleReviewerStatusRow = ({
             >
               Read {prettyField(officialReviewName)}
             </a>
+            <CustomStageReviewReplies
+              review={completedReview}
+              customStageReviewReplies={customStageReviewReplies}
+              note={note}
+              referrerUrl={referrerUrl}
+            />
           </>
         ) : (
           <div>
@@ -385,6 +441,7 @@ export const AcPcConsoleReviewStatusRow = ({
   reviewRatingName,
   officialReviewName,
   showRatingConfidence = true,
+  customStageReviewReplies,
 }) => {
   const hasConfidence = review?.confidence !== null
 
@@ -425,6 +482,12 @@ export const AcPcConsoleReviewStatusRow = ({
       >
         Read {prettyField(officialReviewName)}
       </a>
+      <CustomStageReviewReplies
+        review={review}
+        customStageReviewReplies={customStageReviewReplies}
+        note={note}
+        referrerUrl={referrerUrl}
+      />
     </div>
   )
 }
@@ -439,6 +502,7 @@ export const AcPcConsoleNoteReviewStatus = ({
   shortPhrase,
   submissionName,
   reviewerAssignmentUrl,
+  customStageReviewReplies,
 }) => {
   const { officialReviews, reviewers = [], note } = rowData
   const {
@@ -480,6 +544,7 @@ export const AcPcConsoleNoteReviewStatus = ({
               referrerUrl={referrerUrl}
               reviewRatingName={reviewRatingName}
               officialReviewName={officialReviewName}
+              customStageReviewReplies={customStageReviewReplies}
             />
           ))}
         </Collapse>
@@ -543,6 +608,7 @@ export const AcPcConsoleNoteReviewStatus = ({
                 reviewRatingName={reviewRatingName}
                 messageSignature={rowData.messageSignature}
                 preferredEmailInvitationId={preferredEmailInvitationId}
+                customStageReviewReplies={customStageReviewReplies}
               />
             ))}
           </div>
