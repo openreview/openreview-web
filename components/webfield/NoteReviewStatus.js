@@ -80,8 +80,7 @@ const AcPcConsoleReviewerActivityModal = ({
     setIsLoading(true)
     try {
       const result = await api.get('/notes', {
-        signature: reviewer.reviewerProfileId,
-        transitiveMembers: true,
+        signature: reviewer.anonymizedGroup,
         invitation: `${venueId}/${submissionName}${note.number}/-/.*`,
         domain: venueId,
       })
