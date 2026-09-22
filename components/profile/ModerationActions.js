@@ -23,6 +23,9 @@ const ModerationActions = ({
     )?.institution?.name
     return getRejectionReasons(profileStateInvitation, currentInstitutionName)
   }, [profileStateInvitation, profile?.history])
+  const missingInstitutionalEmailRejectOption = rejectionReasons.find(
+    (p) => p.value === 'Institutional Email is missing'
+  )
 
   const prependWarning = (warning) => setRejectionMessage((p) => `${warning}\n\n${p}`)
 
@@ -42,17 +45,18 @@ const ModerationActions = ({
           <Button type="primary" onClick={() => setIsRejecting(true)}>
             Show Reject Options
           </Button>
-          <Button
-            type="primary"
-            onClick={() =>
-              onReject(
-                rejectionReasons[0]?.rejectionText,
-                rejectionReasons[0] ? [rejectionReasons[0].label] : []
-              )
-            }
-          >
-            Reject
-          </Button>
+          {missingInstitutionalEmailRejectOption && (
+            <Button
+              type="primary"
+              onClick={() =>
+                onReject(missingInstitutionalEmailRejectOption.rejectionText, [
+                  missingInstitutionalEmailRejectOption.label,
+                ])
+              }
+            >
+              Reject
+            </Button>
+          )}
         </Flex>
       </Flex>
 
@@ -70,6 +74,7 @@ const ModerationActions = ({
               setRejectionLabels(selectedReasons.map((p) => p.label))
               setRejectionMessage(selectedReasons.map((p) => p.rejectionText).join('\n\n'))
             }}
+            notFoundContent="Profile state invitation is not loaded"
           />
           <Space wrap>
             <Button type="primary" onClick={() => prependWarning(invalidInfoWarning)}>
