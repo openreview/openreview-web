@@ -225,7 +225,7 @@ const RelationForm = () => {
 
 const ProfileEditInvitationEditor = ({ invitation, profileId, onEditPosted }) => {
   const { edit: editFields, profile: profileFields } = getEditFields(invitation)
-  const fields = [...editFields, ...profileFields]
+  const fields = [...profileFields, ...editFields]
   const [formData, setFormData] = useReducer(
     (state, action) => ({ ...state, [action.fieldName]: action.value }),
     {}
