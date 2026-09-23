@@ -6,7 +6,7 @@ import utc from 'dayjs/plugin/utc'
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import ServiceRoles from '../../app/profile/ServiceRoles'
-import { prettyList } from '../../lib/utils'
+import { prettyId, prettyList } from '../../lib/utils'
 import Icon from '../Icon'
 import ProfileViewSection from './ProfileViewSection'
 
@@ -51,9 +51,23 @@ const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children 
 // is visible instead of silently dropped.
 const VerificationBadge = ({ verifiers, mismatch = false }) => {
   if (!verifiers?.length) return null
+  // Each verifier entry carries the entity that signed the verification and the
+  // document the data was read off (the edit's source), when the invitation records
+  // one: "Verified by OpenReview Support from Passport".
+  const uniqueVerifiers = [
+    ...new Map(
+      verifiers.map((verifier) => [`${verifier.verifiedBy}|${verifier.source ?? ''}`, verifier])
+    ).values(),
+  ]
+  const verifiedByText = uniqueVerifiers
+    .map(
+      (verifier) =>
+        `${prettyId(verifier.verifiedBy)}${verifier.source ? ` from ${verifier.source}` : ''}`
+    )
+    .join(', ')
   return (
     <Tooltip
-      title={`Verified by ${prettyList([...new Set(verifiers)])}${
+      title={`Verified by ${verifiedByText}${
         mismatch ? ', but does not match the information listed in the profile' : ''
       }`}
     >
@@ -76,7 +90,7 @@ const groupVerified = (entries, keyFn) => {
   entries.forEach((entry) => {
     const key = keyFn(entry)
     if (!groups.has(key)) groups.set(key, { ...entry, verifiers: [] })
-    groups.get(key).verifiers.push(entry.verifiedBy)
+    groups.get(key).verifiers.push({ verifiedBy: entry.verifiedBy, source: entry.source })
   })
   return [...groups.values()]
 }
@@ -319,11 +333,21 @@ const BasicProfileView = ({
   const nameVerifiers = (name) =>
     verifications?.names
       .filter((verified) => verified.fullname === name.fullname)
-      .map((verified) => verified.verifiedBy)
+      .map(({ verifiedBy, source }) => ({ verifiedBy, source }))
 
-  const historyMatches = (verified, history) =>
-    verified.position === history.position &&
-    verified.institution?.domain === history.institution?.domain
+  // Institution documents do not always state the email domain, so fall back to the
+  // institution name when the verification carries no domain, and to the position
+  // alone when it carries neither.
+  const historyMatches = (verified, history) => {
+    if (verified.position !== history.position) return false
+    if (verified.institution?.domain) {
+      return verified.institution.domain === history.institution?.domain
+    }
+    if (verified.institution?.name) {
+      return verified.institution.name === history.institution?.name
+    }
+    return true
+  }
 
   // A verification may assert the same affiliation with different dates, e.g. a
   // student ID showing the position ends in a given year while the profile says
@@ -352,7 +376,7 @@ const BasicProfileView = ({
       .filter(
         (verified) => historyMatches(verified, history) && historyDatesConsistent(verified, history)
       )
-      .map((verified) => verified.verifiedBy)
+      .map(({ verifiedBy, source }) => ({ verifiedBy, source }))
 
   const historyDateMismatches = (history) =>
     groupVerified(
@@ -372,11 +396,11 @@ const BasicProfileView = ({
             (verified.name && verified.name === relation.name) ||
             (verified.email && verified.email === relation.email))
       )
-      .map((verified) => verified.verifiedBy)
+      .map(({ verifiedBy, source }) => ({ verifiedBy, source }))
 
   const dobVerifiers = verifications?.dob
     .filter((verified) => verified.value === profile.dob)
-    .map((verified) => verified.verifiedBy)
+    .map(({ verifiedBy, source }) => ({ verifiedBy, source }))
 
   // Verified values that are not listed in the profile (or differ from it) are still
   // shown, in the accent color, so a mismatch between a verification and the profile
@@ -392,7 +416,8 @@ const BasicProfileView = ({
     verifications?.history.filter(
       (verified) => !profile.history?.some((history) => historyMatches(verified, history))
     ) ?? [],
-    (verified) => `${verified.position}|${verified.institution?.domain}`
+    (verified) =>
+      `${verified.position}|${verified.institution?.domain ?? verified.institution?.name ?? ''}`
   )
 
   const unmatchedRelations = groupVerified(
