@@ -1,8 +1,9 @@
 import { Collapse, Space, Tag } from 'antd'
 import { orderBy } from 'lodash'
-import { formatDateTime, prettyInvitationId, prettyList } from '../../lib/utils'
+import { formatDateTime, prettyInvitationId } from '../../lib/utils'
 
 import {
+  colors,
   getBootstrap337LabelColor,
   getProfileStateLabelClass,
   moderation as legacyStyles,
@@ -53,9 +54,9 @@ const ProfileEditsSection = ({ profileEdits }) => {
                   {label}
                 </Tag>
               ))}
-              {edit.signatures?.length > 0 && (
-                <small style={{ color: '#757575' }}>{prettyList(edit.signatures)}</small>
-              )}
+              <span style={{ color: colors.subtleGray, fontSize: '0.85em' }}>
+                {edit.tauthor}
+              </span>
             </Space>
           ),
           children: (
