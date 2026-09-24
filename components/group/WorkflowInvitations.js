@@ -1,14 +1,5 @@
 import { CaretRightOutlined } from '@ant-design/icons'
-import {
-  Button,
-  Collapse,
-  Flex,
-  Popconfirm,
-  Segmented,
-  Tooltip,
-  Typography,
-  theme,
-} from 'antd'
+import { Button, Flex, Popconfirm, Segmented, Tooltip, Typography, theme } from 'antd'
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -33,7 +24,6 @@ import {
 import Dropdown from '../Dropdown'
 import Markdown from '../EditorComponents/Markdown'
 import EditorSection from '../EditorSection'
-import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import InvitationEditor from './InvitationEditor'
 
@@ -71,7 +61,43 @@ const isOngoingInvitation = (invitation) => {
   )
 }
 
-const getStageStatus = (allInvitationsOfWorkflowStage) => {
+// A step's last completed run: logs arrive newest first, and queued or running logs are not runs.
+const getLastRun = (invitationId, processLogs = []) =>
+  processLogs.find(
+    (p) => p.invitation === invitationId && (p.status === 'ok' || p.status === 'error')
+  )
+
+// Where today falls in a span, as a class and a style: `past` once it ended, `future` before it
+// starts, and `current` in between, with --split marking today as a share of the span so the part
+// already behind us is drawn grey and the rest blue.
+// A span cut off at the axis edge is split over the part that is drawn (`drawnEnd`), so the change
+// of colour stays under the today line.
+const getSpanTiming = (start, end, drawnEnd = end) => {
+  const now = Date.now()
+  if (now < start) return { timing: 'future', style: {} }
+  if (!end || now >= end) return { timing: 'past', style: {} }
+  const splitPercent = ((now - start) / (Math.min(end, drawnEnd) - start)) * 100
+  return { timing: 'current', style: { '--split': `${Math.min(100, splitPercent)}%` } }
+}
+
+// A dot is a step that fires on a date; its colour is that step's own state. Bars stay one colour.
+const getMomentState = (invitation, processLogs = []) => {
+  if (processLogs.some((p) => p.invitation === invitation.id && p.status === 'running')) {
+    return 'running'
+  }
+  if (getLastRun(invitation.id, processLogs)?.status === 'error') return 'failed'
+  return invitation.cdate > Date.now() ? 'upcoming' : 'done'
+}
+
+const getStageStatus = (allInvitationsOfWorkflowStage, processLogs = []) => {
+  // A step whose last run failed overrides the date-based status: the stage needs the PC's attention.
+  if (
+    allInvitationsOfWorkflowStage.some(
+      (p) => getLastRun(p.id, processLogs)?.status === 'error'
+    )
+  ) {
+    return { stageStatus: 'NEEDS ATTENTION', stageStatusColor: 'warning' }
+  }
   // Ongoing invitations never expire, so they would keep a stage from ever completing.
   const timedInvitations = allInvitationsOfWorkflowStage.filter((p) => !isOngoingInvitation(p))
   const invitationsOfWorkflowStage = timedInvitations.length
@@ -133,15 +159,12 @@ const workflowGroupKeys = [
   },
 ]
 
-// Width of the shared date axis, matched by the stage rows so every bar lines up under it.
-const timelineTrackWidth = 700
-// A stage's status is a glyph, so its column is a glyph wide; the rest went to the bars.
+// A stage's status is a glyph, so its column is a glyph wide.
 const timelineStatusWidth = 16
-const timelineGap = 8
-// Rough width of a "Sep 09 – Dec 02" label, used to decide which side of the bar it fits on.
-const timelineLabelPercent = (100 * 104) / timelineTrackWidth
+const dayMs = 86400000
 
 const stageStatusFilterLabels = {
+  'NEEDS ATTENTION': 'Needs attention',
   'IN PROGRESS': 'In progress',
   COMPLETED: 'Completed',
   SCHEDULED: 'Scheduled',
@@ -149,15 +172,25 @@ const stageStatusFilterLabels = {
 
 // The glyph colour class for each status, matching getStageStatus's stageStatusColor.
 const stageStatusColors = {
+  'NEEDS ATTENTION': 'warning',
   'IN PROGRESS': 'processing',
   COMPLETED: 'success',
   SCHEDULED: 'default',
 }
 
+// "Sep 22", with the year only when asked for.
+const formatShortDate = (timestamp, withYear = false) =>
+  formatDateTime(timestamp, {
+    second: undefined,
+    minute: undefined,
+    hour: undefined,
+    year: withYear ? 'numeric' : undefined,
+  })
+
 // The axis spans whole months around the dates on which something must happen — a step's
 // activation or its due date — so it never depends on hardcoded conference dates. Expirations
 // do not set it: a withdrawal window left open for a year would otherwise squash every other
-// stage into a corner. A window that ends past the axis runs off its edge, open-ended.
+// stage into a corner. A window that ends past the axis trails off in dots at its edge.
 // Positions are percentages, so the track stays responsive.
 const getTimelineDomain = (workflowStages) => {
   const timestamps = workflowStages.flatMap((p) =>
@@ -195,24 +228,8 @@ const getTimelineDomain = (workflowStages) => {
   }
 }
 
-// A window that ends after the axis is drawn to the edge and fades out there.
-const openEndClass = (endTimestamp, domain) =>
-  endTimestamp && endTimestamp > domain.end ? ' open-end' : ''
-
 // A window narrower than this reads as a line rather than a bar, so it is drawn as a marker.
 const momentThresholdPercent = 0.4
-
-// A track's date label goes after its last mark when there is room, else before its first mark,
-// else just before its last mark over whatever sits there — a stage can run from Sep into Jan.
-const getTrackLabelPlacement = (firstPercent, lastPercent) => {
-  if (lastPercent + timelineLabelPercent < 100) {
-    return { className: '', style: { left: `${lastPercent}%` } }
-  }
-  if (firstPercent - timelineLabelPercent > 0) {
-    return { className: ' before-bar', style: { right: `${100 - firstPercent}%` } }
-  }
-  return { className: ' before-bar over-bar', style: { right: `${100 - lastPercent}%` } }
-}
 
 const TimelineGrid = ({ domain, showLabels }) => (
   <>
@@ -225,151 +242,272 @@ const TimelineGrid = ({ domain, showLabels }) => (
         {showLabels && <span className="timeline-month-label">{month.label}</span>}
       </div>
     ))}
-    <div className="timeline-now" style={{ left: `${domain.percentOf(Date.now())}%` }} />
+    <div
+      className="timeline-now"
+      style={{ left: `${domain.percentOf(Date.now())}%` }}
+      title={`Today · ${formatShortDate(Date.now(), true)}`}
+    />
   </>
 )
 
-const WorkflowTimelineAxis = ({ domain }) => (
-  <div
-    className="timeline-axis"
-    style={{
-      width: timelineTrackWidth,
-      flex: `0 0 ${timelineTrackWidth}px`,
-      marginRight: timelineStatusWidth + timelineGap,
-    }}
-  >
-    <div className="timeline-track with-labels">
-      <TimelineGrid domain={domain} showLabels={true} />
-    </div>
-  </div>
-)
-
-// The stage envelope is min(activation) to max(expiration) of its step invitations; each step is
-// drawn inside it, so a long stage visibly belongs to one step rather than all of them.
-const WorkflowStageTrack = ({ workflowStage, domain, statusColor }) => {
-  const { periodStart, periodEnd, invitationsOfWorkflowStageName } = workflowStage
+// One line of the venue overview: the stage's envelope with each of its steps inside, on the
+// venue's own months. Selecting it opens that stage below.
+const StageOverviewRow = ({
+  workflowStage,
+  stageIndex,
+  status,
+  domain,
+  isOpen,
+  onSelect,
+  processLogs,
+}) => {
+  const { periodStart, periodEnd, invitationsOfWorkflowStageName, workflowStageName } =
+    workflowStage
   const timedInvitations = invitationsOfWorkflowStageName.filter(
     (p) => !isOngoingInvitation(p)
   )
-  if (!timedInvitations.length || !periodStart) {
-    return (
-      <div
-        className={`timeline-track stage-track ${statusColor}`}
-        style={{ width: timelineTrackWidth, flex: `0 0 ${timelineTrackWidth}px` }}
-      >
-        <TimelineGrid domain={domain} />
-        <div className="track-ongoing">Ongoing</div>
-      </div>
-    )
-  }
-  const startPercent = domain.percentOf(periodStart)
-  const endPercent = domain.percentOf(periodEnd ?? periodStart)
-  const isMoment = endPercent - startPercent < momentThresholdPercent
-  const markPercents = timedInvitations.flatMap((invitation) => [
-    domain.percentOf(invitation.cdate),
-    domain.percentOf(getWindowEnd(invitation) ?? invitation.cdate),
-  ])
-  const labelPlacement = getTrackLabelPlacement(
-    Math.min(startPercent, ...markPercents),
-    Math.max(endPercent, ...markPercents)
-  )
+  const hasSpan = timedInvitations.length > 0 && periodStart
+  const startPercent = hasSpan ? domain.percentOf(periodStart) : 0
+  const endPercent = hasSpan ? domain.percentOf(periodEnd ?? periodStart) : 0
+  const isOpenEnded = (end) => !!end && end > domain.end
+  const windows = timedInvitations.map((invitation) => {
+    const windowEnd = getWindowEnd(invitation)
+    const left = domain.percentOf(invitation.cdate)
+    const right = domain.percentOf(windowEnd ?? invitation.cdate)
+    return {
+      invitation,
+      left,
+      width: right - left,
+      isMoment: right - left < momentThresholdPercent,
+      isOpenEnded: isOpenEnded(windowEnd),
+      ...getSpanTiming(invitation.cdate, windowEnd, domain.end),
+    }
+  })
+  // Anything running past the axis stops short of its edge and trails off in dots, coloured like
+  // the bar that continues — a step's window if one does, else the stage's span.
+  const continuingWindow = windows.findLast((p) => !p.isMoment && p.isOpenEnded)
+  let continuesAs = null
+  if (continuingWindow) continuesAs = continuingWindow.timing
+  else if (hasSpan && isOpenEnded(periodEnd)) continuesAs = 'span'
 
   return (
-    <div
-      className={`timeline-track stage-track ${statusColor}`}
-      style={{ width: timelineTrackWidth, flex: `0 0 ${timelineTrackWidth}px` }}
+    <button
+      type="button"
+      className={`overview-row${isOpen ? ' current' : ''}`}
+      onClick={() => onSelect(workflowStageName)}
+      title={`${prettyField(workflowStageName)} — ${stageStatusFilterLabels[status.stageStatus]}`}
     >
-      <TimelineGrid domain={domain} />
-      {!isMoment && (
-        <div
-          className={`stage-envelope${openEndClass(periodEnd, domain)}`}
-          style={{ left: `${startPercent}%`, width: `${endPercent - startPercent}%` }}
-        />
-      )}
-      <div className={`stage-period${labelPlacement.className}`} style={labelPlacement.style}>
-        <WorkflowStagePeriod workflowStage={workflowStage} />
-      </div>
-      {timedInvitations.map((invitation) => {
-        const stepStart = domain.percentOf(invitation.cdate)
-        const stepExpDate = getWindowEnd(invitation)
-        const stepEnd = domain.percentOf(stepExpDate ?? invitation.cdate)
-        const stepWidth = stepEnd - stepStart
-        const tooltip = `${prettyInvitationId(invitation.id)}: ${formatDateTime(
-          invitation.cdate,
-          { second: undefined, minute: undefined, hour: undefined }
-        )}${
-          stepExpDate
-            ? ` – ${formatDateTime(stepExpDate, {
-                second: undefined,
-                minute: undefined,
-                hour: undefined,
-              })}`
-            : ''
-        }`
-
-        return stepWidth < momentThresholdPercent ? (
-          <div
-            key={invitation.id}
-            className="stage-moment"
-            style={{ left: `${stepStart}%` }}
-            title={tooltip}
-          />
+      <span className="overview-index">{stageIndex + 1}</span>
+      <span className="overview-name">{prettyField(workflowStageName)}</span>
+      <span className={`timeline-track stage-track ${status.stageStatusColor} overview-track`}>
+        <TimelineGrid domain={domain} />
+        {hasSpan ? (
+          <>
+            {endPercent - startPercent >= momentThresholdPercent && (
+              <span
+                className={`stage-envelope${isOpenEnded(periodEnd) ? ' open-end' : ''}`}
+                style={{ left: `${startPercent}%`, width: `${endPercent - startPercent}%` }}
+              />
+            )}
+            {windows.map((p) =>
+              p.isMoment ? (
+                <span
+                  key={p.invitation.id}
+                  className={`stage-moment ${getMomentState(p.invitation, processLogs)}`}
+                  style={{ left: `${p.left}%` }}
+                />
+              ) : (
+                <span
+                  key={p.invitation.id}
+                  className={`stage-window ${p.timing}${p.isOpenEnded ? ' open-end' : ''}`}
+                  style={{ left: `${p.left}%`, width: `${p.width}%`, ...p.style }}
+                />
+              )
+            )}
+            {continuesAs && (
+              <span
+                className={`track-continues ${continuesAs}`}
+                title="Continues past the end of the timeline"
+              />
+            )}
+          </>
         ) : (
-          <div
-            key={invitation.id}
-            className={`stage-window${openEndClass(stepExpDate, domain)}`}
-            style={{ left: `${stepStart}%`, width: `${stepWidth}%` }}
-            title={tooltip}
-          />
-        )
-      })}
-    </div>
+          <span className="track-ongoing">No end date</span>
+        )}
+      </span>
+      <span className="overview-period">
+        <WorkflowStagePeriod workflowStage={workflowStage} />
+      </span>
+      <StageStatusIcon status={status} />
+    </button>
   )
 }
 
-// A step's own bar, on the same axis as the stage envelope above it. Solid means its window
-// contains today, hollow means it has not started, muted means it is done — so what is running
-// is legible from position alone, without a status chip on every row.
-const WorkflowStepTrack = ({ invitation, isStageInvitation, domain, dateContent }) => {
-  if (isOngoingInvitation(invitation)) {
+// A stage's own span, padded so a bar never touches the column edge. Inside an open stage the
+// steps are drawn on this local axis rather than the venue's months, so a two-week window is a
+// bar you can read. Ticks suit the span: weekly for a fortnight, fortnightly for a couple of
+// months, monthly beyond that.
+const getLocalDomain = (workflowStage) => {
+  const timedInvitations = workflowStage.invitationsOfWorkflowStageName.filter(
+    (p) => !isOngoingInvitation(p)
+  )
+  if (!timedInvitations.length) return null
+  const boundStart = Math.min(...timedInvitations.map((p) => p.cdate))
+  const boundEnd = Math.max(...timedInvitations.map((p) => getWindowEnd(p) ?? p.cdate))
+  const span = Math.max(boundEnd - boundStart, 4 * dayMs)
+  const start = boundStart - span * 0.1
+  const end = boundEnd + span * 0.1
+  const total = end - start
+  const spanDays = span / dayMs
+  // The smallest interval that keeps the axis to about four ticks.
+  const tickDays = [7, 14, 30, 61, 91, 182].find((p) => spanDays / p <= 4) ?? 365
+  const ticks = []
+  for (
+    let cursor = dayjs(start).startOf('day').valueOf();
+    cursor < end;
+    cursor += tickDays * dayMs
+  ) {
+    if (cursor > start) ticks.push(cursor)
+  }
+  return {
+    start,
+    end,
+    ticks,
+    boundStart,
+    boundEnd,
+    // As in the stage's own dates, years appear only when the span crosses one.
+    crossesYear: dayjs(boundStart).year() !== dayjs(boundEnd).year(),
+    percentOf: (timestamp) => Math.max(0, Math.min(100, ((timestamp - start) / total) * 100)),
+  }
+}
+
+// The stage's start and end are solid lines with the padding outside them shaded; on the axis
+// row the two boundary dates are labelled in bold, and tick labels that would collide with them
+// are dropped.
+const LocalGrid = ({ domain, showLabels }) => {
+  const startPercent = domain.percentOf(domain.boundStart)
+  const endPercent = domain.percentOf(domain.boundEnd)
+  // A tick label is dropped when it would run into a boundary label or the label before it.
+  // Boundary labels carry a year when the stage crosses one, so they need more room.
+  const minLabelGapPercent = domain.crossesYear ? 24 : 16
+  let lastLabelPercent = startPercent
+  const shownLabelTicks = new Set(
+    domain.ticks.filter((tick) => {
+      const percent = domain.percentOf(tick)
+      if (
+        percent - lastLabelPercent < minLabelGapPercent ||
+        endPercent - percent < minLabelGapPercent
+      )
+        return false
+      lastLabelPercent = percent
+      return true
+    })
+  )
+  const now = Date.now()
+  return (
+    <>
+      <span className="local-outside" style={{ left: 0, width: `${startPercent}%` }} />
+      <span className="local-outside" style={{ left: `${endPercent}%`, right: 0 }} />
+      {domain.ticks.map((tick) => {
+        const percent = domain.percentOf(tick)
+        if (percent <= startPercent || percent >= endPercent) return null
+        return (
+          <span key={tick} className="local-tick" style={{ left: `${percent}%` }}>
+            {showLabels && shownLabelTicks.has(tick) && (
+              <span className="local-tick-label">{formatShortDate(tick)}</span>
+            )}
+          </span>
+        )
+      })}
+      <span className="local-bound start" style={{ left: `${startPercent}%` }}>
+        {showLabels && (
+          <span className="local-bound-label">
+            {formatShortDate(domain.boundStart, domain.crossesYear)}
+          </span>
+        )}
+      </span>
+      {endPercent - startPercent > 0.5 && (
+        <span className="local-bound end" style={{ left: `${endPercent}%` }}>
+          {showLabels && (
+            <span className="local-bound-label">
+              {formatShortDate(domain.boundEnd, domain.crossesYear)}
+            </span>
+          )}
+        </span>
+      )}
+      {now > domain.start && now < domain.end && (
+        <span
+          className="timeline-now"
+          style={{ left: `${domain.percentOf(now)}%` }}
+          title={`Today · ${formatShortDate(now, true)}`}
+        />
+      )}
+    </>
+  )
+}
+
+// A step's own bar on its stage's axis: grey where it is past, blue from today to its end, striped
+// if it has not started. A dot takes its step's state: ran, running, upcoming or failed.
+const WorkflowStepTrack = ({ invitation, isStageInvitation, domain, processLogs }) => {
+  if (isOngoingInvitation(invitation) || !domain) {
     return (
-      <div
-        className="timeline-track step-track ongoing"
-        style={{ width: timelineTrackWidth, flex: `0 0 ${timelineTrackWidth}px` }}
-      >
-        <TimelineGrid domain={domain} />
-        <div className="track-ongoing" title="No end date — listed under Ongoing">
-          Ongoing
-        </div>
+      <div className="timeline-track step-track local-track ongoing">
+        {domain && <LocalGrid domain={domain} />}
+        <span className="track-ongoing">No end date</span>
       </div>
     )
   }
   const expdate = isStageInvitation ? getInvitationExpDate(invitation) : null
+  const duedate = invitation.duedate ?? invitation.edit?.invitation?.duedate
   const startPercent = domain.percentOf(invitation.cdate)
   const endPercent = domain.percentOf(expdate ?? invitation.cdate)
-  const isMoment = endPercent - startPercent < momentThresholdPercent
-  const labelPlacement = getTrackLabelPlacement(startPercent, endPercent)
-  const now = Date.now()
-  const state =
-    invitation.cdate > now ? 'upcoming' : expdate && expdate > now ? 'running' : 'done'
+  const isMoment = endPercent - startPercent < 1.5
+  const windowTiming = getSpanTiming(invitation.cdate, expdate)
+  const labelEnd = duedate ?? expdate
+  // A window that crosses a year puts it on its end date, so it never reads backwards.
+  const labelEndCrossesYear =
+    !!labelEnd && dayjs(labelEnd).year() !== dayjs(invitation.cdate).year()
+  const label = `${formatShortDate(invitation.cdate)}${
+    labelEnd ? ` – ${formatShortDate(labelEnd, labelEndCrossesYear)}` : ''
+  }`
+  // The label goes right of the bar, else left of it; a bar spanning most of the column carries
+  // its label inside, so it never spills into the step column.
+  let placement = 'inside'
+  if (endPercent <= 62) placement = 'right'
+  else if (startPercent >= 38) placement = 'left'
+  const labelStyle = {
+    right: { left: `${endPercent}%` },
+    left: { right: `${100 - startPercent}%` },
+    inside: { left: `${startPercent}%` },
+  }[placement]
 
   return (
-    <div
-      className={`timeline-track step-track ${state}`}
-      style={{ width: timelineTrackWidth, flex: `0 0 ${timelineTrackWidth}px` }}
-    >
-      <TimelineGrid domain={domain} />
-      <div
-        className={isMoment ? 'step-moment' : `step-window${openEndClass(expdate, domain)}`}
+    <div className="timeline-track step-track local-track">
+      <LocalGrid domain={domain} />
+      <span
+        className={
+          isMoment
+            ? `step-moment ${getMomentState(invitation, processLogs)}`
+            : `step-window ${windowTiming.timing}`
+        }
         style={
           isMoment
             ? { left: `${startPercent}%` }
-            : { left: `${startPercent}%`, width: `${endPercent - startPercent}%` }
+            : {
+                left: `${startPercent}%`,
+                width: `${endPercent - startPercent}%`,
+                ...windowTiming.style,
+              }
         }
       />
-      <div className={`step-dates${labelPlacement.className}`} style={labelPlacement.style}>
-        {dateContent}
-      </div>
+      <span
+        className={`step-dates${placement === 'left' ? ' before-bar' : ''}${
+          placement === 'inside' ? ' inside-bar' : ''
+        }`}
+        style={labelStyle}
+      >
+        <span className="cdate">{label}</span>
+      </span>
     </div>
   )
 }
@@ -399,6 +537,13 @@ const StageStatusGlyph = ({ statusColor }) => (
     )}
     {statusColor === 'default' && (
       <circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
+    )}
+    {statusColor === 'warning' && (
+      <>
+        <circle cx="7" cy="7" r="6.5" fill="currentColor" />
+        <path d="M7 3.4v4.4" stroke="#2b2100" strokeWidth="1.7" strokeLinecap="round" />
+        <circle cx="7" cy="10.3" r="0.95" fill="#2b2100" />
+      </>
     )}
   </svg>
 )
@@ -448,24 +593,40 @@ const getRecruitmentCounts = (group) => {
   const declinedGroup = group.subGroups?.find((p) => p.id.endsWith('/Declined'))
   if (!invitedGroup && !declinedGroup) return null
 
-  const members = group.members?.length ?? 0
+  const accepted = group.members?.length ?? 0
   const invited = invitedGroup?.members?.length ?? 0
   const declined = declinedGroup?.members?.length ?? 0
+  const declinedIds = declinedGroup?.members ?? []
+  const acceptedIds = group.members ?? []
   return {
+    invited,
+    declined,
+    accepted,
     // Everyone still holding an invitation — what a reminder goes to. Assumes members arrived
     // through recruitment, so it floors at zero for roles whose members were added directly.
-    awaiting: Math.max(0, invited - declined - members),
+    awaiting: Math.max(0, invited - declined - accepted),
+    people: {
+      pending: (invitedGroup?.members ?? []).filter(
+        (p) => !declinedIds.includes(p) && !acceptedIds.includes(p)
+      ),
+      declined: declinedIds,
+      accepted: acceptedIds,
+    },
   }
 }
 
 // The process log reduces to a status and, when the function said something, a message.
 const getProcessLogStatus = (processLogs) => {
+  // A step scheduled to run again has a queued log, which would otherwise hide a failed last run.
   const runningLog = processLogs.find((p) => p.status === 'running')
-  const log = runningLog ?? processLogs[0]
+  const lastRun = processLogs.find((p) => p.status === 'ok' || p.status === 'error')
+  const log = runningLog ?? (lastRun?.status === 'error' ? lastRun : processLogs[0])
   if (!log) return null
   return {
     status: log.status,
     message: log.log?.[log.log.length - 1] ?? null,
+    // A failed run keeps its error apart from the log lines it printed.
+    error: log.error ? [log.error.name, log.error.message].filter(Boolean).join(': ') : null,
     logUrl: `${process.env.API_V2_URL}/logs/process?id=${log.id}`,
   }
 }
@@ -521,7 +682,10 @@ const WorkflowStepStatus = ({
   const lastRun = processLogs.find((p) => p.status === 'ok' || p.status === 'error')
   const phrase = getSchedulePhrase(invitation, isStageInvitation, lastRun, hasDateProcess)
   const message = log?.status === 'running' ? 'Running…' : log?.message
-  const statusText = `${phrase}.${message ? ` ${message}` : ''}`
+  // A failed run's error gets a line of its own under the schedule, so it shows on the collapsed
+  // step without opening it.
+  const errorText = isError ? (log.error ?? log.message) : null
+  const statusText = `${phrase}.${message && !errorText ? ` ${message}` : ''}`
   // Running is a real action — it moves the step's activation date to now — so it is one link
   // whose label says what it will do in this state, behind a confirmation. "Run again" only
   // once a completed run exists; a step rescheduled after running is still a re-run.
@@ -539,6 +703,11 @@ const WorkflowStepStatus = ({
       <span className="step-status-text" title={statusText}>
         {statusText}
       </span>
+      {errorText && (
+        <span className="step-status-error" title={errorText}>
+          <span className="step-status-error-text">{errorText}</span>
+        </span>
+      )}
       {runLabel && (
         <Popconfirm
           title={`${runLabel}?`}
@@ -651,6 +820,7 @@ const WorkflowInvitationRow = ({
   workflowTasks,
   isStageInvitation,
   showDescription = true,
+  descriptionSlot = null,
 }) => {
   const [showEditor, setShowEditor] = useState(false)
   const { user } = useUser()
@@ -783,6 +953,7 @@ const WorkflowInvitationRow = ({
               <a>{isExpired ? 'Enable' : 'Disable'}</a>
             </div>
           </Flex>
+          {descriptionSlot}
           <WorkflowStepStatus
             invitation={invitation}
             isStageInvitation={isStageInvitation}
@@ -1000,15 +1171,38 @@ const SubInvitationRow = ({
 
 // Timeline, Ongoing and Groups open the same way: the title, an optional action beside it, and a
 // line on what the section holds.
-const WorkflowSectionHeading = ({ title, action, description }) => (
-  <>
-    <div className="workflow-section-heading">
-      <h4>{title}</h4>
-      {action}
-    </div>
-    {description && <p className="workflow-section-intro">{description}</p>}
-  </>
-)
+// A section that opens and closes (PC Actions) gets a caret before its title; both toggle it.
+const WorkflowSectionHeading = ({ title, action, description, isOpen, onToggle }) => {
+  const { token } = theme.useToken()
+  return (
+    <>
+      <div className="workflow-section-heading">
+        {onToggle ? (
+          <div
+            className="section-toggle"
+            role="button"
+            tabIndex={0}
+            aria-expanded={isOpen}
+            onClick={onToggle}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                onToggle()
+              }
+            }}
+          >
+            <CaretRightOutlined rotate={isOpen ? 90 : 0} style={{ color: token.colorLink }} />
+            <h4>{title}</h4>
+          </div>
+        ) : (
+          <h4>{title}</h4>
+        )}
+        {action}
+      </div>
+      {description && <p className="workflow-section-intro">{description}</p>}
+    </>
+  )
+}
 
 // Every link that leaves the workflow configuration carries it as the referrer, so the page it
 // lands on offers a way back.
@@ -1019,77 +1213,206 @@ const groupUrl = (groupId, domain, { edit = false } = {}) =>
     getWorkflowReferrer(domain)
   )}`
 
-const GroupLink = ({ group }) => (
-  <>
-    {group.web ? (
-      <a href={groupUrl(group.id, group.domain)}>
-        <span className="group-id">{prettyId(group.id, true)}</span>
-      </a>
-    ) : (
-      <span className="group-id">{prettyId(group.id, true)}</span>
-    )}
-    <a
-      className="id-icon"
-      href={groupUrl(group.id, group.domain, { edit: true })}
-      aria-label="Edit group"
-    >
-      <Icon name="new-window" />
-    </a>
-  </>
+const formatCount = (count) => count.toLocaleString('en-US')
+
+// Proportion of invitations by answer. Each segment is also stated in the text beside it.
+const RecruitmentMeter = ({ accepted, awaiting, declined }) => {
+  const total = Math.max(accepted + awaiting + declined, 1)
+  const toPercent = (count) => `${(count / total) * 100}%`
+  return (
+    <div className="rec-meter" aria-hidden="true">
+      <span className="rec-seg accepted" style={{ width: toPercent(accepted) }} />
+      <span className="rec-seg awaiting" style={{ width: toPercent(awaiting) }} />
+      <span className="rec-seg declined" style={{ width: toPercent(declined) }} />
+    </div>
+  )
+}
+
+const RecruitmentCounts = ({ counts }) => (
+  <p className="rec-legend">
+    <span>
+      <span className="rec-key accepted" aria-hidden="true" />
+      <strong>{formatCount(counts.accepted)}</strong> accepted
+    </span>
+    <span>
+      <span className="rec-key awaiting" aria-hidden="true" />
+      <strong>{formatCount(counts.awaiting)}</strong> not replied
+    </span>
+    <span>
+      <span className="rec-key declined" aria-hidden="true" />
+      <strong>{formatCount(counts.declined)}</strong> declined
+    </span>
+    <span className="rec-of">of {formatCount(counts.invited)} invited</span>
+  </p>
 )
 
-// One card per workflow group. `counts` is null for groups that are not recruited (Program Chairs,
-// Authors); they get the same card without the funnel.
-const CommitteeRoleCard = ({ group, groupInvitations, counts, reloadGroup }) => {
-  const [activeGroupInvitation, setActivateGroupInvitation] = useState(null)
+const peopleListTabs = [
+  { value: 'pending', label: 'Not replied' },
+  { value: 'declined', label: 'Declined' },
+  { value: 'accepted', label: 'Accepted' },
+]
+
+const PeopleList = ({ people, onClose }) => {
+  const [activeTab, setActiveTab] = useState('pending')
+  const shownPeople = people[activeTab]
+  return (
+    <div className="rec-panel">
+      <div className="rec-panel-head">
+        <Segmented
+          className="stage-filter"
+          size="small"
+          options={peopleListTabs}
+          value={activeTab}
+          onChange={setActiveTab}
+        />
+        <button type="button" className="rec-link" onClick={onClose}>
+          Close
+        </button>
+      </div>
+      {shownPeople.length ? (
+        <ul className="rec-people">
+          {shownPeople.slice(0, 8).map((p) => (
+            <li key={p}>
+              <a href={p.startsWith('~') ? `/profile?id=${p}` : undefined}>{p}</a>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="rec-empty">Nobody here yet.</p>
+      )}
+      {shownPeople.length > 8 && (
+        <p className="rec-note">
+          Showing 8 of {formatCount(shownPeople.length)}. The full list is on the group page.
+        </p>
+      )}
+    </div>
+  )
+}
+
+// Groups: a view of every group in the venue with its size. A recruited group also shows how its
+// invitations stand; inviting and reminding are PC actions, so the row links there.
+const GroupRow = ({ group, counts, onOpenRecruitment }) => {
+  const [showPeople, setShowPeople] = useState(false)
+  const memberCount = group.members?.length ?? 0
+  return (
+    <article className="rec-card">
+      <div className="rec-head">
+        <h5 className="rec-title">
+          <a href={groupUrl(group.id, group.domain, { edit: true })}>
+            {prettyId(group.id, true)}
+          </a>
+        </h5>
+        <span className="rec-members">{inflect(memberCount, 'member', 'members', true)}</span>
+        <a className="rec-open" href={groupUrl(group.id, group.domain, { edit: true })}>
+          Open group page
+        </a>
+      </div>
+      {group.description && (
+        <div className="rec-desc">
+          <Markdown text={group.description} />
+        </div>
+      )}
+      {counts && (
+        <div className="rec-counts">
+          <div className="rec-counts-label">Recruitment invitations</div>
+          {counts.invited ? (
+            <>
+              <RecruitmentMeter {...counts} />
+              <RecruitmentCounts counts={counts} />
+            </>
+          ) : (
+            <p className="rec-body">Nobody has been invited yet.</p>
+          )}
+          <div className="rec-actions">
+            {counts.invited > 0 && (
+              <button
+                type="button"
+                className="rec-link"
+                aria-expanded={showPeople}
+                onClick={() => setShowPeople((isShown) => !isShown)}
+              >
+                {showPeople ? 'Hide who' : 'See who'}
+              </button>
+            )}
+            <button
+              type="button"
+              className="rec-link"
+              onClick={() => onOpenRecruitment(group.id)}
+            >
+              Invite or remind in PC Actions
+            </button>
+          </div>
+          {showPeople && (
+            <PeopleList people={counts.people} onClose={() => setShowPeople(false)} />
+          )}
+        </div>
+      )}
+    </article>
+  )
+}
+
+// PC Actions: one row per recruited role. Invite and Remind open the role's own recruitment
+// invitations in the shared editor.
+const RecruitmentActionRow = ({ group, groupInvitations, counts, reloadGroup, focusTick }) => {
+  const [activeGroupInvitation, setActiveGroupInvitation] = useState(null)
+  const [isFlashing, setIsFlashing] = useState(false)
+  const rowRef = useRef(null)
   const roleName = prettyId(group.id, true)
+  const getActionLabel = (invitationId) => {
+    if (!isReminderInvitation(invitationId)) {
+      return getGroupInvitationLabel(invitationId, roleName.toLowerCase())
+    }
+    return counts?.awaiting ? `Remind ${formatCount(counts.awaiting)}` : 'Remind'
+  }
+
+  useEffect(() => {
+    if (!focusTick || !rowRef.current) return undefined
+    const element = rowRef.current
+    window.scrollTo({
+      top: element.getBoundingClientRect().top + window.scrollY - 120,
+      behavior: 'smooth',
+    })
+    element.querySelector('button')?.focus({ preventScroll: true })
+    setIsFlashing(true)
+    const timeout = setTimeout(() => setIsFlashing(false), 1200)
+    return () => clearTimeout(timeout)
+  }, [focusTick])
 
   return (
-    <div className={`committee-card${activeGroupInvitation ? ' active' : ''}`}>
-      <div className="committee-card-header">
-        <GroupLink group={group} />
-        <span className="member-count">
-          {inflect(group.members?.length ?? 0, 'member', 'members', true)}
+    <div className={`rec-action-row${isFlashing ? ' rec-flash' : ''}`} ref={rowRef}>
+      <div className="rec-action-head">
+        <span className="rec-action-name">Recruit {roleName}</span>
+        <span className="rec-action-state">
+          {counts?.invited
+            ? `${formatCount(counts.accepted)} accepted · ${formatCount(counts.awaiting)} not replied`
+            : 'Nobody invited yet'}
         </span>
-        {/* Each child group with its size: Invited and Declined for a recruited role, Accepted
-            for Authors. The role's own count is its accepted invitees. */}
-        {group.subGroups?.map((subGroup) => (
-          <span key={subGroup.id} className="committee-subgroup">
-            <a href={groupUrl(subGroup.id, subGroup.domain, { edit: true })}>
-              {prettyId(subGroup.id, true)}
-            </a>
-            <span className="member-count">{subGroup.members?.length ?? 0}</span>
-          </span>
-        ))}
-        <div className="committee-actions">
+        <div className="rec-actions inline">
           {groupInvitations.map((groupInvitation) => {
             const isActive = activeGroupInvitation?.id === groupInvitation.id
+            const isReminder = isReminderInvitation(groupInvitation.id)
             // Nothing to remind when nobody is holding an unanswered invitation.
-            const isDisabled = isReminderInvitation(groupInvitation.id) && !counts?.awaiting
-            // Every action opens an editor in the card; none outranks the others. The one that
-            // is open steps back so its Close reads as a way out, not another action.
+            const isDisabled = isReminder && !counts?.awaiting
             return (
               <Button
                 key={groupInvitation.id}
                 size="small"
-                type={isActive ? 'default' : 'primary'}
+                type={isActive || isReminder ? 'default' : 'primary'}
                 disabled={isDisabled}
                 title={prettyInvitationId(groupInvitation.id)}
-                onClick={() => setActivateGroupInvitation(isActive ? null : groupInvitation)}
+                onClick={() => setActiveGroupInvitation(isActive ? null : groupInvitation)}
               >
-                {isActive ? 'Close' : getGroupInvitationLabel(groupInvitation.id, roleName)}
+                {isActive ? 'Close' : getActionLabel(groupInvitation.id)}
               </Button>
             )
           })}
+          {groupInvitations.some((p) => isReminderInvitation(p.id)) && !counts?.awaiting && (
+            <span className="rec-why">Nobody is waiting on a reply.</span>
+          )}
         </div>
       </div>
-
-      <div className="group-description">
-        <Markdown text={group.description} />
-      </div>
-
       {activeGroupInvitation && (
-        <div className="committee-editor">
+        <div className="rec-panel">
           <div className="group-description">
             <Markdown text={activeGroupInvitation.description} />
           </div>
@@ -1097,22 +1420,57 @@ const CommitteeRoleCard = ({ group, groupInvitations, counts, reloadGroup }) => 
             className="workflow-editor"
             invitation={activeGroupInvitation}
             existingValue={{}}
-            closeInvitationEditor={() => setActivateGroupInvitation(null)}
+            closeInvitationEditor={() => setActiveGroupInvitation(null)}
             onInvitationEditPosted={() => {
               promptMessage('Edit is posted')
-              // Fresh counts for the funnel.
               reloadGroup()
             }}
             isGroupInvitation={true}
           />
-          <div className="committee-editor-source">
-            {prettyInvitationId(activeGroupInvitation.id)}
-          </div>
         </div>
       )}
     </div>
   )
 }
+
+// Venue information and emergency shutdown each have their own tab — one is a long form, the
+// other needs its warning and typed confirmation — so these rows switch to it.
+const openGroupTab = (tabId) => {
+  document.querySelector(`a[role="tab"][href="#${tabId}"]`)?.click()
+  window.scrollTo({ top: 0 })
+}
+
+const VenueActions = () => (
+  <div className="ongoing-step rec-action-group">
+    <div className="ongoing-stage">Venue</div>
+    <div className="rec-action-row">
+      <div className="rec-action-head">
+        <span className="rec-action-name">Venue information</span>
+        <span className="rec-action-state">
+          Title, dates, location, contact and the venue&apos;s settings
+        </span>
+        <div className="rec-actions inline">
+          <Button size="small" onClick={() => openGroupTab('groupContent')}>
+            Edit venue information
+          </Button>
+        </div>
+      </div>
+    </div>
+    <div className="rec-action-row">
+      <div className="rec-action-head">
+        <span className="rec-action-name">Emergency shutdown</span>
+        <span className="rec-action-state">
+          Suspends all access for everyone except the organizers
+        </span>
+        <div className="rec-actions inline">
+          <Button size="small" danger onClick={() => openGroupTab('emergencyShutdown')}>
+            Emergency shutdown…
+          </Button>
+        </div>
+      </div>
+    </div>
+  </div>
+)
 
 const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   const [stageToAdd, setStageToAdd] = useState(null)
@@ -1208,7 +1566,7 @@ const WorkflowStagePeriod = ({ workflowStage }) => {
   if (!periodStart) {
     return (
       <Typography.Text type="secondary" italic>
-        Ongoing
+        No end date
       </Typography.Text>
     )
   }
@@ -1257,14 +1615,18 @@ const WorkFlowInvitations = ({ group }) => {
   )
 
   const [stageStatusFilter, setStageStatusFilter] = useState('all')
-  // The Ongoing list can run long, so it starts collapsed.
+  // PC Actions can run long, so it starts collapsed.
   const [isOngoingOpen, setIsOngoingOpen] = useState(false)
+  // Which recruited role PC Actions should scroll to, and a tick so a repeat request re-fires.
+  const [recruitmentFocus, setRecruitmentFocus] = useState({ groupId: null, tick: 0 })
 
   // Built from every stage, not the filtered ones, so the axis does not rescale while filtering.
   const timelineDomain = getTimelineDomain(workflowStages)
+  const getWorkflowStageStatus = (workflowStage) =>
+    getStageStatus(workflowStage.invitationsOfWorkflowStageName, processLogs)
 
   const stageStatusCounts = workflowStages.reduce((counts, p) => {
-    const { stageStatus } = getStageStatus(p.invitationsOfWorkflowStageName)
+    const { stageStatus } = getWorkflowStageStatus(p)
     return { ...counts, [stageStatus]: (counts[stageStatus] ?? 0) + 1 }
   }, {})
   // "All" carries no count: the Timeline heading shows how many stages are listed.
@@ -1286,8 +1648,7 @@ const WorkFlowInvitations = ({ group }) => {
     stageStatusFilter === 'all'
       ? workflowStages
       : workflowStages.filter(
-          (p) =>
-            getStageStatus(p.invitationsOfWorkflowStageName).stageStatus === stageStatusFilter
+          (p) => getWorkflowStageStatus(p).stageStatus === stageStatusFilter
         )
 
   const getGroupInvitations = (targetGroupId) =>
@@ -1298,20 +1659,25 @@ const WorkFlowInvitations = ({ group }) => {
   const committeeGroups = Array.from(workflowGroups.values()).map((committeeGroup) => ({
     group: committeeGroup,
     counts: getRecruitmentCounts(committeeGroup),
+    groupInvitations: getGroupInvitations(committeeGroup.id),
   }))
+  const recruitedGroups = committeeGroups.filter((p) => p.groupInvitations.length > 0)
 
-  // Ongoing: steps with no end date, still listed in their stage but off the timeline. The venue's
-  // information and home page are edited from their own tabs, membership under Workflow Groups.
-  const ongoingSteps = workflowStages.flatMap((p) =>
-    p.invitationsOfWorkflowStageName.filter((q) => isOngoingInvitation(q))
-  )
+  // PC Actions: steps with no end date, still listed in their stage but off the timeline, plus
+  // recruitment and the venue-level actions.
+  // Recruitment and assignment steps stay in their stages only: recruiting already has its own
+  // rows here, and assignments are configured where their stage sits on the timeline.
+  const isStageKeptOutOfPcActions = (workflowStageName) =>
+    /^(recruitment|assignment)\b/i.test(workflowStageName)
+  const ongoingSteps = workflowStages
+    .filter((p) => !isStageKeptOutOfPcActions(p.workflowStageName))
+    .flatMap((p) => p.invitationsOfWorkflowStageName.filter((q) => isOngoingInvitation(q)))
+  const pcActionCount = ongoingSteps.length + recruitedGroups.length + 2
+
   const { token } = theme.useToken()
-  // An open stage gets one platform tint; its status is already carried by the tag and bars.
-  const openStageBackground = '#f0f1ef'
-
   const [activeStageKeys, setActiveStageKeys] = useState(null)
   const defaultOpenStageKey = workflowStages.find(
-    (p) => getStageStatus(p.invitationsOfWorkflowStageName).stageStatus === 'IN PROGRESS'
+    (p) => getWorkflowStageStatus(p).stageStatus === 'IN PROGRESS'
   )?.workflowStageName
   const openStageKeys = activeStageKeys ?? [defaultOpenStageKey]
   const openWorkflowStage = (workflowStageName) => {
@@ -1322,6 +1688,34 @@ const WorkFlowInvitations = ({ group }) => {
         ? currentKeys
         : [...currentKeys, workflowStageName]
     })
+  }
+  const toggleWorkflowStage = (workflowStageName) =>
+    setActiveStageKeys(
+      openStageKeys.includes(workflowStageName)
+        ? openStageKeys.filter((p) => p !== workflowStageName)
+        : [...openStageKeys, workflowStageName]
+    )
+
+  // The overview strip, and the mini strip once the overview has scrolled away.
+  const overviewRef = useRef(null)
+  const [isMiniStripVisible, setIsMiniStripVisible] = useState(false)
+  const scrollToElement = (element, offset) =>
+    window.scrollTo({
+      top: element.getBoundingClientRect().top + window.scrollY - offset,
+      behavior: 'smooth',
+    })
+  // Picking a stage from the timeline shows only that stage, then scrolls to it once the
+  // others have collapsed, since closing a stage above shifts the target.
+  const selectWorkflowStage = (workflowStageName) => {
+    setActiveStageKeys([workflowStageName])
+    setTimeout(() => {
+      const element = document.getElementById(`stage-${workflowStageName}`)
+      if (element) scrollToElement(element, 64)
+    }, 0)
+  }
+  const openRecruitment = (targetGroupId) => {
+    setIsOngoingOpen(true)
+    setRecruitmentFocus(({ tick }) => ({ groupId: targetGroupId, tick: tick + 1 }))
   }
 
   const sortWorkflowInvitations = (invitations) => {
@@ -1528,7 +1922,7 @@ const WorkFlowInvitations = ({ group }) => {
         '/logs/process',
         {
           invitation: `${groupId}.*`,
-          select: 'id,sdate,edate,invitation,status,log',
+          select: 'id,sdate,edate,invitation,status,log,error',
         },
         { resultsKey: 'logs' }
       )
@@ -1710,7 +2104,7 @@ const WorkFlowInvitations = ({ group }) => {
   const renderWorkflowInvitation = (
     stepObj,
     isInWorkflowStage,
-    { inOngoing = false } = {}
+    { inOngoing = false, localDomain = null } = {}
   ) => {
     const {
       id,
@@ -1722,9 +2116,11 @@ const WorkFlowInvitations = ({ group }) => {
       isStageInvitation,
     } = stepObj
     const isRowCollapsed = collapsedWorkflowInvitationIds.includes(id)
-    // On the timeline an opened step spans beneath its row, across the bar column, as in the
-    // mock; left inside the narrow info column its configuration wrapped to a sliver.
-    const isOnTimeline = isInWorkflowStage && !!timelineDomain
+    // A step in a stage, or under PC Actions, is a two-column row: the step, then its bar on the
+    // stage's own axis. The description stays visible collapsed or not; opening the step adds
+    // only its configuration, spanning both columns.
+    const isHybridRow = isInWorkflowStage || inOngoing
+    const description = stepObj.instructions ?? stepObj.description
     const subInvitationsBlock = subInvitations.length > 0 && (
       <motion.div
         initial={false}
@@ -1750,77 +2146,88 @@ const WorkFlowInvitations = ({ group }) => {
         ))}
       </motion.div>
     )
+    const invitationRow = (
+      <WorkflowInvitationRow
+        invitation={stepObj}
+        subInvitations={subInvitations}
+        isDomainGroup={group.id !== group.domain}
+        processLogs={processLogs}
+        isExpired={isExpired}
+        loadWorkflowInvitations={loadAllInvitations}
+        isMissingValue={isMissingValue}
+        collapsedWorkflowInvitationIds={collapsedWorkflowInvitationIds}
+        handleExpandCollapseSubInvitations={handleExpandCollapseSubInvitations}
+        workflowTasks={workflowTasks}
+        isStageInvitation={isStageInvitation}
+        showDescription={!isHybridRow}
+        descriptionSlot={
+          isHybridRow && (
+            <div className="invitation-description step-blurb">
+              <a
+                href="#"
+                className="edit-close-button"
+                onClick={(e) => {
+                  e.preventDefault()
+                  handleExpandCollapseSubInvitations(id)
+                }}
+              >
+                {isRowCollapsed ? 'Edit' : 'Close'}
+              </a>
+              {description && <Markdown text={description} />}
+            </div>
+          )
+        }
+      />
+    )
     return (
       <motion.div
         layout="position"
         key={id}
         transition={{ duration: 0.5 }}
         ref={(el) => {
-          // The copy in the Ongoing section must not take the ref used to scroll back to a step.
+          // The copy in PC Actions must not take the ref used to scroll back to a step.
           if (!inOngoing) workflowInvitationsRef.current[id] = el
         }}
         className="motion-div"
       >
-        <div
-          className={`workflow-invitation-container${isExpired ? ' expired' : ''}${
-            inOngoing
-              ? ' ongoing-step-row'
-              : isInWorkflowStage && timelineDomain
-                ? ' in-stage'
-                : sectionClass
-          }`}
-          style={isInWorkflowStage || inOngoing ? { width: '100%' } : undefined}
-        >
-          {/* In Ongoing the status line already says "Available since …"; a second date column there
-              only squeezed and wrapped. */}
-          {!isOnTimeline && !inOngoing && (
-            <div className="invitation-cdate">{formattedDate}</div>
-          )}
-          <div className="edit-invitation-info">
-            <WorkflowInvitationRow
+        {isHybridRow ? (
+          <div
+            className={`workflow-invitation-container hybrid-row${isExpired ? ' expired' : ''}`}
+          >
+            <div className="edit-invitation-info">{invitationRow}</div>
+            <WorkflowStepTrack
               invitation={stepObj}
-              subInvitations={subInvitations}
-              isDomainGroup={group.id !== group.domain}
-              processLogs={processLogs}
-              isExpired={isExpired}
-              loadWorkflowInvitations={loadAllInvitations}
-              isMissingValue={isMissingValue}
-              collapsedWorkflowInvitationIds={collapsedWorkflowInvitationIds}
-              handleExpandCollapseSubInvitations={handleExpandCollapseSubInvitations}
-              workflowTasks={workflowTasks}
               isStageInvitation={isStageInvitation}
-              showDescription={!isOnTimeline}
+              domain={localDomain}
+              processLogs={processLogs}
             />
-            {!isOnTimeline && subInvitationsBlock}
+            {!isRowCollapsed && subInvitations.length > 0 && (
+              <div className="edit-invitation-info step-expanded">{subInvitationsBlock}</div>
+            )}
           </div>
-          {isOnTimeline && (
-            <>
-              <WorkflowStepTrack
-                invitation={stepObj}
-                isStageInvitation={isStageInvitation}
-                domain={timelineDomain}
-                dateContent={formattedDate}
-              />
-              <span
-                style={{
-                  width: timelineStatusWidth + timelineGap,
-                  flex: `0 0 ${timelineStatusWidth + timelineGap}px`,
-                }}
-              />
-              <div className="edit-invitation-info step-expanded">
-                {!isRowCollapsed && (stepObj.instructions ?? stepObj.description) && (
-                  <div className="invitation-description">
-                    <Markdown text={stepObj.instructions ?? stepObj.description} />
-                  </div>
-                )}
-                {subInvitationsBlock}
-              </div>
-            </>
-          )}
-        </div>
+        ) : (
+          <div
+            className={`workflow-invitation-container${isExpired ? ' expired' : ''}${sectionClass}`}
+          >
+            <div className="invitation-cdate">{formattedDate}</div>
+            <div className="edit-invitation-info">
+              {invitationRow}
+              {subInvitationsBlock}
+            </div>
+          </div>
+        )}
       </motion.div>
     )
   }
+
+  useEffect(() => {
+    if (!workflowInvitations?.length || !overviewRef.current) return undefined
+    const observer = new IntersectionObserver(([entry]) =>
+      setIsMiniStripVisible(!entry.isIntersecting && entry.boundingClientRect.top < 0)
+    )
+    observer.observe(overviewRef.current)
+    return () => observer.disconnect()
+  }, [workflowInvitations?.length])
 
   useEffect(() => {
     if (workflowInvitations?.length > 0) {
@@ -1845,8 +2252,59 @@ const WorkFlowInvitations = ({ group }) => {
     }
   }, [events?.uniqueId])
 
+  const hasTimeline = workflowStages.length > 0 && !!timelineDomain
+
   return (
     <>
+      {hasTimeline && (
+        <nav
+          className={`mini-strip${isMiniStripVisible ? ' visible' : ''}`}
+          aria-label="Stages"
+          aria-hidden={!isMiniStripVisible}
+        >
+          <div className="mini-strip-inner">
+            <button
+              type="button"
+              className="mini-strip-label"
+              tabIndex={isMiniStripVisible ? 0 : -1}
+              onClick={() => scrollToElement(overviewRef.current, 16)}
+            >
+              Timeline ↑
+            </button>
+            <div className="mini-strip-stages">
+              {workflowStages.map((workflowStage, index) => {
+                const { workflowStageName } = workflowStage
+                const status = getWorkflowStageStatus(workflowStage)
+                const isOpen = openStageKeys.includes(workflowStageName)
+                return (
+                  <button
+                    type="button"
+                    key={workflowStageName}
+                    className={`mini-stage${isOpen ? ' current' : ''}`}
+                    tabIndex={isMiniStripVisible ? 0 : -1}
+                    aria-current={isOpen ? 'true' : undefined}
+                    onClick={() => selectWorkflowStage(workflowStageName)}
+                    title={`${prettyField(workflowStageName)} — ${stageStatusFilterLabels[status.stageStatus]}`}
+                  >
+                    <span
+                      className={`stage-status-glyph ${status.stageStatusColor}`}
+                      aria-hidden="true"
+                    >
+                      <StageStatusGlyph statusColor={status.stageStatusColor} />
+                    </span>
+                    <span className="mini-stage-index">{index + 1}</span>
+                    <span className="mini-stage-name">{prettyField(workflowStageName)}</span>
+                  </button>
+                )
+              })}
+            </div>
+            <span className="mini-strip-today">Today · {formatShortDate(Date.now())}</span>
+          </div>
+          <div className="mini-strip-progress" aria-hidden="true">
+            <span style={{ width: `${timelineDomain.percentOf(Date.now())}%` }} />
+          </div>
+        </nav>
+      )}
       <WorkflowTasks
         workflowTasks={workflowTasks}
         setCollapsedWorkflowInvitationIds={setCollapsedWorkflowInvitationIds}
@@ -1854,146 +2312,235 @@ const WorkFlowInvitations = ({ group }) => {
       />
       {workflowInvitations ? (
         workflowInvitations.length > 0 && (
-          <EditorSection className="workflow">
-            {/* The heading counts the stages listed, so a filter reads as "11 of 18 stages". */}
-            <WorkflowSectionHeading
-              title={`Timeline (${
-                stageStatusFilter === 'all'
-                  ? inflect(workflowStages.length, 'stage', 'stages', true)
-                  : `${visibleWorkflowStages.length} of ${inflect(workflowStages.length, 'stage', 'stages', true)}`
-              })`}
-              action={
-                workflowStages.length > 0 && (
-                  <Typography.Link
-                    onClick={() =>
-                      setActiveStageKeys(
-                        openStageKeys.length
-                          ? []
-                          : visibleWorkflowStages.map((p) => p.workflowStageName)
-                      )
-                    }
-                  >
-                    {openStageKeys.length ? 'Collapse all stages' : 'Expand all stages'}
-                  </Typography.Link>
-                )
-              }
-              description="The venue's stages in order. Expand a stage to see its steps, when each one runs and how it went, and to change their settings."
-            />
-            {/* Column headers: the filter over the stage names, the months over the bars. */}
-            <div className="workflow-invitations-header">
-              <div className="workflow-invitations-filter">
-                {stageFilterOptions.length > 2 && (
-                  <Segmented
-                    className="stage-filter"
-                    size="small"
-                    options={stageFilterOptions}
-                    value={stageStatusFilter}
-                    onChange={setStageStatusFilter}
+          <>
+            <EditorSection className="workflow stage-overview-section">
+              <div ref={overviewRef}>
+                {/* The heading counts the stages listed, so a filter reads as "3 of 7 stages". */}
+                <div className="workflow-section-heading">
+                  <h4>{`Timeline (${
+                    stageStatusFilter === 'all'
+                      ? inflect(workflowStages.length, 'stage', 'stages', true)
+                      : `${visibleWorkflowStages.length} of ${inflect(workflowStages.length, 'stage', 'stages', true)}`
+                  })`}</h4>
+                  {workflowStages.length > 0 && (
+                    <Typography.Link
+                      onClick={() =>
+                        setActiveStageKeys(
+                          openStageKeys.length
+                            ? []
+                            : visibleWorkflowStages.map((p) => p.workflowStageName)
+                        )
+                      }
+                    >
+                      {openStageKeys.length ? 'Collapse all stages' : 'Expand all stages'}
+                    </Typography.Link>
+                  )}
+                  {stageFilterOptions.length > 2 && (
+                    <Segmented
+                      className="stage-filter heading-filter"
+                      size="small"
+                      options={stageFilterOptions}
+                      value={stageStatusFilter}
+                      onChange={setStageStatusFilter}
+                    />
+                  )}
+                </div>
+                {hasTimeline && (
+                  <div className="stage-overview">
+                    <div className="overview-axis-row">
+                      <span className="overview-index" />
+                      <span className="overview-name" />
+                      <span className="timeline-track with-labels overview-track">
+                        <TimelineGrid domain={timelineDomain} showLabels={true} />
+                      </span>
+                      <span className="overview-period" />
+                      <span className="overview-status-spacer" />
+                    </div>
+                    {visibleWorkflowStages.map((workflowStage) => (
+                      <StageOverviewRow
+                        key={workflowStage.workflowStageName}
+                        workflowStage={workflowStage}
+                        stageIndex={workflowStages.indexOf(workflowStage)}
+                        status={getWorkflowStageStatus(workflowStage)}
+                        domain={timelineDomain}
+                        isOpen={openStageKeys.includes(workflowStage.workflowStageName)}
+                        onSelect={selectWorkflowStage}
+                        processLogs={processLogs}
+                      />
+                    ))}
+                    <div className="overview-legend">
+                      <span>
+                        <span className="legend-swatch legend-envelope" />
+                        stage span
+                      </span>
+                      <span>
+                        <span className="legend-swatch legend-window past" />
+                        past
+                      </span>
+                      <span>
+                        <span className="legend-swatch legend-window current" />
+                        ongoing
+                      </span>
+                      <span>
+                        <span className="legend-swatch legend-window future" />
+                        not started
+                      </span>
+                      <span>
+                        <span className="legend-swatch legend-moment done" />
+                        ran
+                      </span>
+                      <span>
+                        <span className="legend-swatch legend-moment running" />
+                        running
+                      </span>
+                      <span>
+                        <span className="legend-swatch legend-moment upcoming" />
+                        scheduled to run
+                      </span>
+                      <span>
+                        <span className="legend-swatch legend-moment failed" />
+                        failed
+                      </span>
+                      <span>
+                        <span className="legend-swatch legend-now" />
+                        today, {formatShortDate(Date.now(), true)}
+                      </span>
+                      <span className="legend-hint">
+                        Select a stage — its steps open below on the stage&apos;s own dates
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </EditorSection>
+
+            <EditorSection className="workflow stage-detail-section">
+              <div className="invitation-workflow-container">
+                {visibleWorkflowStages.map((workflowStage) => {
+                  const stageIndex = workflowStages.indexOf(workflowStage)
+                  const { workflowStageName, invitationsOfWorkflowStageName } = workflowStage
+                  const stageStatus = getWorkflowStageStatus(workflowStage)
+                  const isOpen = openStageKeys.includes(workflowStageName)
+                  const localDomain = getLocalDomain(workflowStage)
+                  return (
+                    <div
+                      className="stage-detail"
+                      id={`stage-${workflowStageName}`}
+                      key={workflowStageName}
+                    >
+                      <div
+                        className={`stage-detail-header${isOpen ? ' open' : ''}`}
+                        role="button"
+                        tabIndex={0}
+                        aria-expanded={isOpen}
+                        onClick={() => toggleWorkflowStage(workflowStageName)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            toggleWorkflowStage(workflowStageName)
+                          }
+                        }}
+                      >
+                        <CaretRightOutlined
+                          rotate={isOpen ? 90 : 0}
+                          style={{ color: token.colorLink }}
+                        />
+                        <div className="stage-detail-header-text">
+                          <WorkflowStageHeader
+                            workflowStage={workflowStage}
+                            stageIndex={stageIndex}
+                          />
+                        </div>
+                        {/* The dates sit beside the status glyph, as in the overview above. */}
+                        <span className="stage-period-text">
+                          <WorkflowStagePeriod workflowStage={workflowStage} />
+                        </span>
+                        <StageStatusIcon status={stageStatus} />
+                      </div>
+                      {isOpen && (
+                        <div className="stage-detail-body">
+                          {localDomain && (
+                            <div className="local-axis-row">
+                              <span className="local-axis-caption">
+                                Stage Timeline ·{' '}
+                                {formatShortDate(
+                                  workflowStage.periodStart,
+                                  localDomain.crossesYear
+                                )}{' '}
+                                –{' '}
+                                {formatShortDate(
+                                  workflowStage.periodEnd,
+                                  localDomain.crossesYear
+                                )}
+                              </span>
+                              <span className="timeline-track with-labels local-track local-axis">
+                                <LocalGrid domain={localDomain} showLabels={true} />
+                              </span>
+                            </div>
+                          )}
+                          {invitationsOfWorkflowStageName.map((stepObj) =>
+                            renderWorkflowInvitation(stepObj, true, { localDomain })
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                {invitationsWithoutWorkflowStage.map((stepObj) =>
+                  renderWorkflowInvitation(stepObj, false)
+                )}
+                {stageInvitations.length > 0 && (
+                  <AddStageInvitationSection
+                    stageInvitations={stageInvitations}
+                    venueId={group.domain}
                   />
                 )}
               </div>
-              {timelineDomain && <WorkflowTimelineAxis domain={timelineDomain} />}
-            </div>
-
-            <div className="invitation-workflow-container">
-              {workflowStages.length > 0 && (
-                <Collapse
-                  activeKey={openStageKeys}
-                  onChange={(keys) => setActiveStageKeys(keys)}
-                  bordered={false}
-                  size="small"
-                  collapsible="header"
-                  expandIcon={({ isActive }) => (
-                    <CaretRightOutlined
-                      rotate={isActive ? 90 : 0}
-                      style={{ color: token.colorLink }}
-                    />
-                  )}
-                  style={{ width: '110%' }}
-                  items={visibleWorkflowStages.map((workflowStage) => {
-                    const stageIndex = workflowStages.indexOf(workflowStage)
-                    const { workflowStageName, invitationsOfWorkflowStageName } = workflowStage
-                    const stageStatus = getStageStatus(invitationsOfWorkflowStageName)
-                    return {
-                      key: workflowStageName,
-                      label: (
-                        <WorkflowStageHeader
-                          workflowStage={workflowStage}
-                          stageIndex={stageIndex}
-                        />
-                      ),
-                      extra: (
-                        <Flex align="center" gap={timelineGap}>
-                          {timelineDomain ? (
-                            <WorkflowStageTrack
-                              workflowStage={workflowStage}
-                              domain={timelineDomain}
-                              statusColor={stageStatus.stageStatusColor}
-                            />
-                          ) : (
-                            <WorkflowStagePeriod workflowStage={workflowStage} />
-                          )}
-                          {stageStatusFilter === 'all' ? (
-                            <StageStatusIcon status={stageStatus} />
-                          ) : (
-                            <span
-                              style={{
-                                width: timelineStatusWidth,
-                                flex: `0 0 ${timelineStatusWidth}px`,
-                              }}
-                            />
-                          )}
-                        </Flex>
-                      ),
-                      forceRender: true,
-                      styles: {
-                        header: {
-                          // Status is carried by the tag and the bar; tint only marks what is open.
-                          backgroundColor: openStageKeys.includes(workflowStageName)
-                            ? openStageBackground
-                            : 'transparent',
-                          alignItems: 'center',
-                          paddingInline: 0,
-                        },
-                        body: { padding: '2px 0 10px' },
-                      },
-                      children: invitationsOfWorkflowStageName.map((stepObj) =>
-                        renderWorkflowInvitation(stepObj, true)
-                      ),
-                    }
-                  })}
-                />
-              )}
-              {invitationsWithoutWorkflowStage.map((stepObj) =>
-                renderWorkflowInvitation(stepObj, false)
-              )}
-              {stageInvitations.length > 0 && (
-                <AddStageInvitationSection
-                  stageInvitations={stageInvitations}
-                  venueId={group.domain}
-                />
-              )}
-            </div>
-          </EditorSection>
+            </EditorSection>
+          </>
         )
       ) : (
         <LoadingSpinner />
       )}
 
-      {workflowInvitations && ongoingSteps.length > 0 && (
+      {workflowInvitations && (
         <EditorSection className="workflow">
           <WorkflowSectionHeading
-            title={`Ongoing (${inflect(ongoingSteps.length, 'step', 'steps', true)})`}
+            title={`PC Actions (${inflect(pcActionCount, 'action', 'actions', true)})`}
+            isOpen={isOngoingOpen}
+            onToggle={() => setIsOngoingOpen((isOpen) => !isOpen)}
             action={
               <Typography.Link onClick={() => setIsOngoingOpen((isOpen) => !isOpen)}>
-                {isOngoingOpen ? 'Collapse ongoing' : 'Expand ongoing'}
+                {isOngoingOpen ? 'Collapse PC actions' : 'Expand PC actions'}
               </Typography.Link>
             }
-            description="Available for as long as the venue runs. These have no end date, so they are not on the timeline."
+            description="Tools the program chairs use whenever they need them: available for as long as the venue runs. These have no end date, so they are not on the timeline."
           />
-          <div className="ongoing-container">
-            {isOngoingOpen &&
-              ongoingSteps.map((stepObj) => (
+          {isOngoingOpen && (
+            <div className="ongoing-container">
+              <VenueActions />
+              {recruitedGroups.length > 0 && (
+                <div className="ongoing-step rec-action-group">
+                  <div className="ongoing-stage">Recruitment</div>
+                  {recruitedGroups.map(
+                    ({ group: committeeGroup, counts, groupInvitations }) => (
+                      <RecruitmentActionRow
+                        key={committeeGroup.id}
+                        group={committeeGroup}
+                        counts={counts}
+                        groupInvitations={groupInvitations}
+                        reloadGroup={loadAllInvitations}
+                        focusTick={
+                          recruitmentFocus.groupId === committeeGroup.id
+                            ? recruitmentFocus.tick
+                            : 0
+                        }
+                      />
+                    )
+                  )}
+                </div>
+              )}
+              {ongoingSteps.map((stepObj) => (
                 <div key={stepObj.id} className="ongoing-step">
                   <div className="ongoing-stage">
                     {prettyField(stepObj.content.workflow_stage_name.value)}
@@ -2001,24 +2548,24 @@ const WorkFlowInvitations = ({ group }) => {
                   {renderWorkflowInvitation(stepObj, false, { inOngoing: true })}
                 </div>
               ))}
-          </div>
+            </div>
+          )}
         </EditorSection>
       )}
 
       {workflowGroups.size > 0 && (
-        <EditorSection className="workflow">
+        <EditorSection className="workflow rec-section">
           <WorkflowSectionHeading
             title={`Groups (${workflowGroups.size})`}
-            description="The groups that take part in the venue, each with its size. Invite people to the recruited roles; a member has accepted, and the Invited and Declined groups hold the rest. Everything else about a group — its members, its home page — is on the group's own page."
+            description="The groups that take part in the venue, each with its size. Where a group has recruitment invitations, you can see how they stand. Everything else about a group is on its own page."
           />
-          <div className="committee-container">
+          <div className="rec-list">
             {committeeGroups.map(({ group: committeeGroup, counts }) => (
-              <CommitteeRoleCard
+              <GroupRow
                 key={committeeGroup.id}
                 group={committeeGroup}
                 counts={counts}
-                groupInvitations={getGroupInvitations(committeeGroup.id)}
-                reloadGroup={loadAllInvitations}
+                onOpenRecruitment={openRecruitment}
               />
             ))}
           </div>
