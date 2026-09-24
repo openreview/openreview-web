@@ -1,17 +1,10 @@
-import {
-  CheckOutlined,
-  EnvironmentFilled,
-  FolderOutlined,
-  SafetyCertificateOutlined,
-} from '@ant-design/icons'
+import { EnvironmentFilled, SafetyCertificateOutlined } from '@ant-design/icons'
 import { Col, Flex, Popover, Row, Space, Tag, Tooltip } from 'antd'
 import copy from 'copy-to-clipboard'
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 import { orderBy } from 'lodash'
-import { nanoid } from 'nanoid'
 import Link from 'next/link'
-import { Fragment } from 'react'
 import ServiceRoles from '../../app/profile/ServiceRoles'
 import { formatDateTime, normalizeName, prettyId, prettyList } from '../../lib/utils'
 import Icon from '../Icon'
@@ -26,14 +19,25 @@ import {
 
 dayjs.extend(utc)
 
-const matchedColor = getBootstrap337LabelColor('success')
-const disputedColor = getBootstrap337LabelColor('warning')
+const parentalConsentInvitationId = `${process.env.SUPER_USER}/Support/-/Parent_Consent`
+
+const assertionStatuses = {
+  agreeing: { color: colors.mediumDarkBlue, title: 'Matches the profile' },
+  contradicting: {
+    color: getBootstrap337LabelColor('warning'),
+    title: 'Differs from the profile',
+  },
+  missing: { color: colors.orRed, title: 'Not listed in the profile' },
+  consent: { color: colors.mediumDarkBlue, title: 'Parental consent' },
+}
 
 const AssertionPopover = ({
-  assertion: { signatures, source, tcdate, comment, details = [] },
+  assertion: { signatures, source, tcdate, comment },
+  status,
   children,
 }) => (
   <Popover
+    title={assertionStatuses[status].title}
     content={
       <div
         style={{
@@ -48,12 +52,6 @@ const AssertionPopover = ({
             <span>{source}</span>
           </>
         )}
-        {details.map(([label, value]) => (
-          <Fragment key={label}>
-            <span>{label}:</span>
-            <span>{value}</span>
-          </Fragment>
-        ))}
         <span>By:</span>
         <span>{prettyId(signatures[0])}</span>
         <span>Date</span>
@@ -71,32 +69,23 @@ const AssertionPopover = ({
   </Popover>
 )
 
-const AssertionCheck = ({ assertion, disputed = false }) => (
-  <AssertionPopover assertion={assertion}>
-    <CheckOutlined
-      style={{ color: disputed ? disputedColor : matchedColor, marginLeft: '0.25rem' }}
+const AssertionBadge = ({ assertion, status }) => (
+  <AssertionPopover assertion={assertion} status={status}>
+    <SafetyCertificateOutlined
+      style={{
+        fontSize: '0.85rem',
+        marginLeft: '0.35rem',
+        verticalAlign: 'middle',
+        color: assertionStatuses[status].color,
+      }}
     />
   </AssertionPopover>
 )
 
-const AssertedRecord = ({ assertion, disputed = false, indented = false, children }) => (
-  <div
-    style={{
-      display: 'flex',
-      gap: '0.5rem',
-      background: disputed ? '#fdf8f0' : '#ecf0f2',
-      borderRadius: 3,
-      padding: '6px 8px',
-      margin: indented ? '2px -8px 0 0.75rem' : '0.25rem -8px 0',
-      color: colors.subtleGray,
-    }}
-  >
-    <div style={{ flex: 1, minWidth: 0 }}>{children}</div>
-    <AssertionPopover assertion={assertion}>
-      <FolderOutlined style={{ color: disputed ? disputedColor : colors.mediumDarkBlue }} />
-    </AssertionPopover>
-  </div>
-)
+const MissingAssertedValue = ({ status, inline = false, children }) => {
+  const Element = inline ? 'span' : 'div'
+  return <Element style={{ color: assertionStatuses[status].color }}>{children}</Element>
+}
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -122,10 +111,11 @@ const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children 
   )
 }
 
-const ProfileName = ({ name }) => (
+const ProfileName = ({ name, badge }) => (
   <ProfileItem itemMeta={name.meta}>
     <span>{name.fullname}</span>{' '}
     {name.preferred && <small style={{ color: colors.orRed }}>(Preferred)</small>}
+    {badge}
   </ProfileItem>
 )
 
@@ -158,21 +148,30 @@ const NamesSection = ({ names, profileEdits }) => {
             (p) => p.normalizedValue === normalizeName(name.fullname)
           )
           return (
-            <span key={name.username || name.fullname} style={{ display: 'inline-flex' }}>
-              <ProfileName name={name} />
-              {latestNameAssertion && <AssertionCheck assertion={latestNameAssertion} />}
-            </span>
+            <ProfileName
+              key={name.username || name.fullname}
+              name={name}
+              badge={
+                latestNameAssertion && (
+                  <AssertionBadge assertion={latestNameAssertion} status="agreeing" />
+                )
+              }
+            />
           )
         })}
+        {namesAsserted
+          .filter((p) => !p.existInProfile)
+          .map((assertion) => (
+            <MissingAssertedValue
+              key={`${assertion.value}-${assertion.tcdate}`}
+              status="missing"
+              inline
+            >
+              {assertion.value}
+              <AssertionBadge assertion={assertion} status="missing" />
+            </MissingAssertedValue>
+          ))}
       </Space>
-
-      {namesAsserted
-        .filter((p) => !p.existInProfile)
-        .map((assertion) => (
-          <AssertedRecord key={`${assertion.value}-${assertion.tcdate}`} assertion={assertion}>
-            {assertion.value}
-          </AssertedRecord>
-        ))}
     </>
   )
 }
@@ -232,10 +231,34 @@ const ProfileLink = ({ link, showLinkText }) => {
   )
 }
 
-const ProfileHistory = ({ history }) => (
+const positionsDiffer = (a, b) =>
+  (a.position ?? '').toLowerCase() !== (b.position ?? '').toLowerCase()
+const datesDiffer = (a, b) =>
+  (a.start ?? '') !== (b.start ?? '') || (a.end ?? '') !== (b.end ?? '')
+
+const HistoryDates = ({ history }) => (
+  <em>
+    {history.start}
+    {history.start && <span> &ndash; </span>}
+    {history.end ? history.end : 'Present'}
+  </em>
+)
+
+const ProfileHistory = ({ history, badge, contradictions = [] }) => (
   <Row align="top" gutter={[15, 15]}>
     <Col xs={24} sm={6}>
       <strong>{history.position}</strong>
+      {contradictions
+        .filter((assertion) => positionsDiffer(assertion.value, history))
+        .map((assertion) => (
+          <MissingAssertedValue
+            key={`${assertion.identity}-${assertion.tcdate}`}
+            status="contradicting"
+          >
+            <strong>{assertion.value.position}</strong>
+            <AssertionBadge assertion={assertion} status="contradicting" />
+          </MissingAssertedValue>
+        ))}
     </Col>
     <Col xs={24} sm={14}>
       {history.institution.department && (
@@ -267,13 +290,21 @@ const ProfileHistory = ({ history }) => (
           </>
         )}
       </span>
+      {badge}
     </Col>
     <Col xs={24} sm={4}>
-      <em>
-        {history.start}
-        {history.start && <span> &ndash; </span>}
-        {history.end ? history.end : 'Present'}
-      </em>
+      <HistoryDates history={history} />
+      {contradictions
+        .filter((assertion) => datesDiffer(assertion.value, history))
+        .map((assertion) => (
+          <MissingAssertedValue
+            key={`${assertion.identity}-${assertion.tcdate}`}
+            status="contradicting"
+          >
+            <HistoryDates history={assertion.value} />
+            <AssertionBadge assertion={assertion} status="contradicting" />
+          </MissingAssertedValue>
+        ))}
     </Col>
   </Row>
 )
@@ -322,34 +353,19 @@ const HistorySection = ({ history, profileEdits }) => {
   return (
     <Flex vertical gap="small">
       {records.length > 0 ? (
-        records.map((record) => {
+        records.map((record, index) => {
           const identity = historyIdentity(record)
           const agreeing = historyAsserted.find(
             (p) => p.existInProfile && p.identity === identity
           )
           const contradicting = historyAsserted.filter((p) => p.contradicts === record)
           return (
-            <div key={nanoid()}>
-              <div style={{ display: 'flex', gap: '0.5rem' }}>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <ProfileHistory history={record} />
-                </div>
-                {agreeing && <AssertionCheck assertion={agreeing} />}
-                {!agreeing && contradicting.length > 0 && (
-                  <AssertionCheck assertion={contradicting[0]} disputed />
-                )}
-              </div>
-              {contradicting.map((assertion) => (
-                <AssertedRecord
-                  key={`${assertion.identity}-${assertion.tcdate}`}
-                  assertion={assertion}
-                  disputed
-                  indented
-                >
-                  <ProfileHistory history={assertion.value} />
-                </AssertedRecord>
-              ))}
-            </div>
+            <ProfileHistory
+              key={`${identity}-${index}`}
+              history={record}
+              badge={agreeing && <AssertionBadge assertion={agreeing} status="agreeing" />}
+              contradictions={contradicting}
+            />
           )
         })
       ) : (
@@ -358,18 +374,21 @@ const HistorySection = ({ history, profileEdits }) => {
       {historyAsserted
         .filter((p) => !p.existInProfile && !p.contradicts)
         .map((assertion) => (
-          <AssertedRecord
+          <MissingAssertedValue
             key={`${assertion.identity}-${assertion.tcdate}`}
-            assertion={assertion}
+            status="missing"
           >
-            <ProfileHistory history={assertion.value} />
-          </AssertedRecord>
+            <ProfileHistory
+              history={assertion.value}
+              badge={<AssertionBadge assertion={assertion} status="missing" />}
+            />
+          </MissingAssertedValue>
         ))}
     </Flex>
   )
 }
 
-const ProfileRelation = ({ relation }) => (
+const ProfileRelation = ({ relation, badge }) => (
   <Row align="top" gutter={[15, 15]}>
     <Col xs={12} sm={6}>
       <strong>{relation.relation}</strong>
@@ -396,6 +415,7 @@ const ProfileRelation = ({ relation }) => (
           </span>
         </Tooltip>
       )}
+      {badge}
     </Col>
     <Col xs={12} sm={4}>
       <Space>
@@ -416,6 +436,44 @@ const ProfileRelation = ({ relation }) => (
   </Row>
 )
 
+const relationKey = (relation) =>
+  relation.relation +
+  (relation.username ?? relation.name) +
+  relation.start +
+  (relation.end ?? '')
+
+const RelationsSection = ({ relations, parentalConsents }) => {
+  const consents = orderBy(
+    parentalConsents.map((p) => ({
+      value: p.profile.content.relations.value,
+      comment: p.content?.comment?.value,
+      signatures: p.signatures,
+      tcdate: p.tcdate,
+    })),
+    ['tcdate'],
+    ['desc']
+  )
+  const listed = relations ?? []
+
+  return (
+    <Flex vertical gap="small">
+      {listed.length === 0 && consents.length === 0 && (
+        <p className="empty-message">No relations added</p>
+      )}
+      {listed.map((relation) => (
+        <ProfileRelation key={relationKey(relation)} relation={relation} />
+      ))}
+      {consents.map((consent) => (
+        <ProfileRelation
+          key={`${relationKey(consent.value)}-${consent.tcdate}`}
+          relation={consent.value}
+          badge={<AssertionBadge assertion={consent} status="consent" />}
+        />
+      ))}
+    </Flex>
+  )
+}
+
 const ProfileExpertise = ({ expertise }) => (
   <Row align="top" gutter={[15, 15]}>
     <Col xs={12} sm={20} style={{ overflowWrap: 'anywhere' }}>
@@ -433,31 +491,7 @@ const ProfileExpertise = ({ expertise }) => (
   </Row>
 )
 
-const MinorTag = ({ parentalConsent }) => {
-  const minorTagProps = {
-    color: getBootstrap337LabelColor('warning'),
-    variant: 'solid',
-    styles: { root: moderationStyles.statusTag },
-  }
-  if (!parentalConsent) return <Tag {...minorTagProps}>Minor</Tag>
-
-  const { relation, name, email, start, end } = parentalConsent
-  const details = [
-    ['Relation', relation],
-    ['Name', name],
-    ['Email', email],
-    ['Years', [start, end].filter(Boolean).join(' – ')],
-  ].filter(([, value]) => value)
-  return (
-    <AssertionPopover assertion={{ ...parentalConsent, details }}>
-      <Tag {...minorTagProps}>
-        Minor <CheckOutlined />
-      </Tag>
-    </AssertionPopover>
-  )
-}
-
-const DateOfBirth = ({ dob, parentalConsent }) => {
+const DateOfBirth = ({ dob, badge }) => {
   const dateOfBirth = dayjs.utc(dob)
   if (!dateOfBirth.isValid()) return null
 
@@ -465,7 +499,10 @@ const DateOfBirth = ({ dob, parentalConsent }) => {
 
   return (
     <Space>
-      <span>{`${dateOfBirth.format('MMMM DD, YYYY')} - ${age} years old`}</span>
+      <span>
+        {`${dateOfBirth.format('MMMM DD, YYYY')} - ${age} years old`}
+        {badge}
+      </span>
       {age < 13 && (
         <Tag
           color={getBootstrap337LabelColor('error')}
@@ -475,7 +512,15 @@ const DateOfBirth = ({ dob, parentalConsent }) => {
           Under 13
         </Tag>
       )}
-      {age >= 13 && age < 18 && <MinorTag parentalConsent={parentalConsent} />}
+      {age >= 13 && age < 18 && (
+        <Tag
+          color={getBootstrap337LabelColor('warning')}
+          variant="solid"
+          styles={{ root: moderationStyles.statusTag }}
+        >
+          Minor
+        </Tag>
+      )}
     </Space>
   )
 }
@@ -500,40 +545,29 @@ const DateOfBirthSection = ({ dob, profileEdits }) => {
 
   const agreeing = dobAsserted.find((p) => p.existInProfile)
   const contradicting = dobAsserted.filter((p) => !p.existInProfile)
-
-  const latestParentalConsent = orderBy(
-    profileEdits.flatMap((p) => {
-      const relation = p.profile.content?.relations?.value
-      if (!relation) return []
-      return {
-        ...relation,
-        comment: p.content?.comment?.value,
-        signatures: p.signatures,
-        tcdate: p.tcdate,
-      }
-    }),
-    ['tcdate'],
-    ['desc']
-  )[0]
+  const dobBadgeAssertion = agreeing ?? contradicting[0]
 
   return (
     <>
-      <Space>
-        <DateOfBirth dob={dob} parentalConsent={latestParentalConsent} />
-        {agreeing && <AssertionCheck assertion={agreeing} />}
-        {!agreeing && contradicting.length > 0 && (
-          <AssertionCheck assertion={contradicting[0]} disputed />
-        )}
-      </Space>
+      <DateOfBirth
+        dob={dob}
+        badge={
+          dobBadgeAssertion && (
+            <AssertionBadge
+              assertion={dobBadgeAssertion}
+              status={agreeing ? 'agreeing' : 'contradicting'}
+            />
+          )
+        }
+      />
       {contradicting.map((assertion) => (
-        <AssertedRecord
+        <MissingAssertedValue
           key={`${assertion.value}-${assertion.tcdate}`}
-          assertion={assertion}
-          disputed
-          indented
+          status="contradicting"
         >
           {dayjs.utc(assertion.value).format('MMMM DD, YYYY')}
-        </AssertedRecord>
+          <AssertionBadge assertion={assertion} status="contradicting" />
+        </MissingAssertedValue>
       ))}
     </>
   )
@@ -549,6 +583,9 @@ const BasicProfileView = ({
   profileEdits = [],
 }) => {
   const activeProfileEdits = profileEdits.filter((p) => !p.ddate)
+  const parentalConsents = activeProfileEdits.filter(
+    (p) => p.invitation === parentalConsentInvitationId
+  )
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
   const sortedNames = [
     ...uniqueNames.filter((p) => p.preferred),
@@ -606,23 +643,10 @@ const BasicProfileView = ({
 
       {contentToShow.includes('relations') && (
         <ProfileViewSection title="Advisors, Relations &amp; Conflicts">
-          <Flex vertical gap="small">
-            {profile.relations?.length > 0 ? (
-              profile.relations.map((relation) => (
-                <ProfileRelation
-                  key={
-                    relation.relation +
-                    (relation.username ?? relation.name) +
-                    relation.start +
-                    (relation.end ?? '')
-                  }
-                  relation={relation}
-                />
-              ))
-            ) : (
-              <p className="empty-message">No relations added</p>
-            )}
-          </Flex>
+          <RelationsSection
+            relations={profile.relations}
+            parentalConsents={parentalConsents}
+          />
         </ProfileViewSection>
       )}
 

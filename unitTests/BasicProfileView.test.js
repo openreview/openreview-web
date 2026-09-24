@@ -41,8 +41,8 @@ describe('Names Section', () => {
     render(<BasicProfileView {...props} />)
 
     expect(screen.getByText('Tést Name', { exact: true })).toBeInTheDocument()
-    const checkmark = screen.getByRole('img', { name: 'check' })
-    expect(checkmark).toHaveStyle({ color: 'rgb(92, 184, 92)' }) // green check
+    const checkmark = screen.getByRole('img', { name: 'safety-certificate' })
+    expect(checkmark).toHaveStyle({ color: 'rgb(63, 105, 120)' }) // agreeing badge
     await userEvent.hover(checkmark)
     const popover = await screen.findByRole('tooltip')
     expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
@@ -85,9 +85,13 @@ describe('Names Section', () => {
     render(<BasicProfileView {...props} />)
 
     expect(screen.getByText('Some Funny Name User Removed')).toBeInTheDocument()
-    const folderIcon = screen.getByRole('img', { name: 'folder' })
-    await userEvent.hover(folderIcon)
+    const badges = screen.getAllByRole('img', { name: 'safety-certificate' })
+    expect(badges).toHaveLength(2)
+    expect(badges[0]).toHaveStyle({ color: 'rgb(63, 105, 120)' }) // agreeing badge
+    expect(badges[1]).toHaveStyle({ color: 'rgb(140, 27, 19)' }) // missing badge
+    await userEvent.hover(badges[1])
     const popover = await screen.findByRole('tooltip')
+    expect(within(popover).getByText('Not listed in the profile')).toBeInTheDocument()
     expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
     expect(
       within(popover).getByText(formatDateTime(profileEditCreationDate))
@@ -132,8 +136,8 @@ describe('DOB Section', () => {
     render(<BasicProfileView {...props} />)
 
     expect(screen.getByText(/January 01, 2000/)).toBeInTheDocument()
-    const checkmark = screen.getByRole('img', { name: 'check' })
-    expect(checkmark).toHaveStyle({ color: 'rgb(92, 184, 92)' }) // green check
+    const checkmark = screen.getByRole('img', { name: 'safety-certificate' })
+    expect(checkmark).toHaveStyle({ color: 'rgb(63, 105, 120)' }) // agreeing badge
     await userEvent.hover(checkmark)
     const popover = await screen.findByRole('tooltip')
     expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
@@ -169,20 +173,19 @@ describe('DOB Section', () => {
     render(<BasicProfileView {...props} />)
 
     expect(screen.getByText(/January 01, 2000/)).toBeInTheDocument()
-    const checkmark = screen.getByRole('img', { name: 'check' })
-    expect(checkmark).toHaveStyle({ color: 'rgb(240, 173, 78)' }) // contradicting check
-
     expect(screen.getByText('January 01, 2001')).toBeInTheDocument()
-    const folderIcon = screen.getByRole('img', { name: 'folder' })
-    await userEvent.hover(folderIcon)
+    const badges = screen.getAllByRole('img', { name: 'safety-certificate' })
+    expect(badges).toHaveLength(2) // next to the claimed dob and next to the asserted dob
+    badges.forEach((badge) => expect(badge).toHaveStyle({ color: 'rgb(240, 173, 78)' }))
+    await userEvent.hover(badges[1])
     const popover = await screen.findByRole('tooltip')
+    expect(within(popover).getByText('Differs from the profile')).toBeInTheDocument()
     expect(within(popover).getByText('Driver License')).toBeInTheDocument()
   })
 
-  test('render parental consent for minor', async () => {
+  test('render minor tag without parental consent details', () => {
     const now = new Date()
     const claimedDob = Date.UTC(now.getUTCFullYear() - 16, now.getUTCMonth(), now.getUTCDate()) // 16 years old
-    const profileEditCreationDate = new Date('2023-01-01T00:00:00Z').getTime()
 
     const props = {
       profile: { names: [], dob: claimedDob },
@@ -196,25 +199,16 @@ describe('DOB Section', () => {
             },
           },
           signatures: ['~Some_Moderator1'],
-          tcdate: profileEditCreationDate,
+          tcdate: new Date('2023-01-01T00:00:00Z').getTime(),
         },
       ],
     }
 
     render(<BasicProfileView {...props} />)
 
-    expect(screen.getByText('Minor'))
-    const checkmark = within(screen.getByText('Minor').parentElement).getByRole('img', {
-      name: 'check',
-    }) // checkmark inside Minor tag
-    expect(checkmark).toBeInTheDocument()
-
-    await userEvent.hover(checkmark)
-    const popover = await screen.findByRole('tooltip')
-    expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
-    expect(
-      within(popover).getByText(formatDateTime(profileEditCreationDate))
-    ).toBeInTheDocument()
+    expect(screen.getByText('Minor')).toBeInTheDocument()
+    // parental consent is not shown on the tag; it belongs in the relations section
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 })
 
@@ -264,9 +258,9 @@ describe('History Section', () => {
 
     render(<BasicProfileView {...props} />)
 
-    const checkmark = screen.getByRole('img', { name: 'check' })
+    const checkmark = screen.getByRole('img', { name: 'safety-certificate' })
     expect(checkmark).toBeInTheDocument()
-    expect(checkmark).toHaveStyle({ color: 'rgb(92, 184, 92)' }) // green check
+    expect(checkmark).toHaveStyle({ color: 'rgb(63, 105, 120)' }) // agreeing badge
     await userEvent.hover(checkmark)
     const popover = await screen.findByRole('tooltip')
     expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
@@ -323,16 +317,21 @@ describe('History Section', () => {
 
     screen.debug()
 
-    const checkmark = screen.getByRole('img', { name: 'check' })
-    expect(checkmark).toBeInTheDocument()
-    expect(checkmark).toHaveStyle({ color: 'rgb(240, 173, 78)' }) // contradicting check
-    await userEvent.hover(checkmark)
+    // only the values that differ are shown under the profile record: the position and
+    // the dates, not the institution name, which is matched by domain
+    expect(screen.getByText('Intern')).toBeInTheDocument()
+    expect(screen.queryByText('University of Massachusetts Amherst')).not.toBeInTheDocument()
+    const badges = screen.getAllByRole('img', { name: 'safety-certificate' })
+    expect(badges).toHaveLength(2) // one on the differing position, one on the differing dates
+    badges.forEach((badge) => expect(badge).toHaveStyle({ color: 'rgb(240, 173, 78)' }))
+    await userEvent.hover(badges[1])
     const popover = await screen.findByRole('tooltip')
     expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
     expect(
       within(popover).getByText(formatDateTime(profileEditCreationDate))
     ).toBeInTheDocument()
     expect(within(popover).getByText('Degree')).toBeInTheDocument()
+    expect(within(popover).getByText('Differs from the profile')).toBeInTheDocument()
   })
 
   test('render history confirmed by edit but removed by user', async () => {
@@ -382,16 +381,100 @@ describe('History Section', () => {
 
     expect(screen.getByText('Google')).toBeInTheDocument()
     expect(screen.getByText('UMass')).toBeInTheDocument() // asserted record no longer in profile
-    expect(screen.queryByRole('img', { name: 'check' })).not.toBeInTheDocument()
-
-    const folderIcon = screen.getByRole('img', { name: 'folder' })
-    expect(folderIcon).toHaveStyle({ color: 'rgb(63, 105, 120)' }) // missing
-    await userEvent.hover(folderIcon)
+    const badge = screen.getByRole('img', { name: 'safety-certificate' })
+    expect(badge).toHaveStyle({ color: 'rgb(140, 27, 19)' }) // missing badge
+    await userEvent.hover(badge)
     const popover = await screen.findByRole('tooltip')
     expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
     expect(
       within(popover).getByText(formatDateTime(profileEditCreationDate))
     ).toBeInTheDocument()
     expect(within(popover).getByText('Diploma')).toBeInTheDocument()
+    expect(within(popover).getByText('Not listed in the profile')).toBeInTheDocument()
+  })
+})
+
+describe('Relations Section', () => {
+  const profileEditCreationDate = new Date('2023-01-01T00:00:00Z').getTime()
+  const consentEdit = {
+    invitation: `${process.env.SUPER_USER}/Support/-/Parent_Consent`,
+    profile: {
+      content: {
+        relations: {
+          value: {
+            relation: 'Parent',
+            name: 'Gustavo Verified',
+            email: 'gustavo@profile.org',
+          },
+        },
+      },
+    },
+    content: { comment: { value: 'Consent form received' } },
+    signatures: ['~Some_Moderator1'],
+    tcdate: profileEditCreationDate,
+  }
+
+  test('show parental consent as its own row next to the listed relations', async () => {
+    render(
+      <BasicProfileView
+        profile={{
+          names: [],
+          relations: [
+            { relation: 'Advisor', name: 'Some Advisor', username: '~Some_Advisor1' },
+          ],
+        }}
+        serviceRoles={[]}
+        contentToShow={['relations']}
+        profileEdits={[consentEdit]}
+      />
+    )
+
+    expect(screen.getByText('Some Advisor')).toBeInTheDocument()
+    expect(screen.getByText('Gustavo Verified')).toBeInTheDocument()
+    const badge = screen.getByRole('img', { name: 'safety-certificate' }) // only on the consent row
+    expect(badge).toHaveStyle({ color: 'rgb(63, 105, 120)' })
+    await userEvent.hover(badge)
+    const popover = await screen.findByRole('tooltip')
+    expect(within(popover).getByText('Parental consent')).toBeInTheDocument()
+    expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
+    expect(
+      within(popover).getByText(formatDateTime(profileEditCreationDate))
+    ).toBeInTheDocument()
+    expect(within(popover).getByText('Consent form received')).toBeInTheDocument()
+  })
+
+  test('show parental consent as a relation row when the profile lists no relations', async () => {
+    render(
+      <BasicProfileView
+        profile={{ names: [], relations: [] }}
+        serviceRoles={[]}
+        contentToShow={['relations']}
+        profileEdits={[consentEdit]}
+      />
+    )
+
+    expect(screen.queryByText('No relations added')).not.toBeInTheDocument()
+    expect(screen.getByText('Parent')).toBeInTheDocument()
+    expect(screen.getByText('Gustavo Verified')).toBeInTheDocument()
+    expect(screen.getByText('gustavo@profile.org')).toBeInTheDocument()
+    expect(screen.getByText('Present')).toBeInTheDocument()
+    const badge = screen.getByRole('img', { name: 'safety-certificate' })
+    expect(badge).toHaveStyle({ color: 'rgb(63, 105, 120)' })
+    await userEvent.hover(badge)
+    const popover = await screen.findByRole('tooltip')
+    expect(within(popover).getByText('Parental consent')).toBeInTheDocument()
+  })
+
+  test('show empty message when there are neither relations nor consents', () => {
+    render(
+      <BasicProfileView
+        profile={{ names: [], relations: [] }}
+        serviceRoles={[]}
+        contentToShow={['relations']}
+      />
+    )
+
+    expect(screen.getByText('No relations added')).toBeInTheDocument()
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 })
