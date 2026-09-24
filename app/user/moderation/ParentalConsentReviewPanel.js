@@ -175,7 +175,7 @@ const ParentalConsentReviewPanel = ({ profileId, invitation, profileStateInvitat
               <ProfileEditInvitationEditor
                 key={postedEditCount}
                 invitation={invitation}
-                profileId={profileId}
+                profile={profile}
                 onEditPosted={handleEditPosted}
               />
             </ProfileViewSection>

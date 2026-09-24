@@ -58,9 +58,9 @@ const historyReducer = (record, { type, value }) => {
 }
 
 const HistoryForm = ({ positions, institutionDomains }) => {
-  const { field, onChange, clearError } = useContext(EditorComponentContext)
+  const { field, value, onChange, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
-  const [history, setHistory] = useReducer(historyReducer, {})
+  const [history, setHistory] = useReducer(historyReducer, value ?? {})
 
   useEffect(() => {
     const { position, start, end, institution } = history
@@ -155,9 +155,9 @@ const relationReducer = (record, { type, value }) => {
 }
 
 const RelationForm = () => {
-  const { field, onChange, clearError } = useContext(EditorComponentContext)
+  const { field, value, onChange, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
-  const [relation, setRelation] = useReducer(relationReducer, { relation: 'Parent' })
+  const [relation, setRelation] = useReducer(relationReducer, value ?? { relation: 'Parent' })
 
   useEffect(() => {
     const name = relation.name?.trim()
@@ -223,12 +223,16 @@ const RelationForm = () => {
   )
 }
 
-const ProfileEditInvitationEditor = ({ invitation, profileId, onEditPosted }) => {
+const ProfileEditInvitationEditor = ({ invitation, profile, onEditPosted }) => {
   const { edit: editFields, profile: profileFields } = getEditFields(invitation)
   const fields = [...profileFields, ...editFields]
   const [formData, setFormData] = useReducer(
     (state, action) => ({ ...state, [action.fieldName]: action.value }),
-    {}
+    {
+      fullname: (profile.names.find((p) => p.preferred) ?? profile.names[0])?.fullname,
+      dob: profile.dob,
+      history: profile.history?.find((p) => p.institution?.domain),
+    }
   )
   const [historyOptions, setHistoryOptions] = useState({})
   const [errors, setErrors] = useState([])
@@ -286,8 +290,8 @@ const ProfileEditInvitationEditor = ({ invitation, profileId, onEditPosted }) =>
     setErrorMessage(null)
     setErrors([])
     try {
-      await api.post('/profiles/edits', constructProfileEdit(invitation, profileId, formData))
-      promptMessage(`${prettyInvitationId(invitation.id)} posted for ${profileId}`)
+      await api.post('/profiles/edits', constructProfileEdit(invitation, profile.id, formData))
+      promptMessage(`${prettyInvitationId(invitation.id)} posted for ${profile.id}`)
       onEditPosted()
     } catch (error) {
       if (error.errors) {

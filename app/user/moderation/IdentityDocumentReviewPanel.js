@@ -250,7 +250,7 @@ const IdentityDocumentReviewPanel = ({
             <ProfileEditsSection profileEdits={profileEdits} />
           </ProfileViewSection>
 
-          {profileEditInvitations.length > 0 && (
+          {profile && profileEditInvitations.length > 0 && (
             <ProfileViewSection title="Post a Profile Edit">
               <Flex vertical gap="small">
                 <Select
@@ -269,7 +269,7 @@ const IdentityDocumentReviewPanel = ({
                   <ProfileEditInvitationEditor
                     key={selectedInvitation.id}
                     invitation={selectedInvitation}
-                    profileId={profileId}
+                    profile={profile}
                     onEditPosted={() => {
                       setSelectedInvitationId(null)
                       loadProfileEdits()
