@@ -116,6 +116,20 @@ export default async function page({ searchParams }) {
 
   const formattedProfile = formatProfileData(profile)
 
+  let profileEdits = []
+  if (token) {
+    try {
+      const { edits } = await api.get(
+        '/profiles/edits',
+        { 'profile.id': profile.id },
+        { accessToken: token, remoteIpAddress }
+      )
+      profileEdits = edits
+    } catch {
+      // oxlint-disable-line no-empty
+    }
+  }
+
   try {
     const result = await api.get(
       '/tags',
@@ -173,6 +187,7 @@ export default async function page({ searchParams }) {
           publicProfile={!isProfileOwner}
           serviceRoles={serviceRoles}
           remoteIpAddress={remoteIpAddress}
+          profileEdits={profileEdits}
         />
       </PreferredIdUpdater>
     </CommonLayout>

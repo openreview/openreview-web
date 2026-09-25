@@ -57,6 +57,16 @@ const theme = {
       colorError: orRed,
       colorErrorBorderHover: orRed,
     },
+    InputNumber: {
+      colorBorder: primaryColor,
+      hoverBorderColor: '#4f7a8a',
+      activeBorderColor: '#3e6775',
+      colorBgContainer: '#fffaf4',
+      lineWidth: 2,
+      colorTextPlaceholder: '#999',
+      colorError: orRed,
+      colorErrorBorderHover: orRed,
+    },
     DatePicker: {
       colorBgContainer: '#fffaf4',
       colorBorder: primaryColor,

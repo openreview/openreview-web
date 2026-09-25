@@ -1,8 +1,8 @@
-import serverAuth from '../../auth'
-import Moderation from './Moderation'
-import CommonLayout from '../../CommonLayout'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 import { checkAccess } from '../../../lib/server-access-control'
+import serverAuth from '../../auth'
+import CommonLayout from '../../CommonLayout'
+import Moderation from './Moderation'
 
 const errorMessage = 'Forbidden. Access to this page is restricted.'
 
@@ -19,7 +19,7 @@ export default async function page() {
   if (!hasAccess) return <ErrorDisplay message={errorMessage} />
 
   return (
-    <CommonLayout banner={null}>
+    <CommonLayout banner={null} fullWidth>
       <header>
         <h1>User Moderation</h1>
       </header>

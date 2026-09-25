@@ -7,7 +7,7 @@ import { AntdTabs } from '../../../components/Tabs'
 import NameDeletionCount from './(NameDeletion)/NameDeletionCount'
 import ProfileMergeCount from './(ProfileMerge)/ProfileMergeCount'
 import NewVenueRequestCount from './(VenueRequests)/NewVenueRequestCount'
-import IdentityDocumentsTab from './IdentityDocumentsTab'
+import DocumentsTab from './DocumentsTab'
 import UserModerationTab from './UserModerationTab'
 
 const EmailDeletionTab = dynamic(() => import('./(EmailDeletion)/EmailDeletionTab'))
@@ -21,11 +21,7 @@ const VenuesTab = dynamic(() => import('./(VenueRequests)/VenuesTab'))
 export default function Moderation() {
   const searchParams = useSearchParams()
   const idParam = searchParams.get('id')
-  const [activeKey, setActiveKey] = useState('profiles')
-
-  useEffect(() => {
-    if (idParam) setActiveKey('profiles')
-  }, [idParam])
+  const tabParam = searchParams.get('tab')
 
   const items = useMemo(
     () => [
@@ -36,8 +32,8 @@ export default function Moderation() {
       },
       {
         key: 'documents',
-        label: 'Identity Documents',
-        children: <IdentityDocumentsTab />,
+        label: 'Documents',
+        children: <DocumentsTab />,
       },
       {
         key: 'requests',
@@ -78,6 +74,18 @@ export default function Moderation() {
     []
   )
 
+  const [activeKey, setActiveKey] = useState(
+    tabParam && items.some((item) => item.key === tabParam) ? tabParam : 'profiles'
+  )
+
+  useEffect(() => {
+    if (tabParam && items.some((item) => item.key === tabParam)) {
+      setActiveKey(tabParam)
+    } else if (idParam) {
+      setActiveKey('profiles')
+    }
+  }, [idParam, tabParam, items])
+
   return (
     <AntdTabs
       type="card"
@@ -85,7 +93,9 @@ export default function Moderation() {
       activeKey={activeKey}
       onChange={(key) => {
         setActiveKey(key)
-        if (idParam) window.history.replaceState(null, '', window.location.pathname)
+        if (idParam || tabParam) {
+          window.history.replaceState(null, '', window.location.pathname)
+        }
       }}
     />
   )
