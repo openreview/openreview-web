@@ -247,7 +247,14 @@ const IdentityDocumentReviewPanel = ({
           )}
 
           <ProfileViewSection title="Profile Edits">
-            <ProfileEditsSection profileEdits={profileEdits} />
+            <ProfileEditsSection
+              profileEdits={profileEdits}
+              onEditUpdated={(updatedEdit) =>
+                setProfileEdits((edits) =>
+                  edits.map((p) => (p.id === updatedEdit.id ? updatedEdit : p))
+                )
+              }
+            />
           </ProfileViewSection>
 
           {profile && profileEditInvitations.length > 0 && (

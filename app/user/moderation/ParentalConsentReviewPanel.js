@@ -167,7 +167,14 @@ const ParentalConsentReviewPanel = ({ profileId, invitation, profileStateInvitat
           />
 
           <ProfileViewSection title="Profile Edits">
-            <ProfileEditsSection profileEdits={profileEdits} />
+            <ProfileEditsSection
+              profileEdits={profileEdits}
+              onEditUpdated={(updatedEdit) =>
+                setProfileEdits((edits) =>
+                  edits.map((p) => (p.id === updatedEdit.id ? updatedEdit : p))
+                )
+              }
+            />
           </ProfileViewSection>
 
           {invitation && (
