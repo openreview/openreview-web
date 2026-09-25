@@ -39,13 +39,15 @@ export default function ComponentInvitation({ invitation, domainGroupP, user, qu
     if (!componentObj) return
 
     setWebComponent(() =>
-      dynamic(() =>
-        import(`../../components/webfield/${componentObj.component}`, {
+      dynamic(
+        () =>
+          import(`../../components/webfield/${componentObj.component}`).catch((e) => {
+            promptError(`Error loading ${componentObj.component}: ${e.message}`)
+          }),
+        {
           ssr: false,
           loading: () => <LoadingSpinner inline />,
-        }).catch((e) => {
-          promptError(`Error loading ${componentObj.component}: ${e.message}`)
-        })
+        }
       )
     )
 
