@@ -1,17 +1,18 @@
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { stringify } from 'query-string'
-import { headers } from 'next/headers'
+import EditBanner from '../../components/EditBanner'
+import ErrorDisplay from '../../components/ErrorDisplay'
 import api from '../../lib/api-client'
+import { groupModeToggle } from '../../lib/banner-links'
 import { prettyId } from '../../lib/utils'
+import { generateGroupWebfieldCode } from '../../lib/webfield-utils'
 import serverAuth from '../auth'
 import CommonLayout from '../CommonLayout'
-import styles from './Group.module.scss'
-import CustomGroup from './CustomGroup'
-import { groupModeToggle } from '../../lib/banner-links'
-import EditBanner from '../../components/EditBanner'
-import { generateGroupWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
 import ComponentGroup from './ComponentGroup'
-import ErrorDisplay from '../../components/ErrorDisplay'
+import CustomGroup from './CustomGroup'
+
+import styles from './Group.module.scss'
 
 export const dynamic = 'force-dynamic'
 
@@ -120,10 +121,13 @@ return {
     }
   }
 
-  try {
-    const componentObj = await parseComponentCode(group, domainGroup, user, query)
-    return <ComponentGroup componentObj={componentObj} editBanner={editBanner} />
-  } catch (error) {
-    return <ErrorDisplay message={error.message} />
-  }
+  return (
+    <ComponentGroup
+      group={group}
+      domainGroup={domainGroup}
+      user={user}
+      query={query}
+      editBanner={editBanner}
+    />
+  )
 }
