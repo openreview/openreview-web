@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import LoadingIcon from '../../components/LoadingIcon'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { highlightMatch, prettyId, truncateAroundMatch } from '../../lib/utils'
 
 const MIN_SEARCH_LENGTH = 3
 
@@ -17,42 +17,6 @@ const tokenizeTerm = (term) => {
   return Array.from(wordSegmenter.segment(term))
     .filter((s) => s.isWordLike)
     .map((s) => s.segment)
-}
-
-const truncateAroundMatch = (label, tokenizedTerm) => {
-  const maxCharLength = 80
-  if (label.length <= maxCharLength) return label
-  const emphasisRegex = new RegExp(tokenizedTerm.split(' ').join('|'), 'i')
-  const m = label.match(emphasisRegex)
-  const matchLen = m[0].length
-  const budget = maxCharLength - matchLen
-  const half = Math.floor(budget / 2)
-  let start = m.index - half
-  let end = m.index + matchLen + half
-  if (start < 0) {
-    end -= start
-    start = 0
-  }
-  if (end > label.length) {
-    start = Math.max(0, start - (end - label.length))
-    end = label.length
-  }
-  const prefix = start > 0 ? '…' : ''
-  const suffix = end < label.length ? '…' : ''
-  return `${prefix}${label.slice(start, end)}${suffix}`
-}
-
-const highlightMatch = (text, tokenizedTerm) => {
-  if (!tokenizedTerm) return text
-  const regex = new RegExp(`(${tokenizedTerm.split(' ').join('|')})`, 'gi')
-  const segments = text.split(regex)
-  return (
-    <>
-      {segments.map((segment, index) =>
-        index % 2 === 1 ? <strong key={index}>{segment}</strong> : segment
-      )}
-    </>
-  )
 }
 
 const searchFieldsConfig = [
@@ -124,6 +88,7 @@ export default function AllVenuesWithSearch({ activeVenues, openVenues }) {
           return
         }
         setSearchUnavailable(false)
+        const tokens = tokenizedTerm.split(' ')
         setVenueSearchResults(
           result.venues.map((venue) => {
             const name = prettyId(venue.id)
@@ -140,7 +105,7 @@ export default function AllVenuesWithSearch({ activeVenues, openVenues }) {
               label: (
                 <>
                   <Flex align="center" gap={8}>
-                    <span>{highlightMatch(name, tokenizedTerm)}</span>
+                    <span>{highlightMatch(name, tokens)}</span>
                     {isActive && <Tag color="#3e6775">Active</Tag>}
                     {isOpen && <Tag color="#8c1b13">Open for Submission</Tag>}
                   </Flex>
@@ -148,8 +113,8 @@ export default function AllVenuesWithSearch({ activeVenues, openVenues }) {
                     <div style={{ fontSize: '0.85em', color: '#666' }}>
                       {matchedField.field} -{' '}
                       {highlightMatch(
-                        truncateAroundMatch(matchedField.fieldValue, tokenizedTerm),
-                        tokenizedTerm
+                        truncateAroundMatch(matchedField.fieldValue, tokens),
+                        tokens
                       )}
                     </div>
                   )}
