@@ -17,7 +17,7 @@ describe('Names Section', () => {
         {
           profile: {
             content: {
-              fullname: { value: 'Test Name' },
+              names: { value: { add: [{ fullname: 'Test Name' }] } },
             },
           },
           content: { source: { value: 'Student ID' } },
@@ -27,7 +27,7 @@ describe('Names Section', () => {
         {
           profile: {
             content: {
-              fullname: { value: 'moderator typo Name' },
+              names: { value: { add: [{ fullname: 'moderator typo Name' }] } },
             },
           },
           content: { source: { value: 'Student ID' } },
@@ -62,7 +62,7 @@ describe('Names Section', () => {
         {
           profile: {
             content: {
-              fullname: { value: 'Test Name' },
+              names: { value: { add: [{ fullname: 'Test Name' }] } },
             },
           },
           content: { source: { value: 'Student ID' } },
@@ -72,7 +72,7 @@ describe('Names Section', () => {
         {
           profile: {
             content: {
-              fullname: { value: 'Some Funny Name User Removed' },
+              names: { value: { add: [{ fullname: 'Some Funny Name User Removed' }] } },
             },
           },
           content: { source: { value: 'some proof' } },
@@ -195,7 +195,7 @@ describe('DOB Section', () => {
         {
           profile: {
             content: {
-              relations: { value: 'Parent' }, // a parental consent profile edit
+              relations: { value: { add: [{ relation: 'Parent' }] } }, // a parental consent profile edit
             },
           },
           signatures: ['~Some_Moderator1'],
@@ -238,13 +238,17 @@ describe('History Section', () => {
             content: {
               history: {
                 value: {
-                  position: 'Researcher',
-                  institution: {
-                    name: 'UMass',
-                    domain: 'umass.edu',
-                    start: 1999,
-                    end: 2000,
-                  },
+                  add: [
+                    {
+                      position: 'Researcher',
+                      institution: {
+                        name: 'UMass',
+                        domain: 'umass.edu',
+                        start: 1999,
+                        end: 2000,
+                      },
+                    },
+                  ],
                 },
               },
             },
@@ -295,13 +299,17 @@ describe('History Section', () => {
             content: {
               history: {
                 value: {
-                  position: 'Intern',
-                  institution: {
-                    name: 'University of Massachusetts Amherst',
-                    domain: 'umass.edu',
-                  },
-                  start: 1999,
-                  end: 1999,
+                  add: [
+                    {
+                      position: 'Intern',
+                      institution: {
+                        name: 'University of Massachusetts Amherst',
+                        domain: 'umass.edu',
+                      },
+                      start: 1999,
+                      end: 1999,
+                    },
+                  ],
                 },
               },
             },
@@ -359,13 +367,17 @@ describe('History Section', () => {
             content: {
               history: {
                 value: {
-                  position: 'Intern',
-                  institution: {
-                    name: 'UMass',
-                    domain: 'umass.edu',
-                  },
-                  start: 1999,
-                  end: 2000,
+                  add: [
+                    {
+                      position: 'Intern',
+                      institution: {
+                        name: 'UMass',
+                        domain: 'umass.edu',
+                      },
+                      start: 1999,
+                      end: 2000,
+                    },
+                  ],
                 },
               },
             },
@@ -402,9 +414,13 @@ describe('Relations Section', () => {
       content: {
         relations: {
           value: {
-            relation: 'Parent',
-            name: 'Gustavo Verified',
-            email: 'gustavo@profile.org',
+            add: [
+              {
+                relation: 'Parent',
+                name: 'Gustavo Verified',
+                email: 'gustavo@profile.org',
+              },
+            ],
           },
         },
       },

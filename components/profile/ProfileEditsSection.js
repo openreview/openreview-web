@@ -132,17 +132,17 @@ const renderProfileEdit = (edit, actions) => {
       )
     }
     default: {
-      const { fullname, dob, history, relations } = edit.profile.content ?? {}
+      const { names, dob, history, relations } = edit.profile.content ?? {}
       const { source, comment } = edit.content ?? {}
       return (
         <BasicProfileEditInfo
           edit={edit}
           actions={actions}
           popover={renderDetails([
-            ['Name', fullname?.value],
+            ['Name', names?.value?.add?.[0]?.fullname],
             ['Date of birth', dob && formatDateOfBirth(dob.value)],
-            ['History', history && formatHistory(history.value)],
-            ['Relation', relations && formatRelation(relations.value)],
+            ['History', history && formatHistory(history.value.add[0])],
+            ['Relation', relations && formatRelation(relations.value.add[0])],
             ['Document', source?.value],
             ['Comment', comment?.value],
           ])}

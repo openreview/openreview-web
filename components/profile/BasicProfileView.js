@@ -123,10 +123,11 @@ const NamesSection = ({ names, profileEdits }) => {
   const normalizedProfileNames = names.map((p) => normalizeName(p.fullname))
   const namesAsserted = orderBy(
     profileEdits.flatMap((p) => {
-      if (!p.profile.content?.fullname) return []
-      const normalizedValue = normalizeName(p.profile.content.fullname.value)
+      const profileEditFullName = p.profile.content?.names?.value?.add?.[0]?.fullname
+      if (!profileEditFullName) return []
+      const normalizedValue = normalizeName(profileEditFullName)
       return {
-        value: p.profile.content.fullname.value,
+        value: profileEditFullName,
         source: p.content?.source?.value,
         comment: p.content?.comment?.value,
         signatures: p.signatures,
@@ -331,8 +332,8 @@ const HistorySection = ({ history, profileEdits }) => {
   const records = history ?? []
   const historyAsserted = orderBy(
     profileEdits.flatMap((p) => {
-      if (!p.profile.content?.history) return []
-      const { value } = p.profile.content.history
+      const value = p.profile.content?.history?.value?.add?.[0]
+      if (!value) return []
       const identity = historyIdentity(value)
       const existInProfile = records.some((record) => historyIdentity(record) === identity)
       return {
@@ -445,7 +446,7 @@ const relationKey = (relation) =>
 const RelationsSection = ({ relations, parentalConsents }) => {
   const consents = orderBy(
     parentalConsents.map((p) => ({
-      value: p.profile.content.relations.value,
+      value: p.profile.content.relations.value.add[0],
       comment: p.content?.comment?.value,
       signatures: p.signatures,
       tcdate: p.tcdate,

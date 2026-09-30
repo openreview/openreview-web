@@ -21,11 +21,13 @@ const getEditFields = (invitation) => ({
 })
 
 const buildContent = (fields, formData) =>
-  fields.reduce((prev, [fieldName]) => {
+  fields.reduce((prev, [fieldName, fieldDescription]) => {
     let value = formData[fieldName]
     if (typeof value === 'string') value = value.trim()
     if (value === undefined || value === '') return prev
-    prev[fieldName] = { value }
+    prev[fieldName] = {
+      value: fieldDescription.value.param.change === 'add' ? { add: [value] } : value,
+    }
     return prev
   }, {})
 
@@ -38,6 +40,29 @@ const constructProfileEdit = (invitation, profileId, formData) => {
     ...(Object.keys(content).length ? { content } : {}),
     profile: { id: profileId, content: buildContent(fields.profile, formData) },
   }
+}
+
+const NameForm = () => {
+  const { field, value, onChange, clearError } = useContext(EditorComponentContext)
+  const fieldName = Object.keys(field)[0]
+  const [displayValue, setDisplayValue] = useState(value?.fullname)
+
+  return (
+    <Input
+      placeholder="Full name"
+      value={displayValue ?? ''}
+      onChange={(e) => {
+        setDisplayValue(e.target.value)
+        clearError?.()
+        const cleanDisplayValue = e.target.value.trim()
+        if (cleanDisplayValue.length > 0) {
+          onChange({ fieldName, value: { fullname: cleanDisplayValue } })
+        } else {
+          onChange({ fieldName, value: undefined })
+        }
+      }}
+    />
+  )
 }
 
 const historyReducer = (record, { type, value }) => {
@@ -229,7 +254,9 @@ const ProfileEditInvitationEditor = ({ invitation, profile, onEditPosted }) => {
   const [formData, setFormData] = useReducer(
     (state, action) => ({ ...state, [action.fieldName]: action.value }),
     {
-      fullname: (profile.names.find((p) => p.preferred) ?? profile.names[0])?.fullname,
+      names: {
+        fullname: (profile.names.find((p) => p.preferred) ?? profile.names[0])?.fullname,
+      },
       dob: profile.dob,
       history: profile.history?.find((p) => p.institution?.domain),
     }
@@ -274,6 +301,7 @@ const ProfileEditInvitationEditor = ({ invitation, profile, onEditPosted }) => {
           updateDateOfBirth={({ value }) => updateField('dob', value)}
         />
       )
+    if (fieldName === 'names') return <NameForm />
     if (fieldName === 'history')
       return (
         <HistoryForm
