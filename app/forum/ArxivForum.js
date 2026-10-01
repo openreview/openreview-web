@@ -1,16 +1,16 @@
 'use client'
 
-/* globals $: false */
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
-import useUser from '../../hooks/useUser'
-import { xpathSelect } from '../../lib/profiles'
-import api from '../../lib/api-client'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import CommonLayout from '../CommonLayout'
 import Forum from '../../components/forum/Forum'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { xpathSelect } from '../../lib/profiles'
+import { fetchArxivData } from '../arxiv/actions'
+import CommonLayout from '../CommonLayout'
 
 const entrySelector = '//atom:feed/atom:entry'
 const titleSelector = '//atom:feed/atom:entry/atom:title/text()'
@@ -27,8 +27,13 @@ const ArxivForum = ({ id }) => {
 
   const loadArvixNote = async () => {
     try {
-      const arxivUrl = `https://export.arxiv.org/api/query?id_list=${id.split('v')[0]}`
-      const xmlDoc = await $.ajax(arxivUrl)
+      let xmlDoc
+      try {
+        const xmlText = await fetchArxivData(id.split('v')[0])
+        xmlDoc = new DOMParser().parseFromString(xmlText, 'application/xml')
+      } catch {
+        throw new Error('Import failed.  Please try again later.')
+      }
 
       const arxivIdWithLatestVersion = xpathSelect(idSelector, xmlDoc, true)?.[0]
         ?.nodeValue?.split('/')
@@ -68,9 +73,10 @@ const ArxivForum = ({ id }) => {
         ?.replace(/\n/g, ' ')
       if (!title) throw new Error(`The Note ${id} was not found`)
 
-      const authorNames = xpathSelect(authorsSelector, xmlDoc, true)?.map((author) =>
-        author.nodeValue.trim()
-      )
+      const authors = xpathSelect(authorsSelector, xmlDoc, true)?.map((author) => ({
+        fullname: author.nodeValue.trim(),
+        username: '',
+      }))
       const pdate = dayjs(xpathSelect(pdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const mdate = dayjs(xpathSelect(mdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const rawXml = xpathSelect(entrySelector, xmlDoc, true)[0].outerHTML
@@ -90,7 +96,7 @@ const ArxivForum = ({ id }) => {
               value: title,
             },
             authors: {
-              value: authorNames,
+              value: authors,
             },
           },
           pdate,
