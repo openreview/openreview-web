@@ -1493,4 +1493,144 @@ describe('DropdownWidget', () => {
       })
     )
   })
+
+  test('render suggestions when enum accepts custom value', async () => {
+    const providerProps = {
+      value: {
+        field: {
+          source: {
+            value: {
+              param: {
+                input: 'select',
+                enum: ['Student ID', 'Passport', '.*'],
+              },
+            },
+          },
+        },
+        onChange: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    expect(screen.getByText('Select or type Source')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('combobox'))
+
+    expect(
+      [...document.querySelectorAll('.ant-select-item-option-content')].map(
+        (p) => p.textContent
+      )
+    ).toEqual(['Student ID', 'Passport'])
+  })
+
+  test('call update with typed custom value (enum accepts custom value)', async () => {
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          source: {
+            value: {
+              param: {
+                input: 'select',
+                enum: ['Student ID', 'Passport', '.*'],
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.paste('Employee Badge')
+
+    expect(onChange).toHaveBeenLastCalledWith({ fieldName: 'source', value: 'Employee Badge' })
+    expect(clearError).toHaveBeenCalled()
+  })
+
+  test('call update on selecting a suggestion (enum accepts custom value)', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          source: {
+            value: {
+              param: {
+                input: 'select',
+                enum: ['Student ID', 'Passport', '.*'],
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    await userEvent.click(screen.getByRole('combobox'))
+    await userEvent.click(
+      [...document.querySelectorAll('.ant-select-item-option-content')].find(
+        (p) => p.textContent === 'Passport'
+      )
+    )
+
+    expect(onChange).toHaveBeenCalledWith({ fieldName: 'source', value: 'Passport' })
+  })
+
+  test('call update with undefined when custom value is cleared (enum accepts custom value)', async () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          source: {
+            value: {
+              param: {
+                input: 'select',
+                enum: ['Student ID', 'Passport', '.*'],
+              },
+            },
+          },
+        },
+        onChange,
+        value: 'Employee Badge',
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    const input = screen.getByRole('combobox')
+    expect(input).toHaveValue('Employee Badge')
+
+    await userEvent.clear(input)
+
+    expect(onChange).toHaveBeenLastCalledWith({ fieldName: 'source', value: undefined })
+  })
+
+  test('render regular select when enum with .* has non-string entries', () => {
+    const providerProps = {
+      value: {
+        field: {
+          source: {
+            value: {
+              param: {
+                input: 'select',
+                enum: ['.*', { value: 'Passport', description: 'Passport' }],
+              },
+            },
+          },
+        },
+        onChange: jest.fn(),
+      },
+    }
+
+    renderWithEditorComponentContext(<DropdownWidget />, providerProps)
+
+    expect(screen.getByText('Select Source')).toBeInTheDocument()
+    expect(screen.queryByText('Select or type Source')).not.toBeInTheDocument()
+  })
 })

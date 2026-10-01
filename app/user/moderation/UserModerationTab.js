@@ -27,6 +27,7 @@ import Icon from '../../../components/Icon'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfilePreviewModal from '../../../components/profile/ProfilePreviewModal'
 import api from '../../../lib/api-client'
+import { acceptProfile, rejectProfile } from '../../../lib/profile-moderation'
 import { formatProfileData } from '../../../lib/profiles'
 import {
   formatDateTime,
@@ -35,6 +36,7 @@ import {
   isValidDomain,
   prettyId,
 } from '../../../lib/utils'
+import ActionButton from './ActionButton'
 
 import styles from './moderation.module.scss'
 import {
@@ -44,28 +46,21 @@ import {
   moderation as legacyStyles,
 } from '../../../lib/legacy-bootstrap-styles'
 
-const ActionButton = (props) => (
-  <Button
-    type="primary"
-    size="small"
-    styles={{ root: legacyStyles.actionButton }}
-    {...props}
-  />
-)
-
 export const RejectionModal = ({
   profileToReject,
   setProfileToReject,
   rejectUser,
   signedNotes,
+  profileStateInvitation,
 }) => {
   const [rejectionMessage, setRejectionMessage] = useState('')
+  const [rejectionLabels, setRejectionLabels] = useState([])
 
   const currentInstitutionName = profileToReject?.content?.history?.find(
     (p) => !p.end || p.end >= new Date().getFullYear()
   )?.institution?.name
 
-  const rejectionReasons = getRejectionReasons(currentInstitutionName)
+  const rejectionReasons = getRejectionReasons(profileStateInvitation, currentInstitutionName)
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
     setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
@@ -81,11 +76,13 @@ export const RejectionModal = ({
       destroyOnHidden={true}
       onCancel={() => {
         setRejectionMessage('')
+        setRejectionLabels([])
         setProfileToReject(null)
       }}
       onOk={() => {
         setRejectionMessage('')
-        rejectUser(rejectionMessage, profileToReject.id)
+        setRejectionLabels([])
+        rejectUser(rejectionMessage, profileToReject.id, rejectionLabels)
         setProfileToReject(null)
       }}
       width={{
@@ -104,6 +101,7 @@ export const RejectionModal = ({
           getPopupContainer={(triggerNode) => triggerNode.parentElement}
           onChange={(value) => {
             const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+            setRejectionLabels(rejectOptions.map((p) => p.label))
             setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
           }}
         />
@@ -295,6 +293,7 @@ const UserModerationQueue = ({
   onlyModeration = true,
   reload,
   shouldReload,
+  profileStateInvitation,
   showSortButton = false,
 }) => {
   const searchParams = useSearchParams()
@@ -411,7 +410,7 @@ const UserModerationQueue = ({
   const acceptUser = async (profileId, showSuccessMessage = true) => {
     try {
       setIdsLoading((p) => [...p, profileId])
-      await api.post('/profile/moderate', { id: profileId, decision: 'accept' })
+      await acceptProfile(profileId)
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -419,9 +418,11 @@ const UserModerationQueue = ({
       if (showSuccessMessage) {
         promptMessage(`${prettyId(profileId)} is now active`)
       }
+      return true
     } catch (error) {
       promptError(error.message)
       setIdsLoading((p) => p.filter((q) => q !== profileId))
+      return false
     }
   }
 
@@ -463,44 +464,9 @@ const UserModerationQueue = ({
     setProfileToBlockUnblock(profile)
   }
 
-  const rejectUser = async (rejectionMessage, id) => {
-    let interpretedRejectionMessage = rejectionMessage
-    if (interpretedRejectionMessage.includes('{{documentVerificationLink}}')) {
-      try {
-        const { url } = await api.post('/profile-documents/upload-link', {
-          profileId: id,
-          type: 'identity',
-        })
-        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
-          '{{documentVerificationLink}}',
-          url
-        )
-      } catch (error) {
-        promptError(error.message)
-        return
-      }
-    }
-    if (interpretedRejectionMessage.includes('{{underageConsentLink}}')) {
-      try {
-        const { url } = await api.post('/profile-documents/upload-link', {
-          profileId: id,
-          type: 'parentalConsent',
-        })
-        interpretedRejectionMessage = interpretedRejectionMessage.replaceAll(
-          '{{underageConsentLink}}',
-          url
-        )
-      } catch (error) {
-        promptError(error.message)
-        return
-      }
-    }
+  const rejectUser = async (rejectionMessage, id, labels) => {
     try {
-      await api.post('/profile/moderate', {
-        id,
-        decision: 'reject',
-        reason: interpretedRejectionMessage,
-      })
+      await rejectProfile(id, rejectionMessage, labels)
       if (profiles.length === 1 && pageNumber !== 1) {
         setPageNumber((p) => p - 1)
       }
@@ -889,6 +855,7 @@ const UserModerationQueue = ({
         setProfileToReject={setProfileToReject}
         rejectUser={rejectUser}
         signedNotes={signedNotes}
+        profileStateInvitation={profileStateInvitation}
       />
       <BlockModal
         profileToBlockUnblock={profileToBlockUnblock}
@@ -908,7 +875,7 @@ const UserModerationQueue = ({
           'relations',
           'expertise',
           'publications',
-          'pastStates',
+          'profileEdits',
           'tags',
           'identityDocuments',
           'loginActivity',
@@ -917,6 +884,7 @@ const UserModerationQueue = ({
         showPreviousProfile={showPreviousProfile}
         acceptUser={acceptUser}
         rejectUser={rejectUser}
+        profileStateInvitation={profileStateInvitation}
       />
     </div>
   )
@@ -925,6 +893,22 @@ const UserModerationQueue = ({
 export default function UserModerationTab() {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const [configNote, setConfigNote] = useState(null)
+  const [profileStateInvitation, setProfileStateInvitation] = useState(null)
+
+  const loadProfileStateInvitation = async () => {
+    try {
+      const { invitations } = await api.get('/invitations', {
+        id: `${process.env.SUPER_USER}/Support/-/Profile_State`,
+      })
+      setProfileStateInvitation(invitations?.[0] ?? null)
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  useEffect(() => {
+    loadProfileStateInvitation()
+  }, [])
 
   const getModerationStatus = async () => {
     try {
@@ -996,12 +980,14 @@ export default function UserModerationTab() {
         onlyModeration={false}
         reload={reload}
         shouldReload={shouldReload}
+        profileStateInvitation={profileStateInvitation}
       />
 
       <UserModerationQueue
         title="New Profiles Pending Moderation"
         reload={reload}
         shouldReload={shouldReload}
+        profileStateInvitation={profileStateInvitation}
         showSortButton
       />
     </>
