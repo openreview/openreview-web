@@ -29,6 +29,13 @@ const DropdownWidget = dynamic(() => import('../EditorComponents/DropdownWidget'
   ssr: false,
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
 })
+const DropdownDerivedOptionsWidget = dynamic(
+  () => import('../EditorComponents/DropdownDerivedOptionsWidget'),
+  {
+    ssr: false,
+    loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+  }
+)
 const CodeEditorWidget = dynamic(() => import('../EditorComponents/CodeEditorWidget'), {
   ssr: false,
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
@@ -60,6 +67,11 @@ const ProfileSearchWithInstitutionWidget = dynamic(
 
 // #endregion
 
+const isDerivedField = (value) =>
+  value.param?.enum?.length === 1 &&
+  typeof value.param.enum[0] === 'string' &&
+  value.param.enum[0].startsWith('${')
+
 const EditorWidget = () => {
   const { field } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
@@ -77,7 +89,7 @@ const EditorWidget = () => {
       case 'checkbox':
         return <CheckboxWidget />
       case 'select':
-        return <DropdownWidget />
+        return isDerivedField(value) ? <DropdownDerivedOptionsWidget /> : <DropdownWidget />
       case 'textarea':
         return <TextAreaWidget />
       case 'text':
@@ -116,7 +128,8 @@ const EditorWidget = () => {
         return <TextboxWidget />
       case 'string':
       case 'string[]':
-        return value.param?.enum ? <DropdownWidget /> : <TextboxWidget />
+        if (!value.param?.enum) return <TextboxWidget />
+        return isDerivedField(value) ? <DropdownDerivedOptionsWidget /> : <DropdownWidget />
       case 'group':
       case 'profile':
         return <ProfileSearchWidget />

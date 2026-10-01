@@ -60,6 +60,7 @@ const InvitationEditor = ({
             field: { [fieldName]: fieldDescription },
             onChange: setInvitationEditorData,
             value: fieldValue,
+            editorValue: invitationEditorData,
             isWebfield: false,
             error,
             setErrors,

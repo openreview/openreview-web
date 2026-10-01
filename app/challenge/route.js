@@ -30,7 +30,8 @@ function safeRedirect(raw, frontendOrigin) {
   if (!raw) return '/'
   try {
     const url = new URL(raw, frontendOrigin)
-    if (url.origin === frontendOrigin) return url.pathname + url.search + url.hash
+    if (url.origin === frontendOrigin && !url.pathname.startsWith('//'))
+      return url.pathname + url.search + url.hash
     if (apiOrigin && url.origin === apiOrigin) return url.href
   } catch (_) {
     // not a valid URL
