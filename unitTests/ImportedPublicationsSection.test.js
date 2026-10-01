@@ -1,7 +1,7 @@
 import { screen, render, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import ImportedPublicationsSection from '../components/profile/ImportedPublicationsSection'
 import api from '../lib/api-client'
+import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
