@@ -2344,4 +2344,287 @@ describe('AreaChairConsole', () => {
       expect(screen.getByText('Reject')).toBeInTheDocument()
     })
   })
+
+  test('split custom stage replies between review replies and meta review/forum replies', async () => {
+    // AI_Review_Detection replies to each review, Second_Round_Review (a second review
+    // invitation configured as a custom stage) replies to the forum and
+    // Meta_Review_Confirmation replies to the meta review
+    const acAnonId = Math.random().toString(36).substring(2, 6)
+    const paper1Reviewer1AnonId = Math.random().toString(36).substring(2, 6)
+    const paper1Reviewer2AnonId = Math.random().toString(36).substring(2, 6)
+    api.getAll = jest.fn((path, param) => {
+      switch (path) {
+        case '/groups': // all groups
+          return Promise.resolve([
+            {
+              id: 'AAAI.org/2025/Conference/Submission1/Senior_Program_Committee',
+            },
+            {
+              id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+            },
+          ])
+        case '/notes':
+          return Promise.resolve([
+            {
+              id: 'note1Id',
+              forum: 'note1Id',
+              number: 1,
+              details: {
+                replies: [
+                  // reviewer 1 review
+                  {
+                    id: 'review1Id',
+                    content: {
+                      review: { value: 'some review from reviewer1' },
+                      rating: { value: 5 },
+                      confidence: { value: 5 },
+                    },
+                    invitations: ['AAAI.org/2025/Conference/Submission1/-/First_Round_Review'],
+                    signatures: [
+                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer1AnonId}`,
+                    ],
+                  },
+                  // reviewer 2 review
+                  {
+                    id: 'review2Id',
+                    content: {
+                      review: { value: 'some review from reviewer2' },
+                      rating: { value: 10 },
+                      confidence: { value: 10 },
+                    },
+                    invitations: ['AAAI.org/2025/Conference/Submission1/-/First_Round_Review'],
+                    signatures: [
+                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer2AnonId}`,
+                    ],
+                  },
+                  // meta review
+                  {
+                    id: 'metaReviewId',
+                    content: {
+                      recommendation: { value: 'Accept' },
+                    },
+                    invitations: ['AAAI.org/2025/Conference/Submission1/-/Meta_Review'],
+                    signatures: [
+                      `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+                    ],
+                  },
+                  // AI review detection replies, one per review
+                  {
+                    id: 'detection1Id',
+                    forum: 'note1Id',
+                    replyto: 'review1Id',
+                    content: {
+                      label: { value: 'AI' },
+                      score: { value: 0.9 },
+                    },
+                    invitations: [
+                      'AAAI.org/2025/Conference/Submission1/First_Round_Review1/-/AI_Review_Detection',
+                    ],
+                    signatures: ['AAAI.org/2025/Conference/Program_Chairs'],
+                  },
+                  {
+                    id: 'detection2Id',
+                    forum: 'note1Id',
+                    replyto: 'review2Id',
+                    content: {
+                      label: { value: 'Human' },
+                      score: { value: 0.1 },
+                    },
+                    invitations: [
+                      'AAAI.org/2025/Conference/Submission1/First_Round_Review2/-/AI_Review_Detection',
+                    ],
+                    signatures: ['AAAI.org/2025/Conference/Program_Chairs'],
+                  },
+                  // second review invitation posted as custom stage, replies to the forum
+                  {
+                    id: 'secondRoundReviewId',
+                    forum: 'note1Id',
+                    replyto: 'note1Id',
+                    content: {
+                      final_recommendation: { value: 'second round says accept' },
+                    },
+                    invitations: [
+                      'AAAI.org/2025/Conference/Submission1/-/Second_Round_Review',
+                    ],
+                    signatures: [
+                      `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer1AnonId}`,
+                    ],
+                  },
+                  // meta review confirmation, replies to the meta review
+                  {
+                    id: 'confirmationId',
+                    forum: 'note1Id',
+                    replyto: 'metaReviewId',
+                    content: {
+                      confirmation: { value: 'I confirm the meta review' },
+                    },
+                    invitations: [
+                      'AAAI.org/2025/Conference/Submission1/Meta_Review1/-/Meta_Review_Confirmation',
+                    ],
+                    signatures: ['AAAI.org/2025/Conference/Program_Chairs'],
+                  },
+                ],
+              },
+            },
+          ])
+        default:
+          return null
+      }
+    })
+    api.get = jest.fn((path) => {
+      switch (path) {
+        case '/groups': // reviewer groups
+          return Promise.resolve({
+            groups: [
+              {
+                id: 'AAAI.org/2025/Conference/Submission1/Program_Committee',
+                members: [
+                  `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer1AnonId}`,
+                  `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer2AnonId}`,
+                ],
+              },
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer1AnonId}`,
+                members: ['~PaperOne_Reviewer1'],
+              },
+              {
+                id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${paper1Reviewer2AnonId}`,
+                members: ['~PaperOne_Reviewer2'],
+              },
+            ],
+          })
+        case '/edges': // sac assignments
+          return Promise.resolve({ edges: [] })
+        case '/invitations':
+          return Promise.resolve({ invitations: [] })
+        default:
+          return null
+      }
+    })
+    api.post = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            content: {
+              names: [{ username: '~PaperOne_Reviewer1', fullname: 'PaperOne Reviewer1' }],
+              emailsConfirmed: [],
+            },
+          },
+          {
+            content: {
+              names: [{ username: '~PaperOne_Reviewer2', fullname: 'PaperOne Reviewer2' }],
+              emailsConfirmed: [],
+            },
+          },
+        ],
+      })
+    ) // profile search
+
+    const providerProps = {
+      value: {
+        header: { title: 'Senior Program Committee', instructions: 'some instructions' },
+        entity: { id: 'AAAI.org/2025/Conference/Senior_Program_Committee' },
+        venueId: 'AAAI.org/2025/Conference',
+        reviewerAssignment: {
+          showEdgeBrowserUrl: true,
+          proposedAssignmentTitle: 'Proposed Assignment',
+          edgeBrowserProposedUrl: 'proposed edge browser url',
+          edgeBrowserDeployedUrl: 'deployed edge browser url',
+        },
+        submissionInvitationId: 'AAAI.org/2025/Conference/-/Submission',
+        seniorAreaChairsId: 'AAAI.org/2025/Conference/Area_Chairs',
+        areaChairName: 'Senior_Program_Committee',
+        submissionName: 'Submission',
+        officialReviewName: 'First_Round_Review',
+        reviewRatingName: 'rating',
+        reviewConfidenceName: 'confidence',
+        officialMetaReviewName: 'Meta_Review',
+        reviewerName: 'Program_Committee',
+        anonReviewerName: 'Program_Committee_',
+        metaReviewRecommendationName: undefined,
+        additionalMetaReviewFields: [],
+        shortPhrase: 'AAAI 2025',
+        filterOperators: undefined,
+        propertiesAllowed: undefined,
+        enableQuerySearch: true,
+        emailReplyTo: 'pc@aaai.org',
+        extraExportColumns: undefined,
+        customStageInvitations: [
+          {
+            name: 'AI_Review_Detection',
+            displayField: 'label',
+            extraDisplayFields: ['score'],
+          },
+          { name: 'Second_Round_Review', displayField: 'final_recommendation' },
+          { name: 'Meta_Review_Confirmation', displayField: 'confirmation' },
+        ],
+      },
+    }
+
+    renderWithWebFieldContext(
+      <AreaChairConsole appContext={{ setBannerContent: jest.fn() }} />,
+      providerProps
+    )
+
+    await waitFor(() => {
+      // the review status column receives only the replies to reviews
+      expect(noteReviewStatusProps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          customStageReviewReplies: [
+            expect.objectContaining({
+              id: 'detection1Id',
+              replyto: 'review1Id',
+              name: 'AI Review Detection',
+              value: 'AI',
+            }),
+            expect.objectContaining({
+              id: 'detection2Id',
+              replyto: 'review2Id',
+              name: 'AI Review Detection',
+              value: 'Human',
+            }),
+          ],
+          rowData: expect.objectContaining({
+            customStageReviewReplies: {
+              aiReviewDetection: [
+                expect.objectContaining({ id: 'detection1Id' }),
+                expect.objectContaining({ id: 'detection2Id' }),
+              ],
+            },
+            metaReviewData: expect.objectContaining({
+              customStageMetaReviewReplies: {
+                secondRoundReview: [
+                  expect.objectContaining({
+                    id: 'secondRoundReviewId',
+                    replyto: 'note1Id',
+                    source: null, // forum replies have no source label
+                  }),
+                ],
+                metaReviewConfirmation: [
+                  expect.objectContaining({
+                    id: 'confirmationId',
+                    replyto: 'metaReviewId',
+                    source: 'Meta Review1',
+                  }),
+                ],
+              },
+            }),
+          }),
+        })
+      )
+
+      // the meta review status column renders the forum reply (second review invitation
+      // as custom stage, pre-existing behavior) and the meta review reply, with the
+      // invitation prefix distinguishing the meta review reply
+      expect(screen.getByText('Second Round Review:')).toBeInTheDocument()
+      expect(
+        screen.getByText('Final Recommendation: second round says accept')
+      ).toBeInTheDocument()
+      expect(screen.getByText('Meta Review Confirmation (Meta Review1):')).toBeInTheDocument()
+      expect(screen.getByText('Confirmation: I confirm the meta review')).toBeInTheDocument()
+      // replies to reviews are not rendered in the meta review status column
+      expect(screen.queryByText('AI Review Detection:')).not.toBeInTheDocument()
+      expect(screen.queryByText('Label: AI')).not.toBeInTheDocument()
+    })
+  })
 })

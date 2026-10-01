@@ -1741,6 +1741,35 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
 
       const customStageReviews =
         pcConsoleData.customStageReviewsByPaperNumberMap?.get(note.number) ?? []
+
+      // custom stage replies to an official review are rendered under the review they
+      // reply to in the review progress column
+      const customStageReviewReplies = customStageInvitations?.reduce((prev, curr) => {
+        const invitationSuffix = `/-/${curr.name}`
+        const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
+        const reviewReplies = customStageReviews
+          .filter(
+            (p) =>
+              p.invitations.some((q) => q.includes(invitationSuffix)) &&
+              officialReviews.some((r) => r.id === p.replyto)
+          )
+          .map((customStageReview) => {
+            const customStageValue = customStageReview.content?.[curr.displayField]?.value
+            return {
+              searchValue: customStageValue,
+              name: prettyId(curr.name),
+              value: customStageValue,
+              displayField: prettyField(curr.displayField),
+              extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
+                field: prettyField(field),
+                value: customStageReview.content?.[field]?.value,
+              })),
+              ...customStageReview,
+            }
+          })
+        if (!reviewReplies.length) return prev
+        return { ...prev, [camelCase(curr.name)]: reviewReplies }
+      }, {})
       const metaReviewAgreements =
         pcConsoleData.metaReviewAgreementsByPaperNumberMap?.get(note.number) ?? []
       const metaReviews = (
@@ -1814,6 +1843,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             })),
         reviewerProfiles: assignedReviewerProfiles,
         officialReviews,
+        customStageReviewReplies,
         reviewProgressData: {
           reviewers: assignedReviewerProfiles,
           numReviewersAssigned: assignedReviewers.length,
@@ -1872,8 +1902,11 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             .map((p) => p.metaReviewAgreement.searchValue)
             .join(' '),
           customStageReviews: customStageInvitations?.reduce((prev, curr) => {
-            const customStageReview = customStageReviews.find((p) =>
-              p.invitations.some((q) => q.includes(`/-/${curr.name}`))
+            // replies to an official review are rendered in the review progress column
+            const customStageReview = customStageReviews.find(
+              (p) =>
+                p.invitations.some((q) => q.includes(`/-/${curr.name}`)) &&
+                !officialReviews.some((r) => r.id === p.replyto)
             )
             if (!customStageReview)
               return {
