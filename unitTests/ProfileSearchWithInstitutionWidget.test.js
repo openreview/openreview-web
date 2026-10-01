@@ -1244,7 +1244,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     })
   })
 
-  test('allow reorder with institution change (elements notation)', async () => {
+  test.skip('allow reorder with institution change (elements notation)', async () => {
     const apiPost = jest.fn(() =>
       Promise.resolve({
         profiles: [

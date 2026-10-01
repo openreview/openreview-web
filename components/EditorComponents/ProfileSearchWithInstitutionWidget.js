@@ -562,7 +562,6 @@ const ProfileSearchWithInstitutionWidget = () => {
   const reorderOnly = Array.isArray(field?.authors?.value)
   const allowAddRemove =
     !reorderOnly &&
-    !field.authors?.value.param.elements && // reorder with institution change specified username fullname
     !(
       field.authors?.value?.param?.properties?.fullname?.param?.enum?.length === 1 &&
       typeof field.authors.value.param.properties.fullname.param.enum[0] === 'string' &&
