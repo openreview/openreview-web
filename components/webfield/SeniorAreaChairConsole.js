@@ -641,13 +641,21 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                     p.invitations.some((q) => q.includes(`/-/${curr.name}`)) &&
                     !officialReviews.some((r) => r.id === p.replyto)
                 )
-                if (!customStageReview)
+                if (!customStageReview) {
+                  const reviewReplySearchValues = (
+                    customStageReviewReplies[camelCase(curr.name)] ?? []
+                  )
+                    .map((p) => p.searchValue)
+                    .filter((p) => p !== undefined && p !== null)
                   return {
                     ...prev,
                     [camelCase(curr.name)]: {
-                      searchValue: 'N/A',
+                      searchValue: reviewReplySearchValues.length
+                        ? reviewReplySearchValues
+                        : 'N/A',
                     },
                   }
+                }
                 const customStageValue = customStageReview?.content?.[curr.displayField]?.value
                 const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
                 return {

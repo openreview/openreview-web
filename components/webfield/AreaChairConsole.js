@@ -755,7 +755,7 @@ const AreaChairConsoleTabs = ({ acConsoleData, setAcConsoleData }) => {
 
 /**
  * @name AreaChairConsoleConfig.customStageInvitations
- * @description config the custom stage replies to be shown in the console. Replies to an official review are rendered under that review in the review status column, replies to a meta review or to the forum are shown under the meta review status column with the invitation prefix (e.g. Meta Review1) to distinguish them. Each object can have 3 fields: name: construct the invitation id to fiter note replies, displayField: the field name to read from the custom stage note, extraDisplayFields: an string array with more fields to show from the custom stage note. Compared to the customStageInvitations config in PC/SAC console, it does not have role or repliesPerSubmission
+ * @description config the custom stage replies to be shown in the console. Replies to an official review are rendered under that review in the review status column, all other replies (e.g. to the forum, a meta review or a rebuttal) are shown under the meta review status column with the invitation prefix (e.g. Meta Review1) to distinguish them. Each object can have 3 fields: name: construct the invitation id to fiter note replies, displayField: the field name to read from the custom stage note, extraDisplayFields: an string array with more fields to show from the custom stage note. Compared to the customStageInvitations config in PC/SAC console, it does not have role or repliesPerSubmission
  * @type {object[]}
  * @default no default value
  * @example
@@ -1161,7 +1161,7 @@ const AreaChairConsole = ({ appContext }) => {
             officialReviews.some((r) => r.id === p.replyto)
           )
           const metaReviewReplies = customStageReplies.filter(
-            (p) => p.replyto === note.id || allMetaReviews.some((r) => r.id === p.replyto)
+            (p) => !officialReviews.some((r) => r.id === p.replyto)
           )
           if (reviewReplies.length)
             customStageReviewReplies[camelCase(curr.name)] = reviewReplies
