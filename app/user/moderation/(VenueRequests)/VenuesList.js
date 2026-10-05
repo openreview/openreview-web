@@ -38,8 +38,15 @@ const VenuesList = ({ venueRequestNotes }) => {
       )}
       <Flex vertical gap="small" style={{ marginBottom: '1.5rem', minHeight: '400px' }}>
         {venueRequestNotesToDisplay.map((venueRequestNote) => {
-          const { forum, cdate, abbreviatedName, latestComment, apiVersion, status, journal } =
-            venueRequestNote
+          const {
+            forum,
+            cdate,
+            abbreviatedName,
+            latestComment,
+            apiVersion,
+            status,
+            workflowLabel,
+          } = venueRequestNote
 
           return (
             <Row key={forum} align="middle" gutter={[15, 15]} className="venue-request-row">
@@ -51,8 +58,7 @@ const VenuesList = ({ venueRequestNotes }) => {
                   rel="noreferrer"
                 >
                   {abbreviatedName}
-                  {apiVersion === 2 && !journal && <Tag>workflow</Tag>}
-                  {journal && <Tag>journal</Tag>}
+                  {apiVersion === 2 && <Tag>{workflowLabel}</Tag>}
                 </a>
               </Col>
               <Col xs={24} md={9} lg={9}>

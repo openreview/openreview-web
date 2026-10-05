@@ -1,13 +1,11 @@
 'use client'
 
-/* globals promptError: false */
-
 import debounce from 'lodash/debounce'
 import { usePathname, useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
 import { useState, useEffect, useCallback, useRef } from 'react'
 import api from '../lib/api-client'
-import { getTitleObjects, getTokenObjects } from '../lib/utils'
+import { getTitleObjects, getTokenObjects, highlightMatch } from '../lib/utils'
 import Icon from './Icon'
 
 import legacyNavStyles from '../styles/components/legacy-bootstrap-nav.module.scss'
@@ -177,15 +175,13 @@ const AutoCompleteInput = () => {
                   autoCompleteItemsRef.current[index] = element
                 }}
               >
-                <div
-                  className={`ui-menu-item-wrapper ${activeClass}`}
-                  dangerouslySetInnerHTML={{ __html: item.label }}
-                />
+                <div className={`ui-menu-item-wrapper ${activeClass}`}>
+                  {highlightMatch(item.label, [searchTerm])}
+                </div>
                 {item.subtitle && (
-                  <div
-                    className={`authlist ui-menu-item-wrapper ${activeClass}`}
-                    dangerouslySetInnerHTML={{ __html: item.subtitle }}
-                  />
+                  <div className={`authlist ui-menu-item-wrapper ${activeClass}`}>
+                    {highlightMatch(item.subtitle, [searchTerm])}
+                  </div>
                 )}
               </li>
             ) : (
