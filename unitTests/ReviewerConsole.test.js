@@ -1,8 +1,8 @@
 import { screen, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
+import ReviewerConsole from '../components/webfield/ReviewerConsole'
 import api from '../lib/api-client'
 import { reRenderWithWebFieldContext, renderWithWebFieldContext } from './util'
-import ReviewerConsole from '../components/webfield/ReviewerConsole'
+import '@testing-library/jest-dom'
 
 let useUserReturnValue
 let routerParams
@@ -332,21 +332,16 @@ describe('ReviewerConsole', () => {
   test('show note info and note review info (no review))', async () => {
     const reviewerAnonId = Math.random().toString(36).substring(2, 6)
     const acAnonId = Math.random().toString(36).substring(2, 6)
+    // the reviewer is a direct member of the anon group only
     api.getAll = jest.fn(() =>
       Promise.resolve([
-        // anon groups
         {
           id: `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewerAnonId}`,
           members: ['~Test_Program_Committee1'],
         },
-        // per paper reviewers group
-        {
-          id: `AAAI.org/2025/Conference/Submission1/Program_Committee`,
-          members: ['~Test_Program_Committee1'],
-        },
       ])
     )
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/edges':
           return Promise.resolve({ edges: [] })
@@ -357,6 +352,12 @@ describe('ReviewerConsole', () => {
             ],
           })
         case '/groups': // anon AC and per paper ACs group
+          // per paper reviewers group has the anon group as member
+          if (param?.members) {
+            return Promise.resolve({
+              groups: [{ id: 'AAAI.org/2025/Conference/Submission1/Program_Committee' }],
+            })
+          }
           return Promise.resolve({
             groups: [
               // anon AC group
@@ -419,6 +420,14 @@ describe('ReviewerConsole', () => {
       expect(
         screen.getByRole('link', { value: 'Test Senior Program Committee' })
       ).toHaveAttribute('href', '/profile?id=~Test_Senior_Program_Committee1')
+      expect(api.get).toHaveBeenCalledWith(
+        '/groups',
+        expect.objectContaining({
+          members: [
+            `AAAI.org/2025/Conference/Submission1/Program_Committee_${reviewerAnonId}`,
+          ],
+        })
+      )
 
       expect(noteSummaryProps).toHaveBeenCalledWith(
         expect.objectContaining({ note: expect.objectContaining({ id: 'paper1Id' }) })
@@ -460,7 +469,7 @@ describe('ReviewerConsole', () => {
         },
       ])
     )
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/edges':
           return Promise.resolve({ edges: [] })
@@ -495,6 +504,8 @@ describe('ReviewerConsole', () => {
             ],
           })
         case '/groups': // anon AC and per paper ACs group
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // anon AC group
@@ -585,7 +596,7 @@ describe('ReviewerConsole', () => {
         },
       ])
     )
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/edges':
           return Promise.resolve({ edges: [] })
@@ -620,6 +631,8 @@ describe('ReviewerConsole', () => {
             ],
           })
         case '/groups': // anon AC and per paper ACs group
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // anon AC group
@@ -712,7 +725,7 @@ describe('ReviewerConsole', () => {
         },
       ])
     )
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/edges':
           return Promise.resolve({ edges: [] })
@@ -755,6 +768,8 @@ describe('ReviewerConsole', () => {
             ],
           })
         case '/groups': // anon AC and per paper ACs group
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // anon AC group
@@ -846,7 +861,7 @@ describe('ReviewerConsole', () => {
         },
       ])
     )
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/edges':
           return Promise.resolve({ edges: [] })
@@ -889,6 +904,8 @@ describe('ReviewerConsole', () => {
             ],
           })
         case '/groups': // anon AC and per paper ACs group
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // anon AC group

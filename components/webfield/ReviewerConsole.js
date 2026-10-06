@@ -545,7 +545,7 @@ const ReviewerConsole = ({ appContext }) => {
     hasPaperRanking,
     reviewDisplayFields = ['review'],
   } = useContext(WebFieldContext)
-  const { user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
   const query = useSearchParams()
   const { setBannerContent } = appContext ?? {}
   const [reviewerConsoleData, setReviewerConsoleData] = useState({})
@@ -563,12 +563,29 @@ const ReviewerConsole = ({ appContext }) => {
         : reviewerName
       const memberGroups = await api.getAll('/groups', {
         prefix: `${venueId}/${submissionName}.*`,
-        member: user.id,
+        members: user.memberIds,
         domain: group.domain,
       })
       anonGroups = memberGroups.filter((p) => p.id.includes(`/${singularName}_`))
+      const reviewerGroups = await chunk(
+        anonGroups.map((p) => p.id),
+        50
+      ).reduce(
+        (prev, membersChunk) =>
+          prev.then((acc) =>
+            api
+              .get('/groups', {
+                prefix: `${venueId}/${submissionName}.*`,
+                members: membersChunk,
+                select: 'id',
+                domain: group.domain,
+              })
+              .then((result) => acc.concat(result.groups))
+          ),
+        Promise.resolve([])
+      )
 
-      groupByNumber = memberGroups
+      groupByNumber = [...memberGroups, ...reviewerGroups]
         .filter((p) => p.id.endsWith(`/${reviewerName}`))
         .reduce((prev, curr) => {
           const num = getNumberFromGroup(curr.id, submissionName)

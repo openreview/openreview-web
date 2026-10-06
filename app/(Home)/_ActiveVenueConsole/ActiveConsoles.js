@@ -1,3 +1,5 @@
+import chunk from 'lodash/chunk'
+import uniq from 'lodash/uniq'
 import { headers } from 'next/headers'
 import api from '../../../lib/api-client'
 import VenueList from '../VenueList'
@@ -11,15 +13,35 @@ export default async function ActiveConsoles({ activeVenues, openVenues, user, t
   let venues = null
   const headersList = await headers()
   const remoteIpAddress = headersList.get('x-forwarded-for')
+  const memberIds = [...user.profile.emails, ...user.profile.usernames]
   try {
-    const result = await api.get(
+    const userGroups = await api.getAllWithAfter(
       '/groups',
-      { member: user.id, web: true, select: 'id' },
+      { members: memberIds, select: 'id' },
       { accessToken: token, remoteIpAddress }
     )
-    venues = result.groups.flatMap((venue) => {
-      if (!activeAndOpenVenues.find((p) => venue.id.startsWith(p.groupId))) return []
-      return { groupId: venue.id }
+    const authorsGroupIds = userGroups.flatMap((group) => {
+      if (!group.id.endsWith('/Authors')) return []
+      if (!activeAndOpenVenues.find((p) => group.id.startsWith(p.groupId))) return []
+      return group.id
+    })
+
+    const consoleGroups = await chunk([...memberIds, ...authorsGroupIds], 25).reduce(
+      (prev, membersChunk) =>
+        prev.then((acc) =>
+          api
+            .get(
+              '/groups',
+              { members: membersChunk, web: true, select: 'id' },
+              { accessToken: token, remoteIpAddress }
+            )
+            .then((result) => acc.concat(result.groups))
+        ),
+      Promise.resolve([])
+    )
+    venues = uniq(consoleGroups.map((group) => group.id)).flatMap((groupId) => {
+      if (!activeAndOpenVenues.find((p) => groupId.startsWith(p.groupId))) return []
+      return { groupId }
     })
   } catch (error) {
     // oxlint-disable-next-line no-console
@@ -30,7 +52,7 @@ export default async function ActiveConsoles({ activeVenues, openVenues, user, t
       apiError: error,
       apiRequest: {
         endpoint: '/groups',
-        params: { member: user?.id, web: true, select: 'id' },
+        params: { members: memberIds, select: 'id' },
       },
     })
   }

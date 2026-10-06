@@ -108,10 +108,20 @@ const TagsPage = ({ tagsOfPage, domain }) => {
 
   const loadGroupMembers = async (profileIds) => {
     try {
-      const groupMemberCallsP = profileIds.map((profileId) =>
-        api
+      const { profiles } = await api.getAllProfilesByIds(profileIds)
+      const groupMemberCallsP = profileIds.map((profileId) => {
+        const profile = profiles.find(
+          (p) =>
+            p.id === profileId || p.content?.names?.some((name) => name.username === profileId)
+        )
+        const usernames = profile?.content?.names?.flatMap((name) => name.username ?? []) ?? []
+
+        const emails =
+          profile?.content?.emailsConfirmed?.filter((email) => !email.startsWith('****@')) ??
+          []
+        return api
           .get('/groups', {
-            member: profileId,
+            members: [...new Set([profileId, ...usernames]), ...emails],
             select: 'id,domain',
             ...(domain && { domain }),
           })
@@ -120,7 +130,7 @@ const TagsPage = ({ tagsOfPage, domain }) => {
             const filtered = memberGroups.filter((p) => p.domain !== process.env.SUPER_USER)
             return domain ? filtered.filter((p) => p.domain === domain) : filtered
           })
-      )
+      })
       const groupMembersResults = await Promise.all(groupMemberCallsP)
       const profileIdToGroupMap = new Map()
       profileIds.forEach((profileId, index) => {

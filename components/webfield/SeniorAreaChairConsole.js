@@ -63,7 +63,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
     metaReviewAgreementConfig,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
-  const { user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
   const [sacConsoleData, setSacConsoleData] = useState({})
   const [isLoadingData, setIsLoadingData] = useState(false)
   const query = useSearchParams()
@@ -80,7 +80,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
       const notesP = submissionId
         ? api
             .getAll('/groups', {
-              member: user.id,
+              members: user.memberIds,
               prefix: `${venueId}/${submissionName}.*`,
               select: 'id',
               domain: group.domain,

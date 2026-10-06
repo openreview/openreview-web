@@ -64,6 +64,7 @@ describe('useUser hook', () => {
             content: {
               names: [{ fullname: 'Test User', username: '~Test_User1', preferred: true }],
               preferredEmail: 'test@mail.com',
+              emailsConfirmed: ['test@mail.com'],
             },
           },
         ],
@@ -77,12 +78,15 @@ describe('useUser hook', () => {
     })
     expect(api.get).toHaveBeenCalledWith('/profiles', { id: '~Test_User1' })
     expect(result.current.user).toEqual({
+      id: 'test@mail.com',
       profile: {
         id: '~Test_User1',
+        fullname: 'Test User',
         preferredId: '~Test_User1',
         preferredName: 'Test User',
         preferredEmail: 'test@mail.com',
       },
+      memberIds: ['test@mail.com', '~Test_User1'],
     })
   })
 
@@ -121,17 +125,23 @@ describe('useUser hook', () => {
       expect(result.current.isRefreshing).toBe(false)
     })
     expect(result.current.user).toEqual({
+      id: 'test@mail.com',
       profile: {
         id: '~Test_User1',
+        fullname: 'Test User',
         preferredId: '~First_Name_One1',
         preferredName: 'First Name One',
         preferredEmail: 'test@mail.com',
       },
+      memberIds: ['~First_Name_One1', '~First_Name_Two1'],
     })
   })
 
-  test('return user cookie when call to get profile failed', async () => {
-    const userFromCookie = { id: 'test@mail.com', profile: { id: '~Test_User1' } }
+  test('return user cookie with usernames as memberIds when call to get profile failed', async () => {
+    const userFromCookie = {
+      id: 'test@mail.com',
+      profile: { id: '~Test_User1', usernames: ['~Test_User1'] },
+    }
     userFromClientAuth = { user: userFromCookie }
     api.get = jest.fn(() => Promise.reject({ message: 'get profile call failed' }))
 
@@ -140,11 +150,17 @@ describe('useUser hook', () => {
     await waitFor(() => {
       expect(result.current.isRefreshing).toBe(false)
     })
-    expect(result.current.user).toEqual(userFromCookie)
+    expect(result.current.user).toEqual({
+      ...userFromCookie,
+      memberIds: ['~Test_User1', 'test@mail.com'],
+    })
   })
 
-  test('return cookie user when no profile is returned', async () => {
-    const userFromCookie = { id: 'test@mail.com', profile: { id: '~Test_User1' } }
+  test('return cookie user with usernames as memberIds when no profile is returned', async () => {
+    const userFromCookie = {
+      id: 'test@mail.com',
+      profile: { id: '~Test_User1', usernames: ['~Test_User1'] },
+    }
     userFromClientAuth = { user: userFromCookie }
     api.get = jest.fn(() => Promise.resolve({ profiles: [] }))
 
@@ -153,6 +169,9 @@ describe('useUser hook', () => {
     await waitFor(() => {
       expect(result.current.isRefreshing).toBe(false)
     })
-    expect(result.current.user).toEqual(userFromCookie)
+    expect(result.current.user).toEqual({
+      ...userFromCookie,
+      memberIds: ['~Test_User1', 'test@mail.com'],
+    })
   })
 })

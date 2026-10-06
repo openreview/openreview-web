@@ -1,4 +1,5 @@
 import { get } from 'lodash'
+import chunk from 'lodash/chunk'
 import kebabCase from 'lodash/kebabCase'
 import uniq from 'lodash/uniq'
 import Link from 'next/link'
@@ -20,26 +21,41 @@ function ConsolesList({ venueId, submissionInvitationId, setHidden, shouldReload
   const [userConsoles, setUserConsoles] = useState(null)
 
   useEffect(() => {
-    if (!user) {
+    if (!user?.memberIds?.length) {
       setUserConsoles([])
       return
     }
 
     api
-      .getAll('/groups', {
+      .getAllWithAfter('/groups', {
         prefix: `${venueId}/`,
-        member: user.id,
-        web: true,
+        members: user.memberIds,
+        select: 'id',
         domain: venueId,
       })
       .then((userGroups) => {
-        const groupIds = []
-        if (userGroups?.length > 0) {
-          userGroups.forEach((g) => {
-            groupIds.push(g.id)
-          })
-        }
-        setUserConsoles(uniq(groupIds))
+        const authorsGroupIds = userGroups.flatMap((g) =>
+          g.id.endsWith('/Authors') ? g.id : []
+        )
+
+        return chunk([...user.memberIds, ...authorsGroupIds], 25).reduce(
+          (prev, membersChunk) =>
+            prev.then((acc) =>
+              api
+                .get('/groups', {
+                  prefix: `${venueId}/`,
+                  members: membersChunk,
+                  web: true,
+                  select: 'id',
+                  domain: venueId,
+                })
+                .then((result) => acc.concat(result.groups))
+            ),
+          Promise.resolve([])
+        )
+      })
+      .then((consoleGroups) => {
+        setUserConsoles(uniq(consoleGroups.map((g) => g.id)))
       })
       .catch((error) => {
         setUserConsoles([])
@@ -109,7 +125,7 @@ export default function VenueHomepage({ appContext }) {
   const [shouldReload, reload] = useReducer((p) => !p, true)
   const queryParam = useSearchParams()
   const { setBannerContent } = appContext ?? {}
-  const { user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
   const submissionIds =
     typeof submissionId === 'string' ? [{ value: submissionId, version: 2 }] : submissionId
   const defaultConfirmationMessage =

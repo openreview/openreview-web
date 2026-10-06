@@ -565,9 +565,7 @@ describe('AreaChairConsole', () => {
       switch (path) {
         case '/groups': // all groups
           return Promise.resolve([
-            {
-              id: 'AAAI.org/2025/Conference/Submission1/Senior_Program_Committee',
-            },
+            // the AC is a direct member of the anon AC group only
             {
               id: `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
             },
@@ -672,9 +670,17 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/groups': // reviewer groups
+          // per paper AC group has the anon AC group as member
+          if (param?.members) {
+            return Promise.resolve({
+              groups: [
+                { id: 'AAAI.org/2025/Conference/Submission1/Senior_Program_Committee' },
+              ],
+            })
+          }
           return Promise.resolve({
             groups: [
               // paper 1 all reviewers group
@@ -839,6 +845,14 @@ describe('AreaChairConsole', () => {
     )
 
     await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith(
+        '/groups',
+        expect.objectContaining({
+          members: [
+            `AAAI.org/2025/Conference/Submission1/Senior_Program_Committee_${acAnonId}`,
+          ],
+        })
+      )
       expect(global.marked).toHaveBeenCalledWith(
         expect.stringContaining('proposed edge browser url')
       )
@@ -940,9 +954,11 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/groups': // reviewer groups
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // paper 1 all reviewers group
@@ -1202,9 +1218,11 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/groups': // reviewer groups
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // paper 1 all reviewers group
@@ -1541,9 +1559,11 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/groups': // reviewer groups
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // paper 1 all reviewers group
@@ -1795,9 +1815,11 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/groups': // reviewer groups
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // paper 1 all reviewers group
@@ -1969,9 +1991,11 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/groups': // reviewer groups
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // paper 1 all ac group
@@ -2104,9 +2128,11 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/groups': // reviewer groups
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // paper 1 all ac group
@@ -2252,9 +2278,11 @@ describe('AreaChairConsole', () => {
           return null
       }
     })
-    api.get = jest.fn((path) => {
+    api.get = jest.fn((path, param) => {
       switch (path) {
         case '/groups': // reviewer groups
+          // parent groups of the anonymous groups
+          if (param?.members) return Promise.resolve({ groups: [] })
           return Promise.resolve({
             groups: [
               // paper 1 all ac group

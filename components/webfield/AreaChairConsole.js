@@ -807,7 +807,7 @@ const AreaChairConsole = ({ appContext }) => {
     edgeBrowserProposedUrl,
     edgeBrowserDeployedUrl,
   } = reviewerAssignment ?? {}
-  const { user, isRefreshing } = useUser()
+  const { user, isRefreshing } = useUser(true)
   const query = useSearchParams()
   const { setBannerContent } = appContext ?? {}
   const [acConsoleData, setAcConsoleData] = useState({})
@@ -872,21 +872,45 @@ const AreaChairConsole = ({ appContext }) => {
 
   const loadData = async () => {
     try {
-      const allGroups = await api.getAll('/groups', {
-        member: user.id,
+      const memberGroups = await api.getAll('/groups', {
+        members: user.memberIds,
         prefix: `${venueId}/${submissionName}.*`,
         select: 'id',
         stream: true,
         domain: group.domain,
       })
+      const singularName = areaChairName.endsWith('s')
+        ? areaChairName.slice(0, -1)
+        : areaChairName
+      const secondarySingularName = secondaryAreaChairName?.endsWith('s')
+        ? secondaryAreaChairName.slice(0, -1)
+        : secondaryAreaChairName
+      // submission (secondary) area chair groups have the anonymous groups as members, not the users
+      const anonymousGroupIds = memberGroups.flatMap((p) => {
+        if (p.id.includes(`/${singularName}_`)) return p.id
+        if (secondarySingularName && p.id.includes(`/${secondarySingularName}_`)) return p.id
+        return []
+      })
+      const parentGroups = await chunk(anonymousGroupIds, 50).reduce(
+        (prev, membersChunk) =>
+          prev.then((acc) =>
+            api
+              .get('/groups', {
+                prefix: `${venueId}/${submissionName}.*`,
+                members: membersChunk,
+                select: 'id',
+                domain: group.domain,
+              })
+              .then((result) => acc.concat(result.groups))
+          ),
+        Promise.resolve([])
+      )
+      const allGroups = [...memberGroups, ...parentGroups]
       const areaChairGroups = allGroups.filter((p) => p.id.endsWith(`/${areaChairName}`))
       const secondaryAreaChairGroups = secondaryAreaChairName
         ? allGroups.filter((p) => p.id.endsWith(`/${secondaryAreaChairName}`))
         : []
 
-      const singularName = areaChairName.endsWith('s')
-        ? areaChairName.slice(0, -1)
-        : areaChairName
       const anonymousAreaChairGroups = allGroups.filter((p) =>
         p.id.includes(`/${singularName}_`)
       )

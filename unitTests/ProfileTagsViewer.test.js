@@ -24,6 +24,7 @@ jest.mock('next/navigation', () => ({
 
 beforeEach(() => {
   basicHeaderProps = jest.fn()
+  api.getAllProfilesByIds = jest.fn(() => Promise.resolve({ profiles: [] }))
 })
 
 describe('ProfileTagsViewer', () => {
@@ -158,6 +159,23 @@ describe('ProfileTagsViewer', () => {
           break
       }
     })
+    api.getAllProfilesByIds = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~Some_User1',
+            content: {
+              names: [
+                { username: '~Some_User1' },
+                { username: '~Some_Alternate_User1' },
+                { fullname: 'Name Without Username' },
+              ],
+              emailsConfirmed: ['some_user1@mail.com', '****@masked.com'],
+            },
+          },
+        ],
+      })
+    )
     const providerProps = {
       value: {
         entity: {
@@ -180,20 +198,26 @@ describe('ProfileTagsViewer', () => {
       expect(screen.getByRole('link', { name: '~Some_User3' })).toBeInTheDocument()
       expect(screen.getByText('some label three')).toBeInTheDocument()
 
+      expect(api.getAllProfilesByIds).toHaveBeenCalledWith([
+        '~Some_User1',
+        '~Some_User2',
+        '~Some_User3',
+      ])
+      // masked emails are dropped
       expect(api.get).toHaveBeenCalledWith('/groups', {
         domain: 'some domain',
-        member: '~Some_User1',
+        members: ['~Some_User1', '~Some_Alternate_User1', 'some_user1@mail.com'],
         select: 'id,domain',
       })
 
       expect(api.get).toHaveBeenCalledWith('/groups', {
         domain: 'some domain',
-        member: '~Some_User2',
+        members: ['~Some_User2'],
         select: 'id,domain',
       })
       expect(api.get).toHaveBeenCalledWith('/groups', {
         domain: 'some domain',
-        member: '~Some_User3',
+        members: ['~Some_User3'],
         select: 'id,domain',
       })
 
@@ -261,7 +285,7 @@ describe('ProfileTagsViewer', () => {
             })),
           })
         case '/groups':
-          if (param.member === '~Some_User1') {
+          if (param.members.includes('~Some_User1')) {
             return Promise.resolve({
               groups: [
                 { id: 'some group user one is in', domain: 'some domain' },
@@ -269,7 +293,7 @@ describe('ProfileTagsViewer', () => {
               ],
             })
           }
-          if (param.member === '~Some_User15') {
+          if (param.members.includes('~Some_User15')) {
             return Promise.resolve({
               groups: [
                 { id: 'some group user fifteen is in', domain: 'some domain' },
