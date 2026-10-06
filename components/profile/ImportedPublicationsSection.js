@@ -105,7 +105,10 @@ const ImportedPublicationsSection = ({
           '/notes',
           {
             'content.authors.username': profileId,
-            invitations: [`${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`],
+            invitations: [
+              `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
+              `${process.env.SUPER_USER}/Public_Article/ACL_Anthology.org/-/Record`,
+            ],
           },
           { sort: 'tmdate:desc' }
         )
