@@ -26,6 +26,7 @@
 .DS_Store
 .env
 deploy-out-1
+.claude
 
 # debug
 npm-debug.log*

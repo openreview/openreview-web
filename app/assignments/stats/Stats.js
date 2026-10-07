@@ -1,14 +1,11 @@
 'use client'
 
+import { get, upperFirst } from 'lodash'
 /* globals promptError: false */
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
-import { get, upperFirst } from 'lodash'
-import { getEdgeBrowserUrl } from '../../../lib/edge-utils'
-import ScalarStat from '../../../components/assignments/ScalarStat'
 import HistogramStat from '../../../components/assignments/HistogramStat'
-import { getSingularRoleName, prettyId } from '../../../lib/utils'
-import { getNoteContentValues } from '../../../lib/forum-utils'
+import ScalarStat from '../../../components/assignments/ScalarStat'
 import api from '../../../lib/api-client'
 import {
   getAssignmentMap,
@@ -28,6 +25,9 @@ import {
   getDistributionRecomGroupCountPerWeight,
   getNumDataPerGroupDataByBidScore,
 } from '../../../lib/assignment-stats-utils'
+import { getEdgeBrowserUrl } from '../../../lib/edge-utils'
+import { getNoteContentValues } from '../../../lib/forum-utils'
+import { getSingularRoleName, prettyId } from '../../../lib/utils'
 
 export default function Stats({ configNote }) {
   const [labelNames, setLabelNames] = useState({})
@@ -92,6 +92,7 @@ export default function Stats({ configNote }) {
       if (paperInvitationElements[0].includes('/-/')) {
         const getNotesArgs = {
           invitation: paperInvitationElements[0],
+          domain: configNote.domain,
         }
         const localFilterContentFields = {}
         paperInvitationElements.slice(1).forEach((filter) => {

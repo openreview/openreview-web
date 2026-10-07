@@ -5,17 +5,6 @@ import api from '../lib/api-client'
 import { formatDateTime } from '../lib/utils'
 import '@testing-library/jest-dom'
 
-window.matchMedia = jest.fn().mockImplementation((query) => ({
-  matches: false,
-  media: query,
-  onchange: null,
-  addListener: jest.fn(),
-  removeListener: jest.fn(),
-  addEventListener: jest.fn(),
-  removeEventListener: jest.fn(),
-  dispatchEvent: jest.fn(),
-}))
-
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../components/LoadingSpinner', () => () => <span>loading spinner</span>)
 
@@ -43,8 +32,8 @@ describe('ConnectedAppsList', () => {
           {
             clientId: 'some-test-app',
             clientName: 'Test App One',
-            scopes: ['openid', 'profile'],
-            sharedData: ['OpenReview ID', 'Name'],
+            scopes: ['openid', 'profile', 'email'],
+            sharedData: ['OpenReview ID', 'Name', 'Email'],
             tcdate: cdate1,
           },
           {
@@ -68,8 +57,12 @@ describe('ConnectedAppsList', () => {
 
       expect(screen.getByText('Test App One')).toBeInTheDocument()
       expect(screen.getByText('Test App Two')).toBeInTheDocument()
-      expect(screen.getByText(`connected on ${formatDateTime(cdate1)}`)).toBeInTheDocument()
-      expect(screen.getByText(`connected on ${formatDateTime(cdate2)}`)).toBeInTheDocument()
+      expect(
+        screen.getByText('OpenReview ID, Name, Email', { exact: true })
+      ).toBeInTheDocument()
+      expect(screen.getByText('OpenReview ID, Name', { exact: true })).toBeInTheDocument()
+      expect(screen.getByText(formatDateTime(cdate1))).toBeInTheDocument()
+      expect(screen.getByText(formatDateTime(cdate2))).toBeInTheDocument()
 
       expect(screen.getAllByRole('button')).toHaveLength(2)
     })

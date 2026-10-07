@@ -1,22 +1,23 @@
 /* globals promptError: false */
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function useTurnstileToken(key, renderWidget) {
   const [turnstileToken, setTurnstileToken] = useState(null)
   const [widgetId, setWidgetId] = useState(null)
-  const turnstileContainerRef = useRef()
+  const [turnstileContainer, setTurnstileContainer] = useState(null)
 
   useEffect(() => {
-    if (!turnstileContainerRef.current || renderWidget === false) {
+    if (!turnstileContainer || renderWidget === false) {
       setTurnstileToken(null)
       if (widgetId) {
         window.turnstile.remove(widgetId)
+        setWidgetId(null)
       }
       return
     }
     if (window.turnstile) {
       try {
-        const id = window.turnstile.render(turnstileContainerRef.current, {
+        const id = window.turnstile.render(turnstileContainer, {
           sitekey: process.env.TURNSTILE_SITEKEY,
           action: key,
           callback: (token) => {
@@ -33,7 +34,7 @@ export default function useTurnstileToken(key, renderWidget) {
         'Could not verify browser. Please make sure third-party scripts are not being blocked and try again.'
       )
     }
-  }, [key, renderWidget])
+  }, [key, renderWidget, turnstileContainer])
 
-  return { turnstileToken, turnstileContainerRef }
+  return { turnstileToken, turnstileContainerRef: setTurnstileContainer }
 }

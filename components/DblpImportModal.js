@@ -116,7 +116,7 @@ export default function DblpImportModal({ profileId, profileNames, updateDBLPUrl
     try {
       const { notes: allDblpPublications, possibleNames } =
         await getDblpPublicationsFromXmlUrl(
-          `${url.trim()}.xml`,
+          `${url.trim()}.xml?app=OpenReview`,
           profileId,
           profileNames.map((p) => getNameString(p))
         )

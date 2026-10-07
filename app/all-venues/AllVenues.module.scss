@@ -1,0 +1,25 @@
+@use '../../styles/utils/constants';
+
+.row {
+  list-style: none;
+  padding: 0;
+  margin: 0 -5px 0.5rem;
+
+  > li {
+    display: inline-block;
+    padding: 0 5px;
+  }
+
+  h2 {
+    font-size: 1.25rem;
+    margin: 0 0 0.75rem;
+  }
+
+  > li:first-child h2 a {
+    display: inline-block;
+    &:first-letter {
+      color: constants.$orRed;
+      font-weight: bold;
+    }
+  }
+}

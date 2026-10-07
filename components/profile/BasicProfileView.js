@@ -1,6 +1,8 @@
-import { EnvironmentFilled } from '@ant-design/icons'
-import { Col, Flex, Row, Space, Tooltip } from 'antd'
+import { EnvironmentFilled, SafetyCertificateOutlined } from '@ant-design/icons'
+import { Col, Flex, Row, Space, Tag, Tooltip } from 'antd'
 import copy from 'copy-to-clipboard'
+import dayjs from 'dayjs'
+import utc from 'dayjs/plugin/utc'
 import { nanoid } from 'nanoid'
 import Link from 'next/link'
 import ServiceRoles from '../../app/profile/ServiceRoles'
@@ -10,8 +12,12 @@ import ProfileViewSection from './ProfileViewSection'
 
 import {
   colors,
+  getBootstrap337LabelColor,
+  moderation as moderationStyles,
   profile as profileStyles,
 } from '../../lib/legacy-bootstrap-styles'
+
+dayjs.extend(utc)
 
 const ProfileItem = ({ itemMeta, className = '', editBadgeDiv = false, children }) => {
   if (!itemMeta) {
@@ -93,9 +99,7 @@ const ProfileLink = ({ link, showLinkText }) => {
         {link.name}
       </a>
       {showLinkText && (
-        <span
-          style={profileStyles.linkText}
-        >{`(${linkUrlWithProtocol})`}</span>
+        <span style={profileStyles.linkText}>{`(${linkUrlWithProtocol})`}</span>
       )}
     </ProfileItem>
   )
@@ -131,9 +135,7 @@ const ProfileHistory = ({ history }) => (
                 .filter(Boolean)
                 .join(', ')}
             >
-              <EnvironmentFilled
-                style={profileStyles.geolocationIcon}
-              />
+              <EnvironmentFilled style={profileStyles.geolocationIcon} />
             </Tooltip>
           </>
         )}
@@ -169,6 +171,13 @@ const ProfileRelation = ({ relation }) => (
           <small style={{ color: colors.orRed }}>{relation.email}</small>
         </Space>
       )}
+      {relation.vouched && (
+        <Tooltip title="Vouched relation">
+          <span style={profileStyles.vouchedRelationIcon}>
+            <SafetyCertificateOutlined />
+          </span>
+        </Tooltip>
+      )}
     </Col>
     <Col xs={12} sm={4}>
       <Space>
@@ -191,7 +200,7 @@ const ProfileRelation = ({ relation }) => (
 
 const ProfileExpertise = ({ expertise }) => (
   <Row align="top" gutter={[15, 15]}>
-    <Col xs={12} sm={20}>
+    <Col xs={12} sm={20} style={{ overflowWrap: 'anywhere' }}>
       <Space wrap separator={<span>{`,\u00a0`}</span>} size={0}>
         {expertise.keywords.map((p) => p)}
       </Space>
@@ -205,6 +214,38 @@ const ProfileExpertise = ({ expertise }) => (
     </Col>
   </Row>
 )
+
+const DateOfBirth = ({ dob }) => {
+  const dateOfBirth = dayjs.utc(dob)
+  if (!dateOfBirth.isValid()) return null
+
+  const age = dayjs.utc().diff(dateOfBirth, 'year')
+  const isMinor = age >= 13 && age < 18
+
+  return (
+    <Space>
+      <span>{`${dateOfBirth.format('MMMM DD, YYYY')} - ${age} years old`}</span>
+      {age < 13 && (
+        <Tag
+          color={getBootstrap337LabelColor('error')}
+          variant="solid"
+          styles={{ root: moderationStyles.statusTag }}
+        >
+          Under 13
+        </Tag>
+      )}
+      {age >= 13 && age < 18 && (
+        <Tag
+          color={getBootstrap337LabelColor('warning')}
+          variant="solid"
+          styles={{ root: moderationStyles.statusTag }}
+        >
+          Minor
+        </Tag>
+      )}
+    </Space>
+  )
+}
 
 const BasicProfileView = ({
   profile,
@@ -229,6 +270,12 @@ const BasicProfileView = ({
               <ProfileName key={name.username || name.fullname} name={name} />
             ))}
           </Space>
+        </ProfileViewSection>
+      )}
+
+      {contentToShow.includes('dob') && profile.dob !== null && profile.dob !== undefined && (
+        <ProfileViewSection title="Date of Birth">
+          <DateOfBirth dob={profile.dob} />
         </ProfileViewSection>
       )}
 

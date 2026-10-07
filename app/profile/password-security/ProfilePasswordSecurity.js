@@ -1,10 +1,9 @@
-/* globals promptMessage,promptError: false */
-
 import { Collapse } from 'antd'
 import { useState } from 'react'
-import { ResetForm } from '../../reset/Reset'
+import { PasswordResetRequestForm } from '../../reset/Reset'
 import ConnectedAppsList from './ConnectedAppsList'
 import MultiFactorAuthenticationSetup from './MultiFactorAuthenticationSetup'
+import NotifyUnusualLogin from './NotifyUnusualLogin'
 
 const ProfilePasswordSecurity = ({ profile }) => {
   const [activeSection, setActiveSection] = useState('multiFactorAuth')
@@ -14,7 +13,7 @@ const ProfilePasswordSecurity = ({ profile }) => {
       key: 'passwordReset',
       label: 'Password Reset',
       children: (
-        <ResetForm
+        <PasswordResetRequestForm
           user={{ profile }}
           setEmailSent={() => {
             promptMessage(
@@ -26,6 +25,12 @@ const ProfilePasswordSecurity = ({ profile }) => {
       ),
     },
     {
+      key: 'notifyUnusualLogin',
+      label: 'Login Activity',
+      children: <NotifyUnusualLogin />,
+      styles: { body: { maxWidth: 'none' } },
+    },
+    {
       key: 'multiFactorAuth',
       label: 'Multi-Factor Authentication',
       children: <MultiFactorAuthenticationSetup />,
@@ -34,6 +39,7 @@ const ProfilePasswordSecurity = ({ profile }) => {
       key: 'connectedApps',
       label: 'Third-party apps & services',
       children: <ConnectedAppsList />,
+      styles: { body: { maxWidth: 'none' } },
     },
   ]
 
@@ -47,7 +53,7 @@ const ProfilePasswordSecurity = ({ profile }) => {
       items={items}
       styles={{
         header: { fontSize: '1.25rem', fontWeight: 'bold', alignItems: 'center' },
-        body: { maxWidth: 'fit-content' },
+        body: { maxWidth: 'fit-content', paddingLeft: 40 },
       }}
     />
   )

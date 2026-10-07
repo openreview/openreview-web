@@ -72,10 +72,10 @@ const CustomMenuList = ({ children }) => (
   </List>
 )
 
-export const CreatableDropdown = (props) => {
+export const CreatableDropdown = ({ clientOnly, ...props }) => {
   const customTheme = createCustomTheme(props.height)
   const dropdownRef = useRef(null)
-  const [isClientRendering, setIsClientRendering] = useState(false)
+  const [isClientRendering, setIsClientRendering] = useState(clientOnly === true)
   let customComponents = {}
   if (props.hideArrow) {
     customComponents = {

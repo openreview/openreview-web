@@ -1,7 +1,6 @@
 import { intersection, isEmpty } from 'lodash'
 import throttle from 'lodash/throttle'
-import { useEffect, useCallback, useReducer, useState, useContext, useRef } from 'react'
-import useTurnstileToken from '../hooks/useTurnstileToken'
+import { useEffect, useCallback, useReducer, useState, useContext } from 'react'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { getNoteContentValues } from '../lib/forum-utils'
@@ -267,11 +266,6 @@ const NoteEditor = ({
   const [autoStorageKeys, setAutoStorageKeys] = useState([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errors, setErrors] = useState([])
-  const [hasHumanVerificationError, setHasHumanVerificationError] = useState(false)
-  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
-    'noteEditor',
-    hasHumanVerificationError
-  )
   const { noteEditorPreview } = useContext(WebFieldContext) ?? {}
   if (noteEditorPreview)
     customValidator = () => ({
@@ -352,7 +346,12 @@ const NoteEditor = ({
       }))
     }
 
-    if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
+    if (
+      fieldName === 'authors' &&
+      Array.isArray(fieldDescription?.value) &&
+      fieldDescription.value.every((p) => typeof p !== 'object') // object author reorder should still show widget
+    )
+      return null
 
     return (
       <div key={fieldName} className={isHiddenField ? null : styles.fieldContainer}>
@@ -364,6 +363,7 @@ const NoteEditor = ({
             field: { [fieldName]: fieldDescription },
             onChange: setNoteEditorData,
             value: fieldValue,
+            editorValue: noteEditorData,
             isWebfield: false,
             error,
             setErrors,
@@ -558,7 +558,7 @@ const NoteEditor = ({
         noteReaderValues: await getNoteReaderValues(roleNames, invitation, noteEditorData),
         editReaderValues: await getEditReaderValues(roleNames, invitation, noteEditorData),
         editWriterValues: getEditWriterValues(),
-        ...(replyToNote && { replyto: replyToNote.id }),
+        ...(!note?.id && replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,
       }
 
@@ -567,7 +567,7 @@ const NoteEditor = ({
           formData.authors = noteEditorData.authorids.map((p) => p.authorName)
           formData.authorids = noteEditorData.authorids.map((p) => p.authorId)
         }
-      } else {
+      } else if (!noteEditorData.authors) {
         formData.authors = { delete: true }
         formData.authorids = { delete: true }
       }
@@ -585,9 +585,7 @@ const NoteEditor = ({
             invitationObj: invitation,
             noteObj: note,
           })
-      const result = await api.post('/notes/edits', editToPost, {
-        'cf-turnstile-token': turnstileToken,
-      })
+      const result = await api.post('/notes/edits', editToPost)
       const createdNote = await getCreatedNote(result.note)
       autoStorageKeys.forEach((key) => localStorage.removeItem(key))
       setNoteEditorData({ type: 'reset' })
@@ -595,20 +593,19 @@ const NoteEditor = ({
       closeNoteEditor()
       onNoteCreated(createdNote)
     } catch (error) {
-      if (error.name === 'HumanVerificationRequiredError' && !noteEditorPreview) {
-        setHasHumanVerificationError(true)
-        setIsSubmitting(false)
-        return
-      }
       if (error.errors) {
         setErrors(
           error.errors.map((p) => {
-            const fieldName = getErrorFieldName(p.details.path)
+            const { fieldName, index } = getErrorFieldName(p.details.path)
             const fieldNameInError =
               fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
             if (isNonDeletableError(p.details.invalidValue))
-              return { fieldName, message: `${fieldNameInError} is not deletable` }
-            return { fieldName, message: p.message.replace(fieldName, fieldNameInError) }
+              return { fieldName, message: `${fieldNameInError} is not deletable`, index }
+            return {
+              fieldName,
+              message: p.message.replace(fieldName, fieldNameInError),
+              index,
+            }
           })
         )
         const hasOnlyMissingFieldsError = error.errors.every(
@@ -620,7 +617,7 @@ const NoteEditor = ({
             : 'Some info submitted are invalid.'
         )
       } else if (error.details?.path) {
-        const fieldName = getErrorFieldName(error.details.path)
+        const { fieldName, index } = getErrorFieldName(error.details.path)
         const fieldNameInError =
           fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
         const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
@@ -630,6 +627,7 @@ const NoteEditor = ({
           {
             fieldName,
             message: prettyErrorMessage,
+            index,
           },
         ])
         displayError(prettyErrorMessage)
@@ -807,8 +805,6 @@ const NoteEditor = ({
           />
         </div>
       )}
-
-      <div className={styles.turnstileContainer} ref={turnstileContainerRef} />
 
       {Object.values(loading).some((p) => p) ? (
         <LoadingSpinner inline />

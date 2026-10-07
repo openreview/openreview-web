@@ -1,11 +1,10 @@
-/* globals promptError: false */
-
-import { useEffect, useState } from 'react'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { orderBy, sortBy } from 'lodash'
-import api from '../../../../lib/api-client'
+import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../../components/LoadingSpinner'
+import api from '../../../../lib/api-client'
+import { prettyInvitationId } from '../../../../lib/utils'
 import VenuesList from './VenuesList'
 
 dayjs.extend(relativeTime)
@@ -24,21 +23,36 @@ export default function VenuesTab() {
           select: `id,forum,cdate,content['Abbreviated Venue Name'],content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitation,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         {
-          invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/Conference_Review_Workflow`,
+          invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/.*`,
           sort: 'cdate',
           details: 'replies',
-          select: `id,forum,parentInvitations,cdate,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+          select: `id,forum,cdate,invitations,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
         },
         { includeVersion: true }
       )
+      const notes =
+        notesResult?.notes?.filter((p) =>
+          p.apiVersion === 2 ? p.content?.venue_id?.value : p.content?.venue_id
+        ) ?? []
 
-      const notes = notesResult?.notes?.filter(
-        (p) =>
-          !p.parentInvitations &&
-          (p.apiVersion === 2 ? p.content?.venue_id?.value : p.content?.venue_id)
-      )
+      const journalRequets = await api.get('/notes', {
+        invitation: `${process.env.SUPER_USER}/Support/-/Journal_Request`,
+        sort: 'cdate',
+        details: 'replies',
+        select: `id,forum,cdate,invitations,content.status,content.abbreviated_venue_name,content.venue_id,details.replies[*].id,details.replies[*].replyto,details.replies[*].content.comment,details.replies[*].invitations,details.replies[*].signatures,details.replies[*].cdate,details.replies[*].cdate`,
+      })
 
-      const deployedVenueRequests = notes?.map((p) => ({
+      const journals =
+        journalRequets?.notes?.flatMap((p) => {
+          if (p.content?.venue_id?.value) {
+            return { ...p, apiVersion: 2 }
+          }
+          return []
+        }) ?? []
+
+      const combinedRequests = notes.concat(journals)
+
+      const deployedVenueRequests = combinedRequests?.map((p) => ({
         id: p.id,
         forum: p.forum,
         cdate: p.cdate,
@@ -56,6 +70,7 @@ export default function VenuesTab() {
         )?.[0],
         apiVersion: p.apiVersion,
         status: p.apiVersion === 2 ? p.content.status?.value : undefined,
+        workflowLabel: p.apiVersion === 2 ? prettyInvitationId(p.invitations[0]) : undefined,
       }))
 
       setVenueRequestNotes(

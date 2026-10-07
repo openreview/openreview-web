@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import api from '../../../../lib/api-client'
 import Badge from '../../../../components/Badge'
+import api from '../../../../lib/api-client'
 
 export default function NewVenueRequestCount({ children }) {
   const [pendingVenueRequestCount, setPendingVenueRequestCount] = useState(null)
@@ -15,21 +15,29 @@ export default function NewVenueRequestCount({ children }) {
             select: 'content.venue_id',
           },
           {
-            invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/Conference_Review_Workflow`,
-            select: `parentInvitations,content.venue_id`,
+            invitation: `${process.env.SUPER_USER}/Support/Venue_Request/-/.*`,
+            select: 'content.venue_id',
           },
           { includeVersion: true }
         )
         .then((response) =>
           response?.notes?.filter((p) => {
-            if (p.parentInvitations) return false
             if (p.apiVersion === 2 ? p.content?.venue_id?.value : p.content?.venue_id)
               return false
             return true
           })
         )
 
-      setPendingVenueRequestCount(undeployedVenueRequests?.length)
+      const undeployedJournalRequests = await api
+        .get('/notes', {
+          invitation: `${process.env.SUPER_USER}/Support/-/Journal_Request`,
+          select: 'content.venue_id',
+        })
+        .then((response) => response?.notes?.filter((p) => !p.content?.venue_id?.value))
+
+      setPendingVenueRequestCount(
+        undeployedVenueRequests?.length + undeployedJournalRequests?.length
+      )
     } catch (error) {
       /* empty */
     }

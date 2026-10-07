@@ -54,11 +54,13 @@ export default function NameDeletionTab() {
 
   const updateRequestStatus = async (noteId) => {
     const nameRemovalNotesP = api.get('/notes', { id: noteId })
-    const decisionResultsP = api.getAll(
-      '/notes/edits',
-      { 'note.id': noteId, invitation: nameDeletionDecisionInvitationId },
-      { resultsKey: 'edits' }
-    )
+    const decisionResultsP = api
+      .get('/notes/edits', {
+        'note.id': noteId,
+        invitation: nameDeletionDecisionInvitationId,
+      })
+      .then((result) => result.edits)
+
     const [nameRemovalNotes, decisionResults] = await Promise.all([
       nameRemovalNotesP,
       decisionResultsP,
@@ -105,7 +107,7 @@ export default function NameDeletionTab() {
       const nameRemovalNotesP = api.get('/notes', {
         invitation: `${process.env.SUPER_USER}/Support/-/Profile_Name_Removal`,
       })
-      const decisionResultsP = api.getAll(
+      const decisionResultsP = api.getAllWithAfter(
         '/notes/edits',
         { invitation: nameDeletionDecisionInvitationId },
         { resultsKey: 'edits' }

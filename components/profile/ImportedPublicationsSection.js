@@ -1,12 +1,10 @@
-/* globals promptError: false */
-
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import NoteList from '../NoteList'
-import PaginationLinks from '../PaginationLinks'
+import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import { getImportSourceIcon } from '../../lib/profiles'
 import { buildNoteTitle, buildNoteUrl } from '../../lib/utils'
+import NoteList from '../NoteList'
+import PaginationLinks from '../PaginationLinks'
 import UnlinkPublicationButton from '../UnlinkPublicationButton'
 
 const ImportedPublicationsSection = ({
@@ -40,10 +38,15 @@ const ImportedPublicationsSection = ({
 
         {content.pdf?.value && (
           <Link
-            href={`/attachment?id=${id}&name=pdf`}
+            href={
+              content.pdf.value.startsWith('http')
+                ? content.pdf.value
+                : `/attachment?id=${id}&name=pdf`
+            }
             className="pdf-link"
             title="Download PDF"
             target="_blank"
+            rel="noopener noreferrer"
           >
             <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
           </Link>
@@ -97,6 +100,19 @@ const ImportedPublicationsSection = ({
           { sort: 'tmdate:desc' }
         )
         .then((notes) => notes.map((note) => ({ ...note, apiVersion: 2 })))
+      const v2NotesWithObjectAuthorSchema = await api
+        .getAll(
+          '/notes',
+          {
+            'content.authors.username': profileId,
+            invitations: [
+              `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
+              `${process.env.SUPER_USER}/Public_Article/ACL_Anthology.org/-/Record`,
+            ],
+          },
+          { sort: 'tmdate:desc' }
+        )
+        .then((notes) => notes.map((note) => ({ ...note, apiVersion: 2 })))
       const v1Notes = await api
         .getAll(
           '/notes',
@@ -108,7 +124,7 @@ const ImportedPublicationsSection = ({
         )
         .then((notes) => notes.map((note) => ({ ...note, apiVersion: 1 })))
 
-      const allNotes = v2Notes.concat(v1Notes)
+      const allNotes = v2Notes.concat(v2NotesWithObjectAuthorSchema, v1Notes)
       setPublications(allNotes)
       setTotalCount(allNotes.length)
     } catch (error) {

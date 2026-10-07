@@ -1,0 +1,25 @@
+@use '../../styles/utils/constants';
+
+.steps {
+  &#{&} {
+    margin-bottom: 1.5rem;
+  }
+
+  @media #{constants.$phone-only} {
+    overflow: scroll;
+  }
+
+  .item.item {
+    min-width: 100px;
+  }
+
+  .title.title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .content.content {
+    font-size: 0.75rem;
+  }
+}

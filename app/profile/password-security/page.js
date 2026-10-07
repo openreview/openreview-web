@@ -1,12 +1,11 @@
 'use client'
 
-/* globals promptError: false */
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import LoadingSpinner from '../../../components/LoadingSpinner'
+import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { formatProfileData } from '../../../lib/profiles'
-import useUser from '../../../hooks/useUser'
-import LoadingSpinner from '../../../components/LoadingSpinner'
 import ProfilePasswordSecurity from './ProfilePasswordSecurity'
 
 export default function Page() {
@@ -42,7 +41,7 @@ export default function Page() {
   return (
     <div>
       <header>
-        <h1>Password and Security</h1>
+        <h1>Security Settings</h1>
       </header>
       <ProfilePasswordSecurity profile={profile} />
     </div>

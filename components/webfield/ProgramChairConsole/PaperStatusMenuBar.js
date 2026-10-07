@@ -1,11 +1,11 @@
-import { useContext } from 'react'
 import camelCase from 'lodash/camelCase'
 import upperFirst from 'lodash/upperFirst'
+import { useContext } from 'react'
+import { pluralizeString, prettyField, prettyId } from '../../../lib/utils'
 import WebFieldContext from '../../WebFieldContext'
 import BaseMenuBar from '../BaseMenuBar'
 import MessageReviewersModal from '../MessageReviewersModal'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
-import { pluralizeString, prettyField, prettyId } from '../../../lib/utils'
 
 const PaperStatusMenuBar = ({
   tableRowsAll,
@@ -49,7 +49,11 @@ const PaperStatusMenuBar = ({
     number: ['note.number'],
     id: ['note.id'],
     title: ['note.content.title.value'],
-    author: ['note.content.authors.value', 'note.content.authorids.value'],
+    author: [
+      'note.content.authors.value',
+      'note.content.authorids.value',
+      'note.authorSearchValue',
+    ],
     keywords: ['note.content.keywords.value'],
     [formattedReviewerName]: ['reviewers'],
     ...(formattedSACName && { [formattedSACName]: ['metaReviewData.seniorAreaChairs'] }),
@@ -297,6 +301,10 @@ const PaperStatusMenuBar = ({
       ? customStageInvitations.map((invitation) => ({
           header: prettyId(invitation.name),
           getValue: (p) =>
+            p.customStageReviewReplies?.[camelCase(invitation.name)]
+              ?.map((q) => q.searchValue)
+              ?.filter((q) => q !== undefined && q !== null)
+              ?.join(' ') ||
             p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]?.searchValue,
         }))
       : []),
@@ -452,8 +460,13 @@ const PaperStatusMenuBar = ({
                   label: `${prettyId(invitation.name)} - ${prettyField(extraDisplayField)}`,
                   value: `${invitation.name} ${extraDisplayField}`,
                   getValue: (p) =>
-                    p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
-                      ?.content?.[extraDisplayField]?.value ?? 'N/A',
+                    p.customStageReviewReplies?.[camelCase(invitation.name)]
+                      ?.map((q) => q.content?.[extraDisplayField]?.value)
+                      ?.filter((q) => q !== undefined && q !== null)
+                      ?.join(' ') ||
+                    (p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
+                      ?.content?.[extraDisplayField]?.value ??
+                      'N/A'),
                 })
               })
             }
@@ -462,6 +475,10 @@ const PaperStatusMenuBar = ({
                 label: prettyField(invitation.displayField),
                 value: invitation.name,
                 getValue: (p) =>
+                  p.customStageReviewReplies?.[camelCase(invitation.name)]
+                    ?.map((q) => q.searchValue)
+                    ?.filter((q) => q !== undefined && q !== null)
+                    ?.join(' ') ||
                   p.metaReviewData?.customStageReviews?.[camelCase(invitation.name)]
                     ?.searchValue,
               })

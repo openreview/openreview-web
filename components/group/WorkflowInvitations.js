@@ -34,23 +34,31 @@ dayjs.extend(relativeTime)
 
 const workflowGroupKeys = [
   {
-    field: 'reviewers_id',
-    subGroupSuffixes: ['/Invited', '/Declined'],
+    field: 'program_chairs_id',
+    subGroupSuffixes: [],
   },
   {
     field: 'authors_id',
     subGroupSuffixes: ['/Accepted'],
   },
   {
+    field: 'reviewers_id',
+    rolesField: 'reviewer_roles',
+    subGroupSuffixes: ['/Invited', '/Declined'],
+  },
+  {
     field: 'area_chairs_id',
+    rolesField: 'area_chair_roles',
     subGroupSuffixes: ['/Invited', '/Declined'],
   },
   {
     field: 'senior_area_chairs_id',
+    rolesField: 'senior_area_chair_roles',
     subGroupSuffixes: ['/Invited', '/Declined'],
   },
   {
     field: 'ethics_reviewers_id',
+    rolesField: 'ethics_reviewer_roles',
     subGroupSuffixes: ['/Invited', '/Declined'],
   },
   {
@@ -59,10 +67,6 @@ const workflowGroupKeys = [
   },
   {
     field: 'publication_chairs_id',
-    subGroupSuffixes: [],
-  },
-  {
-    field: 'program_chairs_id',
     subGroupSuffixes: [],
   },
 ]
@@ -670,6 +674,8 @@ const WorkFlowInvitations = ({ group }) => {
   const [missingValueInvitationIds, setMissingValueInvitationIds] = useState([])
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationsRef = useRef({})
+  const invitationIdsWithLogsRef = useRef([])
+  const pendingRefreshIdsRef = useRef(new Set())
   const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
   const [workflowTasks, setWorkflowTasks] = useState([])
 
@@ -883,23 +889,38 @@ const WorkFlowInvitations = ({ group }) => {
     }
   }
 
-  const loadProcessLogs = async () => {
+  const loadProcessLogs = async (invitationIds) => {
+    if (!invitationIds?.length) return []
     try {
-      const response = await api.getAll(
-        '/logs/process',
-        {
-          invitation: `${groupId}.*`,
-          select: 'id,sdate,edate,invitation,status,log',
-        },
-        { resultsKey: 'logs' }
+      const results = await Promise.all(
+        invitationIds.map((invitationId) =>
+          api.get('/logs/process', {
+            invitation: invitationId,
+            select: 'id,sdate,edate,invitation,status,log',
+          })
+        )
       )
-      const logs = orderBy(response, ['edate'], ['desc'])
-      setProcessLogs(logs)
-      return logs
+      return orderBy(
+        results.flatMap((p) => p.logs ?? []),
+        ['edate'],
+        ['desc']
+      )
     } catch (error) {
       promptError(error.message)
       return []
     }
+  }
+
+  const refreshProcessLogs = async (invitationIds) => {
+    const idsToRefresh = invitationIds.filter((id) =>
+      invitationIdsWithLogsRef.current.includes(id)
+    )
+    if (!idsToRefresh.length) return
+    const logs = await loadProcessLogs(idsToRefresh)
+    setProcessLogs((existingLogs) => [
+      ...existingLogs.filter((p) => !idsToRefresh.includes(p.invitation)),
+      ...logs,
+    ])
   }
 
   const filterWorkflowInvitations = (
@@ -951,12 +972,19 @@ const WorkFlowInvitations = ({ group }) => {
 
   const loadAllInvitations = async () => {
     setMissingValueInvitationIds([])
-    const workflowGroupIds = workflowGroupKeys.flatMap((p) => {
-      const workflowGroupId = group.content?.[p.field]?.value
-      if (!workflowGroupId) return []
-      const subGroupIds = p.subGroupSuffixes.map((q) => `${workflowGroupId}${q}`)
-      return [workflowGroupId, ...subGroupIds]
+    // Resolve the venue's role groups once: each entry pairs a main role group id with
+    // its subgroup ids (Invited/Declined/Accepted). Entries with a rolesField rely on
+    // the roles array alone; the field key is the default for the remaining entries.
+    const roleGroups = workflowGroupKeys.flatMap((p) => {
+      const mainGroupIds = p.rolesField
+        ? (group.content?.[p.rolesField]?.value ?? []).map((role) => `${groupId}/${role}`)
+        : [group.content?.[p.field]?.value].filter(Boolean)
+      return mainGroupIds.map((id) => ({
+        id,
+        subGroupIds: p.subGroupSuffixes.map((q) => `${id}${q}`),
+      }))
     })
+    const workflowGroupIds = roleGroups.flatMap((p) => [p.id, ...p.subGroupIds])
 
     const getAllGroupsP = api
       .get('/groups', {
@@ -964,14 +992,25 @@ const WorkFlowInvitations = ({ group }) => {
       })
       .then((result) => result.groups)
 
-    const getAllInvitationsP = await api.getAll('/invitations', {
-      prefix: `${groupId}/`,
-      expired: true,
-      trash: true,
-      type: 'all',
-      filterStaticForum: true,
-      domain: groupId,
-    })
+    // Load only the invitations directly under the venue and its main role groups
+    // (`venue_id/-/`, `role_id/-/`); a single `venue_id/` prefix would also return every
+    // submission-related invitation, and the Invited/Declined/Accepted subgroups only
+    // hold invitations the timeline never shows.
+    const invitationPrefixes = [groupId, ...roleGroups.map((p) => p.id)].map(
+      (id) => `${id}/-/`
+    )
+    const getAllInvitationsP = Promise.all(
+      invitationPrefixes.map((prefix) =>
+        api.getAll('/invitations', {
+          prefix,
+          expired: true,
+          trash: true,
+          type: 'all',
+          filterStaticForum: true,
+          domain: groupId,
+        })
+      )
+    ).then((results) => results.flat())
 
     let getStageInvitationTemplatesP =
       group.id === group.domain
@@ -983,17 +1022,29 @@ const WorkFlowInvitations = ({ group }) => {
         : Promise.resolve([])
     getStageInvitationTemplatesP = Promise.resolve([])
     try {
-      const [groups, invitations, stageInvitations, logs] = await Promise.all([
+      const [groups, invitations, stageInvitations] = await Promise.all([
         getAllGroupsP,
         getAllInvitationsP,
         getStageInvitationTemplatesP,
-        loadProcessLogs(),
       ])
 
       const mainGroups = groups.filter((p) => p.parent === group.id)
       const workflowGroupMap = new Map()
-      sortBy(mainGroups, 'cdate').forEach((p) => {
-        const subGroups = groups.filter((q) => q.parent === p.id)
+      const orderedMainGroupIds = workflowGroupKeys.flatMap((p) => {
+        const roles = p.rolesField ? group.content?.[p.rolesField]?.value : null
+        if (roles?.length) return roles.map((role) => `${groupId}/${role}`)
+        const workflowGroupId = group.content?.[p.field]?.value
+        return workflowGroupId ? [workflowGroupId] : []
+      })
+      const orderedMainGroups = [
+        ...orderedMainGroupIds.flatMap((id) => mainGroups.filter((p) => p.id === id)),
+        ...mainGroups.filter((p) => !orderedMainGroupIds.includes(p.id)),
+      ]
+      orderedMainGroups.forEach((p) => {
+        const subGroups = sortBy(
+          groups.filter((q) => q.parent === p.id),
+          'cdate'
+        )
         workflowGroupMap.set(p.id, { ...p, subGroups })
       })
       const exclusionWorkflowInvitations = group.content?.exclusion_workflow_invitations?.value
@@ -1001,6 +1052,11 @@ const WorkFlowInvitations = ({ group }) => {
         exclusionWorkflowInvitations,
         invitations
       )
+      invitationIdsWithLogsRef.current = filteredInvitations.flatMap((p) =>
+        p.dateprocesses?.length > 0 ? p.id : []
+      )
+      const logs = await loadProcessLogs(invitationIdsWithLogsRef.current)
+      setProcessLogs(logs)
       const invitationsToShowInWorkflow = filteredInvitations.map((stepObj) => {
         return formatWorkflowInvitation(
           stepObj,
@@ -1050,9 +1106,13 @@ const WorkFlowInvitations = ({ group }) => {
   }, [groupId])
 
   useEffect(() => {
-    if (!events) return
+    const eventInvitationId = events?.data?.invitation
+    if (!eventInvitationId) return
+    pendingRefreshIdsRef.current.add(eventInvitationId)
     const eventsHandler = setTimeout(() => {
-      loadProcessLogs()
+      const invitationIdsToRefresh = [...pendingRefreshIdsRef.current]
+      pendingRefreshIdsRef.current.clear()
+      refreshProcessLogs(invitationIdsToRefresh)
     }, 5000)
 
     return () => {

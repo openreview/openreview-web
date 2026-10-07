@@ -1,12 +1,11 @@
-/* globals promptError: false */
-import { useContext, useEffect, useState } from 'react'
 import groupBy from 'lodash/groupBy'
-import LoadingSpinner from '../../LoadingSpinner'
-import Table from '../../Table'
-import WebFieldContext from '../../WebFieldContext'
+import { useContext, useEffect, useState } from 'react'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
 import { getProfileName, prettyId } from '../../../lib/utils'
+import LoadingSpinner from '../../LoadingSpinner'
+import Table from '../../Table'
+import WebFieldContext from '../../WebFieldContext'
 
 const TrackStatus = () => {
   const {
@@ -125,12 +124,7 @@ const TrackStatus = () => {
       // #region get all profiles
       const allIds = [...new Set(allGroupMembers)]
       const ids = allIds.filter((p) => p.startsWith('~'))
-      const getProfilesByIdsP = ids.length
-        ? api.post('/profiles/search', {
-            ids,
-          })
-        : Promise.resolve([])
-      const profileResults = await getProfilesByIdsP
+      const profileResults = await api.getAllProfilesByIds(ids)
       const allProfiles = (profileResults.profiles ?? []).map((profile) => ({
         ...profile,
         preferredName: getProfileName(profile),

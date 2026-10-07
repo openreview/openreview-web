@@ -40,19 +40,35 @@ const ConnectedAppsList = () => {
 
   return (
     <Flex vertical gap="small">
-      <p>
-        The following third-party apps or services can access your <strong>full name</strong>{' '}
-        and <strong>OpenReview profile id</strong>:
-      </p>
+      <p>The following third-party apps or services can access your OpenReview profile:</p>
+      <Row
+        align="middle"
+        gutter={[8, 8]}
+        style={{ fontWeight: 'bold', marginBottom: '0.25rem' }}
+      >
+        <Col xs={0} md={7}>
+          App
+        </Col>
+        <Col xs={0} md={7}>
+          Shared Data
+        </Col>
+        <Col xs={0} md={8}>
+          Connected Date
+        </Col>
+        <Col xs={0} md={2} />
+      </Row>
       {connectedApps.map((connectedApp) => {
-        const { clientId, clientName, tcdate } = connectedApp
+        const { clientId, clientName, tcdate, sharedData } = connectedApp
         return (
           <Row key={clientId} align="middle" gutter={[8, 8]}>
-            <Col xs={24} md={12}>
+            <Col xs={24} md={7}>
               {clientName}
             </Col>
-            <Col xs={20} md={10}>
-              connected on {formatDateTime(tcdate)}
+            <Col xs={24} md={7}>
+              {sharedData.join(', ')}
+            </Col>
+            <Col xs={20} md={8}>
+              {formatDateTime(tcdate)}
             </Col>
             <Col xs={4} md={2}>
               <Button

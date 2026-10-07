@@ -1,16 +1,22 @@
 import Link from 'next/link'
+import { Flex } from 'antd'
+import styles from './FooterMinimal.module.scss'
 
 const FooterMinimal = () => (
-  <footer className="container minimal">
-    <div className="row">
-      <div className="col-xs-12">
-        <p className="text-center">
-          &copy; {new Date().getFullYear()} OpenReview &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-          <Link href="/legal/terms">Terms of Use</Link>
-          &nbsp;&nbsp;&bull;&nbsp;&nbsp;
-          <Link href="/legal/privacy">Privacy Policy</Link>
+  <footer>
+    <div className={styles.minimal}>
+      <Flex justify="center">
+        <p className={styles.text}>
+        &copy; {new Date().getFullYear()} OpenReview &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+        <Link href="/legal/terms" className={styles.link}>
+          Terms of Use
+        </Link>
+        &nbsp;&nbsp;&bull;&nbsp;&nbsp;
+        <Link href="/legal/privacy" className={styles.link}>
+          Privacy Policy
+        </Link>
         </p>
-      </div>
+      </Flex>
     </div>
   </footer>
 )

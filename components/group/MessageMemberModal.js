@@ -1,10 +1,9 @@
-/* globals DOMPurify,marked,$,promptError,promptMessage: false */
-import { useState } from 'react'
 import get from 'lodash/get'
-import BasicModal from '../BasicModal'
-import MarkdownPreviewTab from '../MarkdownPreviewTab'
+import { useState } from 'react'
 import api from '../../lib/api-client'
 import { isValidEmail, prettyId } from '../../lib/utils'
+import BasicModal from '../BasicModal'
+import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import Signatures from '../Signatures'
 
 const MessageMemberModal = ({
@@ -63,15 +62,17 @@ const MessageMemberModal = ({
 
     try {
       const result = await api.post(
-        '/messages',
+        '/messages/requests',
         messageMemberInvitation
           ? {
               subject,
               message: sanitizedMessage,
               groups: membersToMessage,
+              parentGroup: groupId,
               invitation: messageMemberInvitation.id,
               signature,
               ...(cleanReplytoEmail && { replyTo: cleanReplytoEmail }),
+              ...(messageMemberInvitation.message.useJob && { useJob: true }),
             }
           : {
               invitation: `${domainId}/-/Edit`,
@@ -120,7 +121,6 @@ const MessageMemberModal = ({
       onClose={() => {
         setMessage('')
         setError(null)
-        setSignature(null)
         setSubmitting(false)
       }}
       options={{ useSpinnerButton: true }}
@@ -184,11 +184,8 @@ const MessageMemberModal = ({
                 key={`${messageMemberInvitation.id}:${membersToMessage.join(',')}`}
                 fieldDescription={messageMemberInvitation.message.signature}
                 onChange={(value) => {
-                  if (typeof value.value !== 'undefined') {
-                    setSignature(value.type === 'const' ? value.value : value.value[0])
-                  } else {
-                    setSignature(null)
-                  }
+                  if (typeof value.value === 'undefined') return
+                  setSignature(value.type === 'const' ? value.value : value.value[0])
                 }}
                 currentValue={signature}
                 onError={setError}

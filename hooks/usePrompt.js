@@ -61,11 +61,13 @@ export default function usePrompt() {
           description: <Markdown text={message?.toString()} />,
           duration: customDuration ?? messageDuration,
         }),
-      promptError: (message, customDuration) =>
+      promptError: (message, customDuration, disableGfm = false) =>
         api.error({
           ...commonProps,
           styles: getStyles('error'),
-          description: <Markdown text={`**Error:** ${message?.toString()}`} />,
+          description: (
+            <Markdown text={`**Error:** ${message?.toString()}`} disableGfm={disableGfm} />
+          ),
           duration: customDuration ?? errorDuration,
         }),
       promptLogin: (customDuration) =>

@@ -4,7 +4,7 @@ import { hasTaskUser, hasNoTaskUser } from '../utils/api-helper'
 const confirmDeleteModal = Selector('#confirm-delete-modal')
 const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), 'test@mail.com')
     .typeText(Selector('#password-input'), hasTaskUser.password)
     .wait(100)
@@ -13,7 +13,7 @@ const hasTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async 
 
 const hasNoTaskUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(Selector('#email-input'), hasNoTaskUser.email)
     .typeText(Selector('#password-input'), hasNoTaskUser.password)
     .wait(300)
@@ -61,8 +61,7 @@ test('task should change when note is deleted and restored', async (t) => {
     .click(Selector('span.task-count-message'))
     .expect(Selector('span.task-count-message').innerText)
     .eql('1 pending task')
-    .click(Selector('span.task-count-message'))
-    .wait(200)
+    .wait(500)
     .click(Selector('a').withText('Submission1 Official Review'))
     .wait(2000)
     .click(Selector('#forum-replies').find('button').withAttribute('type', 'button').nth(4))

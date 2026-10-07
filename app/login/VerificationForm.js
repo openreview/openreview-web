@@ -1,5 +1,3 @@
-/* globals promptError,promptMessage: false */
-
 import { useEffect, useState } from 'react'
 import SpinnerButton from '../../components/SpinnerButton'
 import api from '../../lib/api-client'

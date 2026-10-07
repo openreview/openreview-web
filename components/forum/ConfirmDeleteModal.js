@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import useTurnstileToken from '../../hooks/useTurnstileToken'
 import api from '../../lib/api-client'
 import { getNoteContentValues } from '../../lib/forum-utils'
 import { prettyId } from '../../lib/utils'
@@ -13,11 +12,6 @@ export default function ConfirmDeleteModal({ note, invitation, updateNote, onClo
   const [editSignatures, setEditSignatures] = useState(null)
   const [readersError, setReadersError] = useState(null)
   const [signaturesError, setSignaturesError] = useState(null)
-  const [hasHumanVerificationError, setHasHumanVerificationError] = useState(false)
-  const { turnstileToken, turnstileContainerRef } = useTurnstileToken(
-    'confirmDeleteModal',
-    hasHumanVerificationError
-  )
 
   const noteTitle = note?.content?.title?.value ?? note?.generatedTitle ?? 'Untitled'
   const isDeleted = note && note.ddate && note.ddate < Date.now()
@@ -49,9 +43,7 @@ export default function ConfirmDeleteModal({ note, invitation, updateNote, onClo
       })
     }
     api
-      .post('/notes/edits', editToPost, {
-        'cf-turnstile-token': turnstileToken,
-      })
+      .post('/notes/edits', editToPost)
       .then((res) =>
         // the return of the post is an edit not the full note, so get the updated note again
         api.get('/notes', { id: res.note.id, trash: !isDeleted })
@@ -63,12 +55,8 @@ export default function ConfirmDeleteModal({ note, invitation, updateNote, onClo
         }
       })
       .catch((error) => {
-        if (error.name === 'HumanVerificationRequiredError') {
-          setHasHumanVerificationError(true)
-        } else {
-          promptError(error.message)
-          if (typeof onClose === 'function') onClose()
-        }
+        promptError(error.message)
+        if (typeof onClose === 'function') onClose()
       })
   }
 
@@ -136,7 +124,6 @@ export default function ConfirmDeleteModal({ note, invitation, updateNote, onClo
           }}
         />
       </EditorComponentHeader>
-      <div ref={turnstileContainerRef} />
     </BasicModal>
   )
 }

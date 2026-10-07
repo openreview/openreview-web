@@ -113,6 +113,22 @@ window.translateErrorMessage = function (error) {
   }
 }
 
+// Guest scraping challenge gate: legacy $.ajax requests bypass the api-client
+// checkStatus handler (lib/api-client.js), and some use handleErrors:false so
+// they never reach jqErrorCallback either. Catch the gate's 403 centrally here
+// and send the guest to the Turnstile challenge page, returning them to the
+// current page once cleared. Mirrors the client-side redirect in api-client.js.
+var getChallengeRedirect = require('./getChallengeRedirect')
+var challengeRedirecting = false
+$(document).ajaxError(function (event, jqXhr) {
+  if (challengeRedirecting) return
+  var redirectUrl = getChallengeRedirect(jqXhr, location.pathname + location.search)
+  if (redirectUrl) {
+    challengeRedirecting = true
+    location.href = redirectUrl
+  }
+})
+
 // Dropdowns
 $(document).on('click', function (event) {
   if (!$(event.target).closest('.dropdown').length) {

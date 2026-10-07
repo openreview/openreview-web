@@ -1,7 +1,7 @@
 import { screen, render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom'
 import SourceGroupedNoteList from '../components/SourceGroupedNoteList'
+import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
@@ -73,6 +73,36 @@ describe('SourceGroupedNoteList', () => {
     ]
     render(<SourceGroupedNoteList notes={notes} />)
     expect(screen.getAllByText('NoteV2').length).toBe(3)
+  })
+
+  test('group an ACL Anthology note with notes from other sources', async () => {
+    const notes = [
+      {
+        id: 'note1',
+        version: 2,
+        invitations: ['DBLP.org/-/Record'],
+        content: {
+          title: { value: 'Some title' },
+          authors: { value: ['Author One', 'Author Two'] },
+        },
+        readers: ['everyone'],
+      },
+      {
+        id: 'note2',
+        version: 2,
+        invitations: [`${process.env.SUPER_USER}/Public_Article/ACL_Anthology.org/-/Record`],
+        content: {
+          title: { value: 'Some title' },
+          authors: { value: ['Author One', 'Author Two'] },
+        },
+        readers: ['everyone'],
+      },
+    ]
+    render(<SourceGroupedNoteList notes={notes} displayOptions={{}} />)
+
+    expect(screen.queryByText('NoteV2')).not.toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'DBLP' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'ACL Anthology' })).toBeInTheDocument()
   })
 
   test('show grouped notes and meta or first note by default', async () => {

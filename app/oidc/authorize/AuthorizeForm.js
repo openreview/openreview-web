@@ -1,5 +1,6 @@
 'use client'
 
+import { InfoCircleOutlined } from '@ant-design/icons'
 import { Button, Card, Divider, Flex, Typography } from 'antd'
 import { useState } from 'react'
 import LoadingIcon from '../../../components/LoadingIcon'
@@ -11,6 +12,7 @@ const { Title, Text, Paragraph } = Typography
 const scopeLabels = {
   openid: 'Access your OpenReview tilde ID',
   profile: 'Access full name set in your OpenReview profile',
+  email: 'Access the preferred email set in your OpenReview profile',
 }
 
 const AuthorizeForm = ({ interactionId, clientName, scopes }) => {
@@ -50,13 +52,22 @@ const AuthorizeForm = ({ interactionId, clientName, scopes }) => {
 
           <Flex vertical gap={12}>
             <ul>
-              {scopes.map((scope) => (
-                <li key={scope}>
-                  <Text>{scopeLabels[scope] ?? scope}</Text>
-                </li>
-              ))}
+              {scopes.map((scopeObj) => {
+                const { scope } = scopeObj
+                return (
+                  <li key={scope}>
+                    <Text>{scopeLabels[scope] ?? scope}</Text>
+                  </li>
+                )
+              })}
             </ul>
           </Flex>
+
+          <Paragraph style={{ fontSize: 12 }}>
+            <InfoCircleOutlined style={{ marginRight: 6 }} />
+            Updates to information listed above will be shared with{' '}
+            <Text strong>{clientName}</Text> when requested.
+          </Paragraph>
 
           <Divider />
 

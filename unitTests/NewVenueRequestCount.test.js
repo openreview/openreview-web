@@ -1,7 +1,7 @@
 import { screen, render, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import NewVenueRequestCount from '../app/user/moderation/(VenueRequests)/NewVenueRequestCount'
 import api from '../lib/api-client'
+import '@testing-library/jest-dom'
 
 let badgeProps
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -20,6 +20,7 @@ describe('NewVenueRequestCount', () => {
   test('show badge widget', async () => {
     // antd Badge handles 0 display automatically
     api.getCombined = jest.fn(() => Promise.resolve({ notes: [] }))
+    api.get = jest.fn(() => Promise.resolve({ notes: [] })) // journal
     render(<NewVenueRequestCount>tab title</NewVenueRequestCount>)
 
     await waitFor(() => {
@@ -59,12 +60,34 @@ describe('NewVenueRequestCount', () => {
         ],
       })
     )
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        notes: [
+          {
+            id: 'journal deployed',
+            content: {
+              venue_id: {
+                value: 'journal',
+              },
+            },
+          },
+          {
+            id: 'journal not deployed',
+            content: {
+              venue_id: {
+                value: undefined,
+              },
+            },
+          },
+        ],
+      })
+    )
     render(<NewVenueRequestCount>tab title</NewVenueRequestCount>)
 
     await waitFor(() => {
       expect(api.getCombined).toHaveBeenCalled()
       expect(screen.getByText('Badge')).toBeInTheDocument()
-      expect(badgeProps).toHaveBeenCalledWith(expect.objectContaining({ count: 2 }))
+      expect(badgeProps).toHaveBeenCalledWith(expect.objectContaining({ count: 3 }))
     })
   })
 })

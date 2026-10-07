@@ -287,14 +287,18 @@ const ProfileSearchFormAndResults = ({
     let paramKey = 'fullname'
     let paramValue = cleanSearchTerm.toLowerCase()
     if (isValidEmail(cleanSearchTerm)) {
-      setErrors((existingErrors) =>
-        existingErrors
-          .filter((e) => e.fieldName !== fieldName)
-          .concat({
-            fieldName,
-            message: 'Search profile by name or OpenReview profile ID.',
-          })
-      )
+      if (isEditor) {
+        setErrors((existingErrors) =>
+          existingErrors
+            .filter((e) => e.fieldName !== fieldName)
+            .concat({
+              fieldName,
+              message: 'Search profile by name or OpenReview profile ID.',
+            })
+        )
+      } else {
+        promptError('Search profile by name or OpenReview profile ID.')
+      }
       return
     }
     if (cleanSearchTerm.startsWith('~')) {

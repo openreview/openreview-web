@@ -38,7 +38,10 @@ export default function RootLayout({ children }) {
       </head>
       <StoreProvider>
         <ThemeProvider>
-          <body className={notoSans.className} style={{ overflowY: 'scroll', width: '100%' }}>
+          <body
+            className={notoSans.className}
+            style={{ overflowY: 'scroll', width: '100%', margin: 0 }}
+          >
             <div id="__next">
               <Nav />
               <AppInit />

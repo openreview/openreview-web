@@ -1,20 +1,25 @@
-import '@testing-library/jest-dom'
 import { jwtDecode } from 'jwt-decode'
-import serverAuth from '../app/auth'
 import { cookies } from 'next/headers'
+import serverAuth from '../app/auth'
+import '@testing-library/jest-dom'
 
 jest.mock('next/headers')
 jest.mock('jwt-decode')
 
 describe('serverAuth', () => {
-  test('return empty obj when cookie does not have access token', async () => {
+  test('return clearanceToken when cookie does not have access token', async () => {
     const accessTokenInCookie = undefined
-    const cookieGet = jest.fn(() => ({ value: accessTokenInCookie }))
+    const clearanceTokenInCookie = 'some clearance token'
+    const cookieGet = jest.fn((name) =>
+      name === process.env.ACCESS_TOKEN_NAME
+        ? { value: undefined }
+        : { value: clearanceTokenInCookie }
+    )
     cookies.mockImplementation(() => ({
       get: cookieGet,
     }))
 
-    const expectedResult = {}
+    const expectedResult = { clearanceToken: clearanceTokenInCookie }
     const actualResult = await serverAuth()
 
     expect(cookieGet).toHaveBeenCalledWith(process.env.ACCESS_TOKEN_NAME)
@@ -47,7 +52,12 @@ describe('serverAuth', () => {
 
   test('return empty object when cookie exist but has expired', async () => {
     const accessTokenInCookie = 'some expired token'
-    const cookieGet = jest.fn(() => ({ value: accessTokenInCookie }))
+    const clearanceTokenInCookie = undefined // user previously logged in so no clearanceToken
+    const cookieGet = jest.fn((name) =>
+      name === process.env.ACCESS_TOKEN_NAME
+        ? { value: accessTokenInCookie }
+        : { value: clearanceTokenInCookie }
+    )
     cookies.mockImplementation(() => ({
       get: cookieGet,
     }))
@@ -67,7 +77,12 @@ describe('serverAuth', () => {
 
   test('return empty object when cookie exist but cannot decode', async () => {
     const accessTokenInCookie = 'some invalid token'
-    const cookieGet = jest.fn(() => ({ value: accessTokenInCookie }))
+    const clearanceTokenInCookie = undefined
+    const cookieGet = jest.fn((name) =>
+      name === process.env.ACCESS_TOKEN_NAME
+        ? { value: accessTokenInCookie }
+        : { value: clearanceTokenInCookie }
+    )
     cookies.mockImplementation(() => ({
       get: cookieGet,
     }))

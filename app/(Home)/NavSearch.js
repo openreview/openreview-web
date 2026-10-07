@@ -4,7 +4,9 @@ import { useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
 import AutoCompleteInput from '../../components/AutoCompleteInput'
 
-export default function NavSearch() {
+import legacyNavStyles from '../../styles/components/legacy-bootstrap-nav.module.scss'
+
+export default function NavSearch({ inDrawer = false }) {
   const router = useRouter()
 
   const handleSearch = (e) => {
@@ -19,9 +21,9 @@ export default function NavSearch() {
 
   return (
     <form
-      className="navbar-form navbar-left profile-search"
       role="search"
       onSubmit={handleSearch}
+      className={`${legacyNavStyles.navSearchForm}${inDrawer ? ` ${legacyNavStyles.navSearchFormDrawer}` : ''}`}
     >
       <AutoCompleteInput />
       <input name="group" type="hidden" value="all" />

@@ -1,19 +1,21 @@
-import { redirect } from 'next/navigation'
-import { headers } from 'next/headers'
-import { stringify } from 'query-string'
 import { pickBy, truncate } from 'lodash'
-import api from '../../lib/api-client'
-import serverAuth from '../auth'
-import { getConferenceName, getIssn, getJournalName } from '../../lib/utils'
-import Forum from '../../components/forum/Forum'
-import styles from './Forum.module.scss'
-import CommonLayout from '../CommonLayout'
-import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import { headers } from 'next/headers'
+import { redirect } from 'next/navigation'
+import { stringify } from 'query-string'
 import Banner from '../../components/Banner'
-import legacyStyles from './LegacyForum.module.scss'
-import LegacyForum from '../../components/forum/LegacyForum'
 import ErrorDisplay from '../../components/ErrorDisplay'
+import Forum from '../../components/forum/Forum'
+import LegacyForum from '../../components/forum/LegacyForum'
+import api from '../../lib/api-client'
+import { referrerLink, venueHomepageLink } from '../../lib/banner-links'
+import { getUniqueInstitutions } from '../../lib/forum-utils'
+import { getConferenceName, getIssn, getJournalName } from '../../lib/utils'
+import serverAuth from '../auth'
+import CommonLayout from '../CommonLayout'
 import ArxivForum from './ArxivForum'
+
+import styles from './Forum.module.scss'
+import legacyStyles from './LegacyForum.module.scss'
 
 const fallbackMetadata = { title: 'Forum | OpenReview' }
 
@@ -51,7 +53,8 @@ const getForumNote = async (
   queryId,
   invitationId,
   query,
-  remoteIpAddress
+  remoteIpAddress,
+  clearanceToken
 ) => {
   let redirectPath = null
   try {
@@ -60,7 +63,8 @@ const getForumNote = async (
       token,
       { trash: true, details: 'writable,presentation' },
       { trash: true, details: 'original,replyCount,writable' },
-      remoteIpAddress
+      remoteIpAddress,
+      clearanceToken
     )
     if (note?.ddate && !note?.details?.writable) {
       throw new Error('Not Found')
@@ -88,6 +92,10 @@ const getForumNote = async (
     }
     return { forumNote: note, version: 1 }
   } catch (error) {
+    // Signal that this guest must solve the challenge; the caller builds the redirect.
+    if (error.name === 'ChallengeRequiredError') {
+      return { challengeRequired: true }
+    }
     if (error.name === 'ForbiddenError') {
       const redirectNote = await shouldRedirect(queryId, token, remoteIpAddress)
       if (redirectNote) {
@@ -101,7 +109,7 @@ const getForumNote = async (
       }
 
       // Redirect to login, unless request is from a Google crawler
-      if (!token && !userAgent.includes('Googlebot')) {
+      if (!token && userAgent && !userAgent.includes('Googlebot')) {
         redirectPath = `/login?redirect=/forum?${encodeURIComponent(stringify(query))}`
         return { redirectPath }
       }
@@ -122,16 +130,25 @@ export async function generateMetadata({ searchParams }) {
   const queryId = id || noteId
   if (!queryId || arxivid) return fallbackMetadata
 
-  const { token } = await serverAuth()
+  const { token, clearanceToken } = await serverAuth()
 
   try {
     const {
       forumNote,
       version,
       redirectPath: pathToRedirectTo,
+      challengeRequired,
       errorMessage,
-    } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress)
-    if (errorMessage) return fallbackMetadata
+    } = await getForumNote(
+      token,
+      userAgent,
+      queryId,
+      invitationId,
+      query,
+      remoteIpAddress,
+      clearanceToken
+    )
+    if (errorMessage || challengeRequired || !forumNote) return fallbackMetadata
     if (pathToRedirectTo) return {}
 
     // #region Metadata
@@ -236,14 +253,26 @@ export default async function page({ searchParams }) {
     return <ArxivForum id={arxivid} />
   }
 
-  const { token, user } = await serverAuth()
+  const { token, user, clearanceToken } = await serverAuth()
 
   const {
     forumNote,
     version,
     redirectPath: pathToRedirectTo,
+    challengeRequired,
     errorMessage,
-  } = await getForumNote(token, userAgent, queryId, invitationId, query, remoteIpAddress)
+  } = await getForumNote(
+    token,
+    userAgent,
+    queryId,
+    invitationId,
+    query,
+    remoteIpAddress,
+    clearanceToken
+  )
+  if (challengeRequired) {
+    redirect(`/challenge?redirect=${encodeURIComponent(`/forum?${stringify(query)}`)}`)
+  }
   if (errorMessage) return <ErrorDisplay message={errorMessage} />
   if (pathToRedirectTo) redirect(pathToRedirectTo)
 
@@ -265,6 +294,25 @@ export default async function page({ searchParams }) {
     banner = venueHomepageLink(groupId)
   }
   if (version === 2) {
+    const authorsValue = forumNote.content?.authors?.value
+    const uniqueInstitutions = authorsValue?.find((p) => p.institutions)
+      ? getUniqueInstitutions(authorsValue)
+      : []
+
+    let officialInstitutions = null
+    if (uniqueInstitutions.length > 0 && uniqueInstitutions.length <= 20) {
+      try {
+        const { institutions } = await api.get(
+          '/settings/institutions',
+          { domains: uniqueInstitutions.map((p) => p.domain) },
+          { accessToken: token, remoteIpAddress }
+        )
+        officialInstitutions = institutions ?? null
+      } catch (_) {
+        officialInstitutions = null
+      }
+    }
+
     return (
       <CommonLayout banner={<Banner>{banner}</Banner>}>
         <div className={styles.forum}>
@@ -274,6 +322,7 @@ export default async function page({ searchParams }) {
             selectedInvitationId={query.invitationId}
             prefilledValues={pickBy(query, (_, key) => key.startsWith('edit.note.'))}
             query={query}
+            officialInstitutions={officialInstitutions}
           />
         </div>
       </CommonLayout>

@@ -1,22 +1,23 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
+import { useEffect, useState } from 'react'
 import EditBanner from '../../../components/EditBanner'
-import { groupModeToggle } from '../../../lib/banner-links'
-import CommonLayout from '../../CommonLayout'
-import styles from '../Group.module.scss'
-import { prettyId } from '../../../lib/utils'
-import GroupGeneralInfo from '../../../components/group/info/GroupGeneralInfo'
-import GroupMembersInfo from '../../../components/group/info/GroupMembersInfo'
-import GroupSignedNotes from '../../../components/group/GroupSignedNotes'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 import GroupChildGroups from '../../../components/group/GroupChildGroups'
 import GroupRelatedInvitations from '../../../components/group/GroupRelatedInvitations'
+import GroupSignedNotes from '../../../components/group/GroupSignedNotes'
+import GroupGeneralInfo from '../../../components/group/info/GroupGeneralInfo'
+import GroupMembersInfo from '../../../components/group/info/GroupMembersInfo'
+import LoadingSpinner from '../../../components/LoadingSpinner'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import ErrorDisplay from '../../../components/ErrorDisplay'
-import LoadingSpinner from '../../../components/LoadingSpinner'
+import { groupModeToggle } from '../../../lib/banner-links'
+import { prettyId } from '../../../lib/utils'
+import CommonLayout from '../../CommonLayout'
+
+import styles from '../Group.module.scss'
 
 export default function GroupInfo({ id, query }) {
   const [group, setGroup] = useState(null)
@@ -77,7 +78,7 @@ export default function GroupInfo({ id, query }) {
 
           <GroupChildGroups groupId={group.id} />
 
-          <GroupRelatedInvitations group={group} />
+          {user && <GroupRelatedInvitations group={group} />}
         </div>
       </div>
     </CommonLayout>

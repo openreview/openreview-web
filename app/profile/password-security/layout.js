@@ -5,5 +5,5 @@ export default function Layout({ children }) {
 }
 
 export const metadata = {
-  title: 'Password and Security | OpenReview',
+  title: 'Security Settings | OpenReview',
 }

@@ -29,6 +29,13 @@ const DropdownWidget = dynamic(() => import('../EditorComponents/DropdownWidget'
   ssr: false,
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
 })
+const DropdownDerivedOptionsWidget = dynamic(
+  () => import('../EditorComponents/DropdownDerivedOptionsWidget'),
+  {
+    ssr: false,
+    loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+  }
+)
 const CodeEditorWidget = dynamic(() => import('../EditorComponents/CodeEditorWidget'), {
   ssr: false,
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
@@ -50,7 +57,20 @@ const ProfileSearchWidget = dynamic(() => import('../EditorComponents/ProfileSea
   loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
 })
 
+const ProfileSearchWithInstitutionWidget = dynamic(
+  () => import('../EditorComponents/ProfileSearchWithInstitutionWidget'),
+  {
+    ssr: false,
+    loading: () => <LoadingSpinner inline text={null} extraClass="spinner-small" />,
+  }
+)
+
 // #endregion
+
+const isDerivedField = (value) =>
+  value.param?.enum?.length === 1 &&
+  typeof value.param.enum[0] === 'string' &&
+  value.param.enum[0].startsWith('${')
 
 const EditorWidget = () => {
   const { field } = useContext(EditorComponentContext)
@@ -69,7 +89,7 @@ const EditorWidget = () => {
       case 'checkbox':
         return <CheckboxWidget />
       case 'select':
-        return <DropdownWidget />
+        return isDerivedField(value) ? <DropdownDerivedOptionsWidget /> : <DropdownWidget />
       case 'textarea':
         return <TextAreaWidget />
       case 'text':
@@ -108,7 +128,8 @@ const EditorWidget = () => {
         return <TextboxWidget />
       case 'string':
       case 'string[]':
-        return value.param?.enum ? <DropdownWidget /> : <TextboxWidget />
+        if (!value.param?.enum) return <TextboxWidget />
+        return isDerivedField(value) ? <DropdownDerivedOptionsWidget /> : <DropdownWidget />
       case 'group':
       case 'profile':
         return <ProfileSearchWidget />
@@ -117,6 +138,8 @@ const EditorWidget = () => {
       case 'profile[]':
       case 'profile{}':
         return <ProfileSearchWidget multiple={true} />
+      case 'author{}':
+        return <ProfileSearchWithInstitutionWidget />
       case 'note':
       case 'note[]':
       case 'edit':
@@ -133,6 +156,11 @@ const EditorWidget = () => {
 
   if (fieldName === 'authorids' && Array.isArray(field.authorids?.value))
     return <ProfileSearchWidget multiple={true} />
+  if (
+    fieldName === 'authors' &&
+    Array.isArray(field.authors?.value) // reorder only
+  )
+    return <ProfileSearchWithInstitutionWidget />
   if (!field[fieldName].value?.param) {
     if (!field[fieldName].value && field[fieldName].readers) {
       return null // TODO: an empty widget which shows only readers

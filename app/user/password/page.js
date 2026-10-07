@@ -1,14 +1,16 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { Flex, Typography } from 'antd'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
+import { Suspense, useEffect, useState } from 'react'
 import ErrorDisplay from '../../../components/ErrorDisplay'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import api from '../../../lib/api-client'
-import styles from './Password.module.scss'
 import CommonLayout from '../../CommonLayout'
 import ResetForm from './ResetForm'
+
+const { Title, Text } = Typography
 
 function Page() {
   const searchParams = useSearchParams()
@@ -42,19 +44,18 @@ function Page() {
 
   return (
     <CommonLayout>
-      <div className={`row ${styles.password}`}>
-        <div className="reset-container col-sm-12 col-md-8 col-lg-6 col-md-offset-2 col-lg-offset-3">
-          <h1>Reset Password</h1>
-          <p className="text-muted">Enter your new password below.</p>
-          <ResetForm resetToken={resetToken} />
-
-          <p className="help-block">
-            <Link href="/login" prefetch={false}>
-              Back to Login
-            </Link>
-          </p>
+      <Flex vertical style={{ maxWidth: 480, margin: '0 auto' }}>
+        <Title level={2} style={{ marginTop: 0 }}>
+          Reset Password
+        </Title>
+        <Text type="secondary">Enter your new password below.</Text>
+        <ResetForm resetToken={resetToken} />
+        <div style={{ marginTop: 50 }}>
+          <Link href="/login" prefetch={false}>
+            Back to Login
+          </Link>
         </div>
-      </div>
+      </Flex>
     </CommonLayout>
   )
 }

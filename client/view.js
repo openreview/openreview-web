@@ -1638,19 +1638,27 @@ module.exports = (function () {
   var autolinkHtml = function (value) {
     // Regex based on https://gist.github.com/dperini/729294 modified to not accept FTP urls
     var urlRegex =
-      /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/gi
+      /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:[a-z\u00a1-\uffff0-9](?:[a-z\u00a1-\uffff0-9-]{0,61}[a-z\u00a1-\uffff0-9])?)(?:\.[a-z\u00a1-\uffff0-9](?:[a-z\u00a1-\uffff0-9-]{0,61}[a-z\u00a1-\uffff0-9])?)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/gi
     var profileRegex = /(?:.)?(~[^\d\s]+_[^\d\s]+[0-9]+)/gi
+
+    var escapeAttr = function (s) {
+      return String(s).replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+    }
 
     var intermediate = value.replace(urlRegex, function (match) {
       var url = match.startsWith('https://openreview.net')
         ? match.replace('https://openreview.net', '')
         : match
-      return `<a href="${url}" target="_blank" rel="nofollow">${url}</a>`
+      var safeUrl = escapeAttr(url)
+      return `<a href="${safeUrl}" target="_blank" rel="nofollow">${safeUrl}</a>`
     })
 
     return intermediate.replace(profileRegex, function (fullMatch, match) {
       if (fullMatch !== match && fullMatch.charAt(0).match(/\S/)) return fullMatch
-      return ' <a href="/profile?id=' + match + '" target="_blank">' + prettyId(match) + '</a>'
+      var safeId = escapeAttr(match)
+      return (
+        ' <a href="/profile?id=' + safeId + '" target="_blank">' + prettyId(match) + '</a>'
+      )
     })
   }
 
@@ -4505,12 +4513,12 @@ module.exports = (function () {
         .text('<img src="' + href + '" alt="' + text + '" title="' + title + '">')
         .html()
     }
-    renderer.checkbox = function (checked) {
+    renderer.checkbox = function ({ checked }) {
       if (checked) return '[x]'
       return '[ ]'
     }
-    renderer.html = function (html) {
-      return $('<div />').text(html).html()
+    renderer.html = function ({ text }) {
+      return $('<div />').text(text).html()
     }
 
     // For details on options see https://marked.js.org/#/USING_ADVANCED.md#options

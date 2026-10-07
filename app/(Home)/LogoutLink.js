@@ -1,12 +1,12 @@
 'use client'
 
-/* globals promptError: false */
 import Link from 'next/link'
 import api from '../../lib/api-client'
 
-export default function LogoutLink() {
+export default function LogoutLink({ className, style, onClick }) {
   const handleLogout = async (e) => {
     e.preventDefault()
+    onClick?.()
 
     try {
       await api.post('/logout')
@@ -27,7 +27,7 @@ export default function LogoutLink() {
   }
 
   return (
-    <Link href="#" onClick={handleLogout}>
+    <Link href="#" onClick={handleLogout} className={className} style={style}>
       Logout
     </Link>
   )
