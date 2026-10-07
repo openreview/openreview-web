@@ -147,25 +147,18 @@
   }
 }
 
-// ===== Bootstrap badge =====
+// ===== Unread notification dot =====
 .navBadge {
   display: inline-block;
-  min-width: 20px;
-  padding: 3px 7px;
-  font-size: 12px;
-  font-weight: bold;
-  line-height: 12px;
-  color: #fff;
-  text-align: center;
-  white-space: nowrap;
-  vertical-align: middle;
-  background-color: #777;
-  border-radius: 10px;
-  margin-top: -3px;
-  margin-left: 4px;
+  width: 8px;
+  height: 8px;
+  vertical-align: calc(0.357em - 4px);
+  background-color: #fff;
+  border-radius: 50%;
+  margin-left: 6px;
 }
 .navDropdownItem .navBadge {
-  margin-left: 6px;
+  background-color: constants.$orRed;
 }
 
 // ===== Dropdown menu item (Bootstrap .dropdown-menu li > a) =====

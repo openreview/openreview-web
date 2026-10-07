@@ -1,8 +1,8 @@
-import { Suspense } from 'react'
 import { headers } from 'next/headers'
+import { Suspense } from 'react'
 import api from '../../lib/api-client'
 import serverAuth, { isSuperUser } from '../auth'
-import NotificationCount from './NotificationCount'
+import NotificationStatus from './NotificationStatus'
 
 export default async function NavNotificationCount() {
   const { user, token } = await serverAuth()
@@ -11,35 +11,38 @@ export default async function NavNotificationCount() {
   }
   const headersList = await headers()
   const remoteIpAddress = headersList.get('x-forwarded-for')
+  const preferredEmail = user.profile.preferredEmail
+  const allEmails = [...new Set([preferredEmail, ...user.profile.emails].filter(Boolean))]
 
-  const notificationCountP = api
-    .get(
-      '/messages',
-      { to: user.profile.emails[0], viewed: false, transitiveMembers: true },
-      { accessToken: token, remoteIpAddress }
-    )
-    .then((response) => {
-      const count = response.messages?.length
-      return { count: count ?? 0 }
-    })
-    .catch((error) => {
-      // oxlint-disable-next-line no-console
-      console.log('Error in NavNotificationCount', {
-        page: 'Home',
-        component: 'NavNotificationCount',
-        user: user?.id,
-        apiError: error,
-        apiRequest: {
-          endpoint: '/messages',
-          params: { to: user?.profile?.emails?.[0], viewed: false, transitiveMembers: true },
-        },
-      })
-      return { count: 0 }
-    })
+  const hasUnreadNotificationP = (async () => {
+    for (const email of allEmails) {
+      try {
+        const { messages } = await api.get(
+          '/messages',
+          { to: email, viewed: false, limit: 1 },
+          { accessToken: token, remoteIpAddress }
+        )
+        if (messages?.length) return true
+      } catch (error) {
+        // oxlint-disable-next-line no-console
+        console.log('Error in NavNotificationCount', {
+          page: 'Home',
+          component: 'NavNotificationCount',
+          user: user?.id,
+          apiError: error,
+          apiRequest: {
+            endpoint: '/messages',
+            params: { to: email, viewed: false, limit: 1 },
+          },
+        })
+      }
+    }
+    return false
+  })()
 
   return (
     <Suspense fallback={null}>
-      <NotificationCount notificationCountP={notificationCountP} />
+      <NotificationStatus hasUnreadNotificationP={hasUnreadNotificationP} />
     </Suspense>
   )
 }
