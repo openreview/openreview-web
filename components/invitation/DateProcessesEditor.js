@@ -1,95 +1,101 @@
-/* globals promptMessage,promptError,$: false */
-
-import React, { useEffect, useReducer, useState } from 'react'
+import { DeleteOutlined, MinusCircleOutlined, PlusCircleOutlined } from '@ant-design/icons'
+import { Button, Checkbox, Flex, Input, InputNumber, Select, Tooltip } from 'antd'
+import { isNil, upperFirst } from 'lodash'
 import { nanoid } from 'nanoid'
-import { upperFirst } from 'lodash'
-import CodeEditor from '../CodeEditor'
-import SpinnerButton from '../SpinnerButton'
+import { useReducer, useState } from 'react'
 import api from '../../lib/api-client'
-import Dropdown from '../Dropdown'
-import Icon from '../Icon'
-import IconButton from '../IconButton'
 import { getMetaInvitationId, prettyId } from '../../lib/utils'
+import CodeEditor from '../CodeEditor'
+import LoadingIcon from '../LoadingIcon'
 
-const DateProcessRow = ({ process, setProcesses }) => {
-  const dateProcessTypeOptions = [
-    { label: 'Dates', value: 'dates' },
-    { label: 'Delay', value: 'delay' },
-    { label: 'Cron', value: 'cron' },
-  ]
+const rowButtonStyle = { marginTop: 0, marginRight: 0 }
+
+const DateProcessRow = ({ process, setProcesses, typeOptions, isPostprocess }) => {
   return (
     <>
-      <div className={`dateprocess-row${process.deleted ? ' deleted' : ''}`}>
-        <Dropdown
-          options={dateProcessTypeOptions}
-          value={dateProcessTypeOptions.find((p) => p.value === process.type)}
-          onChange={(option) => {
+      <Flex align="flex-start" gap="middle" style={{ margin: '1rem 0' }}>
+        <Select
+          options={typeOptions}
+          value={process.type}
+          onChange={(value) => {
             setProcesses({
               type: 'UPDATETYPE',
-              payload: { key: process.key, value: option.value },
+              payload: { key: process.key, value },
             })
           }}
+          style={{ width: 120 }}
         />
-        {process.type === 'delay' && (
-          <div className="dates">
-            <input
-              type="number"
+        <Flex vertical gap="small" flex={1}>
+          {process.type === 'delay' && (
+            <InputNumber
+              suffix="ms"
+              controls={false}
               placeholder="delay in ms"
-              className={`form-control delay-input${process.valid ? '' : ' invalid-value'}`}
+              min={0}
+              precision={0}
+              status={process.valid ? undefined : 'error'}
               value={process.delay}
-              onChange={(e) => {
+              onChange={(value) => {
                 setProcesses({
                   type: 'UPDATEDELAY',
-                  payload: { key: process.key, value: e.target.value },
+                  payload: { key: process.key, value },
                 })
               }}
+              style={{ width: '100%' }}
             />
-          </div>
-        )}
-        {process.type === 'dates' && (
-          <div className="dates">
-            {process.dates?.map((date, i) => (
-              <div className="date-row" key={i}>
-                <input
-                  placeholder="date expression"
-                  className={`form-control date-input${date.valid ? '' : ' invalid-value'}`}
-                  value={date.value}
-                  onChange={(e) => {
-                    setProcesses({
-                      type: 'UPDATEDATE',
-                      payload: { key: process.key, index: i, value: e.target.value },
-                    })
-                  }}
-                />
-                {process.dates?.length > 1 && (
-                  <div
-                    role="button"
-                    onClick={() =>
+          )}
+          {process.type === 'dates' && (
+            <>
+              {process.dates?.map((date, i) => (
+                <Flex gap="small" key={i}>
+                  <Input
+                    placeholder="date expression"
+                    status={date.valid ? undefined : 'error'}
+                    value={date.value}
+                    onChange={(e) => {
                       setProcesses({
-                        type: 'DELETEDATE',
-                        payload: { key: process.key, index: i },
+                        type: 'UPDATEDATE',
+                        payload: { key: process.key, index: i, value: e.target.value },
                       })
-                    }
-                  >
-                    <Icon name="minus-sign" tooltip="remove execution date" />
-                  </div>
-                )}
-              </div>
-            ))}
-            <div
-              role="button"
-              onClick={() => setProcesses({ type: 'ADDDATE', payload: { key: process.key } })}
-            >
-              <Icon name="plus-sign" tooltip="add another execution date" />
-            </div>
-          </div>
-        )}
-        {process.type === 'cron' && (
-          <div className="dates">
-            <div className="cron-expr">
-              <input
+                    }}
+                  />
+                  {process.dates?.length > 1 && (
+                    <Tooltip title="remove execution date">
+                      <Button
+                        type="link"
+                        icon={<MinusCircleOutlined />}
+                        aria-label="remove execution date"
+                        onClick={() =>
+                          setProcesses({
+                            type: 'DELETEDATE',
+                            payload: { key: process.key, index: i },
+                          })
+                        }
+                        style={rowButtonStyle}
+                      />
+                    </Tooltip>
+                  )}
+                </Flex>
+              ))}
+              <Tooltip title="add another execution date">
+                <Button
+                  type="link"
+                  size="small"
+                  icon={<PlusCircleOutlined />}
+                  aria-label="add another execution date"
+                  onClick={() =>
+                    setProcesses({ type: 'ADDDATE', payload: { key: process.key } })
+                  }
+                  style={rowButtonStyle}
+                />
+              </Tooltip>
+            </>
+          )}
+          {process.type === 'cron' && (
+            <>
+              <Input
                 placeholder="cron expression"
-                className={`form-control${process.valid ? '' : ' invalid-value'}`}
+                status={process.valid ? undefined : 'error'}
                 value={process.cron}
                 onChange={(e) => {
                   setProcesses({
@@ -105,11 +111,8 @@ const DateProcessRow = ({ process, setProcesses }) => {
                   })
                 }}
               />
-            </div>
-            <div className="cron-start">
-              <input
+              <Input
                 placeholder="start date expression"
-                className="form-control"
                 value={process.startDate}
                 onChange={(e) => {
                   setProcesses({
@@ -125,11 +128,8 @@ const DateProcessRow = ({ process, setProcesses }) => {
                   })
                 }}
               />
-            </div>
-            <div className="cron-end">
-              <input
+              <Input
                 placeholder="end date expression"
-                className="form-control"
                 value={process.endDate}
                 onChange={(e) => {
                   setProcesses({
@@ -145,23 +145,83 @@ const DateProcessRow = ({ process, setProcesses }) => {
                   })
                 }}
               />
-            </div>
-          </div>
-        )}
+            </>
+          )}
+          <Flex align="center" gap="middle" wrap>
+            {isPostprocess && (
+              <>
+                <Flex align="center" gap="small">
+                  <span>Depends on</span>
+                  <InputNumber
+                    aria-label="depends on"
+                    controls={false}
+                    min={0}
+                    precision={0}
+                    value={process.dependsOn}
+                    onChange={(value) => {
+                      setProcesses({
+                        type: 'UPDATESETTING',
+                        payload: { key: process.key, name: 'dependsOn', value },
+                      })
+                    }}
+                    style={{ width: 80 }}
+                  />
+                </Flex>
+                <Checkbox
+                  checked={!!process.ignoreFailure && !isNil(process.dependsOn)}
+                  disabled={isNil(process.dependsOn)}
+                  style={{ fontWeight: 'normal' }}
+                  onChange={(e) => {
+                    setProcesses({
+                      type: 'UPDATESETTING',
+                      payload: {
+                        key: process.key,
+                        name: 'ignoreFailure',
+                        value: e.target.checked,
+                      },
+                    })
+                  }}
+                >
+                  Ignore failure
+                </Checkbox>
+              </>
+            )}
+            <Flex align="center" gap="small">
+              <span>Timeout</span>
+              <InputNumber
+                aria-label="timeout"
+                suffix="ms"
+                controls={false}
+                min={1}
+                precision={0}
+                value={process.timeout}
+                onChange={(value) => {
+                  setProcesses({
+                    type: 'UPDATESETTING',
+                    payload: { key: process.key, name: 'timeout', value },
+                  })
+                }}
+                style={{ width: 120 }}
+              />
+            </Flex>
+          </Flex>
+        </Flex>
 
-        <button
-          type="button"
-          className="btn btn-sm showscript-button"
+        <Button
           onClick={() => setProcesses({ type: 'SHOWHIDESCRIPT', payload: process.key })}
+          style={rowButtonStyle}
+          type="primary"
         >
           {process.showScript ? 'Hide' : 'Show'} Script
-        </button>
-        <IconButton
-          name="trash"
-          extraClasses="delete-button"
+        </Button>
+        <Button
+          icon={<DeleteOutlined />}
+          aria-label="delete script"
           onClick={() => setProcesses({ type: 'DELETE', payload: process.key })}
+          type="primary"
+          style={rowButtonStyle}
         />
-      </div>
+      </Flex>
       {process.showScript && (
         <CodeEditor
           code={process.script}
@@ -187,9 +247,6 @@ const DateProcessesEditor = ({
   field = 'dateprocesses',
 }) => {
   const isInvalidDate = (value, type) => {
-    if (type === 'delay') {
-      return Number.isNaN(new Date(Date.now() + Number(value)))
-    }
     if (type === 'dates') {
       const invitationFieldRx = /#{(.*?)}/g
       const matches = [...value.matchAll(invitationFieldRx)]
@@ -204,11 +261,10 @@ const DateProcessesEditor = ({
     switch (action.type) {
       case 'ADD':
         return [
-          { type: 'delay', delay: '', key: nanoid(), showScript: true, valid: true },
+          { type: 'delay', delay: null, key: nanoid(), showScript: true, valid: true },
           ...state,
         ]
       case 'DELETE':
-        $('.tooltip').remove()
         return state.filter((p) => p.key !== action.payload)
       case 'SHOWHIDESCRIPT':
         return state.map((p) => {
@@ -226,7 +282,7 @@ const DateProcessesEditor = ({
                 dates: p.dates ?? [{ value: '', valid: true }],
               }),
               ...(action.payload.value === 'delay' && {
-                delay: p.delay ?? '',
+                delay: p.delay ?? null,
               }),
               ...(action.payload.value === 'cron' && {
                 cron: p.cron ?? '',
@@ -240,10 +296,14 @@ const DateProcessesEditor = ({
       case 'UPDATEDELAY':
         return state.map((p) => {
           if (p.key === action.payload.key) {
-            if (isInvalidDate(action.payload.value, p.type)) {
-              return { ...p, delay: action.payload.value, valid: false }
-            }
             return { ...p, delay: action.payload.value, valid: true }
+          }
+          return p
+        })
+      case 'UPDATESETTING':
+        return state.map((p) => {
+          if (p.key === action.payload.key) {
+            return { ...p, [action.payload.name]: action.payload.value }
           }
           return p
         })
@@ -262,7 +322,6 @@ const DateProcessesEditor = ({
           return p
         })
       case 'DELETEDATE':
-        $('.tooltip').remove()
         return state.map((p) => {
           if (p.key === action.payload.key) {
             const newDates = p.dates.filter((q, i) => i !== action.payload.index)
@@ -276,7 +335,6 @@ const DateProcessesEditor = ({
       case 'UPDATEDATE':
         return state.map((p) => {
           if (p.key === action.payload.key) {
-            const newDates = p.dates.filter((d, i) => i !== action.payload.index)
             return {
               ...p,
               dates: p.dates.map((q, i) => {
@@ -342,10 +400,24 @@ const DateProcessesEditor = ({
     }
   }
 
+  const typeOptions =
+    field === 'postprocesses'
+      ? [
+          { label: 'Delay', value: 'delay' },
+          { label: 'Script Only', value: 'unset' },
+        ]
+      : [
+          { label: 'Dates', value: 'dates' },
+          { label: 'Delay', value: 'delay' },
+          { label: 'Cron', value: 'cron' },
+          { label: 'Script Only', value: 'unset' },
+        ]
+
   const getProcessType = (process) => {
-    if (process.delay) return 'delay'
+    if (process.delay !== undefined) return 'delay'
     if (process.cron) return 'cron'
-    return 'dates'
+    if (process.dates) return 'dates'
+    return 'unset'
   }
 
   const [processes, setProcesses] = useReducer(
@@ -362,10 +434,6 @@ const DateProcessesEditor = ({
   )
   const [isSaving, setIsSaving] = useState(false)
 
-  useEffect(() => {
-    $('[data-toggle="tooltip"]').tooltip({ container: 'body' })
-  }, [processes])
-
   const saveCode = async () => {
     setIsSaving(true)
 
@@ -374,7 +442,7 @@ const DateProcessesEditor = ({
       const metaInvitationId = getMetaInvitationId(invitation)
       if (!isMetaInvitation && !metaInvitationId) throw new Error('No meta invitation found')
       const processesToPost = processes.map((p) => {
-        if (p.type === 'delay' && typeof p.delay === 'string' && p.delay.trim() === '') {
+        if (p.type === 'delay' && isNil(p.delay)) {
           setProcesses({ type: 'INVALIDDELAY', payload: p.key })
           throw new Error("Delay value can't be empty")
         }
@@ -391,12 +459,13 @@ const DateProcessesEditor = ({
         }
         return {
           script: p.script,
+          ...(!isNil(p.timeout) && { timeout: p.timeout }),
+          ...(!isNil(p.dependsOn) && { dependsOn: p.dependsOn }),
+          ...(p.ignoreFailure && !isNil(p.dependsOn) && { ignoreFailure: true }),
           ...(p.type === 'dates' && {
             dates: p.dates.filter((q) => q.value.trim().length > 0).map((r) => r.value.trim()),
           }),
-          ...(p.type === 'delay' && {
-            delay: Number.isInteger(p.delay) ? p.delay : Number(p.delay.trim()),
-          }),
+          ...(p.type === 'delay' && { delay: p.delay }),
           ...(p.type === 'cron' && {
             cron: p.cron,
             startDate: p.startDate.trim().length > 0 ? p.startDate.trim() : { delete: true },
@@ -427,33 +496,40 @@ const DateProcessesEditor = ({
   }
 
   return (
-    <div className="dateprocess-editor">
-      {processes.length === 0 && (
-        <p className="empty-message">There are no {field} associated with this invitation</p>
-      )}
+    <div>
+      {processes.length === 0 && <p>There are no {field} associated with this invitation</p>}
 
-      <div className="add-row">
-        <IconButton
-          name="plus"
+      <div>
+        <Button
+          type="primary"
           onClick={() => setProcesses({ type: 'ADD' })}
-          text="Add Script"
-        />
+          style={{ marginTop: '1rem' }}
+        >
+          Add Script
+        </Button>
       </div>
 
       {processes.length > 0 &&
         processes.map((process) => (
-          <DateProcessRow key={process.key} process={process} setProcesses={setProcesses} />
+          <DateProcessRow
+            key={process.key}
+            process={process}
+            setProcesses={setProcesses}
+            typeOptions={typeOptions}
+            isPostprocess={field === 'postprocesses'}
+          />
         ))}
 
-      <div className="mt-4">
-        <SpinnerButton
-          type="primary save-btn"
+      <div style={{ marginTop: '1.5rem' }}>
+        <Button
+          type="primary"
+          iconPlacement="end"
+          loading={isSaving ? { icon: <LoadingIcon /> } : false}
           onClick={saveCode}
-          disabled={isSaving}
-          loading={isSaving}
+          style={{ marginTop: 0 }}
         >
           {isSaving ? 'Saving...' : `Save ${upperFirst(field)}`}
-        </SpinnerButton>
+        </Button>
       </div>
     </div>
   )
