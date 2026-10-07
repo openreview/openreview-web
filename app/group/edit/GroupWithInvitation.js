@@ -2,32 +2,45 @@
 
 /* globals promptError,promptMessage,$: false */
 
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
+import Alert from '../../../components/Alert'
+import CodeEditor from '../../../components/CodeEditor'
+import Markdown from '../../../components/EditorComponents/Markdown'
+import GroupChildGroups from '../../../components/group/GroupChildGroups'
+import GroupMembers from '../../../components/group/GroupMembers'
+import GroupRelatedInvitations from '../../../components/group/GroupRelatedInvitations'
+import GroupRestrictGroup from '../../../components/group/GroupRestrictGroup'
+import GroupSignedNotes from '../../../components/group/GroupSignedNotes'
+import GroupMembersInfo from '../../../components/group/info/GroupMembersInfo'
+import WorkFlowInvitations from '../../../components/group/WorkflowInvitations'
+import WorkflowInvitationsLegacy from '../../../components/group/WorkflowInvitationsLegacy'
+import Icon from '../../../components/Icon'
+import ConsoleTabs from '../../../components/webfield/ConsoleTabs'
 import api from '../../../lib/api-client'
 import { formatDateTime, prettyContentValue, prettyField, prettyId } from '../../../lib/utils'
-import styles from '../../../styles/components/GroupWithInvitation.module.scss'
-import Markdown from '../../../components/EditorComponents/Markdown'
-import Icon from '../../../components/Icon'
-import GroupMembersInfo from '../../../components/group/info/GroupMembersInfo'
-import CodeEditor from '../../../components/CodeEditor'
-import GroupSignedNotes from '../../../components/group/GroupSignedNotes'
-import GroupChildGroups from '../../../components/group/GroupChildGroups'
-import GroupRelatedInvitations from '../../../components/group/GroupRelatedInvitations'
-import GroupMembers from '../../../components/group/GroupMembers'
-import WorkFlowInvitations from '../../../components/group/WorkflowInvitations'
-import ConsoleTabs from '../../../components/webfield/ConsoleTabs'
 import GroupSectionWithEditInvitation from './GroupSectionWithEditInvitation'
-import GroupRestrictGroup from '../../../components/group/GroupRestrictGroup'
-import Alert from '../../../components/Alert'
+
+import styles from '../../../styles/components/GroupWithInvitation.module.scss'
+
+// A venue's own group is managed through its workflow, so its page is shaped for the venue rather
+// than for a generic group: its tabs are named for the venue and the group metadata is left out.
+const isVenueGroupPage = (group) => group.id === group.domain && group.details.writable
+
+// The staged timeline needs the domain's `workflow_stages`; venues set up before it existed get
+// the flat workflow page they were built with.
+const hasWorkflowStages = (group) => group.content?.workflow_stages?.value?.length > 0
 
 const groupTabsConfig = (group) => {
+  const isVenueGroup = isVenueGroupPage(group)
   const tabs = [
-    ...(group.id === group.domain && group.details.writable
+    ...(isVenueGroup
       ? [
           {
             id: 'workflowInvitations',
-            label: 'Workflow Step Timeline',
+            label: hasWorkflowStages(group)
+              ? 'Workflow Configuration'
+              : 'Workflow Step Timeline',
             sections: ['workflowInvitations'],
           },
         ]
@@ -36,29 +49,37 @@ const groupTabsConfig = (group) => {
       ? [
           {
             id: 'groupContent',
-            label: 'Content',
+            label: isVenueGroup ? 'Venue Information' : 'Content',
             sections: ['groupContent'],
           },
         ]
       : []),
-    {
-      id: 'groupMembers',
-      label: 'Members',
-      sections: ['groupMembers'],
-    },
+    ...(isVenueGroup
+      ? []
+      : [
+          {
+            id: 'groupMembers',
+            label: 'Members',
+            sections: ['groupMembers'],
+          },
+        ]),
     {
       id: 'groupUICode',
-      label: 'UI Code',
+      label: isVenueGroup ? 'Venue Home Page' : 'UI Code',
       sections: ['groupUICode'],
     },
-    { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },
-    { id: 'childGroups', label: 'Child Groups', sections: ['groupChildGroups'] },
-    {
-      id: 'relatedInvitations',
-      label: 'Related Invitations',
-      sections: ['groupRelatedInvitations'],
-    },
-    ...(group.id === group.domain && group.details.writable
+    ...(isVenueGroup
+      ? []
+      : [
+          { id: 'signedNotes', label: 'Signed Notes', sections: ['groupSignedNotes'] },
+          { id: 'childGroups', label: 'Child Groups', sections: ['groupChildGroups'] },
+          {
+            id: 'relatedInvitations',
+            label: 'Related Invitations',
+            sections: ['groupRelatedInvitations'],
+          },
+        ]),
+    ...(isVenueGroup
       ? [
           {
             id: 'emergencyShutdown',
@@ -146,7 +167,11 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
     let editInvitations = []
     switch (sectionName) {
       case 'workflowInvitations':
-        return <WorkFlowInvitations key={sectionName} group={group} />
+        return hasWorkflowStages(group) ? (
+          <WorkFlowInvitations key={sectionName} group={group} />
+        ) : (
+          <WorkflowInvitationsLegacy key={sectionName} group={group} />
+        )
       case 'groupContent':
         editInvitations = editGroupInvitations.filter((p) => p.edit?.group?.content)
         return (
@@ -262,38 +287,43 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
         <Markdown text={group.description} />
       </div>
       {isGroupRestricted && <Alert color="danger">This venue is currently shut down.</Alert>}
-      <div className={styles.invitationMeta}>
-        <span className="date item">
-          <Icon name="calendar" />
-          <span>
-            Created:{' '}
-            <span data-toggle="tooltip" data-placement="top" title={group.cdate}>
-              {formatDateTime(group.cdate)}
-            </span>
-            , Last Modified:{' '}
-            <span data-toggle="tooltip" data-placement="top" title={group.mdate}>
-              {formatDateTime(group.mdate)}
+      {!isVenueGroupPage(group) && (
+        <div className={styles.invitationMeta}>
+          <span className="date item">
+            <Icon name="calendar" />
+            <span>
+              Created:{' '}
+              <span data-toggle="tooltip" data-placement="top" title={group.cdate}>
+                {formatDateTime(group.cdate)}
+              </span>
+              , Last Modified:{' '}
+              <span data-toggle="tooltip" data-placement="top" title={group.mdate}>
+                {formatDateTime(group.mdate)}
+              </span>
             </span>
           </span>
-        </span>
-        {group.readers && (
-          <span
-            className="readers item"
-            data-toggle="tooltip"
-            data-placement="top"
-            title={`Visible to <br/>${group.readers.join(',<br/>')}`}
-          >
-            <Icon name="eye-open" />
-            {group.readers.map((reader) => prettyId(reader, true)).join(', ')}
+          {group.readers && (
+            <span
+              className="readers item"
+              data-toggle="tooltip"
+              data-placement="top"
+              title={`Visible to <br/>${group.readers.join(',<br/>')}`}
+            >
+              <Icon name="eye-open" />
+              {group.readers.map((reader) => prettyId(reader, true)).join(', ')}
+            </span>
+          )}
+          <span className="item">
+            <Icon name="duplicate" />
+            <Link href={`/group/revisions?id=${group.id}`}>Revisions</Link>
           </span>
-        )}
-        <span className="item">
-          <Icon name="duplicate" />
-          <Link href={`/group/revisions?id=${group.id}`}>Revisions</Link>
-        </span>
-      </div>
+        </div>
+      )}
 
+      {/* Keyed by group: navigating between groups client-side changes the tab set, and the tabs
+          must start over from the URL hash rather than keep the previous group's active tab. */}
       <ConsoleTabs
+        key={group.id}
         defaultActiveTabId={groupTabsConfig(group)[0].id}
         tabs={groupTabsConfig(group).map((tabConfig) => ({
           ...tabConfig,

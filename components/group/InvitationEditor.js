@@ -117,7 +117,12 @@ const InvitationEditor = ({
         }
       })
       Object.entries(editContentFields).forEach(([field, value]) => {
-        editContent[field] = { value: invitationEditorData[field] }
+        editContent[field] = {
+          value:
+            invitationEditorData[field] === undefined
+              ? { delete: true }
+              : invitationEditorData[field],
+        }
       })
       editToPost.content = editContent
 
