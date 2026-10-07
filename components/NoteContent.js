@@ -216,6 +216,8 @@ export const NoteContentV2 = ({
         return `https://arxiv.org/abs/${externalIDWithoutPrefix}`
       case 'dblp':
         return `https://dblp.org/rec/${externalIDWithoutPrefix}`
+      case 'acl':
+        return `https://aclanthology.org/${externalIDWithoutPrefix}/`
       case 'doi':
         return `https://doi.org/${externalIDWithoutPrefix}`
       default:
