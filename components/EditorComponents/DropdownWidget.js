@@ -1,3 +1,4 @@
+import { AutoComplete } from 'antd'
 import { isEqual } from 'lodash'
 import { useContext, useEffect, useState } from 'react'
 import { prettyField, prettyId } from '../../lib/utils'
@@ -7,10 +8,18 @@ import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/DropdownWidget.module.scss'
 
+const acceptsCustomValue = (enumValues) =>
+  Array.isArray(enumValues) &&
+  enumValues.includes('.*') &&
+  enumValues.every((p) => typeof p === 'string')
+
 const DropdownWidget = () => {
   const { field, onChange, value, clearError } = useContext(EditorComponentContext)
   const fieldName = Object.keys(field)[0]
   const fieldType = field[fieldName]?.value?.param?.type
+  const isAuthorDerivedField =
+    field[fieldName]?.value?.param?.enum?.[0] === '${3/authors/value/*/username}'
+  const isCustomValueEnum = acceptsCustomValue(field[fieldName]?.value?.param?.enum)
   const isArrayType = fieldType?.endsWith('[]')
   const dataType = isArrayType ? fieldType?.slice(0, -2) : fieldType
   const [dropdownOptions, setDropdownOptions] = useState([])
@@ -51,6 +60,7 @@ const DropdownWidget = () => {
   }
 
   useEffect(() => {
+    if (isAuthorDerivedField || isCustomValueEnum) return
     const enumValues = field[fieldName].value?.param?.enum
     const itemsValues = field[fieldName].value?.param?.items
     let options = []
@@ -96,6 +106,25 @@ const DropdownWidget = () => {
       }
     }
   }, [])
+
+  if (isCustomValueEnum) {
+    const suggestedEnumValues = field[fieldName].value.param.enum.filter((p) => p !== '.*')
+    return (
+      <div className={styles.dropdownContainer}>
+        <AutoComplete
+          style={{ width: '100%' }}
+          options={suggestedEnumValues.map((p) => ({ value: p, label: p }))}
+          placeholder={`Select or type ${prettyField(fieldName)}`}
+          value={value ?? ''}
+          onChange={(newValue) => {
+            clearError?.()
+            onChange({ fieldName, value: newValue || undefined })
+          }}
+          showSearch={{ filterOption: true }}
+        />
+      </div>
+    )
+  }
 
   if (!dropdownOptions.length) return null
 

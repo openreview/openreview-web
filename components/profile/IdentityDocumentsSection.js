@@ -1,7 +1,7 @@
 import { Button, Flex, Image, Space } from 'antd'
 import { useState } from 'react'
 import api from '../../lib/api-client'
-import { formatDateTime, inflect } from '../../lib/utils'
+import { formatDateTime } from '../../lib/utils'
 import LoadingSpinner from '../LoadingSpinner'
 
 import styles from '../../styles/components/IdentityDocumentsSection.module.scss'
@@ -235,39 +235,49 @@ export const ParentalConsentSection = ({ profileDocuments, loadIdentityDocuments
   )
 }
 
+export const IdentityDocumentActions = ({
+  profileId,
+  identityDocuments,
+  isProfileActivatable,
+  onDeleteAll,
+  onActivateWithIdCheck,
+}) => {
+  const shouldShowActionButton = identityDocuments?.some(({ ddate }) => !ddate)
+
+  const withConfirmation = (action) => () => {
+    const confirmDelete = window.confirm(
+      `Identity documents of ${profileId} will be deleted. This action cannot be undone.`
+    )
+    if (confirmDelete) action()
+  }
+
+  if (!shouldShowActionButton) return null
+
+  return (
+    <Space>
+      <Button type="primary" onClick={withConfirmation(onDeleteAll)}>
+        {isProfileActivatable ? 'Delete Documents Only' : 'Delete Identity Documents'}
+      </Button>
+      {isProfileActivatable && (
+        <Button type="primary" onClick={withConfirmation(onActivateWithIdCheck)}>
+          Activate with ID check
+        </Button>
+      )}
+    </Space>
+  )
+}
+
 export const IdentityDocumentsSection = ({
   profileId,
   profileDocuments,
   isProfileActivatable,
   loadIdentityDocuments,
-  tagAndActivateProfile,
-  loadTags,
+  onDeleteAll,
+  onActivateWithIdCheck,
 }) => {
   const identityDocuments = profileDocuments?.filter(
     (document) => document.type !== 'parentalConsent'
   )
-  const shouldShowActionButton = identityDocuments?.some(({ ddate }) => !ddate)
-
-  const deleteAllDocuments = async (shouldActiveProfile = false) => {
-    const confirmDelete = window.confirm(
-      `Identity documents of ${profileId} will be deleted. This action cannot be undone.`
-    )
-    if (!confirmDelete) return
-    try {
-      if (shouldActiveProfile) await tagAndActivateProfile?.()
-
-      const { deletedCount } = await api.delete(
-        `/profile-documents/identity/profiles/${profileId}`
-      )
-      promptMessage(
-        `${inflect(deletedCount, 'document has', 'documents have', true)} been deleted`
-      )
-      loadIdentityDocuments()
-      if (shouldActiveProfile) loadTags?.()
-    } catch (error) {
-      promptError(error.message)
-    }
-  }
 
   return (
     <div>
@@ -275,26 +285,15 @@ export const IdentityDocumentsSection = ({
         profileDocuments={identityDocuments}
         loadIdentityDocuments={loadIdentityDocuments}
       />
-      {shouldShowActionButton && (
-        <Space>
-          <Button
-            type="primary"
-            style={{ marginTop: '.25rem' }}
-            onClick={() => deleteAllDocuments()}
-          >
-            {isProfileActivatable ? 'Delete Documents Only' : 'Delete Identity Documents'}
-          </Button>
-          {isProfileActivatable && (
-            <Button
-              type="primary"
-              style={{ marginTop: '.25rem' }}
-              onClick={() => deleteAllDocuments(true)}
-            >
-              Activate with ID check
-            </Button>
-          )}
-        </Space>
-      )}
+      <Flex wrap gap="small" style={{ marginTop: '.25rem' }}>
+        <IdentityDocumentActions
+          profileId={profileId}
+          identityDocuments={identityDocuments}
+          isProfileActivatable={isProfileActivatable}
+          onDeleteAll={onDeleteAll}
+          onActivateWithIdCheck={onActivateWithIdCheck}
+        />
+      </Flex>
     </div>
   )
 }
