@@ -72,7 +72,7 @@
     "jest-environment-jsdom": "^30.3.0",
     "jsdoc-to-markdown": "^9.1.2",
     "node-fetch-cjs": "^3.3.2",
-    "oxfmt": "^0.36.0",
+    "oxfmt": "^0.72.0",
     "oxlint": "^1.51.0",
     "sass": "^1.82.0",
     "testcafe": "^3.7.2"
