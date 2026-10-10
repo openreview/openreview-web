@@ -141,6 +141,12 @@ const theme = {
       trackMinWidth: 46,
       handleSize: 20,
     },
+    Result: {
+      colorTextHeading: '#2c3a4a',
+      colorSuccess: '#3c763d',
+      iconFontSize: 48,
+      extraMargin: '3.5rem 0 0 0',
+    },
   },
 }
 
