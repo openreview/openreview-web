@@ -48,13 +48,11 @@ const getTitle = (profile) => {
   return title
 }
 
-const getCurrentInstitutionOptionsFromProfile = (profile) => {
+const getInstitutionOptionsFromProfile = (profile) => {
   const institutionOptions = []
-  const currentYear = new Date().getFullYear()
   profile?.content?.history?.forEach((history) => {
     const { institution } = history
     if (institutionOptions.find((p) => p.value === institution.domain)) return
-    if (history.end && history.end < currentYear) return
     institutionOptions.push({
       label: `${institution.name} (${institution.domain})`,
       value: institution.domain,
@@ -203,7 +201,7 @@ const Author = ({
             selectedValues={profile.selectedInstitutions?.map((p) => p.domain)}
             setSelectedValues={handleInstitutionChange}
             displayTextFn={(selectedValues) => {
-              if (!profile.institutionOptions.length) return 'No Active Institution'
+              if (!profile.institutionOptions.length) return 'No Institution'
               return selectedValues.length === 0
                 ? `${allowInstitutionChange ? 'Add' : 'No'} Institution`
                 : `${inflect(selectedValues.length, 'Institution', 'Institutions', true)} added`
@@ -279,7 +277,7 @@ const ProfileSearchResultRow = ({
           disableButton={checkIsInAuthorList(displayAuthors, profile)}
           disableReason="This author is already in author list"
           onClick={() => {
-            const institutionOptions = getCurrentInstitutionOptionsFromProfile(profile)
+            const institutionOptions = getInstitutionOptionsFromProfile(profile)
             const updatedAuthors = displayAuthors.concat({
               username: preferredId,
               fullname: getProfileName(profile),
@@ -629,7 +627,7 @@ const ProfileSearchWithInstitutionWidget = () => {
   const setDisplayAuthorNewEditor = async () => {
     const profileResults = await getProfiles([user.profile.id])
     const currentUserProfile = profileResults?.[0]
-    const institutionOptions = getCurrentInstitutionOptionsFromProfile(currentUserProfile)
+    const institutionOptions = getInstitutionOptionsFromProfile(currentUserProfile)
     const username = user.profile.id
     const fullname = getProfileName(currentUserProfile)
     const selectedInstitutions = institutionOptions.length ? [institutionOptions[0]] : []
@@ -659,7 +657,7 @@ const ProfileSearchWithInstitutionWidget = () => {
       const profile = profileResults.find((p) =>
         p.content.names.find((q) => q.username === author.username)
       )
-      const institutionOptionsFromProfile = getCurrentInstitutionOptionsFromProfile(profile)
+      const institutionOptionsFromProfile = getInstitutionOptionsFromProfile(profile)
       const institutionOptionsFromValue = (author.institutions ?? []).flatMap(
         (institution) => {
           if (institutionOptionsFromProfile.find((p) => p.domain === institution.domain))
