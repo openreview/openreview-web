@@ -8,7 +8,7 @@ import { useDispatch } from 'react-redux'
 import api from '../../lib/api-client'
 import { resetRefreshTokenStatus } from '../../lib/clientAuth'
 import { sanitizeRedirectUrl } from '../../lib/utils'
-import { setNotificationCount } from '../../notificationSlice'
+import { setUnreadNotification } from '../../notificationSlice'
 import LoginInitialStep from './LoginInitialStep'
 import LoginMFAStep from './LoginMFAStep'
 
@@ -20,7 +20,7 @@ export default function LoginForm() {
 
   const completeLogin = () => {
     resetRefreshTokenStatus()
-    dispatch(setNotificationCount(null))
+    dispatch(setUnreadNotification(null))
     window.location.replace(sanitizeRedirectUrl(redirect))
   }
 

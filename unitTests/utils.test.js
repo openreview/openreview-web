@@ -15,6 +15,8 @@ import {
   normalizeName,
   getDeviceFromUserAgent,
   prettyContentValue,
+  getTitleObjects,
+  getTokenObjects,
 } from '../lib/utils'
 import '@testing-library/jest-dom'
 
@@ -1269,5 +1271,49 @@ describe('utils', () => {
     expect(prettyContentValue(reciprocal_reviewers, 'string')).toEqual(
       JSON.stringify(reciprocal_reviewers, undefined, 2).replace(/"/g, '')
     )
+  })
+
+  test('returns plain text label in getTitleObjects', () => {
+    const maliciousTitle = 'xss<img src=x onerror=alert(123)>test'
+    const notes = [
+      {
+        id: 'some id',
+        forum: 'some id',
+        version: 2,
+        content: {
+          title: { value: maliciousTitle },
+          authors: { value: ['<script>alert(123)</script>Attacker'] },
+          authorids: { value: ['~Attacker1'] },
+        },
+      },
+    ]
+
+    const [titleObj] = getTitleObjects(notes, 'xss')
+
+    expect(titleObj.label).toBe(maliciousTitle)
+    expect(titleObj.label).not.toMatch(/<strong/i)
+    expect(titleObj.subtitle).toBe('<script>alert(123)</script>Attacker')
+    expect(titleObj.subtitle).not.toMatch(/<strong/i)
+
+    expect(titleObj.value).toBe(maliciousTitle)
+  })
+
+  test('returns plain text label in getTokenObjects', () => {
+    const notes = [
+      {
+        id: 'some note',
+        forum: 'some note',
+        version: 2,
+        content: {
+          title: { value: 'xss<img src=x onerror=alert(123)>test' },
+          keywords: { value: ['<b>keyword</b>'] },
+          authors: { value: ['Author'] },
+          authorids: { value: ['~Author1'] },
+        },
+      },
+    ]
+
+    expect(getTokenObjects(notes, 'img').map((t) => t.label)).toEqual(['img']) // no more <
+    expect(getTokenObjects(notes, 'key').map((t) => t.label)).toEqual(['<b>keyword</b>'])
   })
 })

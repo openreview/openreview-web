@@ -444,6 +444,35 @@ const SeniorAreaChairConsole = ({ appContext }) => {
             p.invitations.some((q) => customStageInvitationIds.some((r) => q.includes(r)))
           )
 
+          // custom stage replies to an official review are rendered under the review they
+          // reply to in the review progress column
+          const customStageReviewReplies = customStageInvitations?.reduce((prev, curr) => {
+            const invitationSuffix = `/-/${curr.name}`
+            const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
+            const reviewReplies = customStageReviews
+              .filter(
+                (p) =>
+                  p.invitations.some((q) => q.includes(invitationSuffix)) &&
+                  officialReviews.some((r) => r.id === p.replyto)
+              )
+              .map((customStageReview) => {
+                const customStageValue = customStageReview.content?.[curr.displayField]?.value
+                return {
+                  searchValue: customStageValue,
+                  name: prettyId(curr.name),
+                  value: customStageValue,
+                  displayField: prettyField(curr.displayField),
+                  extraDisplayFields: customStageExtraDisplayFields.map((field) => ({
+                    field: prettyField(field),
+                    value: customStageReview.content?.[field]?.value,
+                  })),
+                  ...customStageReview,
+                }
+              })
+            if (!reviewReplies.length) return prev
+            return { ...prev, [camelCase(curr.name)]: reviewReplies }
+          }, {})
+
           const metaReviews = note.details.replies
             .filter((p) => {
               const officialMetaReviewInvitationId = `${venueId}/${submissionName}${note.number}/-/${officialMetaReviewName}`
@@ -558,6 +587,7 @@ const SeniorAreaChairConsole = ({ appContext }) => {
               }
             }),
             officialReviews,
+            customStageReviewReplies,
             reviewProgressData: {
               reviewers: assignedReviewers.map((reviewer) => ({
                 id: reviewer.reviewerProfileId,
@@ -605,16 +635,27 @@ const SeniorAreaChairConsole = ({ appContext }) => {
                 .map((p) => p.metaReviewAgreement?.searchValue)
                 .join(' '),
               customStageReviews: customStageInvitations?.reduce((prev, curr) => {
-                const customStageReview = customStageReviews.find((p) =>
-                  p.invitations.some((q) => q.includes(`/-/${curr.name}`))
+                // replies to an official review are rendered in the review progress column
+                const customStageReview = customStageReviews.find(
+                  (p) =>
+                    p.invitations.some((q) => q.includes(`/-/${curr.name}`)) &&
+                    !officialReviews.some((r) => r.id === p.replyto)
                 )
-                if (!customStageReview)
+                if (!customStageReview) {
+                  const reviewReplySearchValues = (
+                    customStageReviewReplies[camelCase(curr.name)] ?? []
+                  )
+                    .map((p) => p.searchValue)
+                    .filter((p) => p !== undefined && p !== null)
                   return {
                     ...prev,
                     [camelCase(curr.name)]: {
-                      searchValue: 'N/A',
+                      searchValue: reviewReplySearchValues.length
+                        ? reviewReplySearchValues
+                        : 'N/A',
                     },
                   }
+                }
                 const customStageValue = customStageReview?.content?.[curr.displayField]?.value
                 const customStageExtraDisplayFields = curr.extraDisplayFields ?? []
                 return {

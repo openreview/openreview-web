@@ -42,6 +42,7 @@ export default function Page() {
       'DBLP.org/-/Record': 'DBLP.org/-/Author_Coreference',
       [`${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`]: `${process.env.SUPER_USER}/Public_Article/-/Author_Removal`,
       [`${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`]: `${process.env.SUPER_USER}/Public_Article/-/Author_Removal`,
+      [`${process.env.SUPER_USER}/Public_Article/ACL_Anthology.org/-/Record`]: `${process.env.SUPER_USER}/Public_Article/-/Author_Removal`,
     }
     if (!authorIds) {
       throw new Error(`Note ${noteId} is missing author ids`)
