@@ -13,7 +13,7 @@ import { IdentityDocumentsSection, ParentalConsentSection } from './IdentityDocu
 import MessagesSection from './MessagesSection'
 import ModerationActions from './ModerationActions'
 import PastStatesSection from './PastStatesSection'
-import ProfileEditsSection from './ProfileEditsSection'
+import ProfileAssertionsSection from './ProfileAssertionsSection'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
 
@@ -33,7 +33,7 @@ const ProfilePreviewModal = ({
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
   const [profileDocuments, setProfileDocuments] = useState(null)
-  const [profileEdits, setProfileEdits] = useState(null)
+  const [profileAssertions, setProfileAssertions] = useState(null)
   const [loginActivity, setLoginActivity] = useState(null)
   const [error, setError] = useState(null)
   const [isLoadingTags, setIsLoadingTags] = useState(false)
@@ -120,12 +120,12 @@ const ProfilePreviewModal = ({
     }
   }
 
-  const loadProfileEdits = async () => {
+  const loadProfileAssertions = async () => {
     try {
-      const { edits } = await api.get('/profiles/edits', {
+      const { assertions } = await api.get('/profiles/assertions', {
         'profile.id': profileToPreview.id,
       })
-      setProfileEdits(edits ?? [])
+      setProfileAssertions(assertions ?? [])
     } catch (apiError) {
       setError(apiError)
     }
@@ -194,10 +194,10 @@ const ProfilePreviewModal = ({
 
   useEffect(() => {
     setTags([])
-    setProfileEdits(null)
+    setProfileAssertions(null)
     setLoginActivity(null)
     setError(null)
-    if (profileToPreview) loadProfileEdits()
+    if (profileToPreview) loadProfileAssertions()
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
     if (profileToPreview && contentToShow?.includes('tags')) loadTags()
     if (profileToPreview && contentToShow?.includes('identityDocuments'))
@@ -233,7 +233,7 @@ const ProfilePreviewModal = ({
           showLinkText={true}
           moderation={true}
           contentToShow={contentToShow}
-          profileEdits={profileEdits ?? []}
+          profileAssertions={profileAssertions ?? []}
         />
         {contentToShow?.includes('loginActivity') && showLoginActivity && (
           <ProfileViewSection title="Login Activity">
@@ -276,15 +276,17 @@ const ProfilePreviewModal = ({
             <MessagesSection email={profileToPreview.preferredEmail} rejectMessagesOnly />
           </ProfileViewSection>
         )}
-        {contentToShow?.includes('profileEdits') &&
-          profileEdits &&
-          (profileEdits.length > 0 ? (
-            <ProfileViewSection title="Profile Edits">
-              <ProfileEditsSection
-                profileEdits={profileEdits}
-                onEditUpdated={(updatedEdit) =>
-                  setProfileEdits((edits) =>
-                    edits.map((p) => (p.id === updatedEdit.id ? updatedEdit : p))
+        {contentToShow?.includes('profileAssertions') &&
+          profileAssertions &&
+          (profileAssertions.length > 0 ? (
+            <ProfileViewSection title="Profile Assertions">
+              <ProfileAssertionsSection
+                profileAssertions={profileAssertions}
+                onAssertionUpdated={(updatedAssertion) =>
+                  setProfileAssertions((assertions) =>
+                    assertions.map((p) =>
+                      p.id === updatedAssertion.id ? updatedAssertion : p
+                    )
                   )
                 }
               />

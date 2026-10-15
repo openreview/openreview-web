@@ -100,7 +100,7 @@ const UploadLinkForm = () => {
   )
 }
 
-const IdentityDocumentQueue = ({ profileEditInvitations, profileStateInvitation }) => {
+const IdentityDocumentQueue = ({ profileAssertionInvitations, profileStateInvitation }) => {
   const [profileWithIdentityDocuments, setProfileWithIdentityDocuments] = useState(null)
   const [expandedProfileId, setExpandedProfileId] = useState(null)
 
@@ -199,7 +199,7 @@ const IdentityDocumentQueue = ({ profileEditInvitations, profileStateInvitation 
                   {isExpanded && (
                     <IdentityDocumentReviewPanel
                       profileId={profileId}
-                      profileEditInvitations={profileEditInvitations}
+                      profileAssertionInvitations={profileAssertionInvitations}
                       profileStateInvitation={profileStateInvitation}
                       reloadProfileList={loadProfilesWithIdentityDocuments}
                     />
@@ -228,31 +228,31 @@ const DocumentsTab = () => {
   const searchParams = useSearchParams()
   const selectedProfileId = searchParams.get('consent')
 
-  const [profileEditInvitations, setProfileEditInvitations] = useState([])
+  const [profileAssertionInvitations, setProfileAssertionInvitations] = useState([])
 
-  const identityInvitations = profileEditInvitations.filter((p) =>
+  const identityInvitations = profileAssertionInvitations.filter((p) =>
     identityInvitationIds.includes(p.id)
   )
-  const parentalConsentInvitation = profileEditInvitations.find(
+  const parentalConsentInvitation = profileAssertionInvitations.find(
     (p) => p.id === parentalConsentInvitationId
   )
-  const profileStateInvitation = profileEditInvitations.find(
+  const profileStateInvitation = profileAssertionInvitations.find(
     (p) => p.id === profileStateInvitationId
   )
 
-  const loadProfileEditInvitations = async () => {
+  const loadProfileAssertionInvitations = async () => {
     try {
       const { invitations } = await api.get('/invitations', {
         ids: [...identityInvitationIds, parentalConsentInvitationId, profileStateInvitationId],
       })
-      setProfileEditInvitations(invitations ?? [])
+      setProfileAssertionInvitations(invitations ?? [])
     } catch (error) {
       promptError(error.message)
     }
   }
 
   useEffect(() => {
-    loadProfileEditInvitations()
+    loadProfileAssertionInvitations()
   }, [])
 
   if (selectedProfileId) {
@@ -272,7 +272,7 @@ const DocumentsTab = () => {
   return (
     <Flex vertical gap="large">
       <IdentityDocumentQueue
-        profileEditInvitations={identityInvitations}
+        profileAssertionInvitations={identityInvitations}
         profileStateInvitation={profileStateInvitation}
       />
       <UploadLinkForm />

@@ -119,15 +119,15 @@ const ProfileName = ({ name, badge }) => (
   </ProfileItem>
 )
 
-const NamesSection = ({ names, profileEdits }) => {
+const NamesSection = ({ names, profileAssertions }) => {
   const normalizedProfileNames = names.map((p) => normalizeName(p.fullname))
   const namesAsserted = orderBy(
-    profileEdits.flatMap((p) => {
-      const profileEditFullName = p.profile.content?.names?.value?.add?.[0]?.fullname
-      if (!profileEditFullName) return []
-      const normalizedValue = normalizeName(profileEditFullName)
+    profileAssertions.flatMap((p) => {
+      const profileAssertionFullName = p.profile.content?.names?.value?.add?.[0]?.fullname
+      if (!profileAssertionFullName) return []
+      const normalizedValue = normalizeName(profileAssertionFullName)
       return {
-        value: profileEditFullName,
+        value: profileAssertionFullName,
         source: p.content?.source?.value,
         comment: p.content?.comment?.value,
         signatures: p.signatures,
@@ -328,10 +328,10 @@ const correspondingRecord = (records, asserted) => {
   return candidates.length === 1 ? candidates[0] : undefined
 }
 
-const HistorySection = ({ history, profileEdits }) => {
+const HistorySection = ({ history, profileAssertions }) => {
   const records = history ?? []
   const historyAsserted = orderBy(
-    profileEdits.flatMap((p) => {
+    profileAssertions.flatMap((p) => {
       const value = p.profile.content?.history?.value?.add?.[0]
       if (!value) return []
       const identity = historyIdentity(value)
@@ -526,9 +526,9 @@ const DateOfBirth = ({ dob, badge }) => {
   )
 }
 
-const DateOfBirthSection = ({ dob, profileEdits }) => {
+const DateOfBirthSection = ({ dob, profileAssertions }) => {
   const dobAsserted = orderBy(
-    profileEdits.flatMap((p) => {
+    profileAssertions.flatMap((p) => {
       if (!p.profile.content?.dob) return []
       const { value } = p.profile.content.dob
       return {
@@ -581,10 +581,10 @@ const BasicProfileView = ({
   showLinkText = false,
   moderation = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
-  profileEdits = [],
+  profileAssertions = [],
 }) => {
-  const activeProfileEdits = profileEdits.filter((p) => !p.ddate)
-  const parentalConsents = activeProfileEdits.filter(
+  const activeProfileAssertions = profileAssertions.filter((p) => !p.ddate)
+  const parentalConsents = activeProfileAssertions.filter(
     (p) => p.invitation === parentalConsentInvitationId
   )
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
@@ -597,13 +597,13 @@ const BasicProfileView = ({
     <Flex vertical gap="large">
       {contentToShow.includes('names') && (
         <ProfileViewSection title="Names">
-          <NamesSection names={sortedNames} profileEdits={activeProfileEdits} />
+          <NamesSection names={sortedNames} profileAssertions={activeProfileAssertions} />
         </ProfileViewSection>
       )}
 
       {contentToShow.includes('dob') && profile.dob !== null && profile.dob !== undefined && (
         <ProfileViewSection title="Date of Birth">
-          <DateOfBirthSection dob={profile.dob} profileEdits={activeProfileEdits} />
+          <DateOfBirthSection dob={profile.dob} profileAssertions={activeProfileAssertions} />
         </ProfileViewSection>
       )}
 
@@ -638,7 +638,10 @@ const BasicProfileView = ({
 
       {contentToShow.includes('history') && (
         <ProfileViewSection title="Career &amp; Education History">
-          <HistorySection history={profile.history} profileEdits={activeProfileEdits} />
+          <HistorySection
+            history={profile.history}
+            profileAssertions={activeProfileAssertions}
+          />
         </ProfileViewSection>
       )}
 

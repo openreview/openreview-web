@@ -6,8 +6,8 @@ import LoadingSpinner from '../../../components/LoadingSpinner'
 import BasicProfileView from '../../../components/profile/BasicProfileView'
 import { IdentityDocumentActions } from '../../../components/profile/IdentityDocumentsSection'
 import ModerationActions from '../../../components/profile/ModerationActions'
-import ProfileEditInvitationEditor from '../../../components/profile/ProfileEditInvitationEditor'
-import ProfileEditsSection from '../../../components/profile/ProfileEditsSection'
+import ProfileAssertionInvitationEditor from '../../../components/profile/ProfileAssertionInvitationEditor'
+import ProfileAssertionsSection from '../../../components/profile/ProfileAssertionsSection'
 import ProfileViewSection from '../../../components/profile/ProfileViewSection'
 import api from '../../../lib/api-client'
 import {
@@ -91,17 +91,19 @@ const DocumentReader = ({ profileDocuments, onDelete }) => {
 
 const IdentityDocumentReviewPanel = ({
   profileId,
-  profileEditInvitations,
+  profileAssertionInvitations,
   profileStateInvitation,
   reloadProfileList,
 }) => {
   const [profile, setProfile] = useState(null)
-  const [profileEdits, setProfileEdits] = useState([])
+  const [profileAssertions, setProfileAssertions] = useState([])
   const [profileDocuments, setProfileDocuments] = useState(null)
   const [selectedInvitationId, setSelectedInvitationId] = useState(null)
   const [error, setError] = useState(null)
 
-  const selectedInvitation = profileEditInvitations.find((p) => p.id === selectedInvitationId)
+  const selectedInvitation = profileAssertionInvitations.find(
+    (p) => p.id === selectedInvitationId
+  )
   const isProfileActivatable =
     profile?.state === 'Rejected' || profile?.state === 'Needs Moderation'
 
@@ -115,10 +117,10 @@ const IdentityDocumentReviewPanel = ({
     }
   }
 
-  const loadProfileEdits = async () => {
+  const loadProfileAssertions = async () => {
     try {
-      const { edits } = await api.get('/profiles/edits', { 'profile.id': profileId })
-      setProfileEdits(edits ?? [])
+      const { assertions } = await api.get('/profiles/assertions', { 'profile.id': profileId })
+      setProfileAssertions(assertions ?? [])
     } catch (apiError) {
       setError(apiError)
     }
@@ -139,7 +141,7 @@ const IdentityDocumentReviewPanel = ({
   useEffect(() => {
     setError(null)
     loadProfile()
-    loadProfileEdits()
+    loadProfileAssertions()
     loadIdentityDocuments()
   }, [profileId])
 
@@ -240,46 +242,46 @@ const IdentityDocumentReviewPanel = ({
               moderation={true}
               showLinkText={true}
               contentToShow={profileContentToShow}
-              profileEdits={profileEdits}
+              profileAssertions={profileAssertions}
             />
           ) : (
             <LoadingSpinner inline />
           )}
 
-          <ProfileViewSection title="Profile Edits">
-            <ProfileEditsSection
-              profileEdits={profileEdits}
-              onEditUpdated={(updatedEdit) =>
-                setProfileEdits((edits) =>
-                  edits.map((p) => (p.id === updatedEdit.id ? updatedEdit : p))
+          <ProfileViewSection title="Profile Assertions">
+            <ProfileAssertionsSection
+              profileAssertions={profileAssertions}
+              onAssertionUpdated={(updatedAssertion) =>
+                setProfileAssertions((assertions) =>
+                  assertions.map((p) => (p.id === updatedAssertion.id ? updatedAssertion : p))
                 )
               }
             />
           </ProfileViewSection>
 
-          {profile && profileEditInvitations.length > 0 && (
-            <ProfileViewSection title="Post a Profile Edit">
+          {profile && profileAssertionInvitations.length > 0 && (
+            <ProfileViewSection title="Post a Profile Assertion">
               <Flex vertical gap="small">
                 <Select
                   allowClear
                   style={{ width: '100%' }}
-                  placeholder="Select profile edit invitation"
+                  placeholder="Select profile assertion invitation"
                   value={selectedInvitationId}
                   onChange={setSelectedInvitationId}
                   getPopupContainer={(triggerNode) => triggerNode.parentElement}
-                  options={profileEditInvitations.map((p) => ({
+                  options={profileAssertionInvitations.map((p) => ({
                     label: prettyInvitationId(p.id),
                     value: p.id,
                   }))}
                 />
                 {selectedInvitation && (
-                  <ProfileEditInvitationEditor
+                  <ProfileAssertionInvitationEditor
                     key={selectedInvitation.id}
                     invitation={selectedInvitation}
                     profile={profile}
-                    onEditPosted={() => {
+                    onAssertionPosted={() => {
                       setSelectedInvitationId(null)
-                      loadProfileEdits()
+                      loadProfileAssertions()
                     }}
                   />
                 )}

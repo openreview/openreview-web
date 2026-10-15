@@ -116,15 +116,15 @@ export default async function page({ searchParams }) {
 
   const formattedProfile = formatProfileData(profile)
 
-  let profileEdits = []
+  let profileAssertions = []
   if (token) {
     try {
-      const { edits } = await api.get(
-        '/profiles/edits',
+      const { assertions } = await api.get(
+        '/profiles/assertions',
         { 'profile.id': profile.id },
         { accessToken: token, remoteIpAddress }
       )
-      profileEdits = edits
+      profileAssertions = assertions
     } catch {
       // oxlint-disable-line no-empty
     }
@@ -187,7 +187,7 @@ export default async function page({ searchParams }) {
           publicProfile={!isProfileOwner}
           serviceRoles={serviceRoles}
           remoteIpAddress={remoteIpAddress}
-          profileEdits={profileEdits}
+          profileAssertions={profileAssertions}
         />
       </PreferredIdUpdater>
     </CommonLayout>

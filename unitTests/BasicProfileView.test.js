@@ -13,7 +13,7 @@ describe('Names Section', () => {
       profile: { names: [{ fullname: 'Tést Name' }] },
       serviceRoles: [],
       contentToShow: ['names'],
-      profileEdits: [
+      profileAssertions: [
         {
           profile: {
             content: {
@@ -58,7 +58,7 @@ describe('Names Section', () => {
       profile: { names: [{ fullname: 'Tést Name' }] },
       serviceRoles: [],
       contentToShow: ['names'],
-      profileEdits: [
+      profileAssertions: [
         {
           profile: {
             content: {
@@ -108,7 +108,7 @@ describe('DOB Section', () => {
       profile: { names: [], dob: claimedDob },
       serviceRoles: [],
       contentToShow: ['dob'],
-      profileEdits: [
+      profileAssertions: [
         {
           profile: {
             content: {
@@ -156,7 +156,7 @@ describe('DOB Section', () => {
       profile: { names: [], dob: claimedDob },
       serviceRoles: [],
       contentToShow: ['dob'],
-      profileEdits: [
+      profileAssertions: [
         {
           profile: {
             content: {
@@ -191,11 +191,11 @@ describe('DOB Section', () => {
       profile: { names: [], dob: claimedDob },
       serviceRoles: [],
       contentToShow: ['dob'],
-      profileEdits: [
+      profileAssertions: [
         {
           profile: {
             content: {
-              relations: { value: { add: [{ relation: 'Parent' }] } }, // a parental consent profile edit
+              relations: { value: { add: [{ relation: 'Parent' }] } }, // a parental consent profile assertion
             },
           },
           signatures: ['~Some_Moderator1'],
@@ -232,7 +232,7 @@ describe('History Section', () => {
       },
       serviceRoles: [],
       contentToShow: ['history'],
-      profileEdits: [
+      profileAssertions: [
         {
           profile: {
             content: {
@@ -293,7 +293,7 @@ describe('History Section', () => {
       },
       serviceRoles: [],
       contentToShow: ['history'],
-      profileEdits: [
+      profileAssertions: [
         {
           profile: {
             content: {
@@ -361,7 +361,7 @@ describe('History Section', () => {
       },
       serviceRoles: [],
       contentToShow: ['history'],
-      profileEdits: [
+      profileAssertions: [
         {
           profile: {
             content: {
@@ -441,7 +441,7 @@ describe('Relations Section', () => {
         }}
         serviceRoles={[]}
         contentToShow={['relations']}
-        profileEdits={[consentEdit]}
+        profileAssertions={[consentEdit]}
       />
     )
 
@@ -465,7 +465,7 @@ describe('Relations Section', () => {
         profile={{ names: [], relations: [] }}
         serviceRoles={[]}
         contentToShow={['relations']}
-        profileEdits={[consentEdit]}
+        profileAssertions={[consentEdit]}
       />
     )
 

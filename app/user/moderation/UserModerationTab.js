@@ -875,7 +875,7 @@ const UserModerationQueue = ({
           'relations',
           'expertise',
           'publications',
-          'profileEdits',
+          'profileAssertions',
           'tags',
           'identityDocuments',
           'loginActivity',

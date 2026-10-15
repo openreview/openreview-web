@@ -15,9 +15,9 @@ const editableFields = (content) =>
     return fieldDescription?.value?.param && !fieldDescription?.value?.param?.const
   })
 
-const getEditFields = (invitation) => ({
-  edit: editableFields(invitation?.edit?.content),
-  profile: editableFields(invitation?.edit?.profile?.content),
+const getAssertionFields = (invitation) => ({
+  assertion: editableFields(invitation?.assertion?.content),
+  profile: editableFields(invitation?.assertion?.profile?.content),
 })
 
 const buildContent = (fields, formData) =>
@@ -31,9 +31,9 @@ const buildContent = (fields, formData) =>
     return prev
   }, {})
 
-const constructProfileEdit = (invitation, profileId, formData) => {
-  const fields = getEditFields(invitation)
-  const content = buildContent(fields.edit, formData)
+const constructProfileAssertion = (invitation, profileId, formData) => {
+  const fields = getAssertionFields(invitation)
+  const content = buildContent(fields.assertion, formData)
 
   return {
     invitation: invitation.id,
@@ -248,9 +248,9 @@ const RelationForm = () => {
   )
 }
 
-const ProfileEditInvitationEditor = ({ invitation, profile, onEditPosted }) => {
-  const { edit: editFields, profile: profileFields } = getEditFields(invitation)
-  const fields = [...profileFields, ...editFields]
+const ProfileAssertionInvitationEditor = ({ invitation, profile, onAssertionPosted }) => {
+  const { assertion: assertionFields, profile: profileFields } = getAssertionFields(invitation)
+  const fields = [...profileFields, ...assertionFields]
   const [formData, setFormData] = useReducer(
     (state, action) => ({ ...state, [action.fieldName]: action.value }),
     {
@@ -318,9 +318,12 @@ const ProfileEditInvitationEditor = ({ invitation, profile, onEditPosted }) => {
     setErrorMessage(null)
     setErrors([])
     try {
-      await api.post('/profiles/edits', constructProfileEdit(invitation, profile.id, formData))
+      await api.post(
+        '/profiles/assertions',
+        constructProfileAssertion(invitation, profile.id, formData)
+      )
       promptMessage(`${prettyInvitationId(invitation.id)} posted for ${profile.id}`)
-      onEditPosted()
+      onAssertionPosted()
     } catch (error) {
       if (error.errors) {
         setErrors(
@@ -380,4 +383,4 @@ const ProfileEditInvitationEditor = ({ invitation, profile, onEditPosted }) => {
   )
 }
 
-export default ProfileEditInvitationEditor
+export default ProfileAssertionInvitationEditor

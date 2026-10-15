@@ -5,8 +5,8 @@ import Icon from '../../../components/Icon'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import BasicProfileView from '../../../components/profile/BasicProfileView'
 import ModerationActions from '../../../components/profile/ModerationActions'
-import ProfileEditInvitationEditor from '../../../components/profile/ProfileEditInvitationEditor'
-import ProfileEditsSection from '../../../components/profile/ProfileEditsSection'
+import ProfileAssertionInvitationEditor from '../../../components/profile/ProfileAssertionInvitationEditor'
+import ProfileAssertionsSection from '../../../components/profile/ProfileAssertionsSection'
 import ProfileViewSection from '../../../components/profile/ProfileViewSection'
 import api from '../../../lib/api-client'
 import { acceptProfile, rejectProfile } from '../../../lib/profile-moderation'
@@ -70,9 +70,9 @@ const ConsentDocuments = ({ profileDocuments, onDelete }) => {
 
 const ParentalConsentReviewPanel = ({ profileId, invitation, profileStateInvitation }) => {
   const [profile, setProfile] = useState(null)
-  const [profileEdits, setProfileEdits] = useState([])
+  const [profileAssertions, setProfileAssertions] = useState([])
   const [profileDocuments, setProfileDocuments] = useState([])
-  const [postedEditCount, setPostedEditCount] = useState(0)
+  const [postedAssertionCount, setPostedAssertionCount] = useState(0)
   const [error, setError] = useState(null)
 
   const isProfileActivatable =
@@ -80,21 +80,18 @@ const ParentalConsentReviewPanel = ({ profileId, invitation, profileStateInvitat
 
   const loadParentalConsentInfo = async () => {
     const getProfileP = api.get('/profiles', { id: profileId })
-    const getProfileEditsP = api.get('/profiles/edits', { 'profile.id': profileId })
+    const getProfileAssertionsP = api.get('/profiles/assertions', { 'profile.id': profileId })
     const getConsentDocumentsP = api.get('/profile-documents', {
       profileId,
       type: 'parentalConsent',
       trash: true,
     })
     try {
-      const [{ profiles }, { edits }, { profileDocuments: documents }] = await Promise.all([
-        getProfileP,
-        getProfileEditsP,
-        getConsentDocumentsP,
-      ])
+      const [{ profiles }, { assertions }, { profileDocuments: documents }] =
+        await Promise.all([getProfileP, getProfileAssertionsP, getConsentDocumentsP])
       if (!profiles?.length) throw new Error(`Profile ${profileId} not found`)
       setProfile(formatProfileData(profiles[0], { includePastStates: true }))
-      setProfileEdits(edits ?? [])
+      setProfileAssertions(assertions ?? [])
       setProfileDocuments(documents ?? [])
     } catch (apiError) {
       setError(apiError)
@@ -120,8 +117,8 @@ const ParentalConsentReviewPanel = ({ profileId, invitation, profileStateInvitat
     }
   }
 
-  const handleEditPosted = async () => {
-    setPostedEditCount((count) => count + 1)
+  const handleAssertionPosted = async () => {
+    setPostedAssertionCount((count) => count + 1)
     await loadParentalConsentInfo()
   }
 
@@ -163,15 +160,15 @@ const ParentalConsentReviewPanel = ({ profileId, invitation, profileStateInvitat
             moderation={true}
             showLinkText={true}
             contentToShow={profileContentToShow}
-            profileEdits={profileEdits}
+            profileAssertions={profileAssertions}
           />
 
-          <ProfileViewSection title="Profile Edits">
-            <ProfileEditsSection
-              profileEdits={profileEdits}
-              onEditUpdated={(updatedEdit) =>
-                setProfileEdits((edits) =>
-                  edits.map((p) => (p.id === updatedEdit.id ? updatedEdit : p))
+          <ProfileViewSection title="Profile Assertions">
+            <ProfileAssertionsSection
+              profileAssertions={profileAssertions}
+              onAssertionUpdated={(updatedAssertion) =>
+                setProfileAssertions((assertions) =>
+                  assertions.map((p) => (p.id === updatedAssertion.id ? updatedAssertion : p))
                 )
               }
             />
@@ -179,11 +176,11 @@ const ParentalConsentReviewPanel = ({ profileId, invitation, profileStateInvitat
 
           {invitation && (
             <ProfileViewSection title="Record Parental Consent">
-              <ProfileEditInvitationEditor
-                key={postedEditCount}
+              <ProfileAssertionInvitationEditor
+                key={postedAssertionCount}
                 invitation={invitation}
                 profile={profile}
-                onEditPosted={handleEditPosted}
+                onAssertionPosted={handleAssertionPosted}
               />
             </ProfileViewSection>
           )}

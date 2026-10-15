@@ -52,8 +52,8 @@ const renderDetails = (rows) => {
   )
 }
 
-const BasicProfileEditInfo = ({ edit, popover, actions, children }) => {
-  const isDeleted = Boolean(edit.ddate)
+const BasicProfileAssertionInfo = ({ assertion, popover, actions, children }) => {
+  const isDeleted = Boolean(assertion.ddate)
   const row = (
     <Space
       size="small"
@@ -64,9 +64,9 @@ const BasicProfileEditInfo = ({ edit, popover, actions, children }) => {
         ...(isDeleted && { textDecoration: 'line-through', opacity: 0.6 }),
       }}
     >
-      {edit.tcdate && (
+      {assertion.tcdate && (
         <span>
-          {formatDateTime(edit.tcdate, {
+          {formatDateTime(assertion.tcdate, {
             day: '2-digit',
             month: 'short',
             year: '2-digit',
@@ -78,9 +78,9 @@ const BasicProfileEditInfo = ({ edit, popover, actions, children }) => {
           })}
         </span>
       )}
-      <strong>{prettyInvitationId(edit.invitation)}</strong>
+      <strong>{prettyInvitationId(assertion.invitation)}</strong>
       {children}
-      <span style={{ color: colors.subtleGray, fontSize: '0.85em' }}>{edit.tauthor}</span>
+      <span style={{ color: colors.subtleGray, fontSize: '0.85em' }}>{assertion.tauthor}</span>
     </Space>
   )
   return (
@@ -109,34 +109,38 @@ const BasicProfileEditInfo = ({ edit, popover, actions, children }) => {
   )
 }
 
-const renderProfileEdit = (edit, actions) => {
-  switch (edit.invitation) {
+const renderProfileAssertion = (assertion, actions) => {
+  switch (assertion.invitation) {
     case profileStateInvitationId: {
-      const reason = edit.content?.reason?.value
-      const labels = edit.content?.labels?.value ?? []
+      const reason = assertion.content?.reason?.value
+      const labels = assertion.content?.labels?.value ?? []
+      const email = assertion.content?.email?.value
       return (
-        <BasicProfileEditInfo edit={edit} popover={reason}>
+        <BasicProfileAssertionInfo assertion={assertion} popover={reason}>
           <Tag
-            color={getBootstrap337LabelColor(getProfileStateLabelClass(edit.profile.state))}
+            color={getBootstrap337LabelColor(
+              getProfileStateLabelClass(assertion.profile.state)
+            )}
             variant="solid"
             styles={{ root: legacyStyles.statusTag }}
           >
-            {edit.profile.state}
+            {assertion.profile.state}
           </Tag>
+          {email}
           {labels.map((label) => (
             <Tag key={label} variant="outlined">
               {label}
             </Tag>
           ))}
-        </BasicProfileEditInfo>
+        </BasicProfileAssertionInfo>
       )
     }
     default: {
-      const { names, dob, history, relations } = edit.profile.content ?? {}
-      const { source, comment } = edit.content ?? {}
+      const { names, dob, history, relations } = assertion.profile.content ?? {}
+      const { source, comment } = assertion.content ?? {}
       return (
-        <BasicProfileEditInfo
-          edit={edit}
+        <BasicProfileAssertionInfo
+          assertion={assertion}
           actions={actions}
           popover={renderDetails([
             ['Name', names?.value?.add?.[0]?.fullname],
@@ -152,38 +156,38 @@ const renderProfileEdit = (edit, actions) => {
   }
 }
 
-const ProfileEditsSection = ({ profileEdits, onEditUpdated }) => {
-  const [pendingProfileEditId, setPendingProfileEditId] = useState(null)
+const ProfileAssertionsSection = ({ profileAssertions, onAssertionUpdated }) => {
+  const [pendingProfileAssertionId, setPendingProfileAssertionId] = useState(null)
 
-  if (!profileEdits.length) return <p className="empty-message">No profile edits</p>
+  if (!profileAssertions.length) return <p className="empty-message">No profile assertions</p>
 
-  const deleteRestoreProfileEdit = async (edit) => {
-    setPendingProfileEditId(edit.id)
+  const deleteRestoreProfileAssertion = async (assertion) => {
+    setPendingProfileAssertionId(assertion.id)
     try {
-      const updatedEdit = await api.post('/profiles/edits', {
-        id: edit.id,
-        invitation: edit.invitation,
-        signatures: edit.signatures,
-        ddate: edit.ddate ? { delete: true } : Date.now(),
-        content: edit.content,
-        profile: edit.profile,
+      const updatedAssertion = await api.post('/profiles/assertions', {
+        id: assertion.id,
+        invitation: assertion.invitation,
+        signatures: assertion.signatures,
+        ddate: assertion.ddate ? { delete: true } : Date.now(),
+        content: assertion.content,
+        profile: assertion.profile,
       })
-      onEditUpdated(updatedEdit)
+      onAssertionUpdated(updatedAssertion)
     } catch (apiError) {
       promptError(apiError.message)
     }
-    setPendingProfileEditId(null)
+    setPendingProfileAssertionId(null)
   }
 
   return (
     <Flex vertical gap={2}>
-      {orderBy(profileEdits, ['tcdate'], ['desc']).map((edit) => {
+      {orderBy(profileAssertions, ['tcdate'], ['desc']).map((assertion) => {
         const deleteOrRestoreButton = (
           <ActionButton
-            loading={pendingProfileEditId === edit.id}
-            onClick={() => deleteRestoreProfileEdit(edit)}
+            loading={pendingProfileAssertionId === assertion.id}
+            onClick={() => deleteRestoreProfileAssertion(assertion)}
           >
-            {edit.ddate ? (
+            {assertion.ddate ? (
               <UndoOutlined />
             ) : (
               <span style={{ top: '0px' }}>
@@ -193,8 +197,8 @@ const ProfileEditsSection = ({ profileEdits, onEditUpdated }) => {
           </ActionButton>
         )
         return (
-          <React.Fragment key={edit.id}>
-            {renderProfileEdit(edit, deleteOrRestoreButton)}
+          <React.Fragment key={assertion.id}>
+            {renderProfileAssertion(assertion, deleteOrRestoreButton)}
           </React.Fragment>
         )
       })}
@@ -202,4 +206,4 @@ const ProfileEditsSection = ({ profileEdits, onEditUpdated }) => {
   )
 }
 
-export default ProfileEditsSection
+export default ProfileAssertionsSection
