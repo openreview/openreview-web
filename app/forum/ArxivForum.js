@@ -66,6 +66,7 @@ const ArxivForum = ({ id }) => {
       ) {
         // already the latest version
         setArvixNote(latestExistingVersionNote)
+        window.history.replaceState(null, '', `/forum?id=${latestExistingVersionNote.id}`)
         return
       }
 
