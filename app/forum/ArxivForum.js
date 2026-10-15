@@ -32,12 +32,13 @@ const ArxivForum = ({ id }) => {
         const xmlText = await fetchArxivData(id.split('v')[0])
         xmlDoc = new DOMParser().parseFromString(xmlText, 'application/xml')
       } catch {
-        throw new Error('Import failed.  Please try again later.')
+        throw new Error('Import failed. Please try again later.')
       }
 
       const arxivIdWithLatestVersion = xpathSelect(idSelector, xmlDoc, true)?.[0]
         ?.nodeValue?.split('/')
         ?.pop()
+      if (!arxivIdWithLatestVersion) throw new Error(`The Note ${id} was not found`)
 
       // get all past versions of the note below arxivIdWithLatestVersion
       const arxivIdWithVersion = arxivIdWithLatestVersion.split('v')[0]
@@ -73,10 +74,18 @@ const ArxivForum = ({ id }) => {
         ?.replace(/\n/g, ' ')
       if (!title) throw new Error(`The Note ${id} was not found`)
 
-      const authors = xpathSelect(authorsSelector, xmlDoc, true)?.map((author) => ({
-        fullname: author.nodeValue.trim(),
-        username: '',
-      }))
+      const claimedAuthors = (latestExistingVersionNote?.content?.authors?.value ?? []).filter(
+        (p) => p.username?.startsWith('~')
+      )
+
+      const authors = xpathSelect(authorsSelector, xmlDoc, true)?.map((author) => {
+        const fullname = author.nodeValue.trim()
+        const matchIndex = claimedAuthors.findIndex((p) => p.fullname === fullname)
+        if (matchIndex === -1) return { fullname, username: '' }
+        const [claimedAuthor] = claimedAuthors.splice(matchIndex, 1)
+        return claimedAuthor
+      })
+
       const pdate = dayjs(xpathSelect(pdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const mdate = dayjs(xpathSelect(mdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const rawXml = xpathSelect(entrySelector, xmlDoc, true)[0].outerHTML
@@ -117,7 +126,10 @@ const ArxivForum = ({ id }) => {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!user) router.replace(`/login?redirect=/forum?arxivid=${id}`)
+    if (!user) {
+      router.replace(`/login?redirect=/forum?arxivid=${id}`)
+      return
+    }
     loadArvixNote()
   }, [id, isRefreshing])
 
