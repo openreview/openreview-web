@@ -1,6 +1,8 @@
+import Link from 'next/link'
 /* globals $: false */
 import { useContext, useEffect, useState } from 'react'
-import Link from 'next/link'
+import useUser from '../../../hooks/useUser'
+import { prettyField } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
@@ -8,10 +10,8 @@ import WebFieldContext from '../../WebFieldContext'
 import { ProgramChairConsolePaperAreaChairProgress } from '../NoteMetaReviewStatus'
 import { AcPcConsoleNoteReviewStatus, LatestReplies } from '../NoteReviewStatus'
 import NoteSummary from '../NoteSummary'
-import PaperStatusMenuBar from './PaperStatusMenuBar'
-import { prettyField } from '../../../lib/utils'
-import useUser from '../../../hooks/useUser'
 import SelectAllCheckBox from '../SelectAllCheckbox'
+import PaperStatusMenuBar from './PaperStatusMenuBar'
 
 const PaperRow = ({
   rowData,
@@ -107,6 +107,9 @@ const PaperRow = ({
           shortPhrase={shortPhrase}
           submissionName={submissionName}
           reviewerAssignmentUrl={getManualAssignmentUrl(reviewerName)}
+          customStageReviewReplies={Object.values(
+            rowData.customStageReviewReplies ?? {}
+          ).flat()}
         />
       </td>
       {!noteContentField && areaChairsId && (

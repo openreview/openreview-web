@@ -12,7 +12,7 @@ import styles from '../../styles/components/nav.module.scss'
 
 export default function NavSm({
   user,
-  notificationCountSlot,
+  notificationStatusSlot,
   drawerOpen,
   setDrawerOpen,
   drawerUserMenuOpen,
@@ -60,7 +60,7 @@ export default function NavSm({
               onClick={closeDrawer}
             >
               Notifications
-              {notificationCountSlot}
+              {notificationStatusSlot}
             </Link>
             <Link
               href="/activity"
