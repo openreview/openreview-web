@@ -116,6 +116,20 @@ export default async function page({ searchParams }) {
 
   const formattedProfile = formatProfileData(profile)
 
+  let profileAssertions = []
+  if (token) {
+    try {
+      const { assertions } = await api.get(
+        '/profiles/assertions',
+        { 'profile.id': profile.id },
+        { accessToken: token, remoteIpAddress }
+      )
+      profileAssertions = assertions
+    } catch {
+      // oxlint-disable-line no-empty
+    }
+  }
+
   try {
     const result = await api.get(
       '/tags',
@@ -173,6 +187,7 @@ export default async function page({ searchParams }) {
           publicProfile={!isProfileOwner}
           serviceRoles={serviceRoles}
           remoteIpAddress={remoteIpAddress}
+          profileAssertions={profileAssertions}
         />
       </PreferredIdUpdater>
     </CommonLayout>

@@ -17,6 +17,7 @@ export default async function Profile({
   publicProfile,
   serviceRoles,
   remoteIpAddress,
+  profileAssertions,
 }) {
   const { token, user, clearanceToken } = await serverAuth()
   const getCurrentInstitutionInfo = () => {
@@ -108,6 +109,7 @@ export default async function Profile({
             profile={profile}
             publicProfile={publicProfile}
             serviceRoles={serviceRoles}
+            profileAssertions={profileAssertions}
           />
         </Col>
         <Col xs={24} lg={8} className={styles.publicationsSection}>
