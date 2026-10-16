@@ -1,7 +1,7 @@
 import { useContext } from 'react'
-import BaseMenuBar from '../BaseMenuBar'
-import WebFieldContext from '../../WebFieldContext'
 import { pluralizeString, prettyField } from '../../../lib/utils'
+import WebFieldContext from '../../WebFieldContext'
+import BaseMenuBar from '../BaseMenuBar'
 import QuerySearchInfoModal from '../QuerySearchInfoModal'
 import { MessageACSACModal } from './AreaChairStatusMenuBar'
 
@@ -25,11 +25,47 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
     submissionName,
   } = useContext(WebFieldContext)
   const filterOperators = filterOperatorsConfig ?? ['!=', '>=', '<=', '>', '<', '==', '=']
-  const propertiesAllowed = propertiesAllowedConfig ?? {
-    number: ['number'],
-    name: ['sacProfile.preferredName'],
-    email: ['areaChairProfile.preferredEmail'],
-  }
+  const propertiesAllowed = propertiesAllowedConfig
+    ? Object.fromEntries(
+        Object.entries(propertiesAllowedConfig).map(([key, value]) => {
+          if (typeof value === 'string') {
+            return [key, [key]]
+          }
+          return [key, value]
+        })
+      )
+    : {
+        number: ['number'],
+        name: ['sacProfile.preferredName'],
+        email: ['areaChairProfile.preferredEmail'],
+      }
+
+  const functionExtraProperties = (() => {
+    if (typeof propertiesAllowedConfig !== 'object') return {}
+    const result = {}
+    Object.entries(propertiesAllowedConfig).forEach(([key, value]) => {
+      if (Array.isArray(value)) return
+      try {
+        result[key] = Function('row', value)
+      } catch (error) {
+        // oxlint-disable-next-line no-console
+        console.error(`Error parsing function for extra property ${key}: ${error}`)
+      }
+    })
+    return result
+  })()
+
+  const tableRowsAllWithFilterProperties =
+    Object.keys(functionExtraProperties).length > 0
+      ? tableRowsAll.map((row) => {
+          const extraProperties = {}
+          for (const [key, value] of Object.entries(functionExtraProperties)) {
+            extraProperties[key] = value(row)
+          }
+          return { ...row, ...extraProperties }
+        })
+      : tableRowsAll
+
   const messageSeniorAreaChairOptions = [
     {
       label: `${prettyField(seniorAreaChairName)} with unsubmitted ${pluralizeString(
@@ -129,7 +165,7 @@ const SeniorAreaChairStatusMenuBarForDirectPaperAssignment = ({
 
   return (
     <BaseMenuBar
-      tableRowsAll={tableRowsAll}
+      tableRowsAll={tableRowsAllWithFilterProperties}
       tableRows={tableRows}
       setData={setSeniorAreaChairStatusTabData}
       shortPhrase={shortPhrase}
