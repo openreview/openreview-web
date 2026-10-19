@@ -104,6 +104,7 @@ export const RejectionModal = ({
             setRejectionLabels(rejectOptions.map((p) => p.label))
             setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
           }}
+          notFoundContent="Profile state invitation is not loaded"
         />
         <Space wrap>
           <Button
