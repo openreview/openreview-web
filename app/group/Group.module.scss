@@ -2243,7 +2243,8 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         &:not(.has-now-line) .phase-divider::after {
           display: none;
         }
-        // An open step's settings sit over the line rather than under it.
+        // The line runs through every stage and step row, but stops behind an open step's settings
+        // so it doesn't cross their text.
         .workflow-invitation-container.timeline-step-detail {
           position: relative;
           z-index: 4;
@@ -3069,10 +3070,6 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         white-space: nowrap;
       }
       // A family of track stages: one row with a track count, its tracks indented beneath it.
-      // A failed run's error, under the setting it names
-      .setting-error {
-        margin: 0.25rem 0 0.375rem;
-      }
       // A stage with steps that need setup: the same amber as a step's Needs setup tag
       .stage-attention {
         display: inline-flex;

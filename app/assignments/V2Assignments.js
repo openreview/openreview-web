@@ -438,8 +438,8 @@ export default function V2Assignments({ configInvitation, preferredEmailInvitati
           </Table>
           {totalCount === 0 && (
             <p className="empty-message">
-              No assignments have been generated for this venue. Click the New Assignment
-              button above to get started.
+              No assignments have been generated for this venue. Click New Assignment
+              Configuration above to get started.
             </p>
           )}
 

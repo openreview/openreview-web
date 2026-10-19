@@ -532,6 +532,38 @@ const getDateSaveError = (
   return { message, fieldNames }
 }
 
+// Step descriptions come from openreview-py. These correct the ones that send PCs to the wrong
+// place, or leave out where the work is actually done.
+const getStepDescription = (stepObj) => {
+  const text = stepObj.instructions ?? stepObj.description
+  if (!text) return text
+  const stepName = stepObj.id.split('/-/').pop()
+  if (stepName === 'Recruitment_Request') {
+    return text.replace(
+      /Go to the \*{0,2}\[[^\]]*\]\([^)]*\)\*{0,2} to recruit [^.]*\./,
+      'Invite people from **Ongoing Actions → Recruitment**, further down this page.'
+    )
+  }
+  if (stepName === 'Decision') {
+    return `${text.trim()} Enter each decision on the paper's own page, with its **Decision** button, or post them all at once from a CSV with *Create Decision Upload*.`
+  }
+  return text
+}
+
+// Steps openreview-py files under one stage that PCs look for under another
+const workflowStageOverrides = { Rejected_Submission_Release: 'public_release' }
+const applyWorkflowStageOverride = (invitation) => {
+  const stageName = workflowStageOverrides[invitation.id.split('/-/').pop()]
+  if (!stageName || !invitation.content?.workflow_stage_name) return invitation
+  return {
+    ...invitation,
+    content: {
+      ...invitation.content,
+      workflow_stage_name: { ...invitation.content.workflow_stage_name, value: stageName },
+    },
+  }
+}
+
 // A step's dates as the timeline labels them: its window, or the single date it fires on. A window
 // that crosses a year puts it on its end date, so it never reads backwards.
 const getStepDateLabel = (invitation) => {
@@ -982,25 +1014,6 @@ const ProcessErrorBox = ({ summary, details }) => {
   )
 }
 
-// The setting a failed run's error points at, when the error names one of its values: a KeyError
-// for a template placeholder ("KeyError: 'submision_number'") belongs to the setting whose text
-// has "{submision_number}".
-const getErrorSetting = (errorSummary, workflowInvitation, subInvitations) => {
-  const token = errorSummary?.match(/^KeyError: '([^']+)'/)?.[1]
-  if (!token) return null
-  let match = null
-  subInvitations.some((subInvitation) => {
-    const fieldName = Object.keys(subInvitation.edit?.content ?? {}).find((key) => {
-      const path = getPath(subInvitation.edit.invitation, key)
-      const value = path ? get(workflowInvitation, path) : null
-      return typeof value === 'string' && value.includes(`{${token}}`)
-    })
-    if (fieldName) match = { subInvitationId: subInvitation.id, fieldName, token }
-    return !!fieldName
-  })
-  return match
-}
-
 // One sentence per step: the schedule, then whatever the process function logged. Red is
 // reserved for an errored log — a missing configuration surfaces as a failed process function.
 const WorkflowStepStatus = ({
@@ -1009,7 +1022,6 @@ const WorkflowStepStatus = ({
   hasDateProcess,
   processLogs,
   onRunNow,
-  errorSettingName = null,
 }) => {
   const log = getProcessLogStatus(processLogs)
   const isError = log?.status === 'error'
@@ -1042,10 +1054,7 @@ const WorkflowStepStatus = ({
           statusText
         )}
       </span>
-      {/* An error that names a setting is shown under that setting instead */}
-      {errorText && !errorSettingName && (
-        <ProcessErrorBox summary={errorText} details={log.errorDetails} />
-      )}
+      {errorText && <ProcessErrorBox summary={errorText} details={log.errorDetails} />}
       {runLabel && (
         <Popconfirm
           title={`${runLabel}?`}
@@ -1164,7 +1173,6 @@ const WorkflowInvitationRow = ({
   handleExpandCollapseSubInvitations,
   workflowTasks,
   isStageInvitation,
-  errorSettingName = null,
   showDescription = true,
   descriptionSlot = null,
   hideTitle = false,
@@ -1311,7 +1319,6 @@ const WorkflowInvitationRow = ({
             isStageInvitation={isStageInvitation}
             hasDateProcess={isCreatingSubInvitations}
             processLogs={processLogs.filter((p) => p.invitation === invitation.id)}
-            errorSettingName={errorSettingName}
             onRunNow={
               !isStageInvitation && activationDateInvitation && !isExpired
                 ? setCDateToNow
@@ -1362,7 +1369,6 @@ const SubInvitationRow = ({
   workflowInvitationsRef,
   workflowTasks,
   workflowInvitations,
-  processError = null,
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
   const runConfirmResolveRef = useRef(null)
@@ -1420,11 +1426,17 @@ const SubInvitationRow = ({
     }
   }
 
-  // An automatic step runs when its activation date arrives, so saving a date that is now or past
-  // runs it straight away, with whatever settings it has. Ask first.
+  // An automatic step runs when its activation date arrives, so once that date is now or past, saving
+  // any of its settings runs it straight away, with whatever settings it has. Ask first.
   const confirmRunOnSave = (data) => {
-    const activationDate = data?.activation_date
+    // Any save edits the step, so it runs again whenever its activation date is now or past: the
+    // date being saved when this is the Dates setting, otherwise the step's own.
+    const activationDate =
+      typeof data?.activation_date === 'number'
+        ? data.activation_date
+        : workflowInvitation.cdate
     if (
+      isGroupInvitation ||
       !workflowInvitation.dateprocesses?.length ||
       typeof activationDate !== 'number' ||
       activationDate > Date.now()
@@ -1534,14 +1546,6 @@ const SubInvitationRow = ({
                   </li>
                 ))}
               </ul>
-            )}
-            {processError && (
-              <div className="setting-error step-status error">
-                <ProcessErrorBox
-                  summary={processError.summary}
-                  details={processError.details}
-                />
-              </div>
             )}
           </div>
           <div>
@@ -2499,6 +2503,7 @@ const WorkFlowInvitations = ({ group }) => {
   const events = useSocket('venue/workflow', ['date-process-updated'], { venueid: groupId })
   const workflowInvitationsRef = useRef({})
   const [collapsedWorkflowInvitationIds, setCollapsedWorkflowInvitationIds] = useState([])
+  const loadedStepIdsRef = useRef(null)
   const [workflowTasks, setWorkflowTasks] = useState([])
 
   const workflowStages = getSortedWorkflowStages(
@@ -2545,6 +2550,8 @@ const WorkFlowInvitations = ({ group }) => {
   // Needs attention is setup the PC still has to do, flagged on the stage row so a closed stage
   // still shows it. A failed run is the stage's Failed status instead. Disabled steps don't count.
   const getStageAttention = (invitations) => {
+    // A completed stage has nothing left to set up, so it isn't flagged
+    if (getStageStatus(invitations, processLogs).stageStatus === 'COMPLETED') return null
     const setupCount = invitations.filter((p) => {
       if (p.ddate) return false
       const { setupDueDate, missingSettings } = getStepSetup(p)
@@ -2642,6 +2649,12 @@ const WorkFlowInvitations = ({ group }) => {
     (p) => getWorkflowStageStatus(p).stageStatus === 'IN PROGRESS'
   )?.workflowStageName
   const openStageKeys = activeStageKeys ?? [defaultOpenStageKey]
+  // The stage open by default is fixed once chosen, so a reload that changes statuses (after a
+  // save or a run) doesn't swap which stage is open under the PC.
+  useEffect(() => {
+    if (activeStageKeys === null && defaultOpenStageKey)
+      setActiveStageKeys([defaultOpenStageKey])
+  }, [activeStageKeys, defaultOpenStageKey])
   const openWorkflowStage = (workflowStageName) => {
     if (!workflowStageName) return
     setActiveStageKeys((keys) => {
@@ -2690,7 +2703,9 @@ const WorkFlowInvitations = ({ group }) => {
           container.getBoundingClientRect().left +
           (nowPercent / 100) * trackRect.width
       )
-      const top = axisRow.offsetTop + axisRow.offsetHeight
+      // The axis row is sticky, so its offsetTop moves while it's pinned; it's always the first row,
+      // so the line starts below the container's top padding and the axis row's height.
+      const top = parseFloat(getComputedStyle(container).paddingTop) + axisRow.offsetHeight
       const height = Math.max(legend.offsetTop - top, 0)
       setNowLine((current) =>
         current?.left === left && current?.top === top && current?.height === height
@@ -3097,14 +3112,16 @@ const WorkFlowInvitations = ({ group }) => {
         exclusionWorkflowInvitations,
         invitations
       )
-      const invitationsToShowInWorkflow = filteredInvitations.map((stepObj) => {
-        return formatWorkflowInvitation(
-          stepObj,
-          invitations,
-          filteredInvitations.map((p) => p.id),
-          logs
-        )
-      })
+      const invitationsToShowInWorkflow = filteredInvitations
+        .map(applyWorkflowStageOverride)
+        .map((stepObj) => {
+          return formatWorkflowInvitation(
+            stepObj,
+            invitations,
+            filteredInvitations.map((p) => p.id),
+            logs
+          )
+        })
       setWorkflowTasks(
         sortBy(
           invitationsToShowInWorkflow.reduce(
@@ -3122,7 +3139,16 @@ const WorkFlowInvitations = ({ group }) => {
           'duedate'
         )
       )
-      setCollapsedWorkflowInvitationIds(invitationsToShowInWorkflow.map((p) => p.id))
+      // Steps start collapsed; a reload after a save keeps the ones the PC has open, so the page
+      // doesn't fold up and jump under them.
+      const loadedStepIds = invitationsToShowInWorkflow.map((p) => p.id)
+      const previousStepIds = loadedStepIdsRef.current
+      setCollapsedWorkflowInvitationIds((ids) =>
+        previousStepIds
+          ? loadedStepIds.filter((id) => ids.includes(id) || !previousStepIds.includes(id))
+          : loadedStepIds
+      )
+      loadedStepIdsRef.current = loadedStepIds
       setWorkflowInvitations(sortWorkflowInvitations(invitationsToShowInWorkflow))
       setWorkflowGroups(workflowGroupMap)
       setAllInvitations(invitations)
@@ -3152,7 +3178,7 @@ const WorkFlowInvitations = ({ group }) => {
     // stage's own axis. The description stays visible collapsed or not; opening the step adds
     // only its configuration, spanning both columns.
     const isHybridRow = isInWorkflowStage || inOngoing
-    const description = stepObj.instructions ?? stepObj.description
+    const description = getStepDescription(stepObj)
     const subInvitationsBlock = subInvitations.length > 0 && (
       <motion.div
         initial={false}
@@ -3253,14 +3279,13 @@ const WorkFlowInvitations = ({ group }) => {
     )
   }
 
-  const renderTimelineStep = (stepObj) => {
+  const renderTimelineStep = (stepObj, isStageCompleted = false) => {
     const { id, isExpired, isMissingValue, subInvitations, isStageInvitation } = stepObj
     const isCollapsed = collapsedWorkflowInvitationIds.includes(id)
     const log = getProcessLogStatus(processLogs.filter((p) => p.invitation === id))
     // A failed run stays visible on the collapsed step, so nobody has to open it to find out.
     const errorText = log?.status === 'error' ? (log.error ?? log.message) : null
-    const errorSetting = errorText ? getErrorSetting(errorText, stepObj, subInvitations) : null
-    const description = stepObj.instructions ?? stepObj.description
+    const description = getStepDescription(stepObj)
     const { setupDueDate, missingSettings } = getStepSetup(stepObj)
     return (
       <div
@@ -3276,8 +3301,8 @@ const WorkFlowInvitations = ({ group }) => {
           processLogs={processLogs}
           isOpen={!isCollapsed}
           isFailed={!!errorText}
-          setupDueDate={setupDueDate}
-          missingSettingCount={missingSettings.length}
+          setupDueDate={isStageCompleted ? null : setupDueDate}
+          missingSettingCount={isStageCompleted ? 0 : missingSettings.length}
           isDisabled={!!isExpired}
           onToggle={() => handleExpandCollapseSubInvitations(id)}
         />
@@ -3303,9 +3328,6 @@ const WorkFlowInvitations = ({ group }) => {
                 handleExpandCollapseSubInvitations={handleExpandCollapseSubInvitations}
                 workflowTasks={workflowTasks}
                 isStageInvitation={isStageInvitation}
-                errorSettingName={
-                  errorSetting && prettyField(errorSetting.subInvitationId.split('/').pop())
-                }
                 showDescription={false}
                 hideTitle={true}
                 descriptionSlot={
@@ -3327,11 +3349,6 @@ const WorkFlowInvitations = ({ group }) => {
                   workflowInvitationsRef={workflowInvitationsRef}
                   workflowTasks={workflowTasks}
                   workflowInvitations={workflowInvitations}
-                  processError={
-                    errorSetting?.subInvitationId === subInvitation.id
-                      ? { ...errorSetting, summary: errorText, details: log.errorDetails }
-                      : null
-                  }
                 />
               ))}
             </div>
@@ -3441,7 +3458,13 @@ const WorkFlowInvitations = ({ group }) => {
           trackName={trackName}
           attention={getStageAttention(invitationsOfWorkflowStageName)}
         />
-        {isOpen && invitationsOfWorkflowStageName.map(renderTimelineStep)}
+        {isOpen &&
+          invitationsOfWorkflowStageName.map((stepObj) =>
+            renderTimelineStep(
+              stepObj,
+              getWorkflowStageStatus(workflowStage).stageStatus === 'COMPLETED'
+            )
+          )}
       </div>
     )
   }
