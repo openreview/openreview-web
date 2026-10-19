@@ -121,6 +121,7 @@ const DropdownWidget = () => {
             onChange({ fieldName, value: newValue || undefined })
           }}
           showSearch={{ filterOption: true }}
+          allowClear
         />
       </div>
     )

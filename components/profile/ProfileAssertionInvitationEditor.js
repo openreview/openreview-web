@@ -61,6 +61,7 @@ const NameForm = () => {
           onChange({ fieldName, value: undefined })
         }
       }}
+      allowClear
     />
   )
 }
@@ -116,6 +117,7 @@ const HistoryForm = ({ positions, institutionDomains }) => {
             setHistory({ type: 'updatePosition', value: position ?? '' })
           }
           showSearch={{ filterOption: true }}
+          allowClear
         />
         <InputNumber
           style={year}
@@ -148,6 +150,7 @@ const HistoryForm = ({ positions, institutionDomains }) => {
             setHistory({ type: 'updateInstitutionDomain', value: domain ?? '' })
           }
           showSearch={{ filterOption: true }}
+          allowClear
         />
         <Input
           style={{ flex: '1 1 14rem' }}
@@ -156,6 +159,7 @@ const HistoryForm = ({ positions, institutionDomains }) => {
           onChange={(e) =>
             setHistory({ type: 'updateInstitutionName', value: e.target.value })
           }
+          allowClear
         />
       </Flex>
     </Flex>
@@ -206,18 +210,21 @@ const RelationForm = () => {
           placeholder="Relation"
           value={relation.relation ?? ''}
           onChange={(e) => setRelation({ type: 'updateRelation', value: e.target.value })}
+          allowClear
         />
         <Input
           style={{ flex: '2 1 12rem' }}
           placeholder="Parent name"
           value={relation.name ?? ''}
           onChange={(e) => setRelation({ type: 'updateRelationName', value: e.target.value })}
+          allowClear
         />
         <Input
           style={{ flex: '2 1 12rem' }}
           placeholder="Parent email"
           value={relation.email ?? ''}
           onChange={(e) => setRelation({ type: 'updateRelationEmail', value: e.target.value })}
+          allowClear
         />
       </Flex>
       <Flex gap="small" wrap>
