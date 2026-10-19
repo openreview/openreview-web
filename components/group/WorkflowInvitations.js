@@ -1,5 +1,15 @@
-import { CaretRightOutlined } from '@ant-design/icons'
-import { Button, Flex, Popconfirm, Segmented, Tooltip, Typography, theme } from 'antd'
+import { CaretRightOutlined, ExclamationCircleFilled } from '@ant-design/icons'
+import {
+  Button,
+  Checkbox,
+  Flex,
+  Popconfirm,
+  Segmented,
+  Select,
+  Tooltip,
+  Typography,
+  theme,
+} from 'antd'
 import dayjs from 'dayjs'
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore'
 import relativeTime from 'dayjs/plugin/relativeTime'
@@ -7,7 +17,7 @@ import timezone from 'dayjs/plugin/timezone'
 import utc from 'dayjs/plugin/utc'
 import { motion } from 'framer-motion'
 import { orderBy, sortBy, get, minBy, max } from 'lodash'
-import { useEffect, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import useSocket from '../../hooks/useSocket'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -21,11 +31,15 @@ import {
   getSubInvitationContentFieldDisplayValue,
   getMetaInvitationId,
 } from '../../lib/utils'
+import BasicModal from '../BasicModal'
 import Dropdown from '../Dropdown'
 import Markdown from '../EditorComponents/Markdown'
 import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
+import GroupRestrictGroup from './GroupRestrictGroup'
 import InvitationEditor from './InvitationEditor'
+import MessageMemberModal from './MessageMemberModal'
+import WorkflowMessageActions from './WorkflowMessageActions'
 
 dayjs.extend(isSameOrBefore)
 dayjs.extend(timezone)
@@ -90,13 +104,14 @@ const getMomentState = (invitation, processLogs = []) => {
 }
 
 const getStageStatus = (allInvitationsOfWorkflowStage, processLogs = []) => {
-  // A step whose last run failed overrides the date-based status: the stage needs the PC's attention.
+  // A step whose last run failed overrides the date-based status. (Setup still to do is a separate
+  // flag, Needs attention, shown beside the stage name.)
   if (
     allInvitationsOfWorkflowStage.some(
       (p) => getLastRun(p.id, processLogs)?.status === 'error'
     )
   ) {
-    return { stageStatus: 'NEEDS ATTENTION', stageStatusColor: 'warning' }
+    return { stageStatus: 'FAILED', stageStatusColor: 'error' }
   }
   // Ongoing invitations never expire, so they would keep a stage from ever completing.
   const timedInvitations = allInvitationsOfWorkflowStage.filter((p) => !isOngoingInvitation(p))
@@ -160,11 +175,10 @@ const workflowGroupKeys = [
 ]
 
 // A stage's status is a glyph, so its column is a glyph wide.
-const timelineStatusWidth = 16
-const dayMs = 86400000
+const timelineStatusWidth = 18
 
 const stageStatusFilterLabels = {
-  'NEEDS ATTENTION': 'Needs attention',
+  FAILED: 'Failed',
   'IN PROGRESS': 'In progress',
   COMPLETED: 'Completed',
   SCHEDULED: 'Scheduled',
@@ -172,7 +186,7 @@ const stageStatusFilterLabels = {
 
 // The glyph colour class for each status, matching getStageStatus's stageStatusColor.
 const stageStatusColors = {
-  'NEEDS ATTENTION': 'warning',
+  FAILED: 'error',
   'IN PROGRESS': 'processing',
   COMPLETED: 'success',
   SCHEDULED: 'default',
@@ -246,7 +260,9 @@ const TimelineGrid = ({ domain, showLabels }) => (
       className="timeline-now"
       style={{ left: `${domain.percentOf(Date.now())}%` }}
       title={`Today · ${formatShortDate(Date.now(), true)}`}
-    />
+    >
+      {showLabels && <span className="timeline-now-label">Today</span>}
+    </div>
   </>
 )
 
@@ -254,12 +270,14 @@ const TimelineGrid = ({ domain, showLabels }) => (
 // venue's own months. Selecting it opens that stage below.
 const StageOverviewRow = ({
   workflowStage,
-  stageIndex,
   status,
   domain,
   isOpen,
   onSelect,
   processLogs,
+  trackCount = 0,
+  trackName = null,
+  attention = null,
 }) => {
   const { periodStart, periodEnd, invitationsOfWorkflowStageName, workflowStageName } =
     workflowStage
@@ -267,8 +285,14 @@ const StageOverviewRow = ({
     (p) => !isOngoingInvitation(p)
   )
   const hasSpan = timedInvitations.length > 0 && periodStart
+  // Disabled steps stay in their stage; the stage says how many, or that all of it is off.
+  const disabledCount = invitationsOfWorkflowStageName.filter((p) => p.ddate).length
+  const isStageDisabled =
+    disabledCount > 0 && disabledCount === invitationsOfWorkflowStageName.length
   const startPercent = hasSpan ? domain.percentOf(periodStart) : 0
   const endPercent = hasSpan ? domain.percentOf(periodEnd ?? periodStart) : 0
+  // "bidding - Senior_Area_Chairs": the stage in bold, the committee it is for after it.
+  const [stageName, committeeName] = workflowStageName.split(' - ')
   const isOpenEnded = (end) => !!end && end > domain.end
   const windows = timedInvitations.map((invitation) => {
     const windowEnd = getWindowEnd(invitation)
@@ -293,12 +317,36 @@ const StageOverviewRow = ({
   return (
     <button
       type="button"
-      className={`overview-row${isOpen ? ' current' : ''}`}
+      className={`overview-row${isOpen ? ' current' : ''}${isStageDisabled ? ' disabled' : ''}`}
+      aria-expanded={isOpen}
       onClick={() => onSelect(workflowStageName)}
       title={`${prettyField(workflowStageName)} — ${stageStatusFilterLabels[status.stageStatus]}`}
     >
-      <span className="overview-index">{stageIndex + 1}</span>
-      <span className="overview-name">{prettyField(workflowStageName)}</span>
+      <span className="overview-caret" aria-hidden="true">
+        <CaretRightOutlined rotate={isOpen ? 90 : 0} />
+      </span>
+      <span className="overview-name">
+        {/* Inside a family the stage and committee are its row's; a track row needs only its track. */}
+        <span className="overview-name-text">
+          {trackName ?? (
+            <>
+              <strong>{prettyField(stageName)}</strong>
+              {committeeName && ` - ${prettyField(committeeName)}`}
+            </>
+          )}
+        </span>
+        {trackCount > 0 && <span className="overview-tracks">{trackCount} tracks</span>}
+        {disabledCount > 0 && (
+          <span className="step-disabled-tag">
+            {isStageDisabled ? 'Disabled' : `${disabledCount} disabled`}
+          </span>
+        )}
+        {attention && (
+          <span className="stage-attention" title={attention} aria-label={attention}>
+            <ExclamationCircleFilled />
+          </span>
+        )}
+      </span>
       <span className={`timeline-track stage-track ${status.stageStatusColor} overview-track`}>
         <TimelineGrid domain={domain} />
         {hasSpan ? (
@@ -332,7 +380,7 @@ const StageOverviewRow = ({
             )}
           </>
         ) : (
-          <span className="track-ongoing">No end date</span>
+          <span className="track-ongoing">Ongoing</span>
         )}
       </span>
       <span className="overview-period">
@@ -343,42 +391,250 @@ const StageOverviewRow = ({
   )
 }
 
-// A stage's own span, padded so a bar never touches the column edge. Inside an open stage the
-// steps are drawn on this local axis rather than the venue's months, so a two-week window is a
-// bar you can read. Ticks suit the span: weekly for a fortnight, fortnightly for a couple of
-// months, monthly beyond that.
-const getLocalDomain = (workflowStage) => {
-  const timedInvitations = workflowStage.invitationsOfWorkflowStageName.filter(
-    (p) => !isOngoingInvitation(p)
+// A step's title keeps the original naming rule: steps that edit invitations were never "Create …".
+const getStepTitle = (invitation) =>
+  `${invitation.duedate || invitation.edit?.invitation ? '' : 'Create '}${prettyId(
+    invitation.id.replace(invitation.domain, '')
+  )}`
+
+// The API rejects an invitation whose activation date is after its due date or expiration date.
+const invitationDateLabels = {
+  cdate: 'Activation Date',
+  duedate: 'Due Date',
+  expdate: 'Expiration Date',
+}
+const invitationDateOrder = [
+  ['cdate', 'duedate'],
+  ['cdate', 'expdate'],
+]
+
+// Which form field sets each of a step's dates, per invitation the settings write to: the step
+// itself (path '') and the per-paper invitations it creates ('edit.invitation').
+const getDateFieldLevels = (editInvitation, path = '') => {
+  if (!editInvitation || typeof editInvitation !== 'object') return []
+  const fields = {}
+  Object.keys(invitationDateLabels).forEach((dateKey) => {
+    const match =
+      typeof editInvitation[dateKey] === 'string' &&
+      editInvitation[dateKey].match(/\/content\/([^/]+)\/value/)
+    if (match) fields[dateKey] = match[1]
+  })
+  const nested = getDateFieldLevels(
+    editInvitation.edit?.invitation,
+    path ? `${path}.edit.invitation` : 'edit.invitation'
   )
-  if (!timedInvitations.length) return null
-  const boundStart = Math.min(...timedInvitations.map((p) => p.cdate))
-  const boundEnd = Math.max(...timedInvitations.map((p) => getWindowEnd(p) ?? p.cdate))
-  const span = Math.max(boundEnd - boundStart, 4 * dayMs)
-  const start = boundStart - span * 0.1
-  const end = boundEnd + span * 0.1
-  const total = end - start
-  const spanDays = span / dayMs
-  // The smallest interval that keeps the axis to about four ticks.
-  const tickDays = [7, 14, 30, 61, 91, 182].find((p) => spanDays / p <= 4) ?? 365
-  const ticks = []
-  for (
-    let cursor = dayjs(start).startOf('day').valueOf();
-    cursor < end;
-    cursor += tickDays * dayMs
-  ) {
-    if (cursor > start) ticks.push(cursor)
+  return Object.keys(fields).length ? [{ path, fields }, ...nested] : nested
+}
+
+// A date as it would be after saving: from the form when the form sets it, otherwise as saved
+const getProposedDate = (level, dateKey, data, workflowInvitation) => {
+  const value = level.fields[dateKey]
+    ? data?.[level.fields[dateKey]]
+    : get(workflowInvitation, level.path ? `${level.path}.${dateKey}` : dateKey)
+  return typeof value === 'number' ? value : null
+}
+
+const formatErrorDate = (value) =>
+  formatDateTime(value, { month: 'short', second: undefined, timeZoneName: 'short' })
+
+// The date a message compares against, named the way the PC sees it
+const describeDate = (level, dateKey, value) => {
+  const label = level.fields[dateKey]
+    ? prettyField(level.fields[dateKey])
+    : `the step's ${invitationDateLabels[dateKey]}`
+  return value === null ? label : `${label} (${formatErrorDate(value)})`
+}
+
+// Checks a Dates form before it is saved, so out-of-order dates are caught at the field instead of
+// coming back from the API.
+const getDateOrderErrors = (data, subInvitation, workflowInvitation) => {
+  const messagesByField = {}
+  const addMessage = (fieldName, message) => {
+    messagesByField[fieldName] = messagesByField[fieldName] ?? []
+    if (!messagesByField[fieldName].includes(message)) messagesByField[fieldName].push(message)
   }
-  return {
-    start,
-    end,
-    ticks,
-    boundStart,
-    boundEnd,
-    // As in the stage's own dates, years appear only when the span crosses one.
-    crossesYear: dayjs(boundStart).year() !== dayjs(boundEnd).year(),
-    percentOf: (timestamp) => Math.max(0, Math.min(100, ((timestamp - start) / total) * 100)),
+  getDateFieldLevels(subInvitation.edit?.invitation).forEach((level) => {
+    invitationDateOrder.forEach(([earlierKey, laterKey]) => {
+      const earlier = getProposedDate(level, earlierKey, data, workflowInvitation)
+      const later = getProposedDate(level, laterKey, data, workflowInvitation)
+      if (earlier === null || later === null || earlier <= later) return
+      if (level.fields[earlierKey]) {
+        addMessage(
+          level.fields[earlierKey],
+          `Must be on or before ${describeDate(level, laterKey, later)}.`
+        )
+      }
+      if (level.fields[laterKey]) {
+        addMessage(
+          level.fields[laterKey],
+          `Must be on or after ${describeDate(level, earlierKey, earlier)}.`
+        )
+      }
+    })
+  })
+  return Object.entries(messagesByField).map(([fieldName, messages]) => ({
+    fieldName,
+    message: messages.join(' '),
+  }))
+}
+
+// Rewrites the API's date error ("cdate must be less than or equal to duedate") to name the step,
+// the dates and their values. Returns null for any other error.
+const getDateSaveError = (
+  error,
+  data,
+  subInvitation,
+  workflowInvitation,
+  workflowInvitations
+) => {
+  const match =
+    error?.name === 'InferenceError' &&
+    error.message?.match(
+      /\b(cdate|duedate|expdate) must be less than or equal to (cdate|duedate|expdate)\b/
+    )
+  if (!match) return null
+  const [, earlierKey, laterKey] = match
+  const invitationId = error.details?.id
+  const levels = getDateFieldLevels(subInvitation.edit?.invitation)
+  const stepName = getStepTitle(workflowInvitation)
+  let level = null
+  let invitationName = stepName
+  let isOtherStep = false
+  if (!invitationId || invitationId === workflowInvitation.id) {
+    level = levels.find((p) => p.path === '') ?? null
+  } else if (invitationId.endsWith(`/-/${workflowInvitation.id.split('/-/').pop()}`)) {
+    // one of the per-paper invitations this step creates, e.g. Submission5/-/Decision
+    level = levels.find((p) => p.path === 'edit.invitation') ?? null
+    invitationName = `${stepName} for ${prettyId(
+      invitationId.split('/-/')[0].replace(`${workflowInvitation.domain}/`, '')
+    )}`
+  } else {
+    const otherStep = workflowInvitations?.find((p) => p.id === invitationId)
+    invitationName = otherStep ? getStepTitle(otherStep) : prettyId(invitationId)
+    isOtherStep = true
   }
+  const describe = (dateKey) => {
+    if (!level) return invitationDateLabels[dateKey]
+    const value = getProposedDate(level, dateKey, data, workflowInvitation)
+    const label = level.fields[dateKey]
+      ? prettyField(level.fields[dateKey])
+      : invitationDateLabels[dateKey]
+    return value === null ? label : `${label} (${formatErrorDate(value)})`
+  }
+  const message = `${invitationName}: ${describe(earlierKey)} must be on or before ${describe(laterKey)}.${
+    isOtherStep
+      ? ` Update the dates of ${invitationName} first, or choose a different date.`
+      : ''
+  }`
+  const fieldNames = level
+    ? [level.fields[earlierKey], level.fields[laterKey]].filter(Boolean)
+    : []
+  return { message, fieldNames }
+}
+
+// A step's dates as the timeline labels them: its window, or the single date it fires on. A window
+// that crosses a year puts it on its end date, so it never reads backwards.
+const getStepDateLabel = (invitation) => {
+  if (isOngoingInvitation(invitation)) return `From ${formatShortDate(invitation.cdate)}`
+  const end = isWindowInvitation(invitation)
+    ? (invitation.duedate ?? invitation.edit?.invitation?.duedate ?? getWindowEnd(invitation))
+    : null
+  if (!end) return formatShortDate(invitation.cdate)
+  const crossesYear = dayjs(end).year() !== dayjs(invitation.cdate).year()
+  return `${formatShortDate(invitation.cdate)} – ${formatShortDate(end, crossesYear)}`
+}
+
+// One step of an open stage, on the same venue axis as its stage, so the timeline reads as one list.
+// Its dates sit in the date column, where they stay readable however short its bar is. Selecting it
+// opens the step's description, status and settings beneath it.
+const StepTimelineRow = ({
+  invitation,
+  domain,
+  processLogs,
+  isOpen,
+  isFailed,
+  setupDueDate,
+  missingSettingCount = 0,
+  isDisabled = false,
+  onToggle,
+}) => {
+  const windowEnd = getWindowEnd(invitation)
+  const isOngoing = isOngoingInvitation(invitation)
+  const left = domain.percentOf(invitation.cdate)
+  const width = domain.percentOf(windowEnd ?? invitation.cdate) - left
+  const isMoment = width < momentThresholdPercent
+  const isOpenEnded = !!windowEnd && windowEnd > domain.end
+  const timing = getSpanTiming(invitation.cdate, windowEnd, domain.end)
+  // Hovering the step's bar or dates highlights the date settings they come from, when open.
+  const markDateSettings = (e, isOn) =>
+    e.currentTarget
+      .closest('.timeline-step')
+      ?.querySelectorAll('.timeline-step-detail li[data-field$="_date"]')
+      .forEach((p) => p.classList.toggle('highlight', isOn))
+  const dateHoverProps = {
+    onMouseEnter: (e) => markDateSettings(e, true),
+    onMouseLeave: (e) => markDateSettings(e, false),
+  }
+  return (
+    <button
+      type="button"
+      className={`overview-row step-row${isOpen ? ' current' : ''}`}
+      aria-expanded={isOpen}
+      onClick={onToggle}
+      title={`${getStepTitle(invitation)} — ${getStepDateLabel(invitation)}`}
+    >
+      <span className="overview-caret" />
+      <span className="overview-name step-name">
+        <CaretRightOutlined rotate={isOpen ? 90 : 0} className="step-caret" />
+        {getStepTitle(invitation)}
+        {/* Settings still to finish are flagged on the closed step, not only inside it. */}
+        {setupDueDate && (
+          <span className="step-setup-due">Configure by {formatShortDate(setupDueDate)}</span>
+        )}
+        {isDisabled && <span className="step-disabled-tag">Disabled</span>}
+        {missingSettingCount > 0 && !setupDueDate && !isDisabled && (
+          <span
+            className="step-setup-missing"
+            title={`${inflect(missingSettingCount, 'required setting is', 'required settings are', true)} empty`}
+          >
+            Needs setup
+          </span>
+        )}
+      </span>
+      <span className="timeline-track overview-track" {...dateHoverProps}>
+        <TimelineGrid domain={domain} />
+        {isOngoing && <span className="track-ongoing">Ongoing</span>}
+        {!isOngoing && isMoment && (
+          <span
+            className={`stage-moment ${getMomentState(invitation, processLogs)}`}
+            style={{ left: `${left}%` }}
+          />
+        )}
+        {!isOngoing && !isMoment && (
+          <span
+            className={`stage-window ${timing.timing}${isOpenEnded ? ' open-end' : ''}`}
+            style={{ left: `${left}%`, width: `${width}%`, ...timing.style }}
+          />
+        )}
+        {!isOngoing && !isMoment && isOpenEnded && (
+          <span
+            className={`track-continues ${timing.timing}`}
+            title="Continues past the end of the timeline"
+          />
+        )}
+      </span>
+      <span className="overview-period" {...dateHoverProps}>
+        {getStepDateLabel(invitation)}
+      </span>
+      {isFailed ? (
+        <span className="stage-status-icon error" role="img" aria-label="Last run failed">
+          <StageStatusGlyph statusColor="error" />
+        </span>
+      ) : (
+        <span className="overview-status-spacer" />
+      )}
+    </button>
+  )
 }
 
 // The stage's start and end are solid lines with the padding outside them shaded; on the axis
@@ -453,7 +709,7 @@ const WorkflowStepTrack = ({ invitation, isStageInvitation, domain, processLogs 
     return (
       <div className="timeline-track step-track local-track ongoing">
         {domain && <LocalGrid domain={domain} />}
-        <span className="track-ongoing">No end date</span>
+        <span className="track-ongoing">Ongoing</span>
       </div>
     )
   }
@@ -515,7 +771,7 @@ const WorkflowStepTrack = ({ invitation, isStageInvitation, domain, processLogs 
 // The status glyph itself, shared by the stage rows and the status filter (where it doubles as
 // the legend). Colour comes from the wrapper's class through currentColor.
 const StageStatusGlyph = ({ statusColor }) => (
-  <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
+  <svg width="17" height="17" viewBox="0 0 14 14" aria-hidden="true">
     {statusColor === 'success' && (
       <>
         <circle cx="7" cy="7" r="6.5" fill="currentColor" />
@@ -538,11 +794,15 @@ const StageStatusGlyph = ({ statusColor }) => (
     {statusColor === 'default' && (
       <circle cx="7" cy="7" r="6" fill="none" stroke="currentColor" strokeWidth="1.5" />
     )}
-    {statusColor === 'warning' && (
+    {statusColor === 'error' && (
       <>
         <circle cx="7" cy="7" r="6.5" fill="currentColor" />
-        <path d="M7 3.4v4.4" stroke="#2b2100" strokeWidth="1.7" strokeLinecap="round" />
-        <circle cx="7" cy="10.3" r="0.95" fill="#2b2100" />
+        <path
+          d="M4.8 4.8 9.2 9.2M9.2 4.8 4.8 9.2"
+          stroke="#fffdfa"
+          strokeWidth="1.6"
+          strokeLinecap="round"
+        />
       </>
     )}
   </svg>
@@ -615,6 +875,25 @@ const getRecruitmentCounts = (group) => {
   }
 }
 
+// A failed run's error is a Python traceback, often after progress-bar output from tqdm. Its last
+// line says what went wrong ("KeyError: 'submision_number'"), so that leads and the rest is detail.
+const isProgressLine = (line) => /\d+%\|/.test(line) || /it\/s\]/.test(line)
+const summarizeProcessError = (error) => {
+  if (!error) return { summary: null, details: null }
+  const text = error.message || error.name || ''
+  const lines = text
+    .split(/\r|\n/)
+    .map((line) => line.trimEnd())
+    .filter((line) => line.trim() && !isProgressLine(line))
+  const tracebackStart = lines.findIndex((line) => line.startsWith('Traceback'))
+  const detailLines = tracebackStart >= 0 ? lines.slice(tracebackStart) : lines
+  const summary = lines.findLast((line) => !/^\s/.test(line)) ?? lines[lines.length - 1]
+  return {
+    summary: summary?.trim() || error.name || 'The process failed',
+    details: detailLines.length > 1 ? detailLines.join('\n') : null,
+  }
+}
+
 // The process log reduces to a status and, when the function said something, a message.
 const getProcessLogStatus = (processLogs) => {
   // A step scheduled to run again has a queued log, which would otherwise hide a failed last run.
@@ -626,44 +905,100 @@ const getProcessLogStatus = (processLogs) => {
     status: log.status,
     message: log.log?.[log.log.length - 1] ?? null,
     // A failed run keeps its error apart from the log lines it printed.
-    error: log.error ? [log.error.name, log.error.message].filter(Boolean).join(': ') : null,
+    error: summarizeProcessError(log.error).summary,
+    errorDetails: summarizeProcessError(log.error).details,
     logUrl: `${process.env.API_V2_URL}/logs/process?id=${log.id}`,
   }
 }
 
 // "When the next thing happens", phrased for the kind of step it is.
+// Every step reads "State · date", in the form that fits the kind of step it is.
 const getSchedulePhrase = (invitation, isStageInvitation, lastRun, hasDateProcess) => {
-  const now = dayjs()
-  const cdate = dayjs(invitation.cdate)
-  const dateOptions = {
-    second: undefined,
-    minute: undefined,
-    hour: undefined,
-    year: undefined,
-  }
+  const now = Date.now()
   const expdate = getInvitationExpDate(invitation)
 
+  // A window people act inside: scheduled, open, then closed.
   if (isStageInvitation && expdate) {
-    if (cdate.isAfter(now))
-      return `Scheduled to start ${formatDateTime(invitation.cdate, dateOptions)}`
-    return dayjs(expdate).isAfter(now)
-      ? `Scheduled to finish ${formatDateTime(expdate, dateOptions)}`
-      : `Finished ${formatDateTime(expdate, dateOptions)}`
+    if (invitation.cdate > now) return `Scheduled · opens ${formatShortDate(invitation.cdate)}`
+    return expdate > now
+      ? `Open · closes ${formatShortDate(expdate)}`
+      : `Closed · ${formatShortDate(expdate)}`
   }
-  // A step with no date process is a tool people use — sending recruitment requests, deploying
+  // A step with no date process is a tool people use — sending recruitment requests, drafting
   // assignments. Nothing fires on its activation date, so there is no run to report or miss.
   if (!hasDateProcess) {
-    return cdate.isAfter(now)
-      ? `Available from ${formatDateTime(invitation.cdate, dateOptions)}`
-      : `Available since ${formatDateTime(invitation.cdate, dateOptions)}`
+    return invitation.cdate > now
+      ? `Scheduled · available ${formatShortDate(invitation.cdate)}`
+      : `Available · since ${formatShortDate(invitation.cdate)}`
   }
   // An automatic step has run only if a completed process log says so — a past activation date
   // is not proof, the process may never have fired.
-  if (cdate.isAfter(now))
-    return `Scheduled to run ${formatDateTime(invitation.cdate, dateOptions)}`
+  if (invitation.cdate > now) return `Scheduled · runs ${formatShortDate(invitation.cdate)}`
+  if (lastRun?.status === 'error') {
+    return `Failed · ${formatShortDate(lastRun.edate ?? invitation.cdate)}`
+  }
   return lastRun
-    ? `Ran ${formatDateTime(lastRun.edate ?? invitation.cdate, dateOptions)}`
-    : `Due ${formatDateTime(invitation.cdate, dateOptions)}, not run yet`
+    ? `Ran · ${formatShortDate(lastRun.edate ?? invitation.cdate)}`
+    : `Not run · was due ${formatShortDate(invitation.cdate)}`
+}
+
+// A successful run's log line, trimmed: the step's own name and "successfully" add nothing beside
+// the step title, so "10 Official Review invitations created or updated successfully" becomes
+// "10 invitations updated".
+const shortenSuccessMessage = (message) => {
+  if (!message) return message
+  const invitationCount = message.match(
+    /^(\d+) .+ invitations created or updated successfully\.?$/i
+  )
+  if (invitationCount) {
+    return `${inflect(Number(invitationCount[1]), 'invitation', 'invitations', true)} updated`
+  }
+  return message
+    .replace(/\s+were successfully\b/i, '')
+    .replace(/\s+successfully\b/i, '')
+    .replace(/\.$/, '')
+}
+
+// A failed run's error: its last line, with the full traceback a click away
+const ProcessErrorBox = ({ summary, details }) => {
+  const [showDetails, setShowDetails] = useState(false)
+  return (
+    <span className="step-status-error" title={summary}>
+      <span className="step-status-error-text">{summary}</span>
+      {details && (
+        <a
+          href="#"
+          className="step-status-error-toggle"
+          onClick={(e) => {
+            e.preventDefault()
+            setShowDetails((isShown) => !isShown)
+          }}
+        >
+          {showDetails ? 'Hide details' : 'Show details'}
+        </a>
+      )}
+      {showDetails && details && <pre className="step-status-error-details">{details}</pre>}
+    </span>
+  )
+}
+
+// The setting a failed run's error points at, when the error names one of its values: a KeyError
+// for a template placeholder ("KeyError: 'submision_number'") belongs to the setting whose text
+// has "{submision_number}".
+const getErrorSetting = (errorSummary, workflowInvitation, subInvitations) => {
+  const token = errorSummary?.match(/^KeyError: '([^']+)'/)?.[1]
+  if (!token) return null
+  let match = null
+  subInvitations.some((subInvitation) => {
+    const fieldName = Object.keys(subInvitation.edit?.content ?? {}).find((key) => {
+      const path = getPath(subInvitation.edit.invitation, key)
+      const value = path ? get(workflowInvitation, path) : null
+      return typeof value === 'string' && value.includes(`{${token}}`)
+    })
+    if (fieldName) match = { subInvitationId: subInvitation.id, fieldName, token }
+    return !!fieldName
+  })
+  return match
 }
 
 // One sentence per step: the schedule, then whatever the process function logged. Red is
@@ -674,6 +1009,7 @@ const WorkflowStepStatus = ({
   hasDateProcess,
   processLogs,
   onRunNow,
+  errorSettingName = null,
 }) => {
   const log = getProcessLogStatus(processLogs)
   const isError = log?.status === 'error'
@@ -681,32 +1017,34 @@ const WorkflowStepStatus = ({
   // logs are not runs.
   const lastRun = processLogs.find((p) => p.status === 'ok' || p.status === 'error')
   const phrase = getSchedulePhrase(invitation, isStageInvitation, lastRun, hasDateProcess)
-  const message = log?.status === 'running' ? 'Running…' : log?.message
+  let message = log?.message
+  if (log?.status === 'running') message = 'Running…'
+  else if (log?.status === 'ok') message = shortenSuccessMessage(log.message)
   // A failed run's error gets a line of its own under the schedule, so it shows on the collapsed
   // step without opening it.
   const errorText = isError ? (log.error ?? log.message) : null
-  const statusText = `${phrase}.${message && !errorText ? ` ${message}` : ''}`
-  // Running is a real action — it moves the step's activation date to now — so it is one link
-  // whose label says what it will do in this state, behind a confirmation. "Run again" only
-  // once a completed run exists; a step rescheduled after running is still a re-run.
-  const runLabel =
-    !onRunNow || log?.status === 'running'
-      ? null
-      : isError
-        ? 'Retry'
-        : lastRun
-          ? 'Run again'
-          : 'Run now'
+  const statusText = `${phrase}${message && !errorText ? ` — ${message}` : ''}`
+  // Running is a real action — it moves the step's activation date to now — so it is one link,
+  // behind a confirmation. It is "Run now" whether or not the step has run before: a scheduled
+  // date in the future made "Run again" read backwards.
+  const runLabel = !onRunNow || log?.status === 'running' ? null : 'Run now'
 
   return (
     <div className={`step-status${isError ? ' error' : ''}`}>
       <span className="step-status-text" title={statusText}>
-        {statusText}
+        {/* A failed run leads with "Failed" in red; the rest of the line stays as it was */}
+        {isError && statusText.startsWith('Failed') ? (
+          <>
+            <strong className="step-status-failed">Failed</strong>
+            {statusText.slice('Failed'.length)}
+          </>
+        ) : (
+          statusText
+        )}
       </span>
-      {errorText && (
-        <span className="step-status-error" title={errorText}>
-          <span className="step-status-error-text">{errorText}</span>
-        </span>
+      {/* An error that names a setting is shown under that setting instead */}
+      {errorText && !errorSettingName && (
+        <ProcessErrorBox summary={errorText} details={log.errorDetails} />
       )}
       {runLabel && (
         <Popconfirm
@@ -716,7 +1054,14 @@ const WorkflowStepStatus = ({
           cancelText="Cancel"
           onConfirm={onRunNow}
         >
-          <a>{runLabel}</a>
+          {/* After a failure, running again is the next thing to do, so it is a button */}
+          {isError ? (
+            <button type="button" className="btn btn-xs step-status-run">
+              {runLabel}
+            </button>
+          ) : (
+            <a>{runLabel}</a>
+          )}
         </Popconfirm>
       )}
       {log && (
@@ -819,8 +1164,10 @@ const WorkflowInvitationRow = ({
   handleExpandCollapseSubInvitations,
   workflowTasks,
   isStageInvitation,
+  errorSettingName = null,
   showDescription = true,
   descriptionSlot = null,
+  hideTitle = false,
 }) => {
   const [showEditor, setShowEditor] = useState(false)
   const { user } = useUser()
@@ -910,23 +1257,26 @@ const WorkflowInvitationRow = ({
             className="invitation-id-container"
             style={{ paddingTop: '0.25rem' }}
           >
-            <div
-              className="collapse-invitation"
-              onClick={() => handleExpandCollapseSubInvitations(invitation.id)}
-            >
-              <CaretRightOutlined
-                rotate={isCollapsed ? 0 : 90}
-                style={{ color: token.colorLink, cursor: 'pointer' }}
-              />
-            </div>
-            <span
-              className="workflow-invitation-id"
-              onClick={() => handleExpandCollapseSubInvitations(invitation.id)}
-            >
-              {/* naming keeps the original rule: steps that edit invitations were never "Create …" */}
-              {invitation.duedate || invitation.edit?.invitation ? '' : 'Create '}
-              {prettyId(invitation.id.replace(invitation.domain, ''))}
-            </span>
+            {/* In the timeline the step's own row is its title and caret. */}
+            {!hideTitle && (
+              <>
+                <div
+                  className="collapse-invitation"
+                  onClick={() => handleExpandCollapseSubInvitations(invitation.id)}
+                >
+                  <CaretRightOutlined
+                    rotate={isCollapsed ? 0 : 90}
+                    style={{ color: token.colorLink, cursor: 'pointer' }}
+                  />
+                </div>
+                <span
+                  className="workflow-invitation-id"
+                  onClick={() => handleExpandCollapseSubInvitations(invitation.id)}
+                >
+                  {getStepTitle(invitation)}
+                </span>
+              </>
+            )}
             {/* <a className="id-icon" href={`/invitation/edit?id=${invitation.id}`}>
               <Icon name="new-window" />
             </a> */}
@@ -936,19 +1286,21 @@ const WorkflowInvitationRow = ({
               </button>
             )}
             {/* TODO: won't know inner invitation is per submission or per what */}
-            <div
-              className="invitation-invitee"
-              data-toggle="tooltip"
-              title={invitees?.join('<br/>')}
-            >
-              invitation to{' '}
-              {invitees.map((p, index) => (
-                <span key={index}>
-                  {renderInvitee(p)}
-                  {index < invitees.length - 1 && ', '}
-                </span>
-              ))}
-            </div>
+            {!hideTitle && (
+              <div
+                className="invitation-invitee"
+                data-toggle="tooltip"
+                title={invitees?.join('<br/>')}
+              >
+                invitation to{' '}
+                {invitees.map((p, index) => (
+                  <span key={index}>
+                    {renderInvitee(p)}
+                    {index < invitees.length - 1 && ', '}
+                  </span>
+                ))}
+              </div>
+            )}
             <div className="expire-link" onClick={expireRestoreInvitation}>
               <a>{isExpired ? 'Enable' : 'Disable'}</a>
             </div>
@@ -959,6 +1311,7 @@ const WorkflowInvitationRow = ({
             isStageInvitation={isStageInvitation}
             hasDateProcess={isCreatingSubInvitations}
             processLogs={processLogs.filter((p) => p.invitation === invitation.id)}
+            errorSettingName={errorSettingName}
             onRunNow={
               !isStageInvitation && activationDateInvitation && !isExpired
                 ? setCDateToNow
@@ -974,7 +1327,7 @@ const WorkflowInvitationRow = ({
                 <Markdown text={invitation.instructions ?? invitation.description} />
               </div>
             )}
-          {earliestDueDate && (
+          {earliestDueDate && !hideTitle && (
             <span className="missing-value">
               Configuration tasks due {dayjs(earliestDueDate).fromNow()}
             </span>
@@ -1008,8 +1361,12 @@ const SubInvitationRow = ({
   setMissingValueInvitationIds,
   workflowInvitationsRef,
   workflowTasks,
+  workflowInvitations,
+  processError = null,
 }) => {
   const [showInvitationEditor, setShowInvitationEditor] = useState(false)
+  const runConfirmResolveRef = useRef(null)
+  const runConfirmModalId = `run-confirm-${subInvitation.id.replace(/[^\w-]/g, '_')}`
   const invitationName = prettyField(subInvitation.id.split('/').pop())
   const [subInvitationContentFieldValues, setSubInvitationContentFieldValues] = useState({})
   const isGroupInvitation = subInvitation.edit?.group // sub invitation can be group invitation too
@@ -1025,7 +1382,16 @@ const SubInvitationRow = ({
           return [key, existingFieldValue]
         })
       )
+  // In the timeline, a date setting and its step's date column point at each other on hover.
+  const markStepDates = (fieldName, e, isOn) => {
+    if (!fieldName.endsWith('_date')) return
+    e.target
+      .closest('.timeline-step')
+      ?.querySelector('.step-row .overview-period')
+      ?.classList.toggle('highlight', isOn)
+  }
   const handleHover = (fieldName, e) => {
+    markStepDates(fieldName, e, true)
     if (fieldName !== 'activation_date' && fieldName !== 'due_date') return
     const isHoverActivationDate = fieldName === 'activation_date'
     const container = e.target.closest('.workflow-invitation-container')
@@ -1040,6 +1406,7 @@ const SubInvitationRow = ({
   }
 
   const handleHoverEnd = (fieldName, e) => {
+    markStepDates(fieldName, e, false)
     if (fieldName !== 'activation_date' && fieldName !== 'due_date') return
     const isHoverActivationDate = fieldName === 'activation_date'
     const container = e.target.closest('.workflow-invitation-container')
@@ -1052,6 +1419,29 @@ const SubInvitationRow = ({
       }
     }
   }
+
+  // An automatic step runs when its activation date arrives, so saving a date that is now or past
+  // runs it straight away, with whatever settings it has. Ask first.
+  const confirmRunOnSave = (data) => {
+    const activationDate = data?.activation_date
+    if (
+      !workflowInvitation.dateprocesses?.length ||
+      typeof activationDate !== 'number' ||
+      activationDate > Date.now()
+    ) {
+      return Promise.resolve(true)
+    }
+    return new Promise((resolve) => {
+      runConfirmResolveRef.current = resolve
+      $(`#${runConfirmModalId}`).modal('show')
+    })
+  }
+
+  const missingRequiredFields = getMissingRequiredFields(
+    subInvitation,
+    workflowInvitation,
+    domainObject
+  )
 
   useEffect(() => {
     let hasMissingValue = false
@@ -1107,14 +1497,16 @@ const SubInvitationRow = ({
                   {showInvitationEditor ? 'Close' : 'Edit'}
                 </a>
               )}
-              <span>{invitationName}</span>
+              <span className="sub-invitation-name">{invitationName}</span>
               {subInvitation.duedate && !isTaskCompleted && (
-                <span className="sub-invitation-due-date">
-                  Configure by{' '}
-                  {formatDateTime(subInvitation.duedate, {
+                <span
+                  className="sub-invitation-due-date"
+                  title={formatDateTime(subInvitation.duedate, {
                     month: 'long',
                     timeZoneName: 'short',
                   })}
+                >
+                  Configure by {formatShortDate(subInvitation.duedate)}
                 </span>
               )}
             </div>
@@ -1125,7 +1517,7 @@ const SubInvitationRow = ({
             {!isGroupInvitation && (
               <ul>
                 {Object.keys(subInvitationContentFieldValues ?? {}).map((key) => (
-                  <li key={key}>
+                  <li key={key} data-field={key}>
                     <span
                       className="existing-value-field"
                       onMouseEnter={(e) => handleHover(key, e)}
@@ -1135,10 +1527,21 @@ const SubInvitationRow = ({
                     </span>
                     <span className="existing-value-field-value">
                       {subInvitationContentFieldValues[key]}
+                      {!isTask && missingRequiredFields.includes(key) && (
+                        <span className="setting-required">Required · not set</span>
+                      )}
                     </span>
                   </li>
                 ))}
               </ul>
+            )}
+            {processError && (
+              <div className="setting-error step-status error">
+                <ProcessErrorBox
+                  summary={processError.summary}
+                  details={processError.details}
+                />
+              </div>
             )}
           </div>
           <div>
@@ -1148,6 +1551,19 @@ const SubInvitationRow = ({
                 invitation={subInvitation}
                 existingValue={existingValue}
                 closeInvitationEditor={() => setShowInvitationEditor(false)}
+                confirmBeforeSubmit={confirmRunOnSave}
+                validate={(data) =>
+                  getDateOrderErrors(data, subInvitation, workflowInvitation)
+                }
+                formatSubmitError={(error, data) =>
+                  getDateSaveError(
+                    error,
+                    data,
+                    subInvitation,
+                    workflowInvitation,
+                    workflowInvitations
+                  )
+                }
                 onInvitationEditPosted={() => {
                   loadWorkflowInvitations()
                   setTimeout(() => {
@@ -1162,6 +1578,29 @@ const SubInvitationRow = ({
                 isGroupInvitation={isGroupInvitation}
               />
             )}
+            {showInvitationEditor && (
+              <BasicModal
+                id={runConfirmModalId}
+                title={`Saving will run ${getStepTitle(workflowInvitation)} now`}
+                primaryButtonText="Save and Run"
+                onPrimaryButtonClick={() => {
+                  runConfirmResolveRef.current?.(true)
+                  runConfirmResolveRef.current = null
+                  $(`#${runConfirmModalId}`).modal('hide')
+                }}
+                onClose={() => {
+                  runConfirmResolveRef.current?.(false)
+                  runConfirmResolveRef.current = null
+                }}
+              >
+                <p>
+                  {workflowInvitation.cdate <= Date.now()
+                    ? 'Its activation date is in the past, so saving can run it again right away, with its current settings.'
+                    : 'The activation date is now or in the past, so the step runs as soon as you save, with its current settings.'}
+                </p>
+                <p>If you are still changing its other settings, save those first.</p>
+              </BasicModal>
+            )}
           </div>
         </li>
       </ul>
@@ -1171,7 +1610,7 @@ const SubInvitationRow = ({
 
 // Timeline, Ongoing and Groups open the same way: the title, an optional action beside it, and a
 // line on what the section holds.
-// A section that opens and closes (PC Actions) gets a caret before its title; both toggle it.
+// A section that opens and closes (Ongoing Actions) gets a caret before its title; both toggle it.
 const WorkflowSectionHeading = ({ title, action, description, isOpen, onToggle }) => {
   const { token } = theme.useToken()
   return (
@@ -1290,8 +1729,8 @@ const PeopleList = ({ people, onClose }) => {
 }
 
 // Groups: a view of every group in the venue with its size. A recruited group also shows how its
-// invitations stand; inviting and reminding are PC actions, so the row links there.
-const GroupRow = ({ group, counts, onOpenRecruitment }) => {
+// invitations stand; inviting and reminding are ongoing actions, so the row links there.
+const GroupRow = ({ group, counts, onOpenRecruitment, onMessage, label = null }) => {
   const [showPeople, setShowPeople] = useState(false)
   const memberCount = group.members?.length ?? 0
   return (
@@ -1299,10 +1738,19 @@ const GroupRow = ({ group, counts, onOpenRecruitment }) => {
       <div className="rec-head">
         <h5 className="rec-title">
           <a href={groupUrl(group.id, group.domain, { edit: true })}>
-            {prettyId(group.id, true)}
+            {label ?? prettyId(group.id, true)}
           </a>
         </h5>
         <span className="rec-members">{inflect(memberCount, 'member', 'members', true)}</span>
+        {onMessage && memberCount > 0 && (
+          <button
+            type="button"
+            className="btn btn-xs rec-message"
+            onClick={() => onMessage(group)}
+          >
+            Message
+          </button>
+        )}
         <a className="rec-open" href={groupUrl(group.id, group.domain, { edit: true })}>
           Open group page
         </a>
@@ -1339,7 +1787,7 @@ const GroupRow = ({ group, counts, onOpenRecruitment }) => {
               className="rec-link"
               onClick={() => onOpenRecruitment(group.id)}
             >
-              Invite or remind in PC Actions
+              Invite or remind in Ongoing Actions
             </button>
           </div>
           {showPeople && (
@@ -1351,9 +1799,16 @@ const GroupRow = ({ group, counts, onOpenRecruitment }) => {
   )
 }
 
-// PC Actions: one row per recruited role. Invite and Remind open the role's own recruitment
+// Ongoing Actions: one row per recruited role. Invite and Remind open the role's own recruitment
 // invitations in the shared editor.
-const RecruitmentActionRow = ({ group, groupInvitations, counts, reloadGroup, focusTick }) => {
+const RecruitmentActionRow = ({
+  group,
+  groupInvitations,
+  counts,
+  reloadGroup,
+  focusTick,
+  label = null,
+}) => {
   const [activeGroupInvitation, setActiveGroupInvitation] = useState(null)
   const [isFlashing, setIsFlashing] = useState(false)
   const rowRef = useRef(null)
@@ -1381,7 +1836,7 @@ const RecruitmentActionRow = ({ group, groupInvitations, counts, reloadGroup, fo
   return (
     <div className={`rec-action-row${isFlashing ? ' rec-flash' : ''}`} ref={rowRef}>
       <div className="rec-action-head">
-        <span className="rec-action-name">Recruit {roleName}</span>
+        <span className="rec-action-name">{label ?? `Recruit ${roleName}`}</span>
         <span className="rec-action-state">
           {counts?.invited
             ? `${formatCount(counts.accepted)} accepted · ${formatCount(counts.awaiting)} not replied`
@@ -1393,22 +1848,26 @@ const RecruitmentActionRow = ({ group, groupInvitations, counts, reloadGroup, fo
             const isReminder = isReminderInvitation(groupInvitation.id)
             // Nothing to remind when nobody is holding an unanswered invitation.
             const isDisabled = isReminder && !counts?.awaiting
+            // A disabled button shows no tooltip of its own, so its wrapper says why.
             return (
-              <Button
+              <Tooltip
                 key={groupInvitation.id}
-                size="small"
-                type={isActive || isReminder ? 'default' : 'primary'}
-                disabled={isDisabled}
-                title={prettyInvitationId(groupInvitation.id)}
-                onClick={() => setActiveGroupInvitation(isActive ? null : groupInvitation)}
+                title={isDisabled ? 'Nobody is waiting on a reply.' : null}
               >
-                {isActive ? 'Close' : getActionLabel(groupInvitation.id)}
-              </Button>
+                <span className={isReminder ? 'rec-action-secondary' : 'rec-action-primary'}>
+                  <Button
+                    size="small"
+                    type={isActive || isReminder ? 'default' : 'primary'}
+                    disabled={isDisabled}
+                    title={isDisabled ? undefined : prettyInvitationId(groupInvitation.id)}
+                    onClick={() => setActiveGroupInvitation(isActive ? null : groupInvitation)}
+                  >
+                    {isActive ? 'Close' : getActionLabel(groupInvitation.id)}
+                  </Button>
+                </span>
+              </Tooltip>
             )
           })}
-          {groupInvitations.some((p) => isReminderInvitation(p.id)) && !counts?.awaiting && (
-            <span className="rec-why">Nobody is waiting on a reply.</span>
-          )}
         </div>
       </div>
       {activeGroupInvitation && (
@@ -1433,44 +1892,159 @@ const RecruitmentActionRow = ({ group, groupInvitations, counts, reloadGroup, fo
   )
 }
 
-// Venue information and emergency shutdown each have their own tab — one is a long form, the
-// other needs its warning and typed confirmation — so these rows switch to it.
-const openGroupTab = (tabId) => {
-  document.querySelector(`a[role="tab"][href="#${tabId}"]`)?.click()
-  window.scrollTo({ top: 0 })
+// Ongoing Actions: one row per committee with assignments. Drafting happens on the assignments page;
+// the deployment step then puts a chosen assignment in place on its activation date, so the row
+// says where that stands.
+const getDeploymentState = (deploymentInvitation, processLogs) => {
+  if (!deploymentInvitation) return null
+  const lastRun = getLastRun(deploymentInvitation.id, processLogs)
+  if (lastRun?.status === 'error') return 'Deployment failed'
+  if (lastRun)
+    return `Deployed ${formatShortDate(lastRun.edate ?? deploymentInvitation.cdate)}`
+  if (deploymentInvitation.cdate > Date.now()) {
+    return `Deployment scheduled for ${formatShortDate(deploymentInvitation.cdate)}`
+  }
+  return 'Not deployed yet'
 }
 
-const VenueActions = () => (
-  <div className="ongoing-step rec-action-group">
-    <div className="ongoing-stage">Venue</div>
-    <div className="rec-action-row">
-      <div className="rec-action-head">
-        <span className="rec-action-name">Venue information</span>
-        <span className="rec-action-state">
-          Title, dates, location, contact and the venue&apos;s settings
-        </span>
-        <div className="rec-actions inline">
-          <Button size="small" onClick={() => openGroupTab('groupContent')}>
-            Edit venue information
+const AssignmentActionRow = ({
+  role,
+  venueId,
+  deploymentState,
+  stageName,
+  onViewStage,
+  label = null,
+}) => (
+  <div className="rec-action-row">
+    <div className="rec-action-head">
+      <span className="rec-action-name">{label ?? `Assign ${prettyField(role)}`}</span>
+      {deploymentState && <span className="rec-action-state">{deploymentState}</span>}
+      <div className="rec-actions inline">
+        <span className="rec-action-primary">
+          <Button size="small" type="primary" href={`/assignments?group=${venueId}/${role}`}>
+            Create draft assignments
           </Button>
-        </div>
-      </div>
-    </div>
-    <div className="rec-action-row">
-      <div className="rec-action-head">
-        <span className="rec-action-name">Emergency shutdown</span>
-        <span className="rec-action-state">
-          Suspends all access for everyone except the organizers
         </span>
-        <div className="rec-actions inline">
-          <Button size="small" danger onClick={() => openGroupTab('emergencyShutdown')}>
-            Emergency shutdown…
-          </Button>
-        </div>
+        {stageName && (
+          <span className="rec-action-secondary">
+            <Button size="small" onClick={() => onViewStage(stageName)}>
+              View stage
+            </Button>
+          </span>
+        )}
       </div>
     </div>
   </div>
 )
+
+// Venue information and emergency shutdown are done right here: the venue's information opens its
+// edit form in place, and the shutdown opens the same typed confirmation as its tab.
+const VenueActions = ({ group }) => {
+  const [openPanel, setOpenPanel] = useState(null)
+  const [venueInformationInvitation, setVenueInformationInvitation] = useState(null)
+  const togglePanel = (panel) => setOpenPanel((p) => (p === panel ? null : panel))
+
+  // The invitation that edits the venue group's own content (title, website, dates, contact).
+  const loadVenueInformationInvitation = async () => {
+    try {
+      const result = await api.get('/invitations', {
+        'edit.group.id': group.id,
+        details: 'writable',
+      })
+      setVenueInformationInvitation(
+        (result.invitations ?? []).find(
+          (p) => p.details?.writable && p.edit?.group?.content && p.edit?.content
+        ) ?? null
+      )
+    } catch (error) {
+      promptError(error.message)
+    }
+  }
+
+  return (
+    <div className="ongoing-step rec-action-group">
+      <div className="ongoing-stage">Venue</div>
+      <div className="rec-action-row">
+        <div className="rec-action-head">
+          <span className="rec-action-name">Venue information</span>
+          <span className="rec-action-state">
+            Title, dates, location, contact and the venue&apos;s settings
+          </span>
+          <div className="rec-actions inline">
+            <span className="rec-action-primary">
+              <Button
+                size="small"
+                type={openPanel === 'information' ? 'default' : undefined}
+                onClick={() => {
+                  if (!venueInformationInvitation) loadVenueInformationInvitation()
+                  togglePanel('information')
+                }}
+              >
+                {openPanel === 'information' ? 'Close' : 'Edit venue information'}
+              </Button>
+            </span>
+          </div>
+        </div>
+        {openPanel === 'information' && (
+          <div className="rec-panel venue-panel">
+            {venueInformationInvitation ? (
+              <>
+                {venueInformationInvitation.description && (
+                  <div className="group-description">
+                    <Markdown text={venueInformationInvitation.description} />
+                  </div>
+                )}
+                <InvitationEditor
+                  className="workflow-editor"
+                  invitation={venueInformationInvitation}
+                  existingValue={Object.fromEntries(
+                    Object.keys(venueInformationInvitation.edit.content).map((key) => [
+                      key,
+                      group.content?.[key]?.value,
+                    ])
+                  )}
+                  closeInvitationEditor={() => setOpenPanel(null)}
+                  onInvitationEditPosted={() => {
+                    promptMessage('Venue information is updated')
+                    setOpenPanel(null)
+                  }}
+                  isGroupInvitation={true}
+                  group={group}
+                />
+              </>
+            ) : (
+              <LoadingSpinner inline text={null} />
+            )}
+          </div>
+        )}
+      </div>
+      <div className="rec-action-row">
+        <div className="rec-action-head">
+          <span className="rec-action-name">Emergency shutdown</span>
+          <span className="rec-action-state">
+            Suspends all access for everyone except the organizers
+          </span>
+          <div className="rec-actions inline">
+            <span className="rec-action-primary">
+              <Button
+                size="small"
+                danger={openPanel !== 'shutdown'}
+                onClick={() => togglePanel('shutdown')}
+              >
+                {openPanel === 'shutdown' ? 'Close' : 'Emergency shutdown…'}
+              </Button>
+            </span>
+          </div>
+        </div>
+        {openPanel === 'shutdown' && (
+          <div className="rec-panel venue-panel shutdown-panel">
+            <GroupRestrictGroup group={group} title={null} />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
 
 const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
   const [stageToAdd, setStageToAdd] = useState(null)
@@ -1505,6 +2079,347 @@ const AddStageInvitationSection = ({ stageInvitations, venueId }) => {
       )}
     </div>
   )
+}
+
+// The venue's committees, most senior first, from the role lists on its group.
+const committeeRoleFields = [
+  'senior_area_chair_roles',
+  'area_chair_roles',
+  'reviewer_roles',
+  'ethics_reviewer_roles',
+]
+// A stage repeated for each track of a committee ("bidding - Econ_Senior_Area_Chairs") belongs to
+// a family, keyed by the stage and the committee's role field. The role field's first entry is the
+// committee itself; the others are its tracks.
+const getCommitteeFamily = (role, group) => {
+  const field = committeeRoleFields.find((p) => group.content?.[p]?.value?.includes(role))
+  const roles = field ? group.content[field].value : []
+  if (roles.length < 2) return null
+  const baseRole = roles[0]
+  return {
+    key: field,
+    baseRole,
+    track: role === baseRole ? 'Main' : prettyField(role.replace(`_${baseRole}`, '')),
+  }
+}
+
+const getStageFamily = (workflowStageName, group) => {
+  const [stageName, committee] = workflowStageName.split(' - ')
+  if (!committee) return null
+  const family = getCommitteeFamily(committee, group)
+  if (!family) return null
+  return {
+    key: `${stageName} - ${family.key}`,
+    label: `${stageName} - ${family.baseRole}`,
+    track: family.track,
+  }
+}
+
+// Items of the same committee family, in their original order; a family of one stays on its own.
+const groupByCommitteeFamily = (items, getRole, group) => {
+  const groups = []
+  const indexByKey = {}
+  items.forEach((item) => {
+    const family = getCommitteeFamily(getRole(item), group)
+    if (!family) {
+      groups.push({ family: null, items: [item] })
+      return
+    }
+    if (indexByKey[family.key] === undefined) {
+      indexByKey[family.key] = groups.length
+      groups.push({ family, items: [] })
+    }
+    groups[indexByKey[family.key]].items.push(item)
+  })
+  return groups.flatMap((p) =>
+    p.family && p.items.length < 2 ? p.items.map((q) => ({ family: null, items: [q] })) : [p]
+  )
+}
+
+// A committee's tracks under one heading in Ongoing Actions and Groups, as on the timeline.
+// `openSignal` opens it from outside, e.g. when a group's card asks to show its recruitment.
+const TrackFamily = ({
+  title,
+  trackCount,
+  summary,
+  openSignal = 0,
+  actions = null,
+  panel = null,
+  children,
+}) => {
+  const [isOpen, setIsOpen] = useState(false)
+  useEffect(() => {
+    if (openSignal) setIsOpen(true)
+  }, [openSignal])
+  return (
+    <div className={`track-family${isOpen ? ' open' : ''}`}>
+      <div className="track-family-head">
+        <button
+          type="button"
+          className="track-family-toggle"
+          aria-expanded={isOpen}
+          onClick={() => setIsOpen((p) => !p)}
+        >
+          <CaretRightOutlined rotate={isOpen ? 90 : 0} className="track-family-caret" />
+          <span className="track-family-title">{title}</span>
+          <span className="overview-tracks">{trackCount} tracks</span>
+          {summary && <span className="track-family-summary">{summary}</span>}
+        </button>
+        {actions}
+      </div>
+      {panel}
+      {isOpen && <div className="track-family-body">{children}</div>}
+    </div>
+  )
+}
+
+// Recruitment for a committee with tracks, acted on from its heading: one invite box with a track
+// picker, and a reminder to everyone still holding an invitation, track by track. Each track's
+// reminder is sent with its own default wording, so every email names the right track.
+const RecruitmentFamily = ({
+  family,
+  items,
+  getTrack,
+  summary,
+  openSignal,
+  reloadGroup,
+  children,
+}) => {
+  const [isInviteOpen, setIsInviteOpen] = useState(false)
+  const [inviteGroupId, setInviteGroupId] = useState(items[0]?.group.id)
+  const [remindProgress, setRemindProgress] = useState(null)
+  const getReminder = (item) => item.groupInvitations.find((p) => isReminderInvitation(p.id))
+  const remindItems = items.filter((p) => p.counts?.awaiting > 0 && getReminder(p))
+  const remindCount = remindItems.reduce((sum, p) => sum + p.counts.awaiting, 0)
+  const inviteItem = items.find((p) => p.group.id === inviteGroupId)
+  const inviteInvitation = inviteItem?.groupInvitations.find(
+    (p) => !isReminderInvitation(p.id)
+  )
+
+  const remindAll = async () => {
+    const failed = []
+    setRemindProgress({ done: 0, total: remindItems.length, failed })
+    for (let i = 0; i < remindItems.length; i += 1) {
+      const reminder = getReminder(remindItems[i])
+      const content = Object.fromEntries(
+        Object.entries(reminder.edit?.content ?? {})
+          .map(([key, field]) => [key, { value: field?.value?.param?.default }])
+          .filter(([, field]) => field.value !== undefined)
+      )
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        await api.post('/groups/edits', {
+          invitation: reminder.id,
+          ...(Array.isArray(reminder.edit?.signatures)
+            ? { signatures: reminder.edit.signatures }
+            : {}),
+          content,
+        })
+      } catch {
+        failed.push(getTrack(remindItems[i]))
+      }
+      setRemindProgress({ done: i + 1, total: remindItems.length, failed: [...failed] })
+    }
+    reloadGroup()
+  }
+
+  const actions = (
+    <div className="rec-actions inline">
+      <span className="rec-action-primary">
+        <Button
+          size="small"
+          type={isInviteOpen ? 'default' : 'primary'}
+          onClick={() => setIsInviteOpen((p) => !p)}
+        >
+          {isInviteOpen ? 'Close' : 'Invite…'}
+        </Button>
+      </span>
+      <span className="rec-action-secondary">
+        <Tooltip title={remindCount ? null : 'Nobody is waiting on a reply.'}>
+          <span>
+            <Popconfirm
+              title={`Remind ${formatCount(remindCount)}?`}
+              description={`Sends each of ${inflect(remindItems.length, 'track', 'tracks', true)} its reminder email, to the people who haven't replied.`}
+              okText="Send reminders"
+              cancelText="Cancel"
+              onConfirm={remindAll}
+              disabled={!remindCount}
+            >
+              <Button
+                size="small"
+                disabled={!remindCount || remindProgress?.done < remindProgress?.total}
+              >
+                {remindCount ? `Remind all ${formatCount(remindCount)}` : 'Remind all'}
+              </Button>
+            </Popconfirm>
+          </span>
+        </Tooltip>
+      </span>
+    </div>
+  )
+
+  const panel = (
+    <>
+      {remindProgress && (
+        <p className="rec-status family-status" role="status" aria-live="polite">
+          {remindProgress.done < remindProgress.total
+            ? `Sending reminders… ${remindProgress.done} of ${remindProgress.total} tracks`
+            : `Reminders sent to ${remindProgress.total - remindProgress.failed.length} of ${inflect(remindProgress.total, 'track', 'tracks', true)}.`}
+          {remindProgress.failed.length > 0 && (
+            <span className="rec-error"> Failed: {remindProgress.failed.join(', ')}.</span>
+          )}
+        </p>
+      )}
+      {isInviteOpen && (
+        <div className="rec-panel family-invite">
+          <label className="family-invite-label">
+            Invite to
+            <Select
+              size="small"
+              className="family-invite-track"
+              value={inviteGroupId}
+              onChange={setInviteGroupId}
+              popupMatchSelectWidth={false}
+              options={items.map((p) => ({ value: p.group.id, label: getTrack(p) }))}
+            />
+          </label>
+          {inviteInvitation && (
+            <InvitationEditor
+              key={inviteInvitation.id}
+              className="workflow-editor"
+              invitation={inviteInvitation}
+              existingValue={{}}
+              closeInvitationEditor={() => setIsInviteOpen(false)}
+              onInvitationEditPosted={() => {
+                promptMessage('Edit is posted')
+                reloadGroup()
+              }}
+              isGroupInvitation={true}
+            />
+          )}
+        </div>
+      )}
+    </>
+  )
+
+  return (
+    <TrackFamily
+      title={`Recruit ${prettyField(family.baseRole)}`}
+      trackCount={items.length}
+      summary={summary}
+      openSignal={openSignal}
+      actions={actions}
+      panel={panel}
+    >
+      {children}
+    </TrackFamily>
+  )
+}
+
+const getCommitteeRoles = (group) => [
+  ...new Set(committeeRoleFields.flatMap((field) => group.content?.[field]?.value ?? [])),
+]
+
+// The committee filter offers each committee once, with its tracks, plus Authors.
+const getCommitteeFilters = (group) => [
+  ...committeeRoleFields.flatMap((field) => {
+    const roles = group.content?.[field]?.value ?? []
+    return roles.length ? [{ value: field, label: prettyField(roles[0]), roles }] : []
+  }),
+  ...(group.content?.authors_id?.value
+    ? [
+        {
+          value: 'authors',
+          label: 'Authors',
+          roles: [group.content.authors_id.value.split('/').pop()],
+        },
+      ]
+    : []),
+]
+
+// A stage is for a committee when it is named for it or one of its tracks
+// ("bidding - Econ_Reviewers"), or when one of its steps is handed to that committee's members on
+// each submission (".../Submission{number}/Reviewers"). A step the committee may merely use, such
+// as editing another committee's draft assignments, does not count. Authors also own the
+// submission itself, which is open to everyone ("~").
+const isStageForCommittee = (workflowStage, committeeFilter, venueId) => {
+  const committee = workflowStage.workflowStageName.split(' - ')[1]
+  if (committee && committeeFilter.roles.includes(committee)) return true
+  return workflowStage.invitationsOfWorkflowStageName.some((invitation) => {
+    const invitees = invitation.edit?.invitation?.invitees ?? invitation.invitees ?? []
+    return invitees.some(
+      (invitee) =>
+        (invitee.startsWith(`${venueId}/Submission`) &&
+          committeeFilter.roles.some((role) => invitee.endsWith(`/${role}`))) ||
+        (committeeFilter.value === 'authors' && invitee === '~')
+    )
+  })
+}
+
+// Phases group the stages under flat headings; a stage's phase comes from its name.
+const workflowPhases = [
+  { key: 'recruitment', label: 'Recruitment', stages: ['recruitment', 'registration'] },
+  { key: 'submission', label: 'Submission', stages: ['submission', 'withdrawal'] },
+  { key: 'assignment', label: 'Assignment', stages: ['bidding', 'assignment'] },
+  {
+    key: 'reviewing',
+    label: 'Reviewing',
+    stages: ['reviewing', 'review', 'rebuttal', 'discussion', 'meta_review', 'ethics_review'],
+  },
+  { key: 'decision', label: 'Decision', stages: ['decision'] },
+  {
+    key: 'release',
+    label: 'Camera-ready & release',
+    stages: ['camera_ready', 'public_release', 'release'],
+  },
+  { key: 'statistics', label: 'Statistics', stages: ['statistics'] },
+]
+const getStagePhase = (workflowStageName) =>
+  workflowPhases.find((p) => p.stages.includes(workflowStageName.split(' - ')[0])) ?? {
+    key: 'other',
+    label: 'Other',
+  }
+
+// Stages, in order, gathered under each phase they run through.
+const groupStagesByPhase = (items, getName) => {
+  const sections = []
+  items.forEach((item) => {
+    const phase = getStagePhase(getName(item))
+    const last = sections[sections.length - 1]
+    if (last && last.phase.key === phase.key) last.items.push(item)
+    else sections.push({ phase, items: [item] })
+  })
+  return sections
+}
+
+const getPhaseSpanLabel = (stages) => {
+  const starts = stages.map((p) => p.periodStart).filter(Boolean)
+  const ends = stages.map((p) => p.periodEnd).filter(Boolean)
+  if (!starts.length) return null
+  const start = Math.min(...starts)
+  const end = ends.length ? Math.max(...ends) : start
+  const crossesYear = dayjs(start).year() !== dayjs(end).year()
+  return end === start
+    ? formatShortDate(start)
+    : `${formatShortDate(start, crossesYear)} – ${formatShortDate(end, crossesYear)}`
+}
+
+// A setting the step needs before it can run: its field is not optional and holds no value yet.
+// Values live on the step itself, or for venue-wide settings on the venue group's content.
+const isEmptySettingValue = (value) =>
+  value === undefined ||
+  value === null ||
+  value === '' ||
+  (Array.isArray(value) && value.length === 0)
+
+const getMissingRequiredFields = (subInvitation, workflowInvitation, domainContent) => {
+  if (subInvitation.edit?.group) return []
+  return Object.entries(subInvitation.edit?.content ?? {}).flatMap(([key, field]) => {
+    if (field?.value?.param?.optional) return []
+    const path = getPath(subInvitation.edit.invitation, key)
+    const value = path ? get(workflowInvitation, path) : domainContent?.[key]?.value
+    return isEmptySettingValue(value) ? [key] : []
+  })
 }
 
 const getSortedWorkflowStages = (invitations, workflowStageOrder = []) => {
@@ -1542,31 +2457,12 @@ const getSortedWorkflowStages = (invitations, workflowStageOrder = []) => {
   return sortedWorkflowStages
 }
 
-const WorkflowStageHeader = ({ workflowStage, stageIndex }) => {
-  const { workflowStageName, invitationsOfWorkflowStageName } = workflowStage
-  const { token } = theme.useToken()
-
-  return (
-    <Flex align="center" gap="middle">
-      <Typography.Text strong style={{ color: token.colorError, fontSize: '0.75rem' }}>
-        {stageIndex + 1}
-      </Typography.Text>
-      <Typography.Title level={5} style={{ marginTop: 0, marginBottom: 0 }}>
-        {prettyField(workflowStageName)}
-      </Typography.Title>
-      <Typography.Text type="secondary">
-        {inflect(invitationsOfWorkflowStageName.length, 'step', 'steps', true)}
-      </Typography.Text>
-    </Flex>
-  )
-}
-
 const WorkflowStagePeriod = ({ workflowStage }) => {
   const { periodStart, periodEnd } = workflowStage
   if (!periodStart) {
     return (
       <Typography.Text type="secondary" italic>
-        No end date
+        Ongoing
       </Typography.Text>
     )
   }
@@ -1615,9 +2511,9 @@ const WorkFlowInvitations = ({ group }) => {
   )
 
   const [stageStatusFilter, setStageStatusFilter] = useState('all')
-  // PC Actions can run long, so it starts collapsed.
+  // Ongoing Actions can run long, so it starts collapsed.
   const [isOngoingOpen, setIsOngoingOpen] = useState(false)
-  // Which recruited role PC Actions should scroll to, and a tick so a repeat request re-fires.
+  // Which recruited role Ongoing Actions should scroll to, and a tick so a repeat request re-fires.
   const [recruitmentFocus, setRecruitmentFocus] = useState({ groupId: null, tick: 0 })
 
   // Built from every stage, not the filtered ones, so the axis does not rescale while filtering.
@@ -1625,7 +2521,56 @@ const WorkFlowInvitations = ({ group }) => {
   const getWorkflowStageStatus = (workflowStage) =>
     getStageStatus(workflowStage.invitationsOfWorkflowStageName, processLogs)
 
-  const stageStatusCounts = workflowStages.reduce((counts, p) => {
+  const [committeeFilter, setCommitteeFilter] = useState('all')
+  const [hideCompleted, setHideCompleted] = useState(false)
+  const [needsAttentionOnly, setNeedsAttentionOnly] = useState(false)
+
+  // What a step still needs from the PC: settings due by a date, and required settings left empty
+  const getStepSetup = (stepObj) => {
+    const pendingTaskDueDates = workflowTasks
+      .filter((p) => p.workflowInvitation.id === stepObj.id && !p.isCompleted)
+      .map((p) => p.duedate)
+    const missingSettings = (stepObj.subInvitations ?? []).flatMap((subInvitation) =>
+      getMissingRequiredFields(subInvitation, stepObj, group.content).map((key) => ({
+        setting: prettyField(subInvitation.id.split('/').pop()),
+        field: prettyField(key),
+      }))
+    )
+    return {
+      setupDueDate: pendingTaskDueDates.length ? Math.min(...pendingTaskDueDates) : null,
+      missingSettings,
+    }
+  }
+
+  // Needs attention is setup the PC still has to do, flagged on the stage row so a closed stage
+  // still shows it. A failed run is the stage's Failed status instead. Disabled steps don't count.
+  const getStageAttention = (invitations) => {
+    const setupCount = invitations.filter((p) => {
+      if (p.ddate) return false
+      const { setupDueDate, missingSettings } = getStepSetup(p)
+      return setupDueDate || missingSettings.length > 0
+    }).length
+    return setupCount > 0
+      ? inflect(setupCount, 'step needs setup', 'steps need setup', true)
+      : null
+  }
+
+  const committeeFilters = getCommitteeFilters(group)
+    .map((filter) => ({
+      ...filter,
+      count: workflowStages.filter((p) => isStageForCommittee(p, filter, group.domain)).length,
+    }))
+    .filter((p) => p.count > 0)
+  const committeeFilterOptions = [
+    { value: 'all', label: 'All committees' },
+    ...committeeFilters.map((p) => ({ value: p.value, label: p.label })),
+  ]
+  const activeCommitteeFilter = committeeFilters.find((p) => p.value === committeeFilter)
+  const committeeWorkflowStages = activeCommitteeFilter
+    ? workflowStages.filter((p) => isStageForCommittee(p, activeCommitteeFilter, group.domain))
+    : workflowStages
+
+  const stageStatusCounts = committeeWorkflowStages.reduce((counts, p) => {
     const { stageStatus } = getWorkflowStageStatus(p)
     return { ...counts, [stageStatus]: (counts[stageStatus] ?? 0) + 1 }
   }, {})
@@ -1644,12 +2589,17 @@ const WorkFlowInvitations = ({ group }) => {
         ),
       })),
   ]
-  const visibleWorkflowStages =
-    stageStatusFilter === 'all'
-      ? workflowStages
-      : workflowStages.filter(
-          (p) => getWorkflowStageStatus(p).stageStatus === stageStatusFilter
-        )
+  // Hide completed leaves a finished phase as just its heading. Asking for completed stages wins.
+  const attentionStageCount = committeeWorkflowStages.filter((p) =>
+    getStageAttention(p.invitationsOfWorkflowStageName)
+  ).length
+  const visibleWorkflowStages = committeeWorkflowStages.filter((p) => {
+    if (needsAttentionOnly && !getStageAttention(p.invitationsOfWorkflowStageName))
+      return false
+    const { stageStatus } = getWorkflowStageStatus(p)
+    if (stageStatusFilter !== 'all') return stageStatus === stageStatusFilter
+    return !(hideCompleted && stageStatus === 'COMPLETED')
+  })
 
   const getGroupInvitations = (targetGroupId) =>
     sortBy(
@@ -1663,7 +2613,7 @@ const WorkFlowInvitations = ({ group }) => {
   }))
   const recruitedGroups = committeeGroups.filter((p) => p.groupInvitations.length > 0)
 
-  // PC Actions: steps with no end date, still listed in their stage but off the timeline, plus
+  // Ongoing Actions: steps with no end date, still listed in their stage but off the timeline, plus
   // recruitment and the venue-level actions.
   // Recruitment and assignment steps stay in their stages only: recruiting already has its own
   // rows here, and assignments are configured where their stage sits on the timeline.
@@ -1672,9 +2622,21 @@ const WorkFlowInvitations = ({ group }) => {
   const ongoingSteps = workflowStages
     .filter((p) => !isStageKeptOutOfPcActions(p.workflowStageName))
     .flatMap((p) => p.invitationsOfWorkflowStageName.filter((q) => isOngoingInvitation(q)))
-  const pcActionCount = ongoingSteps.length + recruitedGroups.length + 2
+  // Committees whose draft assignments are made on the assignments page.
+  const assignedCommittees = getCommitteeRoles(group).flatMap((role) => {
+    const assignmentInvitationId = `${group.domain}/${role}/-/Assignment`
+    if (!workflowInvitations?.some((p) => p.id === assignmentInvitationId)) return []
+    const deploymentInvitation = workflowInvitations.find(
+      (p) => p.id === `${group.domain}/-/${role}_Assignment_Deployment`
+    )
+    const stageName = workflowStages.find((p) =>
+      p.invitationsOfWorkflowStageName.some((q) => q.id === assignmentInvitationId)
+    )?.workflowStageName
+    return [{ role, deploymentInvitation, stageName }]
+  })
+  const pcActionCount =
+    ongoingSteps.length + recruitedGroups.length + assignedCommittees.length + 2
 
-  const { token } = theme.useToken()
   const [activeStageKeys, setActiveStageKeys] = useState(null)
   const defaultOpenStageKey = workflowStages.find(
     (p) => getWorkflowStageStatus(p).stageStatus === 'IN PROGRESS'
@@ -1689,6 +2651,17 @@ const WorkFlowInvitations = ({ group }) => {
         : [...currentKeys, workflowStageName]
     })
   }
+  // Families of track stages open on their own, so a stage list of 150 reads as about 20 rows.
+  const [openFamilyKeys, setOpenFamilyKeys] = useState([])
+  const toggleFamily = (familyKey) =>
+    setOpenFamilyKeys((keys) =>
+      keys.includes(familyKey) ? keys.filter((p) => p !== familyKey) : [...keys, familyKey]
+    )
+  const openFamilyOf = (workflowStageName) => {
+    const family = getStageFamily(workflowStageName, group)
+    if (family)
+      setOpenFamilyKeys((keys) => (keys.includes(family.key) ? keys : [...keys, family.key]))
+  }
   const toggleWorkflowStage = (workflowStageName) =>
     setActiveStageKeys(
       openStageKeys.includes(workflowStageName)
@@ -1698,20 +2671,79 @@ const WorkFlowInvitations = ({ group }) => {
 
   // The overview strip, and the mini strip once the overview has scrolled away.
   const overviewRef = useRef(null)
+  // Today is one dashed line down the whole timeline, from the month axis to the legend.
+  const stageOverviewRef = useRef(null)
+  const [nowLine, setNowLine] = useState(null)
+  // Measured once per timeline range: today's position only moves when the axis does.
+  useEffect(() => {
+    const container = stageOverviewRef.current
+    if (!container || !timelineDomain) return undefined
+    const nowPercent = timelineDomain.percentOf(Date.now())
+    const measure = () => {
+      const axisRow = container.querySelector('.overview-axis-row')
+      const track = axisRow?.querySelector('.overview-track')
+      const legend = container.querySelector('.overview-legend')
+      if (!track || !legend) return
+      const trackRect = track.getBoundingClientRect()
+      const left = Math.round(
+        trackRect.left -
+          container.getBoundingClientRect().left +
+          (nowPercent / 100) * trackRect.width
+      )
+      const top = axisRow.offsetTop + axisRow.offsetHeight
+      const height = Math.max(legend.offsetTop - top, 0)
+      setNowLine((current) =>
+        current?.left === left && current?.top === top && current?.height === height
+          ? current
+          : { left, top, height }
+      )
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(container)
+    return () => observer.disconnect()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [timelineDomain?.months[0]?.key, timelineDomain?.end, workflowStages.length])
   const [isMiniStripVisible, setIsMiniStripVisible] = useState(false)
-  const scrollToElement = (element, offset) =>
-    window.scrollTo({
-      top: element.getBoundingClientRect().top + window.scrollY - offset,
-      behavior: 'smooth',
-    })
+  // Phase headings pin just under the sticky month axis (Group.module.scss .phase-divider top)
+  const phaseDividerTop = 34
+  // A sticky phase heading reports where it is pinned, so measure it where it sits in the list.
+  const scrollToElement = (element, offset) => {
+    const { position } = element.style
+    element.style.position = 'static'
+    const top = element.getBoundingClientRect().top + window.scrollY
+    element.style.position = position
+    window.scrollTo({ top: top - offset, behavior: 'smooth' })
+  }
   // Picking a stage from the timeline shows only that stage, then scrolls to it once the
   // others have collapsed, since closing a stage above shifts the target.
   const selectWorkflowStage = (workflowStageName) => {
     setActiveStageKeys([workflowStageName])
+    openFamilyOf(workflowStageName)
     setTimeout(() => {
       const element = document.getElementById(`stage-${workflowStageName}`)
       if (element) scrollToElement(element, 64)
     }, 0)
+  }
+  const jumpToPhase = (phaseKey) => {
+    const scrollToPhase = () => {
+      const element = document.getElementById(`phase-${phaseKey}`)
+      // the heading lands where it pins, just under the sticky month axis
+      if (element) scrollToElement(element, phaseDividerTop)
+      return !!element
+    }
+    if (scrollToPhase()) return
+    setCommitteeFilter('all')
+    setStageStatusFilter('all')
+    setHideCompleted(false)
+    setNeedsAttentionOnly(false)
+    setTimeout(scrollToPhase, 0)
+  }
+  // A group card's Message writes to everyone in the group, through the site's own modal
+  const [groupToMessage, setGroupToMessage] = useState(null)
+  const openGroupMessage = (targetGroup) => {
+    setGroupToMessage(targetGroup)
+    setTimeout(() => $('#message-group-members').modal('show'), 0)
   }
   const openRecruitment = (targetGroupId) => {
     setIsOngoingOpen(true)
@@ -2116,7 +3148,7 @@ const WorkFlowInvitations = ({ group }) => {
       isStageInvitation,
     } = stepObj
     const isRowCollapsed = collapsedWorkflowInvitationIds.includes(id)
-    // A step in a stage, or under PC Actions, is a two-column row: the step, then its bar on the
+    // A step in a stage, or under Ongoing Actions, is a two-column row: the step, then its bar on the
     // stage's own axis. The description stays visible collapsed or not; opening the step adds
     // only its configuration, spanning both columns.
     const isHybridRow = isInWorkflowStage || inOngoing
@@ -2142,6 +3174,7 @@ const WorkFlowInvitations = ({ group }) => {
             setMissingValueInvitationIds={setMissingValueInvitationIds}
             workflowInvitationsRef={workflowInvitationsRef}
             workflowTasks={workflowTasks}
+            workflowInvitations={workflowInvitations}
           />
         ))}
       </motion.div>
@@ -2185,7 +3218,7 @@ const WorkFlowInvitations = ({ group }) => {
         key={id}
         transition={{ duration: 0.5 }}
         ref={(el) => {
-          // The copy in PC Actions must not take the ref used to scroll back to a step.
+          // The copy in Ongoing Actions must not take the ref used to scroll back to a step.
           if (!inOngoing) workflowInvitationsRef.current[id] = el
         }}
         className="motion-div"
@@ -2217,6 +3250,94 @@ const WorkFlowInvitations = ({ group }) => {
           </div>
         )}
       </motion.div>
+    )
+  }
+
+  const renderTimelineStep = (stepObj) => {
+    const { id, isExpired, isMissingValue, subInvitations, isStageInvitation } = stepObj
+    const isCollapsed = collapsedWorkflowInvitationIds.includes(id)
+    const log = getProcessLogStatus(processLogs.filter((p) => p.invitation === id))
+    // A failed run stays visible on the collapsed step, so nobody has to open it to find out.
+    const errorText = log?.status === 'error' ? (log.error ?? log.message) : null
+    const errorSetting = errorText ? getErrorSetting(errorText, stepObj, subInvitations) : null
+    const description = stepObj.instructions ?? stepObj.description
+    const { setupDueDate, missingSettings } = getStepSetup(stepObj)
+    return (
+      <div
+        key={id}
+        className={`timeline-step${isCollapsed ? '' : ' open'}${isExpired ? ' expired' : ''}`}
+        ref={(el) => {
+          workflowInvitationsRef.current[id] = el
+        }}
+      >
+        <StepTimelineRow
+          invitation={stepObj}
+          domain={timelineDomain}
+          processLogs={processLogs}
+          isOpen={!isCollapsed}
+          isFailed={!!errorText}
+          setupDueDate={setupDueDate}
+          missingSettingCount={missingSettings.length}
+          isDisabled={!!isExpired}
+          onToggle={() => handleExpandCollapseSubInvitations(id)}
+        />
+        {isCollapsed && errorText && (
+          <div className="timeline-step-error step-status error">
+            <span className="step-status-error" title={errorText}>
+              <span className="step-status-error-text">{errorText}</span>
+            </span>
+          </div>
+        )}
+        {!isCollapsed && (
+          <div className="workflow-invitation-container timeline-step-detail">
+            <div className="edit-invitation-info">
+              <WorkflowInvitationRow
+                invitation={stepObj}
+                subInvitations={subInvitations}
+                isDomainGroup={group.id !== group.domain}
+                processLogs={processLogs}
+                isExpired={isExpired}
+                loadWorkflowInvitations={loadAllInvitations}
+                isMissingValue={isMissingValue}
+                collapsedWorkflowInvitationIds={collapsedWorkflowInvitationIds}
+                handleExpandCollapseSubInvitations={handleExpandCollapseSubInvitations}
+                workflowTasks={workflowTasks}
+                isStageInvitation={isStageInvitation}
+                errorSettingName={
+                  errorSetting && prettyField(errorSetting.subInvitationId.split('/').pop())
+                }
+                showDescription={false}
+                hideTitle={true}
+                descriptionSlot={
+                  description && (
+                    <div className="invitation-description step-blurb">
+                      <Markdown text={description} />
+                    </div>
+                  )
+                }
+              />
+              {subInvitations.map((subInvitation) => (
+                <SubInvitationRow
+                  key={subInvitation.id}
+                  subInvitation={subInvitation}
+                  workflowInvitation={stepObj}
+                  loadWorkflowInvitations={loadAllInvitations}
+                  domainObject={group.content}
+                  setMissingValueInvitationIds={setMissingValueInvitationIds}
+                  workflowInvitationsRef={workflowInvitationsRef}
+                  workflowTasks={workflowTasks}
+                  workflowInvitations={workflowInvitations}
+                  processError={
+                    errorSetting?.subInvitationId === subInvitation.id
+                      ? { ...errorSetting, summary: errorText, details: log.errorDetails }
+                      : null
+                  }
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     )
   }
 
@@ -2254,6 +3375,116 @@ const WorkFlowInvitations = ({ group }) => {
 
   const hasTimeline = workflowStages.length > 0 && !!timelineDomain
 
+  // The timeline lists single stages, and families of track stages in place of their first track.
+  const timelineEntries = []
+  const familyEntryIndex = {}
+  visibleWorkflowStages.forEach((workflowStage) => {
+    const family = getStageFamily(workflowStage.workflowStageName, group)
+    if (!family) {
+      timelineEntries.push({ workflowStage })
+      return
+    }
+    if (familyEntryIndex[family.key] === undefined) {
+      familyEntryIndex[family.key] = timelineEntries.length
+      timelineEntries.push({ family, tracks: [] })
+    }
+    timelineEntries[familyEntryIndex[family.key]].tracks.push(workflowStage)
+  })
+  const familyKeys = timelineEntries.filter((p) => p.family).map((p) => p.family.key)
+
+  // Phase sections for the timeline. With Hide completed on, a phase keeps its heading, with a
+  // count of the completed stages it hides, even when nothing in it is left to show.
+  const getTimelinePhaseSections = () => {
+    const getEntryName = (entry) =>
+      entry.workflowStage?.workflowStageName ?? entry.tracks[0].workflowStageName
+    const visibleSections = groupStagesByPhase(timelineEntries, getEntryName)
+    if (!hideCompleted || stageStatusFilter !== 'all' || needsAttentionOnly) {
+      return visibleSections.map((p) => ({ ...p, hiddenCount: 0 }))
+    }
+    const hiddenByPhase = {}
+    committeeWorkflowStages.forEach((p) => {
+      if (getWorkflowStageStatus(p).stageStatus !== 'COMPLETED') return
+      const { key } = getStagePhase(p.workflowStageName)
+      hiddenByPhase[key] = (hiddenByPhase[key] ?? 0) + 1
+    })
+    const sections = []
+    groupStagesByPhase(committeeWorkflowStages, (p) => p.workflowStageName).forEach(
+      ({ phase }) => {
+        if (sections.some((p) => p.phase.key === phase.key)) return
+        const visible = visibleSections.filter((p) => p.phase.key === phase.key)
+        sections.push({
+          phase,
+          items: visible.flatMap((p) => p.items),
+          hiddenCount: hiddenByPhase[phase.key] ?? 0,
+        })
+      }
+    )
+    return sections
+  }
+
+  const renderTimelineStage = (workflowStage, extraClassName = '', trackName = null) => {
+    const { workflowStageName, invitationsOfWorkflowStageName } = workflowStage
+    const isOpen = openStageKeys.includes(workflowStageName)
+    return (
+      <div
+        key={workflowStageName}
+        id={`stage-${workflowStageName}`}
+        className={`timeline-stage${isOpen ? ' open' : ''}${extraClassName}`}
+      >
+        <StageOverviewRow
+          workflowStage={workflowStage}
+          status={getWorkflowStageStatus(workflowStage)}
+          domain={timelineDomain}
+          isOpen={isOpen}
+          onSelect={toggleWorkflowStage}
+          processLogs={processLogs}
+          trackName={trackName}
+          attention={getStageAttention(invitationsOfWorkflowStageName)}
+        />
+        {isOpen && invitationsOfWorkflowStageName.map(renderTimelineStep)}
+      </div>
+    )
+  }
+
+  // A family row draws every track's steps on one row; the tracks open beneath it.
+  const renderTimelineFamily = ({ family, tracks }) => {
+    const isOpen = openFamilyKeys.includes(family.key)
+    const starts = tracks.map((p) => p.periodStart).filter(Boolean)
+    const ends = tracks.map((p) => p.periodEnd).filter(Boolean)
+    const familyStage = {
+      workflowStageName: family.label,
+      invitationsOfWorkflowStageName: tracks.flatMap((p) => p.invitationsOfWorkflowStageName),
+      periodStart: starts.length ? Math.min(...starts) : undefined,
+      periodEnd: ends.length ? Math.max(...ends) : undefined,
+    }
+    return (
+      <div
+        key={family.key}
+        id={`family-${family.key}`}
+        className={`timeline-family${isOpen ? ' open' : ''}`}
+      >
+        <StageOverviewRow
+          workflowStage={familyStage}
+          status={getWorkflowStageStatus(familyStage)}
+          domain={timelineDomain}
+          isOpen={isOpen}
+          onSelect={() => toggleFamily(family.key)}
+          processLogs={processLogs}
+          trackCount={tracks.length}
+          attention={getStageAttention(familyStage.invitationsOfWorkflowStageName)}
+        />
+        {isOpen &&
+          tracks.map((p) =>
+            renderTimelineStage(
+              p,
+              ' track-stage',
+              getStageFamily(p.workflowStageName, group)?.track
+            )
+          )}
+      </div>
+    )
+  }
+
   return (
     <>
       {hasTimeline && (
@@ -2272,31 +3503,32 @@ const WorkFlowInvitations = ({ group }) => {
               Timeline ↑
             </button>
             <div className="mini-strip-stages">
-              {workflowStages.map((workflowStage, index) => {
-                const { workflowStageName } = workflowStage
-                const status = getWorkflowStageStatus(workflowStage)
-                const isOpen = openStageKeys.includes(workflowStageName)
-                return (
-                  <button
-                    type="button"
-                    key={workflowStageName}
-                    className={`mini-stage${isOpen ? ' current' : ''}`}
-                    tabIndex={isMiniStripVisible ? 0 : -1}
-                    aria-current={isOpen ? 'true' : undefined}
-                    onClick={() => selectWorkflowStage(workflowStageName)}
-                    title={`${prettyField(workflowStageName)} — ${stageStatusFilterLabels[status.stageStatus]}`}
-                  >
-                    <span
-                      className={`stage-status-glyph ${status.stageStatusColor}`}
-                      aria-hidden="true"
+              {groupStagesByPhase(workflowStages, (p) => p.workflowStageName).map(
+                ({ phase, items }, sectionIndex) => {
+                  const status = getStageStatus(
+                    items.flatMap((p) => p.invitationsOfWorkflowStageName),
+                    processLogs
+                  )
+                  return (
+                    <button
+                      type="button"
+                      key={`${phase.key}-${sectionIndex}`}
+                      className="mini-stage"
+                      tabIndex={isMiniStripVisible ? 0 : -1}
+                      onClick={() => jumpToPhase(phase.key)}
+                      title={`${phase.label} — ${stageStatusFilterLabels[status.stageStatus]}`}
                     >
-                      <StageStatusGlyph statusColor={status.stageStatusColor} />
-                    </span>
-                    <span className="mini-stage-index">{index + 1}</span>
-                    <span className="mini-stage-name">{prettyField(workflowStageName)}</span>
-                  </button>
-                )
-              })}
+                      <span
+                        className={`stage-status-glyph ${status.stageStatusColor}`}
+                        aria-hidden="true"
+                      >
+                        <StageStatusGlyph statusColor={status.stageStatusColor} />
+                      </span>
+                      <span className="mini-stage-name">{phase.label}</span>
+                    </button>
+                  )
+                }
+              )}
             </div>
             <span className="mini-strip-today">Today · {formatShortDate(Date.now())}</span>
           </div>
@@ -2318,37 +3550,86 @@ const WorkFlowInvitations = ({ group }) => {
                 {/* The heading counts the stages listed, so a filter reads as "3 of 7 stages". */}
                 <div className="workflow-section-heading">
                   <h4>{`Timeline (${
-                    stageStatusFilter === 'all'
+                    visibleWorkflowStages.length === workflowStages.length
                       ? inflect(workflowStages.length, 'stage', 'stages', true)
                       : `${visibleWorkflowStages.length} of ${inflect(workflowStages.length, 'stage', 'stages', true)}`
                   })`}</h4>
                   {workflowStages.length > 0 && (
                     <Typography.Link
-                      onClick={() =>
+                      onClick={() => {
+                        const isCollapsing = openStageKeys.length > 0
                         setActiveStageKeys(
-                          openStageKeys.length
+                          isCollapsing
                             ? []
                             : visibleWorkflowStages.map((p) => p.workflowStageName)
                         )
-                      }
+                        setOpenFamilyKeys(isCollapsing ? [] : familyKeys)
+                      }}
                     >
                       {openStageKeys.length ? 'Collapse all stages' : 'Expand all stages'}
                     </Typography.Link>
                   )}
-                  {stageFilterOptions.length > 2 && (
-                    <Segmented
-                      className="stage-filter heading-filter"
-                      size="small"
-                      options={stageFilterOptions}
-                      value={stageStatusFilter}
-                      onChange={setStageStatusFilter}
-                    />
-                  )}
+                  <div className="heading-filters">
+                    <Checkbox
+                      className="hide-completed"
+                      checked={hideCompleted}
+                      onChange={(e) => setHideCompleted(e.target.checked)}
+                    >
+                      Hide completed
+                    </Checkbox>
+                    {(attentionStageCount > 0 || needsAttentionOnly) && (
+                      <Checkbox
+                        className="needs-attention-filter"
+                        checked={needsAttentionOnly}
+                        onChange={(e) => setNeedsAttentionOnly(e.target.checked)}
+                      >
+                        <span className="stage-attention" aria-hidden="true">
+                          <ExclamationCircleFilled />
+                        </span>
+                        Needs attention {attentionStageCount}
+                      </Checkbox>
+                    )}
+                    {committeeFilterOptions.length > 1 && (
+                      <Select
+                        className="committee-filter"
+                        size="small"
+                        aria-label="Filter stages by committee"
+                        popupMatchSelectWidth={false}
+                        options={committeeFilterOptions}
+                        value={committeeFilter}
+                        onChange={setCommitteeFilter}
+                      />
+                    )}
+                    {stageFilterOptions.length > 2 && (
+                      <Segmented
+                        className="stage-filter"
+                        size="small"
+                        options={stageFilterOptions}
+                        value={stageStatusFilter}
+                        onChange={setStageStatusFilter}
+                      />
+                    )}
+                  </div>
                 </div>
                 {hasTimeline && (
-                  <div className="stage-overview">
+                  <div
+                    className={`stage-overview${nowLine ? ' has-now-line' : ''}`}
+                    ref={stageOverviewRef}
+                    style={nowLine ? { '--now-left': `${nowLine.left}px` } : undefined}
+                  >
+                    {nowLine && (
+                      <div
+                        className="timeline-now-line"
+                        style={{
+                          left: nowLine.left,
+                          top: nowLine.top,
+                          height: nowLine.height,
+                        }}
+                        aria-hidden="true"
+                      />
+                    )}
                     <div className="overview-axis-row">
-                      <span className="overview-index" />
+                      <span className="overview-caret" />
                       <span className="overview-name" />
                       <span className="timeline-track with-labels overview-track">
                         <TimelineGrid domain={timelineDomain} showLabels={true} />
@@ -2356,18 +3637,37 @@ const WorkFlowInvitations = ({ group }) => {
                       <span className="overview-period" />
                       <span className="overview-status-spacer" />
                     </div>
-                    {visibleWorkflowStages.map((workflowStage) => (
-                      <StageOverviewRow
-                        key={workflowStage.workflowStageName}
-                        workflowStage={workflowStage}
-                        stageIndex={workflowStages.indexOf(workflowStage)}
-                        status={getWorkflowStageStatus(workflowStage)}
-                        domain={timelineDomain}
-                        isOpen={openStageKeys.includes(workflowStage.workflowStageName)}
-                        onSelect={selectWorkflowStage}
-                        processLogs={processLogs}
-                      />
-                    ))}
+                    {getTimelinePhaseSections().map(
+                      ({ phase, items, hiddenCount }, sectionIndex) => {
+                        const stages = items.flatMap((p) =>
+                          p.workflowStage ? [p.workflowStage] : p.tracks
+                        )
+                        const span = getPhaseSpanLabel(stages)
+                        return (
+                          <Fragment key={`${phase.key}-${sectionIndex}`}>
+                            <div className="phase-divider" id={`phase-${phase.key}`}>
+                              <span className="phase-divider-label">{phase.label}</span>
+                              {span && <span className="phase-divider-span">{span}</span>}
+                              {hiddenCount > 0 && (
+                                <span className="phase-divider-hidden">
+                                  {items.length
+                                    ? `${hiddenCount} completed hidden`
+                                    : `Completed · ${inflect(hiddenCount, 'stage', 'stages', true)} hidden`}
+                                </span>
+                              )}
+                            </div>
+                            {items.map((entry) =>
+                              entry.family && entry.tracks.length > 1
+                                ? renderTimelineFamily(entry)
+                                : (entry.workflowStage
+                                    ? [entry.workflowStage]
+                                    : entry.tracks
+                                  ).map((p) => renderTimelineStage(p))
+                            )}
+                          </Fragment>
+                        )
+                      }
+                    )}
                     <div className="overview-legend">
                       <span>
                         <span className="legend-swatch legend-envelope" />
@@ -2406,7 +3706,7 @@ const WorkFlowInvitations = ({ group }) => {
                         today, {formatShortDate(Date.now(), true)}
                       </span>
                       <span className="legend-hint">
-                        Select a stage — its steps open below on the stage&apos;s own dates
+                        Select a stage to see its steps, and a step for its settings
                       </span>
                     </div>
                   </div>
@@ -2414,89 +3714,21 @@ const WorkFlowInvitations = ({ group }) => {
               </div>
             </EditorSection>
 
-            <EditorSection className="workflow stage-detail-section">
-              <div className="invitation-workflow-container">
-                {visibleWorkflowStages.map((workflowStage) => {
-                  const stageIndex = workflowStages.indexOf(workflowStage)
-                  const { workflowStageName, invitationsOfWorkflowStageName } = workflowStage
-                  const stageStatus = getWorkflowStageStatus(workflowStage)
-                  const isOpen = openStageKeys.includes(workflowStageName)
-                  const localDomain = getLocalDomain(workflowStage)
-                  return (
-                    <div
-                      className="stage-detail"
-                      id={`stage-${workflowStageName}`}
-                      key={workflowStageName}
-                    >
-                      <div
-                        className={`stage-detail-header${isOpen ? ' open' : ''}`}
-                        role="button"
-                        tabIndex={0}
-                        aria-expanded={isOpen}
-                        onClick={() => toggleWorkflowStage(workflowStageName)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault()
-                            toggleWorkflowStage(workflowStageName)
-                          }
-                        }}
-                      >
-                        <CaretRightOutlined
-                          rotate={isOpen ? 90 : 0}
-                          style={{ color: token.colorLink }}
-                        />
-                        <div className="stage-detail-header-text">
-                          <WorkflowStageHeader
-                            workflowStage={workflowStage}
-                            stageIndex={stageIndex}
-                          />
-                        </div>
-                        {/* The dates sit beside the status glyph, as in the overview above. */}
-                        <span className="stage-period-text">
-                          <WorkflowStagePeriod workflowStage={workflowStage} />
-                        </span>
-                        <StageStatusIcon status={stageStatus} />
-                      </div>
-                      {isOpen && (
-                        <div className="stage-detail-body">
-                          {localDomain && (
-                            <div className="local-axis-row">
-                              <span className="local-axis-caption">
-                                Stage Timeline ·{' '}
-                                {formatShortDate(
-                                  workflowStage.periodStart,
-                                  localDomain.crossesYear
-                                )}{' '}
-                                –{' '}
-                                {formatShortDate(
-                                  workflowStage.periodEnd,
-                                  localDomain.crossesYear
-                                )}
-                              </span>
-                              <span className="timeline-track with-labels local-track local-axis">
-                                <LocalGrid domain={localDomain} showLabels={true} />
-                              </span>
-                            </div>
-                          )}
-                          {invitationsOfWorkflowStageName.map((stepObj) =>
-                            renderWorkflowInvitation(stepObj, true, { localDomain })
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )
-                })}
-                {invitationsWithoutWorkflowStage.map((stepObj) =>
-                  renderWorkflowInvitation(stepObj, false)
-                )}
-                {stageInvitations.length > 0 && (
-                  <AddStageInvitationSection
-                    stageInvitations={stageInvitations}
-                    venueId={group.domain}
-                  />
-                )}
-              </div>
-            </EditorSection>
+            {(invitationsWithoutWorkflowStage.length > 0 || stageInvitations.length > 0) && (
+              <EditorSection className="workflow stage-detail-section">
+                <div className="invitation-workflow-container">
+                  {invitationsWithoutWorkflowStage.map((stepObj) =>
+                    renderWorkflowInvitation(stepObj, false)
+                  )}
+                  {stageInvitations.length > 0 && (
+                    <AddStageInvitationSection
+                      stageInvitations={stageInvitations}
+                      venueId={group.domain}
+                    />
+                  )}
+                </div>
+              </EditorSection>
+            )}
           </>
         )
       ) : (
@@ -2506,30 +3738,46 @@ const WorkFlowInvitations = ({ group }) => {
       {workflowInvitations && (
         <EditorSection className="workflow">
           <WorkflowSectionHeading
-            title={`PC Actions (${inflect(pcActionCount, 'action', 'actions', true)})`}
+            title={`Ongoing Actions (${inflect(pcActionCount, 'action', 'actions', true)})`}
             isOpen={isOngoingOpen}
             onToggle={() => setIsOngoingOpen((isOpen) => !isOpen)}
             action={
               <Typography.Link onClick={() => setIsOngoingOpen((isOpen) => !isOpen)}>
-                {isOngoingOpen ? 'Collapse PC actions' : 'Expand PC actions'}
+                {isOngoingOpen ? 'Collapse ongoing actions' : 'Expand ongoing actions'}
               </Typography.Link>
             }
-            description="Tools the program chairs use whenever they need them: available for as long as the venue runs. These have no end date, so they are not on the timeline."
+            description="Available for as long as the venue runs, so they aren't on the timeline."
           />
           {isOngoingOpen && (
             <div className="ongoing-container">
-              <VenueActions />
+              <VenueActions group={group} />
               {recruitedGroups.length > 0 && (
                 <div className="ongoing-step rec-action-group">
                   <div className="ongoing-stage">Recruitment</div>
-                  {recruitedGroups.map(
-                    ({ group: committeeGroup, counts, groupInvitations }) => (
+                  {groupByCommitteeFamily(
+                    recruitedGroups,
+                    (p) => p.group.id.replace(`${group.domain}/`, ''),
+                    group
+                  ).map(({ family, items }) => {
+                    const renderRow = ({
+                      group: committeeGroup,
+                      counts,
+                      groupInvitations,
+                    }) => (
                       <RecruitmentActionRow
                         key={committeeGroup.id}
                         group={committeeGroup}
                         counts={counts}
                         groupInvitations={groupInvitations}
                         reloadGroup={loadAllInvitations}
+                        label={
+                          family
+                            ? getCommitteeFamily(
+                                committeeGroup.id.replace(`${group.domain}/`, ''),
+                                group
+                              ).track
+                            : null
+                        }
                         focusTick={
                           recruitmentFocus.groupId === committeeGroup.id
                             ? recruitmentFocus.tick
@@ -2537,9 +3785,80 @@ const WorkFlowInvitations = ({ group }) => {
                         }
                       />
                     )
+                    if (!family) return items.map(renderRow)
+                    const accepted = items.reduce(
+                      (sum, p) => sum + (p.counts?.accepted ?? 0),
+                      0
+                    )
+                    const awaiting = items.reduce(
+                      (sum, p) => sum + (p.counts?.awaiting ?? 0),
+                      0
+                    )
+                    return (
+                      <RecruitmentFamily
+                        key={family.key}
+                        family={family}
+                        items={items}
+                        getTrack={(p) =>
+                          getCommitteeFamily(p.group.id.replace(`${group.domain}/`, ''), group)
+                            .track
+                        }
+                        summary={`${formatCount(accepted)} accepted · ${formatCount(awaiting)} not replied`}
+                        openSignal={
+                          items.some((p) => p.group.id === recruitmentFocus.groupId)
+                            ? recruitmentFocus.tick
+                            : 0
+                        }
+                        reloadGroup={loadAllInvitations}
+                      >
+                        {items.map(renderRow)}
+                      </RecruitmentFamily>
+                    )
+                  })}
+                </div>
+              )}
+              {assignedCommittees.length > 0 && (
+                <div className="ongoing-step rec-action-group">
+                  <div className="ongoing-stage">Assignment</div>
+                  {groupByCommitteeFamily(assignedCommittees, (p) => p.role, group).map(
+                    ({ family, items }) => {
+                      const renderRow = ({ role, deploymentInvitation, stageName }) => (
+                        <AssignmentActionRow
+                          key={role}
+                          role={role}
+                          venueId={group.domain}
+                          deploymentState={getDeploymentState(
+                            deploymentInvitation,
+                            processLogs
+                          )}
+                          stageName={stageName}
+                          label={family ? getCommitteeFamily(role, group).track : null}
+                          onViewStage={(workflowStageName) => {
+                            // The stage may be filtered out; show every stage before opening it.
+                            setCommitteeFilter('all')
+                            setStageStatusFilter('all')
+                            selectWorkflowStage(workflowStageName)
+                          }}
+                        />
+                      )
+                      if (!family) return items.map(renderRow)
+                      return (
+                        <TrackFamily
+                          key={family.key}
+                          title={`Assign ${prettyField(family.baseRole)}`}
+                          trackCount={items.length}
+                        >
+                          {items.map(renderRow)}
+                        </TrackFamily>
+                      )
+                    }
                   )}
                 </div>
               )}
+              <div className="ongoing-step rec-action-group">
+                <div className="ongoing-stage">Messaging</div>
+                <WorkflowMessageActions group={group} />
+              </div>
               {ongoingSteps.map((stepObj) => (
                 <div key={stepObj.id} className="ongoing-step">
                   <div className="ongoing-stage">
@@ -2560,15 +3879,57 @@ const WorkFlowInvitations = ({ group }) => {
             description="The groups that take part in the venue, each with its size. Where a group has recruitment invitations, you can see how they stand. Everything else about a group is on its own page."
           />
           <div className="rec-list">
-            {committeeGroups.map(({ group: committeeGroup, counts }) => (
-              <GroupRow
-                key={committeeGroup.id}
-                group={committeeGroup}
-                counts={counts}
-                onOpenRecruitment={openRecruitment}
-              />
-            ))}
+            {groupByCommitteeFamily(
+              committeeGroups,
+              (p) => p.group.id.replace(`${group.domain}/`, ''),
+              group
+            ).map(({ family, items }) => {
+              const renderRow = ({ group: committeeGroup, counts }) => (
+                <GroupRow
+                  key={committeeGroup.id}
+                  group={committeeGroup}
+                  counts={counts}
+                  onOpenRecruitment={openRecruitment}
+                  onMessage={openGroupMessage}
+                  label={
+                    family
+                      ? getCommitteeFamily(
+                          committeeGroup.id.replace(`${group.domain}/`, ''),
+                          group
+                        ).track
+                      : null
+                  }
+                />
+              )
+              if (!family) return items.map(renderRow)
+              const members = items.reduce((sum, p) => sum + (p.group.members?.length ?? 0), 0)
+              return (
+                <TrackFamily
+                  key={family.key}
+                  title={prettyField(family.baseRole)}
+                  trackCount={items.length}
+                  summary={inflect(members, 'member', 'members', true)}
+                >
+                  {items.map(renderRow)}
+                </TrackFamily>
+              )
+            })}
           </div>
+          {groupToMessage && (
+            <MessageMemberModal
+              key={groupToMessage.id}
+              groupId={groupToMessage.id}
+              domainId={group.domain}
+              groupDomainContent={group.content}
+              membersToMessage={[groupToMessage.id]}
+              setJobId={() =>
+                promptMessage(
+                  `Your message to everyone in ${prettyId(groupToMessage.id, true)} is being sent.`
+                )
+              }
+              messageMemberInvitation={null}
+            />
+          )}
         </EditorSection>
       )}
     </>

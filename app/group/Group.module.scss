@@ -4,10 +4,10 @@
 // Workflow timeline marks. A bar is grey for the part that is past, teal from today to its end,
 // and soft teal stripes if it has not started; a stage's span behind them is one plain colour.
 // A dot (a step that fires on a date) takes its step's state: grey once it ran, solid teal while
-// running, a teal ring while scheduled, amber if its last run failed.
+// running, a teal ring while scheduled, red if its last run failed.
 $timelineDoneGray: #8a8a8a;
 $timelineUpcomingRing: #6f929c;
-$timelineFailed: #e0a100;
+$timelineFailed: #cf3b2f;
 $timelineFutureBorder: #8fabb3;
 $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9 3px 8px);
 
@@ -1382,10 +1382,6 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           }
         }
       }
-      .mini-stage-index {
-        color: #6b6b6b;
-        font-size: 0.6875rem;
-      }
       .mini-strip-today {
         flex: 0 0 auto;
         font-size: 0.75rem;
@@ -1635,7 +1631,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           transform: translateX(-50%);
           padding: 0 0.1875rem;
           background: constants.$backgroundWhite;
-          font-size: 0.6875rem;
+          font-size: 0.75rem;
           font-style: normal;
           letter-spacing: 0.02em;
           color: #6b6b6b;
@@ -1671,7 +1667,8 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           box-sizing: border-box;
           border: 1px solid;
           border-radius: 4px;
-          min-width: 3px;
+          // A stage of a day or two stays visible as a span, not a sliver.
+          min-width: 14px;
         }
         .stage-window {
           position: absolute;
@@ -1679,7 +1676,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           height: 6px;
           border-radius: 3px;
           opacity: 0.9;
-          min-width: 4px;
+          min-width: 8px;
           z-index: 2;
         }
         .stage-moment {
@@ -1772,7 +1769,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         }
         &.failed {
           background: $timelineFailed;
-          border: 1px solid #a87800;
+          border: 1px solid #8c1b13;
         }
       }
 
@@ -1783,7 +1780,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           top: 7px;
           height: 6px;
           border-radius: 3px;
-          min-width: 4px;
+          min-width: 8px;
           box-sizing: border-box;
         }
         .step-moment {
@@ -1932,6 +1929,37 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           -webkit-line-clamp: 2;
           line-clamp: 2;
           overflow: hidden;
+          overflow-wrap: anywhere;
+        }
+        .step-status-failed {
+          color: constants.$orRed;
+          font-weight: 700;
+        }
+        .step-status-run {
+          padding: 0 0.5rem;
+          font-size: 0.75rem;
+          line-height: 1.6;
+        }
+        .step-status-error-toggle {
+          display: inline-block;
+          margin-top: 0.125rem;
+          font-size: 0.75rem;
+          font-weight: 400;
+        }
+        // The full traceback, for whoever needs more than the last line
+        .step-status-error-details {
+          max-height: 16rem;
+          margin: 0.375rem 0 0.125rem;
+          padding: 0.375rem 0.5rem;
+          overflow: auto;
+          border: 1px solid #efd3d0;
+          border-radius: 2px;
+          background: constants.$backgroundWhite;
+          color: #5c1a14;
+          font-size: 0.6875rem;
+          font-weight: 400;
+          line-height: 1.45;
+          white-space: pre-wrap;
           overflow-wrap: anywhere;
         }
       }
@@ -2149,10 +2177,10 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         }
       }
 
-      // The warning status: a stage with a step whose last run failed.
-      .stage-status-icon.warning,
-      .stage-status-glyph.warning {
-        color: #f0b429;
+      // The failed status: a stage with a step whose last run failed.
+      .stage-status-icon.error,
+      .stage-status-glyph.error {
+        color: $timelineFailed;
       }
 
       .workflow-section-heading {
@@ -2166,21 +2194,61 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           cursor: pointer;
         }
       }
-      .heading-filter {
+      // The committee and status filters sit together at the heading's right.
+      .heading-filters {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.5rem;
         margin-left: auto;
         max-width: 100%;
 
         .ant-segmented-group {
           flex-wrap: wrap;
         }
+        .committee-filter {
+          min-width: 10rem;
+        }
       }
 
       // Venue overview: one line per stage on the venue's months. Selecting a line opens that
       // stage below.
       .stage-overview {
+        position: relative;
         border-top: 1px solid constants.$borderGray;
         border-bottom: 1px solid constants.$borderGray;
         padding: 0.375rem 0 0.25rem;
+
+        // Today runs as one line from the month axis to the legend, instead of a piece per row.
+        .overview-row .timeline-now {
+          display: none;
+        }
+        > .timeline-now-line {
+          position: absolute;
+          border-left: 1px dashed constants.$orRed;
+          opacity: 0.75;
+          z-index: 3;
+          pointer-events: none;
+        }
+        // Phase headings pin over the rows, so they carry their own piece of the line.
+        .phase-divider::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          bottom: -1px;
+          left: var(--now-left);
+          border-left: 1px dashed constants.$orRed;
+          opacity: 0.75;
+        }
+        &:not(.has-now-line) .phase-divider::after {
+          display: none;
+        }
+        // An open step's settings sit over the line rather than under it.
+        .workflow-invitation-container.timeline-step-detail {
+          position: relative;
+          z-index: 4;
+          background: constants.$backgroundWhite;
+        }
       }
       // Both carry the same 2px left border (the selected row's marker), so the axis row's months
       // and today line sit exactly over every stage row's.
@@ -2212,19 +2280,17 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           border-left-color: constants.$mediumBlue;
         }
       }
-      .overview-index {
-        flex: 0 0 0.875rem;
-        font-size: 0.6875rem;
-        color: constants.$orRed;
-        text-align: right;
-      }
       .overview-name {
-        flex: 0 0 14rem;
-        font-size: 0.8125rem;
+        flex: 0 0 17.875rem;
+        font-size: 0.875rem;
         color: #333;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+
+        strong {
+          font-weight: 600;
+        }
       }
       .overview-track {
         flex: 1 1 auto;
@@ -2232,24 +2298,60 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         display: block;
       }
       .overview-period {
-        flex: 0 0 9.5rem;
-        font-size: 0.6875rem;
+        flex: 0 0 10.5rem;
+        font-size: 0.75rem;
         white-space: nowrap;
 
+        // Stage and step dates read as one upright column.
         .ant-typography {
-          font-size: 0.6875rem;
+          font-size: 0.75rem;
+          font-style: normal;
         }
       }
       .overview-status-spacer {
-        flex: 0 0 16px;
+        flex: 0 0 18px;
+      }
+      // The stage name truncates inside its column; a family's track count always stays visible.
+      .overview-row .overview-name {
+        display: flex;
+        align-items: baseline;
+        min-width: 0;
+
+        .overview-name-text {
+          min-width: 0;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        .overview-tracks {
+          flex: 0 0 auto;
+        }
+      }
+      // The axis row is a little taller so "Today" sits above the month names, on the dashed line.
+      .overview-axis-row .timeline-track.with-labels {
+        height: 34px;
+      }
+      .timeline-now-label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        transform: translateX(-50%);
+        padding: 0 0.25rem;
+        border-radius: 2px;
+        background: constants.$backgroundWhite;
+        color: constants.$orRed;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        line-height: 1.3;
+        white-space: nowrap;
       }
       .overview-legend {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
         gap: 1rem;
-        padding: 0.5rem 0 0 15.375rem;
-        font-size: 0.6875rem;
+        padding: 0.5rem 0 0 calc(18.875rem + 12px);
+        font-size: 0.75rem;
         color: #6b6b6b;
 
         > span {
@@ -2346,6 +2448,17 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         position: relative;
         width: 100%;
         height: 20px;
+
+        // A step's own track has a light baseline under its bar, so short windows and dots sit
+        // on a line rather than floating. Tools with no end date have no timing to draw.
+        &.step-track:not(.ongoing)::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          right: 0;
+          top: 9.5px;
+          border-top: 1px solid #e3e0d9;
+        }
 
         &.with-labels {
           height: 24px;
@@ -2518,7 +2631,117 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         }
       }
 
-      // PC Actions: venue-level actions and recruitment, above the steps with no end date.
+      // Venue information and emergency shutdown open in place, under their row.
+      .venue-panel {
+        margin-top: 0.5rem;
+
+        .workflow-editor {
+          margin-top: 0.25rem;
+        }
+      }
+      .shutdown-panel .restrict-container {
+        padding: 0;
+      }
+      // In Groups a family is a card like any single group: same border and padding, its heading
+      // styled like a group's name, and its tracks as divided rows inside it rather than nested cards.
+      .rec-list > .track-family {
+        border: 1px solid constants.$backgroundGray;
+        background: constants.$backgroundWhite;
+
+        > .track-family-head {
+          padding: 0.75rem 1rem;
+          border-left: 0;
+        }
+        &.open > .track-family-head {
+          background: transparent;
+          border-bottom: 1px solid #f0ece4;
+        }
+        .track-family-body {
+          margin: 0;
+          padding: 0 1rem 0.25rem 2.25rem;
+          border-left: 0;
+          gap: 0;
+
+          > .rec-card {
+            border: 0;
+            padding: 0.625rem 0;
+
+            + .rec-card {
+              border-top: 1px solid #f0ece4;
+            }
+          }
+        }
+      }
+      // A committee's tracks in Ongoing Actions and Groups: one heading row, the tracks indented below.
+      .track-family {
+        .track-family-head {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.25rem 0.5rem;
+          border-left: 2px solid transparent;
+
+          &:hover {
+            background: #f6f4ef;
+          }
+        }
+        .track-family-toggle {
+          display: flex;
+          flex: 1 1 auto;
+          align-items: center;
+          gap: 0.5rem;
+          min-width: 0;
+          padding: 0.125rem 0;
+          border: 0;
+          background: transparent;
+          font: inherit;
+          text-align: left;
+          cursor: pointer;
+        }
+        .family-status {
+          margin: 0.25rem 0 0.25rem 1.25rem;
+          font-size: 0.8125rem;
+        }
+        .family-invite {
+          margin: 0.25rem 0 0.5rem 1.25rem;
+        }
+        .family-invite-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          font-weight: 600;
+          font-size: 0.875rem;
+        }
+        .family-invite-track {
+          min-width: 9rem;
+        }
+        .track-family-caret {
+          color: constants.$mediumBlue;
+          font-size: 10px;
+        }
+        .track-family-title {
+          font-weight: 700;
+          font-size: 1rem;
+          color: black;
+        }
+        .track-family-summary {
+          font-size: 0.8125rem;
+          color: constants.$subtleGray;
+        }
+        &.open > .track-family-head {
+          border-left-color: constants.$mediumBlue;
+          background: #f0f1ef;
+        }
+        .track-family-body {
+          margin-left: 0.75rem;
+          padding-left: 0.5rem;
+          border-left: 2px solid #c1cdcf;
+          display: flex;
+          flex-direction: column;
+          gap: 0.5rem;
+        }
+      }
+      // Ongoing Actions: venue-level actions and recruitment, above the steps with no end date.
       .rec-action-group {
         display: flex;
         flex-direction: column;
@@ -2539,6 +2762,18 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         flex-wrap: wrap;
         align-items: center;
         gap: 0.25rem 1rem;
+      }
+      // Messaging: which part of a committee to write to, and its list before sending
+      .message-filter {
+        width: 100%;
+      }
+      .message-committee-preview-body {
+        white-space: pre-wrap;
+      }
+      .message-committee-recipients {
+        max-height: 16rem;
+        overflow-y: auto;
+        padding-left: 1.75rem;
       }
       .rec-action-name {
         font-weight: 700;
@@ -2586,6 +2821,17 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
       .rec-open {
         margin-left: auto;
         font-size: 0.8125rem;
+      }
+      // Message sits with Open group page at the right of the card's heading
+      .rec-message {
+        margin-left: auto;
+        padding: 0 0.5rem;
+        font-size: 0.75rem;
+        line-height: 1.6;
+
+        + .rec-open {
+          margin-left: 0.75rem;
+        }
       }
       .rec-desc {
         margin-top: 0.25rem;
@@ -2650,12 +2896,10 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         border-radius: 1px;
       }
       .rec-of,
-      .rec-why,
       .rec-note,
       .rec-empty {
         color: constants.$subtleGray;
       }
-      .rec-why,
       .rec-note {
         font-size: 0.75rem;
       }
@@ -2671,9 +2915,28 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         gap: 0.5rem;
         margin-top: 0.625rem;
 
+        // Every PC action row shares two button columns, the main action then the second one,
+        // so the buttons line up down the section whatever their labels.
         &.inline {
+          display: grid;
+          grid-template-columns: 13.5rem 7.5rem;
           margin-top: 0;
           margin-left: auto;
+
+          .rec-action-primary {
+            grid-column: 1;
+          }
+          .rec-action-secondary {
+            grid-column: 2;
+          }
+          .rec-action-primary,
+          .rec-action-secondary {
+            display: block;
+
+            .ant-btn {
+              width: 100%;
+            }
+          }
         }
       }
       .rec-link {
@@ -2711,6 +2974,317 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
       .rec-empty {
         margin: 0;
         font-size: 0.8125rem;
+      }
+
+      // The timeline is the step list: a stage opens in place to its steps, each on the same axis
+      // with its dates in the date column, and a step opens to its description and settings.
+      .overview-caret {
+        flex: 0 0 12px;
+        display: inline-flex;
+        justify-content: center;
+        color: constants.$mediumBlue;
+        font-size: 10px;
+      }
+      // The months and today stay in view while you read down an open stage.
+      .overview-axis-row {
+        position: sticky;
+        top: 0;
+        z-index: 6;
+        background: constants.$backgroundWhite;
+      }
+      // A disabled step keeps its place: a muted, struck-through name, its bar and dots drained of
+      // colour, and a "Disabled" tag. A stage counts its disabled steps, and greys out when all are off.
+      .step-disabled-tag {
+        display: inline-block;
+        flex: 0 0 auto;
+        margin-left: 0.5rem;
+        padding: 0 0.3125rem;
+        border: 1px solid #c9c6bf;
+        border-radius: 2px;
+        background: #ebe9e4;
+        color: #5f5f5f;
+        font-size: 0.6875rem;
+        font-weight: 400;
+        line-height: 1.4;
+        text-indent: 0;
+        white-space: nowrap;
+      }
+      .timeline-step.expired > .step-row,
+      .overview-row.disabled {
+        .step-name,
+        .overview-name-text,
+        .overview-period {
+          color: #8a8a8a;
+        }
+        .overview-name-text,
+        .step-name {
+          text-decoration: line-through;
+          text-decoration-color: #b5b2ab;
+        }
+        .stage-window,
+        .stage-moment,
+        .stage-envelope,
+        .track-continues {
+          filter: grayscale(1);
+          opacity: 0.45;
+        }
+      }
+      // A phase heading is a label between stage rows, not a container: no indent, nothing to
+      // open. It stays under the month row while you scroll through its stages.
+      .phase-divider {
+        position: sticky;
+        top: 34px;
+        z-index: 5;
+        display: flex;
+        align-items: baseline;
+        gap: 0.625rem;
+        margin-top: 0.5rem;
+        padding: 0.25rem 0 0.1875rem 0.25rem;
+        border-bottom: 1px solid #d9d5cc;
+        background: constants.$backgroundWhite;
+
+        &:first-of-type {
+          margin-top: 0;
+        }
+        .phase-divider-label {
+          font-size: 0.6875rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+          color: #5c5c5c;
+        }
+        .phase-divider-span {
+          font-size: 0.6875rem;
+          color: #8a8a8a;
+        }
+        .phase-divider-hidden {
+          margin-left: auto;
+          font-size: 0.6875rem;
+          font-style: italic;
+          color: #8a8a8a;
+        }
+      }
+      .hide-completed {
+        font-size: 0.8125rem;
+        white-space: nowrap;
+      }
+      // A family of track stages: one row with a track count, its tracks indented beneath it.
+      // A failed run's error, under the setting it names
+      .setting-error {
+        margin: 0.25rem 0 0.375rem;
+      }
+      // A stage with steps that need setup: the same amber as a step's Needs setup tag
+      .stage-attention {
+        display: inline-flex;
+        flex: 0 0 auto;
+        margin-left: 0.375rem;
+        color: #d49a00;
+        font-size: 0.8125rem;
+      }
+      .overview-tracks {
+        display: inline-block;
+        margin-left: 0.5rem;
+        padding: 0 0.3125rem;
+        border: 1px solid #d3dddf;
+        border-radius: 8px;
+        background: #f3f6f6;
+        color: constants.$subtleGray;
+        font-size: 0.6875rem;
+        line-height: 1.4;
+        vertical-align: 1px;
+      }
+      .timeline-family.open {
+        padding-bottom: 0.25rem;
+
+        > .timeline-stage > .overview-row {
+          border-left-color: #c1cdcf;
+        }
+      }
+      .timeline-stage.track-stage > .overview-row .overview-name {
+        padding-left: 0.75rem;
+
+        strong {
+          font-weight: 400;
+        }
+      }
+      .timeline-stage.open {
+        padding-bottom: 0.25rem;
+
+        // A rail down the open stage ties its steps to it.
+        .step-row {
+          border-left-color: #c1cdcf;
+        }
+      }
+      // Step rows are a comfortable click target, tinted across the whole row on hover so the eye
+      // can follow a step to its bar and dates.
+      .overview-row.step-row {
+        min-height: 26px;
+        padding: 2px 0;
+
+        &:hover {
+          background: #f3f1eb;
+        }
+
+        &.current {
+          background: #f6f4ef;
+          border-left-color: constants.$mediumBlue;
+        }
+        // Step names are long ("Create Senior Area Chairs Recruitment Request"), so they wrap
+        // under their caret rather than lose their end to an ellipsis.
+        .step-name {
+          display: block;
+          padding-left: calc(0.75rem + 9px + 0.375rem);
+          text-indent: calc(-9px - 0.375rem);
+          font-size: 0.8125rem;
+          line-height: 1.3;
+          color: #444;
+          white-space: normal;
+        }
+        .step-setup-due {
+          display: inline-block;
+          margin-left: 0.5rem;
+          padding: 0 0.25rem;
+          border: 1px solid #e2ddce;
+          background: constants.$sandyBrown;
+          color: constants.$orRed;
+          font-size: 0.6875rem;
+          line-height: 1.4;
+          text-indent: 0;
+          white-space: nowrap;
+        }
+        .step-setup-missing {
+          display: inline-block;
+          margin-left: 0.5rem;
+          padding: 0 0.25rem;
+          border: 1px solid #e8c46a;
+          background: #fdf3d6;
+          color: #7a4a00;
+          font-size: 0.6875rem;
+          line-height: 1.4;
+          text-indent: 0;
+          white-space: nowrap;
+        }
+        .step-caret {
+          margin-right: 0.375rem;
+          font-size: 9px;
+          color: constants.$mediumBlue;
+        }
+        .overview-period {
+          color: constants.$subtleGray;
+
+          &.highlight {
+            color: constants.$mediumBlue;
+            font-weight: 600;
+          }
+        }
+      }
+      // An open step's detail, lined up under its title.
+      .workflow-invitation-container.timeline-step-detail,
+      .timeline-step-error {
+        display: block;
+        width: auto;
+        max-width: 62rem;
+        margin-left: calc(12px + 0.5rem + 1rem + 2rem);
+      }
+      .workflow-invitation-container.timeline-step-detail {
+        margin-top: 0.25rem;
+        margin-bottom: 0.75rem;
+        padding: 0 0 0 0.875rem;
+        border-left: 2px solid #c1cdcf;
+
+        .edit-invitation-info .edit-invitation-container .invitation-content {
+          max-width: none;
+
+          // Only Disable is left here; it sits at the right, beside the description.
+          .invitation-id-container {
+            float: right;
+            margin-left: 1rem;
+            padding-top: 0;
+          }
+        }
+        // Required settings that are still empty: a tag beside each empty value.
+        .setting-required {
+          display: inline-block;
+          padding: 0 0.3125rem;
+          border: 1px solid #e8c46a;
+          border-radius: 2px;
+          background: #fdf3d6;
+          color: #7a4a00;
+          font-size: 0.6875rem;
+          font-style: normal;
+          line-height: 1.5;
+        }
+        // The description is context, quieter than the status and settings below it.
+        .step-blurb {
+          font-size: 0.75rem;
+          line-height: 1.45;
+          color: #6b6b6b;
+
+          p {
+            margin: 0;
+          }
+        }
+        .step-status .step-status-text {
+          white-space: normal;
+          overflow: visible;
+        }
+        .sub-invitation-container {
+          margin-left: 0;
+
+          > ul {
+            padding-left: 0;
+          }
+          .sub-invitation-name {
+            font-weight: 600;
+          }
+          .existing-value-field,
+          .existing-value-field-value {
+            font-size: 0.8125rem;
+          }
+          .existing-value-field-value {
+            font-style: normal;
+          }
+          // Each setting reads as a row: its name in a fixed grey column, its value beside it.
+          ul ul > li[data-field] {
+            display: grid;
+            grid-template-columns: minmax(8rem, 12rem) minmax(0, 1fr);
+            column-gap: 0.75rem;
+            align-items: baseline;
+            padding: 1px 0.25rem;
+            border-radius: 2px;
+
+            &.highlight {
+              background: #eef3f4;
+            }
+            .existing-value-field {
+              margin-right: 0;
+              color: constants.$subtleGray;
+            }
+          }
+          // A list value is a row of chips, not a column of lines.
+          .existing-value-field-value ul {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.25rem;
+            margin: 0;
+            padding: 0;
+
+            li {
+              padding: 0 0.375rem;
+              border: 1px solid #dcdad5;
+              border-radius: 3px;
+              background: #f6f5f1;
+              line-height: 1.5;
+            }
+            .collapse-widget,
+            .collapse-widget > .collapse.in {
+              display: contents;
+            }
+          }
+        }
+      }
+      .timeline-step-error {
+        padding: 0.125rem 0 0.375rem;
       }
 
       // Narrow screens: the overview drops its date column and shortens the stage names, and inside

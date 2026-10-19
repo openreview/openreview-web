@@ -4,7 +4,12 @@ import api from '../../lib/api-client'
 import EditorSection from '../EditorSection'
 import LoadingSpinner from '../LoadingSpinner'
 
-const GroupRestrictGroup = ({ group, setIsGroupRestricted }) => {
+// `title` can be left out where the shutdown sits inside another section, e.g. Ongoing Actions.
+const GroupRestrictGroup = ({
+  group,
+  setIsGroupRestricted,
+  title = 'Group Emergency Shutdown',
+}) => {
   const [restrictStatus, setRestrictStatus] = useState(null)
   const [confirmGroupId, setConfirmGroupId] = useState('')
 
@@ -12,7 +17,7 @@ const GroupRestrictGroup = ({ group, setIsGroupRestricted }) => {
     try {
       const result = await api.get('/domains/restriction', { domain: group.id })
       setRestrictStatus(result.status)
-      setIsGroupRestricted(result.status === 'restricted')
+      setIsGroupRestricted?.(result.status === 'restricted')
     } catch (error) {
       promptError(error.message)
     }
@@ -43,7 +48,7 @@ const GroupRestrictGroup = ({ group, setIsGroupRestricted }) => {
   if (!restrictStatus) return <LoadingSpinner inline text={null} />
 
   return (
-    <EditorSection title="Group Emergency Shutdown" className="restrict">
+    <EditorSection title={title} className="restrict">
       <div className="container restrict-container">
         <div className="restrict-instructions">
           <p>
