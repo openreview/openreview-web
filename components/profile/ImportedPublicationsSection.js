@@ -1,12 +1,11 @@
-/* globals promptError: false */
-
-import { useEffect, useState } from 'react'
+import { Flex, Typography, theme } from 'antd'
 import Link from 'next/link'
-import NoteList from '../NoteList'
-import PaginationLinks from '../PaginationLinks'
+import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import { getImportSourceIcon } from '../../lib/profiles'
 import { buildNoteTitle, buildNoteUrl } from '../../lib/utils'
+import NoteList from '../NoteList'
+import PaginationLinks from '../PaginationLinks'
 import UnlinkPublicationButton from '../UnlinkPublicationButton'
 
 const ImportedPublicationsSection = ({
@@ -19,6 +18,7 @@ const ImportedPublicationsSection = ({
   const [publicationIdsToUnlink, setPublicationIdsToUnlink] = useState([])
   const [pageNumber, setPageNumber] = useState(1)
   const [totalCount, setTotalCount] = useState(0)
+  const { token } = theme.useToken()
   const pageSize = 20
 
   const handleLinkUnlinkPublication = (id, isunlink = false) => {
@@ -32,39 +32,50 @@ const ImportedPublicationsSection = ({
   const customTitle = (note) => {
     const { id, forum, content, invitations, signatures } = note
     return (
-      <h4>
-        {getImportSourceIcon(invitations[0])}
-        <a href={buildNoteUrl(id, forum, content)} target="_blank" rel="nofollow noreferrer">
-          {content.title?.value || buildNoteTitle(invitations[0], signatures)}
-        </a>
-
-        {content.pdf?.value && (
-          <Link
-            href={`/attachment?id=${id}&name=pdf`}
-            className="pdf-link"
-            title="Download PDF"
-            target="_blank"
-          >
-            <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
-          </Link>
-        )}
-        {content.html?.value && (
-          <a
-            href={content.html.value}
-            className="html-link"
-            title="Open Website"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+      <Flex component="h4">
+        <Typography.Text
+          ellipsis={{ tooltip: content.title?.value }}
+          style={{ color: token.colorLink }}
+        >
+          {getImportSourceIcon(invitations[0])}
+          <a href={buildNoteUrl(id, forum, content)} target="_blank" rel="nofollow noreferrer">
+            {content.title?.value || buildNoteTitle(invitations[0], signatures)}
           </a>
-        )}
-        <UnlinkPublicationButton
-          noteId={id}
-          linkUnlinkPublication={handleLinkUnlinkPublication}
-          isUnlinked={publicationIdsToUnlink?.includes(note.id)}
-        />
-      </h4>
+        </Typography.Text>
+        <span style={{ flex: 'none' }}>
+          {content.pdf?.value && (
+            <Link
+              href={
+                content.pdf.value.startsWith('http')
+                  ? content.pdf.value
+                  : `/attachment?id=${id}&name=pdf`
+              }
+              className="pdf-link"
+              title="Download PDF"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img src="/images/pdf_icon_blue.svg" alt="pdf icon" />
+            </Link>
+          )}
+          {content.html?.value && (
+            <a
+              href={content.html.value}
+              className="html-link"
+              title="Open Website"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              <img src="/images/html_icon_blue.svg" alt="hmtl icon" />
+            </a>
+          )}
+          <UnlinkPublicationButton
+            noteId={id}
+            linkUnlinkPublication={handleLinkUnlinkPublication}
+            isUnlinked={publicationIdsToUnlink?.includes(note.id)}
+          />
+        </span>
+      </Flex>
     )
   }
 
@@ -97,6 +108,19 @@ const ImportedPublicationsSection = ({
           { sort: 'tmdate:desc' }
         )
         .then((notes) => notes.map((note) => ({ ...note, apiVersion: 2 })))
+      const v2NotesWithObjectAuthorSchema = await api
+        .getAll(
+          '/notes',
+          {
+            'content.authors.username': profileId,
+            invitations: [
+              `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
+              `${process.env.SUPER_USER}/Public_Article/ACL_Anthology.org/-/Record`,
+            ],
+          },
+          { sort: 'tmdate:desc' }
+        )
+        .then((notes) => notes.map((note) => ({ ...note, apiVersion: 2 })))
       const v1Notes = await api
         .getAll(
           '/notes',
@@ -108,7 +132,7 @@ const ImportedPublicationsSection = ({
         )
         .then((notes) => notes.map((note) => ({ ...note, apiVersion: 1 })))
 
-      const allNotes = v2Notes.concat(v1Notes)
+      const allNotes = v2Notes.concat(v2NotesWithObjectAuthorSchema, v1Notes)
       setPublications(allNotes)
       setTotalCount(allNotes.length)
     } catch (error) {

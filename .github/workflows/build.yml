@@ -17,14 +17,36 @@ concurrency:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Run lint
         run: npx --yes oxlint@1.51.0 --report-unused-disable-directives --quiet
+      - name: validate oxfmt
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          git diff -z --name-only --diff-filter=ACMR \
+            "$BASE_SHA" HEAD > "$RUNNER_TEMP/changed-files"
+          files=()
+          while IFS= read -r -d '' f; do files+=("$f"); done < "$RUNNER_TEMP/changed-files"
+          if [ "${#files[@]}" -eq 0 ]; then
+            echo "No files changed."
+            exit 0
+          fi
+          code=0
+          out=$(npx --yes oxfmt@0.36.0 --check "${files[@]}" 2>&1) || code=$?
+          echo "$out"
+          if [ "$code" -eq 2 ] && grep -q "Expected at least one target file" <<< "$out"; then
+            exit 0
+          fi
+          exit "$code"
 
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     needs: lint
 
     env:
@@ -36,6 +58,18 @@ jobs:
         image: redis
         ports:
           - 6379:6379
+      elasticsearch:
+        image: elasticsearch:7.17.28
+        ports:
+          - 9200:9200
+        env:
+          discovery.type: single-node
+          ES_JAVA_OPTS: -Xms512m -Xmx512m
+        options: >-
+          --health-cmd "curl -f http://localhost:9200/_cluster/health || exit 1"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
 
     strategy:
       matrix:
@@ -47,16 +81,14 @@ jobs:
         with:
           mongodb-version: 8.0
           mongodb-replica-set: rs0
-      - name: Configure sysctl Limits
-        run: |
-          sudo swapoff -a
-          sudo sysctl -w vm.swappiness=1
-          sudo sysctl -w fs.file-max=262144
-          sudo sysctl -w vm.max_map_count=262144
-      - name: Start Elasticsearch
-        uses: elastic/elastic-github-actions/elasticsearch@master
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@v3
         with:
-          stack-version: 7.6.0
+          client-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: openreview
+          repositories: openreview-api-v1,openreview-api
       - name: Checkout openreview-py
         uses: actions/checkout@v6
         with:
@@ -66,13 +98,13 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: openreview/openreview-api-v1
-          token: ${{ secrets.PAT_OPENREVIEW_IESL }}
+          token: ${{ steps.app-token.outputs.token }}
           path: openreview-api-v1
       - name: Checkout openreview-api
         uses: actions/checkout@v6
         with:
           repository: openreview/openreview-api
-          token: ${{ secrets.PAT_OPENREVIEW_IESL }}
+          token: ${{ steps.app-token.outputs.token }}
           path: openreview-api
       - name: Checkout openreview-web
         uses: actions/checkout@v6
@@ -143,7 +175,7 @@ jobs:
           wait_for_service() {
             local url=$1
             local service_name=$2
-            local max_attempts=3
+            local max_attempts=5
             local attempt=0
 
             echo "Checking $service_name at $url"
@@ -174,7 +206,7 @@ jobs:
         run: |
           cd openreview-web
           mkdir -p logs
-          NODE_ENV=production SUPER_USER=openreview.net npm run start > logs/web.log 2>&1 &
+          NODE_ENV=production SUPER_USER=openreview.net npm run start -- --keepAliveTimeout 620000 > logs/web.log 2>&1 &
       - name: Pin Firefox Version
         id: setup-firefox
         uses: browser-actions/setup-firefox@v1
@@ -209,9 +241,13 @@ jobs:
       id-token: write
       contents: read
 
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     needs: build
+
+    concurrency:
+      group: dev-web-deploy
+      cancel-in-progress: false
 
     if: github.ref == 'refs/heads/master' && (github.event_name != 'repository_dispatch' || github.event.action != 'openreview-api-updated')
     steps:
@@ -219,7 +255,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Authenticate with Google Cloud
         id: auth
-        uses: google-github-actions/auth@v2
+        uses: google-github-actions/auth@v3
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
@@ -227,11 +263,23 @@ jobs:
           cleanup_credentials: true
           export_environment_variables: true
       - name: Setup gcloud
-        uses: google-github-actions/setup-gcloud@v2
+        uses: google-github-actions/setup-gcloud@v3
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
           skip_install: true
-      - name: Deploy to dev
+      - name: Build and deploy web to Cloud Run
+        run: |
+          BUILD_ID=$(gcloud builds triggers run openreview-web-dev-deploy \
+            --region=global --branch=main \
+            --substitutions=_WEB_REF=${{ github.sha }} \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            --format='value(metadata.build.id)')
+          echo "Triggered Cloud Build: $BUILD_ID"
+          gcloud builds log --stream "$BUILD_ID" --project ${{ secrets.GCP_PROJECT_ID }} || true
+          STATUS=$(gcloud builds describe "$BUILD_ID" --project ${{ secrets.GCP_PROJECT_ID }} --format='value(status)')
+          echo "Final build status: $STATUS"
+          [ "$STATUS" = "SUCCESS" ] || exit 1
+      - name: Deploy openreview-py to dev
         run: |
           instance_prefix='openreview-dev-'
 
@@ -253,7 +301,5 @@ jobs:
           for i in ${!instance_names[@]}; do
             echo Deploying to ${instance_names[$i]}
 
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/build-web.sh' --quiet
-            gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/deploy-web.sh' --quiet
             gcloud compute ssh --zone ${zones[$i]} --tunnel-through-iap openreview@${instance_names[$i]} --command 'bash bin/deploy-openreview-py.sh' --quiet
           done

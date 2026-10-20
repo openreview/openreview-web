@@ -1,14 +1,19 @@
-import { Button, Flex, Input, Modal, Select, Space } from 'antd'
+import { Button, Flex, Input, Modal, Select, Space, Tooltip } from 'antd'
+import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react'
 import api from '../../lib/api-client'
-import { getRejectionReasons } from '../../lib/utils'
+import { formatDateTime, getDeviceFromUserAgent, getRejectionReasons } from '../../lib/utils'
 import ErrorAlert from '../ErrorAlert'
 import ProfileTag from '../ProfileTag'
 import BasicProfileView from './BasicProfileView'
+import { IdentityDocumentsSection, ParentalConsentSection } from './IdentityDocumentsSection'
 import MessagesSection from './MessagesSection'
 import PastStatesSection from './PastStatesSection'
 import ProfilePublications from './ProfilePublications'
 import ProfileViewSection from './ProfileViewSection'
+
+dayjs.extend(relativeTime)
 
 const ProfilePreviewModal = ({
   profileToPreview,
@@ -16,27 +21,37 @@ const ProfilePreviewModal = ({
   contentToShow,
   sortFn,
   showNextProfile,
+  showPreviousProfile,
   acceptUser,
   rejectUser,
 }) => {
   const [publications, setPublications] = useState(null)
   const [tags, setTags] = useState([])
+  const [profileDocuments, setProfileDocuments] = useState(null)
+  const [loginActivity, setLoginActivity] = useState(null)
   const [rejectionMessage, setRejectionMessage] = useState('')
   const [isRejecting, setIsRejecting] = useState(false)
   const [rejectionReasons, setRejectReasons] = useState([])
   const [error, setError] = useState(null)
-  const tagInvitationOptions = [
-    {
-      label: 'General Moderation Tag',
-      value: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
-    },
-    {
-      label: 'Vouched by Tag',
-      value: `${process.env.SUPER_USER}/Support/-/Vouch`,
-    },
-  ]
-  const [tagInvitation, setTagInvitation] = useState(tagInvitationOptions[0].value)
+  const [isLoadingTags, setIsLoadingTags] = useState(false)
+  const [openTagOptions, setOpenTagOptions] = useState(false)
+
   const needsModeration = profileToPreview?.state === 'Needs Moderation'
+  const isProfileActivatable = profileToPreview?.state === 'Rejected' || needsModeration
+  const showLoginActivity =
+    loginActivity &&
+    loginActivity.notifyUnusualLogins !== false &&
+    loginActivity.knownLocations?.length > 0
+
+  const tagAndActivateProfile = async () => {
+    await api.post('/tags', {
+      profile: profileToPreview.id,
+      label: 'user sent document',
+      signature: `${process.env.SUPER_USER}/Support`,
+      invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
+    })
+    await api.post('/profile/moderate', { id: profileToPreview.id, decision: 'accept' })
+  }
 
   const updateMessageForPastRejectProfile = (messageToAdd) => {
     setRejectionMessage((p) => `${messageToAdd}\n\n${p}`)
@@ -76,7 +91,29 @@ const ProfilePreviewModal = ({
     }
   }
 
+  const loadIdentityDocuments = async () => {
+    try {
+      const { profileDocuments } = await api.get('/profile-documents', {
+        profileId: profileToPreview.id,
+        trash: true,
+      })
+      setProfileDocuments(profileDocuments)
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
+  const loadLoginActivity = async () => {
+    try {
+      const result = await api.get('/profiles/activity', { id: profileToPreview.id })
+      setLoginActivity(result)
+    } catch (apiError) {
+      setError(apiError)
+    }
+  }
+
   const deleteTag = async (tag) => {
+    setIsLoadingTags(true)
     try {
       await api.post('/tags', {
         id: tag.id,
@@ -91,22 +128,23 @@ const ProfilePreviewModal = ({
     } catch (apiError) {
       setError(apiError)
     }
+    setIsLoadingTags(false)
   }
 
   const addTag = async (tagLabel) => {
-    const isVouchInvitation = tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
-
+    setIsLoadingTags(true)
     try {
       await api.post('/tags', {
         profile: profileToPreview.id,
-        ...(!isVouchInvitation && { label: tagLabel }),
-        signature: isVouchInvitation ? tagLabel : `${process.env.SUPER_USER}/Support`,
-        invitation: tagInvitation,
+        label: tagLabel,
+        signature: `${process.env.SUPER_USER}/Support`,
+        invitation: `${process.env.SUPER_USER}/Support/-/Profile_Moderation_Label`,
       })
       await loadTags()
     } catch (apiError) {
       setError(apiError)
     }
+    setIsLoadingTags(false)
   }
 
   useEffect(() => {
@@ -117,6 +155,9 @@ const ProfilePreviewModal = ({
       if (e.key === 'ArrowDown') {
         e.preventDefault()
         showNextProfile(profileToPreview.id)
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault()
+        showPreviousProfile(profileToPreview.id)
       }
     }
     window.addEventListener('keydown', handleKeyDown)
@@ -127,7 +168,7 @@ const ProfilePreviewModal = ({
     setRejectionMessage('')
     setIsRejecting(false)
     setTags([])
-    setTagInvitation(tagInvitationOptions[0].value)
+    setLoginActivity(null)
     setError(null)
     const currentInstitutionName = profileToPreview?.history?.find(
       (p) => !p.end || p.end >= new Date().getFullYear()
@@ -135,6 +176,9 @@ const ProfilePreviewModal = ({
     setRejectReasons(getRejectionReasons(currentInstitutionName))
     if (profileToPreview && contentToShow?.includes('publications')) loadPublications()
     if (profileToPreview && contentToShow?.includes('tags')) loadTags()
+    if (profileToPreview && contentToShow?.includes('identityDocuments'))
+      loadIdentityDocuments()
+    if (profileToPreview && contentToShow?.includes('loginActivity')) loadLoginActivity()
   }, [profileToPreview?.id])
 
   if (!profileToPreview) return null
@@ -166,6 +210,23 @@ const ProfilePreviewModal = ({
           moderation={true}
           contentToShow={contentToShow}
         />
+        {contentToShow?.includes('loginActivity') && showLoginActivity && (
+          <ProfileViewSection title="Login Activity">
+            <Flex vertical>
+              {loginActivity.knownLocations.map((location, index) => (
+                <span key={index}>
+                  {location.city}
+                  {' - '}
+                  <Tooltip title={formatDateTime(location.lastSeen)}>
+                    <span>{dayjs(location.lastSeen).fromNow()}</span>
+                  </Tooltip>
+                  {' - '}
+                  {getDeviceFromUserAgent(location.userAgent)}
+                </span>
+              ))}
+            </Flex>
+          </ProfileViewSection>
+        )}
         {contentToShow?.includes('publications') && (
           <ProfileViewSection title="Publications">
             <ProfilePublications
@@ -198,8 +259,32 @@ const ProfilePreviewModal = ({
             />
           </ProfileViewSection>
         )}
+        {contentToShow?.includes('identityDocuments') && (
+          <>
+            {profileDocuments?.some((document) => document.type === 'parentalConsent') && (
+              <ProfileViewSection title="Parental Consent">
+                <ParentalConsentSection
+                  profileDocuments={profileDocuments}
+                  loadIdentityDocuments={loadIdentityDocuments}
+                />
+              </ProfileViewSection>
+            )}
+            {profileDocuments?.some((document) => document.type !== 'parentalConsent') && (
+              <ProfileViewSection title="Identity Documents">
+                <IdentityDocumentsSection
+                  profileId={profileToPreview.id}
+                  profileDocuments={profileDocuments}
+                  isProfileActivatable={isProfileActivatable}
+                  loadIdentityDocuments={loadIdentityDocuments}
+                  tagAndActivateProfile={tagAndActivateProfile}
+                  loadTags={loadTags}
+                />
+              </ProfileViewSection>
+            )}
+          </>
+        )}
         <Flex vertical gap="small">
-          <Space wrap={true}>
+          <Space wrap={true} style={isLoadingTags ? { opacity: 0.5 } : {}}>
             {tags.map((tag, index) => (
               <ProfileTag
                 key={index}
@@ -212,34 +297,24 @@ const ProfilePreviewModal = ({
           {profileToPreview.state !== 'Merged' && (
             <Flex>
               <Select
-                options={tagInvitationOptions}
-                getPopupContainer={(triggerNode) => triggerNode.parentElement}
-                value={tagInvitation}
-                onChange={(e) => setTagInvitation(e)}
-              />
-              <Select
                 allowClear
                 showSearch={false}
                 style={{ flex: 1, minWidth: 0 }}
                 mode="tags"
                 notFoundContent={null}
                 value={null}
-                placeholder={
-                  tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
-                    ? 'enter tilde id of the user vouching for this user'
-                    : 'select or create tag label'
-                }
-                options={
-                  tagInvitation === `${process.env.SUPER_USER}/Support/-/Vouch`
-                    ? []
-                    : [
-                        { label: 'require vouch', value: 'require vouch' },
-                        { label: 'potential spam', value: 'potential spam' },
-                      ]
-                }
+                open={openTagOptions}
+                onOpenChange={setOpenTagOptions}
+                placeholder="select or create tag label"
+                options={[
+                  { label: 'require vouch', value: 'require vouch' },
+                  { label: 'user sent document', value: 'user sent document' },
+                  { label: 'potential spam', value: 'potential spam' },
+                ]}
                 getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 onChange={(values) => {
                   addTag(values[0])
+                  setOpenTagOptions(false)
                 }}
                 onInputKeyDown={(e) => {
                   if (e.key !== 'Enter') return
@@ -260,7 +335,7 @@ const ProfilePreviewModal = ({
                   type="primary"
                   onClick={() => {
                     showNextProfile(profileToPreview.id)
-                    acceptUser(profileToPreview.id)
+                    acceptUser(profileToPreview.id, false)
                   }}
                 >
                   Accept
@@ -289,13 +364,14 @@ const ProfilePreviewModal = ({
             <Flex vertical gap="small" align="flex-start">
               <Select
                 allowClear
+                mode="multiple"
                 style={{ width: '100%' }}
-                placeholder="Choose a common reject reason..."
+                placeholder="Choose rejection reason(s)..."
                 options={rejectionReasons}
                 getPopupContainer={(triggerNode) => triggerNode.parentElement}
                 onChange={(value) => {
-                  const rejectOption = rejectionReasons.find((r) => r.value === value)
-                  setRejectionMessage(rejectOption?.rejectionText || '')
+                  const rejectOptions = rejectionReasons.filter((r) => value.includes(r.value))
+                  setRejectionMessage(rejectOptions.map((p) => p.rejectionText).join('\n\n'))
                 }}
               />
               <Space wrap>

@@ -1,24 +1,20 @@
-import { useEffect, useState } from 'react'
-import { CreatableDropdown } from '../Dropdown'
+import { AutoComplete } from 'antd'
 
 const GenderSection = ({ profileGender, updateGender }) => {
-  const defaultGenderOptions = ['Male', 'Female', 'Non-Binary', 'Not Specified']
-  const genderOptions = defaultGenderOptions.map((p) => ({ value: p, label: p }))
-  const [gender, setGender] = useState(profileGender)
-
-  useEffect(() => {
-    updateGender(gender)
-  }, [gender])
-
+  const options = ['Male', 'Female', 'Non-Binary', 'Not Specified'].map((p) => ({
+    value: p,
+    label: p,
+  }))
   return (
-    <div className="gender" translate="no">
-      <CreatableDropdown
-        hideArrow
-        classNamePrefix="gender-dropdown"
-        defaultValue={gender ? { value: gender, label: gender } : null}
-        onChange={(e) => setGender(e.value)}
-        options={genderOptions}
+    <div translate="no">
+      <AutoComplete
+        style={{ width: '100%', maxWidth: 500 }}
+        options={options}
+        value={profileGender}
+        onChange={(value) => updateGender(value || undefined)}
         placeholder="Choose a gender or type a custom gender"
+        showSearch={{ filterOption: true }}
+        allowClear
       />
     </div>
   )

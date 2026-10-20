@@ -1,9 +1,9 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom'
 import FileUploadWidget from '../components/EditorComponents/FileUploadWidget'
 import api from '../lib/api-client'
 import { renderWithEditorComponentContext } from './util'
+import '@testing-library/jest-dom'
 
 jest.mock('../lib/api-client')
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -187,6 +187,45 @@ describe('FileUploadWidget', () => {
     expect(onChange).toHaveBeenCalledWith({
       fieldName: 'supplementary_material',
       value: undefined,
+    })
+  })
+
+  test('show error and clear file input when upload fails', async () => {
+    const humanVerificationError = new Error('Human verification required')
+    humanVerificationError.name = 'HumanVerificationRequiredError'
+    const promptError = jest.fn()
+    global.promptError = jest.fn()
+    const onChange = jest.fn()
+    const clearError = jest.fn()
+    api.put = jest.fn(() => Promise.reject(humanVerificationError))
+
+    const providerProps = {
+      value: {
+        invitation: { id: 'invitationId' },
+        field: {
+          supplementary_material: {
+            value: {
+              param: {
+                type: 'file',
+              },
+            },
+          },
+        },
+        onChange,
+        clearError,
+      },
+    }
+    renderWithEditorComponentContext(<FileUploadWidget />, providerProps)
+
+    const fileInput = screen.getByLabelText('supplementary_material')
+    const file = new File(['some byte string'], 'test.pdf', { type: 'application/pdf' })
+    await userEvent.upload(fileInput, file)
+
+    await waitFor(() => {
+      expect(api.put).toHaveBeenCalledTimes(1)
+      expect(global.promptError).toHaveBeenCalledWith('Human verification required')
+      expect(fileInput.value).toBe('')
+      expect(onChange).not.toHaveBeenCalled()
     })
   })
 })

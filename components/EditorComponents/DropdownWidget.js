@@ -1,9 +1,9 @@
-import { useContext, useEffect, useState } from 'react'
 import { isEqual } from 'lodash'
-import Dropdown from '../Dropdown'
-import EditorComponentContext from '../EditorComponentContext'
+import { useContext, useEffect, useState } from 'react'
 import { prettyField, prettyId } from '../../lib/utils'
 import { convertToType } from '../../lib/webfield-utils'
+import Dropdown from '../Dropdown'
+import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/DropdownWidget.module.scss'
 

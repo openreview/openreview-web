@@ -1,10 +1,9 @@
 'use client'
 
-/* globals DOMPurify,marked: false */
-
-import React, { useState, useEffect } from 'react'
+import { Space } from 'antd'
 import union from 'lodash/union'
 import { marked } from 'marked'
+import React, { useState, useEffect } from 'react'
 import {
   prettyField,
   prettyContentValue,
@@ -13,6 +12,7 @@ import {
   classNames,
 } from '../lib/utils'
 import Icon from './Icon'
+import ProfileLink from './webfield/ProfileLink'
 
 function NoteContent({
   id,
@@ -95,8 +95,8 @@ export function NoteContentValue({ content = '', enableMarkdown, className, full
   const autoLinkContent = (value) => {
     // Regex based on https://gist.github.com/dperini/729294 modified to not accept FTP urls
     const urlRegex =
-      /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/gi
-    const profileRegex = /(?:.)?(~[^\d\s]+_[^\d\s]+[0-9]+)/gi
+      /(?:(?:https?):\/\/)(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:[a-z\u00a1-\uffff0-9](?:[a-z\u00a1-\uffff0-9-]{0,61}[a-z\u00a1-\uffff0-9])?)(?:\.[a-z\u00a1-\uffff0-9](?:[a-z\u00a1-\uffff0-9-]{0,61}[a-z\u00a1-\uffff0-9])?)*(?:\.(?:[a-z\u00a1-\uffff]{2,}))\.?)(?::\d{2,5})?(?:[/?#]\S*[^.,()"'\s])?/gi
+    const profileRegex = /(?:.)?(~[^\d\s_]+(?:_[^\d\s_]+)*[0-9]+)/gi
 
     const intermediate = value.replace(urlRegex, (match) => {
       const url = match.startsWith('https://openreview.net')
@@ -216,6 +216,8 @@ export const NoteContentV2 = ({
         return `https://arxiv.org/abs/${externalIDWithoutPrefix}`
       case 'dblp':
         return `https://dblp.org/rec/${externalIDWithoutPrefix}`
+      case 'acl':
+        return `https://aclanthology.org/${externalIDWithoutPrefix}/`
       case 'doi':
         return `https://doi.org/${externalIDWithoutPrefix}`
       default:
@@ -250,6 +252,38 @@ export const NoteContentV2 = ({
         const showPrivateIcon =
           fieldReaders && noteReaders && !noteReaders.every((p, j) => p === fieldReaders[j])
 
+        const renderFieldValue = () => {
+          if (fieldValue.isObjAuthorList) {
+            return (
+              <Space size={0} separator={',\u00a0'} wrap>
+                {fieldValue.authors.map(({ username, fullname }) => (
+                  <ProfileLink key={username ?? fullname} id={username} name={fullname} />
+                ))}
+              </Space>
+            )
+          }
+          if (fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/')) {
+            return (
+              <span className="note-content-value">
+                <DownloadLink
+                  noteId={id}
+                  fieldName={fieldName}
+                  fieldValue={fieldValue}
+                  isReference={isEdit}
+                  isV2
+                />
+              </span>
+            )
+          }
+          return (
+            <NoteContentValue
+              content={fieldValue}
+              enableMarkdown={enableMarkdown}
+              fullMarkdown={fullMarkdown}
+            />
+          )
+        }
+
         return (
           <div key={fieldName}>
             <NoteContentField name={fieldName} customFieldName={customFieldName} />{' '}
@@ -262,23 +296,7 @@ export const NoteContentV2 = ({
                   .join(', ')}`}
               />
             )}
-            {fieldValue.startsWith('/attachment/') || fieldValue.startsWith('/pdf/') ? (
-              <span className="note-content-value">
-                <DownloadLink
-                  noteId={id}
-                  fieldName={fieldName}
-                  fieldValue={fieldValue}
-                  isReference={isEdit}
-                  isV2
-                />
-              </span>
-            ) : (
-              <NoteContentValue
-                content={fieldValue}
-                enableMarkdown={enableMarkdown}
-                fullMarkdown={fullMarkdown}
-              />
-            )}
+            {renderFieldValue()}
           </div>
         )
       })}

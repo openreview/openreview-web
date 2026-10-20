@@ -17,7 +17,6 @@ import {
   superUserName,
   strongPassword,
 } from '../utils/api-helper'
-import api from '../../lib/api-client'
 
 const waitForJobs = (noteId, superUserToken, count = 1) =>
   new Promise((resolve, reject) => {
@@ -68,6 +67,11 @@ fixture`Set up test data`.before(async (ctx) => {
     password: strongPassword,
     history: undefined,
   })
+  await createUser(hasNoTaskUser)
+  await createUser(mergeUser)
+  const userRes = await createUser(hasTaskUser)
+  ctx.hasTaskUserTildeId = userRes.user.profile.id
+  ctx.hasTaskUserToken = userRes.token
   return ctx
 })
 
@@ -76,7 +80,7 @@ test('Set up TestVenue', async (t) => {
   const submissionDateString = `${submissionDate.getFullYear()}/${
     submissionDate.getMonth() + 1
   }/${submissionDate.getDate()}`
-  const { superUserToken } = t.fixtureCtx
+  const { superUserToken, hasTaskUserTildeId, hasTaskUserToken } = t.fixtureCtx
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
     signatures: ['~Super_User1'],
@@ -112,7 +116,7 @@ test('Set up TestVenue', async (t) => {
       api_version: '2',
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
-        'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
+        'We will ask authors and reviewers to create an OpenReview Profile well in advance of the paper submission deadlines.',
         'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
         "We acknowledge that, if our venue's reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.",
         'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
@@ -137,12 +141,6 @@ test('Set up TestVenue', async (t) => {
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
   await waitForJobs(deployId, superUserToken)
-
-  const userRes = await createUser(hasTaskUser)
-  const hasTaskUserTildeId = userRes.user.profile.id
-  const hasTaskUserToken = userRes.token
-  await createUser(hasNoTaskUser)
-  await createUser(mergeUser)
 
   // add a note
   const editJson = {
@@ -256,7 +254,7 @@ test('Set up AnotherTestVenue', async (t) => {
   const submissionDateString = `${submissionDate.getFullYear()}/${
     submissionDate.getMonth() + 1
   }/${submissionDate.getDate()}`
-  const { superUserToken } = t.fixtureCtx
+  const { superUserToken, hasTaskUserToken } = t.fixtureCtx
 
   const requestVenueJson = {
     invitation: 'openreview.net/Support/-/Request_Form',
@@ -294,7 +292,7 @@ test('Set up AnotherTestVenue', async (t) => {
       submission_license: ['CC BY 4.0'],
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
-        'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
+        'We will ask authors and reviewers to create an OpenReview Profile well in advance of the paper submission deadlines.',
         'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
         "We acknowledge that, if our venue's reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.",
         'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
@@ -319,8 +317,6 @@ test('Set up AnotherTestVenue', async (t) => {
   const { id: deployId } = await createNote(deployVenueJson, superUserToken)
 
   await waitForJobs(deployId, superUserToken)
-
-  const hasTaskUserToken = await getToken(hasTaskUser.email, hasTaskUser.password)
 
   const editJson = {
     invitation: `Another${conferenceSubmissionInvitationId}`,
@@ -417,7 +413,7 @@ test('Set up ICLR', async (t) => {
       api_version: '2',
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
-        'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
+        'We will ask authors and reviewers to create an OpenReview Profile well in advance of the paper submission deadlines.',
         'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
         "We acknowledge that, if our venue's reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.",
         'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',
@@ -596,7 +592,7 @@ test('Set up TestVenue using API 2', async (t) => {
       submission_license: ['CC BY 4.0'],
       venue_organizer_agreement: [
         'OpenReview natively supports a wide variety of reviewing workflow configurations. However, if we want significant reviewing process customizations or experiments, we will detail these requests to the OpenReview staff at least three months in advance.',
-        'We will ask authors and reviewers to create an OpenReview Profile at least two weeks in advance of the paper submission deadlines.',
+        'We will ask authors and reviewers to create an OpenReview Profile well in advance of the paper submission deadlines.',
         'When assembling our group of reviewers and meta-reviewers, we will only include email addresses or OpenReview Profile IDs of people we know to have authored publications relevant to our venue.  (We will not solicit new reviewers using an open web form, because unfortunately some malicious actors sometimes try to create "fake ids" aiming to be assigned to review their own paper submissions.)',
         "We acknowledge that, if our venue's reviewing workflow is non-standard, or if our venue is expecting more than a few hundred submissions for any one deadline, we should designate our own Workflow Chair, who will read the OpenReview documentation and manage our workflow configurations throughout the reviewing process.",
         'We acknowledge that OpenReview staff work Monday-Friday during standard business hours US Eastern time, and we cannot expect support responses outside those times.  For this reason, we recommend setting submission and reviewing deadlines Monday through Thursday.',

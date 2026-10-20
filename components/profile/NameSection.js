@@ -1,13 +1,11 @@
-/* globals promptError,clearMessage,$, promptMessage,view2: false */
-import { useCallback, useEffect, useReducer, useState } from 'react'
-import { nanoid } from 'nanoid'
 import debounce from 'lodash/debounce'
-import Icon from '../Icon'
+import { nanoid } from 'nanoid'
+import { useCallback, useEffect, useReducer, useState } from 'react'
 import useBreakpoint from '../../hooks/useBreakPoint'
 import api from '../../lib/api-client'
-import BasicModal from '../BasicModal'
 import { getNameString } from '../../lib/utils'
-import useUser from '../../hooks/useUser'
+import BasicModal from '../BasicModal'
+import Icon from '../Icon'
 
 const NamesButton = ({
   newRow,
@@ -288,6 +286,7 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
             q?.content?.usernames.value.includes(p.username) &&
             q?.content?.status.value === 'Pending'
         )
+        const isReadOnly = !p.newRow && p.username
         return (
           <div className="row" key={p.key}>
             <div className="col-md-4 names__value">
@@ -301,10 +300,14 @@ const NamesSection = ({ profileNames, updateNames, preferredUsername }) => {
                     : ''
                 }`}
                 value={p.fullname}
-                readOnly={!p.newRow && p.username}
-                onChange={(e) => {
-                  handleUpdateName(p.key, 'fullname', e.target.value)
-                }}
+                readOnly={isReadOnly}
+                onChange={
+                  isReadOnly
+                    ? undefined
+                    : (e) => {
+                        handleUpdateName(p.key, 'fullname', e.target.value)
+                      }
+                }
               />
             </div>
             <div className="col-md-2 names__value">

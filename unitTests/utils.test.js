@@ -1,3 +1,4 @@
+import { screen, render } from '@testing-library/react'
 import {
   getDefaultTimezone,
   getTagDispayText,
@@ -9,13 +10,71 @@ import {
   stringToObject,
   buildNoteUrl,
   sanitizeRedirectUrl,
+  getNoteAuthorIds,
+  getNoteAuthors,
+  normalizeName,
+  getDeviceFromUserAgent,
+  prettyContentValue,
+  getTitleObjects,
+  getTokenObjects,
 } from '../lib/utils'
-import { screen, render } from '@testing-library/react'
 import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 describe('utils', () => {
+  test('describe browser and os in getDeviceFromUserAgent', () => {
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36'
+      )
+    ).toEqual('Chrome on Windows')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Safari/605.1.15'
+      )
+    ).toEqual('Safari on macOS')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36 Edg/126.0.0.0'
+      )
+    ).toEqual('Edge on macOS')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1'
+      )
+    ).toEqual('Safari on iOS')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/126.0.6478.54 Mobile/15E148 Safari/604.1'
+      )
+    ).toEqual('Chrome on iOS')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (Linux; Android 14; SM-S928B) AppleWebKit/537.36 (KHTML, like Gecko) SamsungBrowser/25.0 Chrome/121.0.0.0 Mobile Safari/537.36'
+      )
+    ).toEqual('Samsung Internet on Android')
+    expect(
+      getDeviceFromUserAgent(
+        'Mozilla/5.0 (X11; Linux x86_64; rv:127.0) Gecko/20100101 Firefox/127.0'
+      )
+    ).toEqual('Firefox on Linux')
+
+    // browser-only and os-only matches
+    expect(getDeviceFromUserAgent('curl/8.6.0')).toEqual('API client')
+    expect(getDeviceFromUserAgent('openreview-py/1.49.2 (Python/3.11)')).toEqual(
+      'openreview-py'
+    )
+    expect(
+      getDeviceFromUserAgent('Mozilla/5.0 (Windows NT 10.0; Trident/7.0; rv:11.0) like Gecko')
+    ).toEqual('Windows')
+
+    // client-controlled values are never returned raw
+    expect(getDeviceFromUserAgent('some unrecognized client')).toEqual('Unknown device')
+    expect(getDeviceFromUserAgent(undefined)).toEqual('Device not reported')
+    expect(getDeviceFromUserAgent('')).toEqual('Device not reported')
+  })
+
   test('convert string to object in stringToObject', () => {
     let prefilledValues = {}
     expect(stringToObject(prefilledValues)).toEqual(undefined)
@@ -496,6 +555,21 @@ describe('utils', () => {
     expect(expectedValue).toEqual(resultValue)
     // #endregion
 
+    // #region script not to show actual script
+    workflowInvitation = {
+      id: 'ICLR.cc/2025/Conference/-/Confidential_Comment',
+      edit: {
+        invitation: {
+          preprocess: 'async func...',
+        },
+      },
+    }
+    path = 'edit.invitation.preprocess'
+    expectedValue = 'script'
+    resultValue = getSubInvitationContentFieldDisplayValue(workflowInvitation, path, 'script')
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
     // #region date as formatted string
     workflowInvitation = {
       id: 'ICLR.cc/2025/Conference/-/Confidential_Comment',
@@ -961,5 +1035,285 @@ describe('utils', () => {
     redirect = 'javascript:alert("some alert")'
     expectedValue = '/'
     expect(sanitizeRedirectUrl(redirect)).toEqual(expectedValue)
+  })
+
+  test('return authorids correctly', () => {
+    let note, isV2Note, expectedValue, edit
+
+    // v1 note
+    note = {
+      content: {
+        authorids: ['~Test_User1', '~Test_User2'],
+      },
+    }
+    isV2Note = false
+    expectedValue = ['~Test_User1', '~Test_User2']
+    expect(getNoteAuthorIds(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - authors+authorids schema
+    note = {
+      content: {
+        authors: { value: ['Test User1', 'Test User2'] },
+        authorids: { value: ['~Test_User1', '~Test_User2'] },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['~Test_User1', '~Test_User2']
+    expect(getNoteAuthorIds(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - object author schema
+    note = {
+      content: {
+        authors: {
+          value: [
+            { username: '~Test_User1', fullname: 'Test User1', institutions: [] },
+            { username: '~Test_User2', fullname: 'Test User2', institutions: [] },
+          ],
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['~Test_User1', '~Test_User2']
+    expect(getNoteAuthorIds(note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for authors+authorids schema
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authorids: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthorIds(edit.note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for object author schema (use authors instead of authorids)
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authors: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthorIds(edit.note, isV2Note)).toEqual(expectedValue)
+  })
+
+  test('return author names correctly', () => {
+    let note, isV2Note, expectedValue, edit
+
+    // v1 note
+    note = {
+      content: {
+        authors: ['Test User1', 'Test User2'],
+      },
+    }
+    isV2Note = false
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // v1 note with original
+    note = {
+      content: {
+        authors: ['submission authors'],
+      },
+      details: {
+        original: {
+          content: {
+            authors: ['Test User1', 'Test User2'],
+          },
+        },
+      },
+    }
+    isV2Note = false
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - authors+authorids schema
+    note = {
+      content: {
+        authors: { value: ['Test User1', 'Test User2'] },
+        authorids: { value: ['~Test_User1', '~Test_User2'] },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // v2 note - object author schema
+    note = {
+      content: {
+        authors: {
+          value: [
+            { username: '~Test_User1', fullname: 'Test User1', institutions: [] },
+            { username: '~Test_User2', fullname: 'Test User2', institutions: [] },
+          ],
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = ['Test User1', 'Test User2']
+    expect(getNoteAuthors(note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for authors+authorids schema
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authorids: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthors(edit.note, isV2Note)).toEqual(expectedValue)
+
+    // edit - author coreference for object author schema (use authors instead of authorids)
+    edit = {
+      content: {},
+      note: {
+        content: {
+          authors: {
+            value: {
+              replace: {
+                index: 0,
+                value: '',
+              },
+            },
+          },
+        },
+      },
+    }
+    isV2Note = true
+    expectedValue = undefined
+    expect(getNoteAuthors(edit.note, isV2Note)).toEqual(expectedValue)
+  })
+
+  test('return normalized name', () => {
+    let fullname, expectedNormalizedName
+
+    // normal name
+    fullname = 'Test User'
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with extra spaces
+    fullname = '  Test   User  '
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with fullwidth characters
+    fullname = 'Ｔｅｓｔ　Ｕｓｅｒ'
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with Diacritical Marks
+    fullname = 'Tést Üsér'
+    expectedNormalizedName = 'Test User'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+    fullname = 'Test O’Connor'
+    expectedNormalizedName = 'Test O Connor'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with chinese characters
+    fullname = '用户全名'
+    expectedNormalizedName = '用户全名'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // name with different kinds of hyphen,dot,underscore
+    fullname = 'Some-differnt–kind—First Some.kind•of‧Middle Some_kinds＿of﹏last◌̲Name'
+    expectedNormalizedName =
+      'Some differnt kind First Some kind of Middle Some kinds of last Name'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+
+    // some other special characters
+    fullname = 'ﬁle ﬂow Ⅻ ①'
+    expectedNormalizedName = 'file flow XII 1'
+    expect(normalizeName(fullname)).toEqual(expectedNormalizedName)
+  })
+
+  test('return author list object in prettyContentValue for author{} type', () => {
+    const reciprocal_reviewers = [
+      { username: '~Test_User1', fullname: 'Test User' },
+      { username: 'test@email.com', fullname: 'Email User' },
+    ]
+    expect(prettyContentValue(reciprocal_reviewers, 'author{}')).toEqual({
+      isObjAuthorList: true,
+      authors: reciprocal_reviewers,
+    })
+
+    // fallback to string if presentation is not author{}
+    expect(prettyContentValue(reciprocal_reviewers, 'string')).toEqual(
+      JSON.stringify(reciprocal_reviewers, undefined, 2).replace(/"/g, '')
+    )
+  })
+
+  test('returns plain text label in getTitleObjects', () => {
+    const maliciousTitle = 'xss<img src=x onerror=alert(123)>test'
+    const notes = [
+      {
+        id: 'some id',
+        forum: 'some id',
+        version: 2,
+        content: {
+          title: { value: maliciousTitle },
+          authors: { value: ['<script>alert(123)</script>Attacker'] },
+          authorids: { value: ['~Attacker1'] },
+        },
+      },
+    ]
+
+    const [titleObj] = getTitleObjects(notes, 'xss')
+
+    expect(titleObj.label).toBe(maliciousTitle)
+    expect(titleObj.label).not.toMatch(/<strong/i)
+    expect(titleObj.subtitle).toBe('<script>alert(123)</script>Attacker')
+    expect(titleObj.subtitle).not.toMatch(/<strong/i)
+
+    expect(titleObj.value).toBe(maliciousTitle)
+  })
+
+  test('returns plain text label in getTokenObjects', () => {
+    const notes = [
+      {
+        id: 'some note',
+        forum: 'some note',
+        version: 2,
+        content: {
+          title: { value: 'xss<img src=x onerror=alert(123)>test' },
+          keywords: { value: ['<b>keyword</b>'] },
+          authors: { value: ['Author'] },
+          authorids: { value: ['~Author1'] },
+        },
+      },
+    ]
+
+    expect(getTokenObjects(notes, 'img').map((t) => t.label)).toEqual(['img']) // no more <
+    expect(getTokenObjects(notes, 'key').map((t) => t.label)).toEqual(['<b>keyword</b>'])
   })
 })

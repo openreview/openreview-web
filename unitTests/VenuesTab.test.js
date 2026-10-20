@@ -1,8 +1,8 @@
 import { screen, render, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
-import api from '../lib/api-client'
-import VenuesTab from '../app/user/moderation/(VenueRequests)/VenuesTab'
 import dayjs from 'dayjs'
+import VenuesTab from '../app/user/moderation/(VenueRequests)/VenuesTab'
+import api from '../lib/api-client'
+import '@testing-library/jest-dom'
 
 let venuesListProps
 
@@ -21,6 +21,7 @@ beforeEach(() => {
 describe('VenuestTab', () => {
   test('show VenuesList', async () => {
     api.getCombined = jest.fn(() => Promise.resolve({ notes: [] }))
+    api.get = jest.fn(() => Promise.resolve({ notes: [] }))
     render(<VenuesTab />)
 
     await waitFor(() => {
@@ -37,6 +38,11 @@ describe('VenuestTab', () => {
     const secondNewest = dayjs().subtract(1, 'day').valueOf()
     const thirdNewest = dayjs().subtract(2, 'day').valueOf()
     const fourthNewest = dayjs().subtract(3, 'day').valueOf()
+    const betweenNewestAndSecondNewest = dayjs().subtract(12, 'hour').valueOf()
+    const betweenThirdNewestAndFourthNewest = dayjs()
+      .subtract(2, 'day')
+      .subtract(12, 'hour')
+      .valueOf()
     api.getCombined = jest.fn(() =>
       Promise.resolve({
         notes: [
@@ -89,18 +95,50 @@ describe('VenuestTab', () => {
           {
             id: 'v2 deployed no comment',
             content: { venue_id: { value: 'v2_no_comment' } },
+            invitations: ['openreview.net/Support/Venue_Request/-/ARR_Commitment_Workflow'],
             apiVersion: 2,
             cdate: newest,
           },
           {
             id: 'v2 deployed with comment',
             content: { venue_id: { value: 'v2_with_comment' } },
+            invitations: ['openreview.net/Support/Venue_Request/-/Conference_Review_Workflow'],
             apiVersion: 2,
             details: {
               replies: [
                 {
                   invitations: ['venue_request/Comment'],
                   cdate: fourthNewest,
+                },
+              ],
+            },
+            cdate: dayjs().valueOf(), // does not matter
+          },
+        ],
+      })
+    )
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        notes: [
+          {
+            id: 'journal not deployed',
+            content: { venue_id: { value: undefined } },
+          },
+          {
+            id: 'journal deployed no comment',
+            content: { venue_id: { value: 'journal_no_comment' } },
+            invitations: ['openreview.net/Support/-/Journal_Request'],
+            cdate: betweenNewestAndSecondNewest,
+          },
+          {
+            id: 'journal deployed with comment',
+            content: { venue_id: { value: 'journal_with_comment' } },
+            invitations: ['openreview.net/Support/-/Journal_Request'],
+            details: {
+              replies: [
+                {
+                  invitations: ['journal_request/Comment'],
+                  cdate: betweenThirdNewestAndFourthNewest,
                 },
               ],
             },
@@ -119,9 +157,22 @@ describe('VenuestTab', () => {
           venueRequestNotes: [
             // no comment request in front sorted by cdate desc
             // followed by with comment request sorted by cdate of latest comment
-            expect.objectContaining({ id: 'v2 deployed no comment' }),
+            expect.objectContaining({
+              id: 'v2 deployed no comment',
+              workflowLabel: 'ARR Commitment Workflow',
+            }),
+            expect.objectContaining({
+              id: 'journal deployed no comment',
+              apiVersion: 2,
+              workflowLabel: 'Journal Request',
+            }),
             expect.objectContaining({ id: 'v1 deployed no comment' }),
             expect.objectContaining({ id: 'v1 deployed with comment' }),
+            expect.objectContaining({
+              id: 'journal deployed with comment',
+              apiVersion: 2,
+              workflowLabel: 'Journal Request',
+            }),
             expect.objectContaining({ id: 'v2 deployed with comment' }),
           ],
         })

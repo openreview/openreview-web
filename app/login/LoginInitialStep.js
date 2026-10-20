@@ -1,11 +1,10 @@
-/* globals promptError,promptMessage: false */
-import { useState } from 'react'
 import Link from 'next/link'
-import { isValidEmail } from '../../lib/utils'
+import { useState } from 'react'
 import SpinnerButton from '../../components/SpinnerButton'
+import api from '../../lib/api-client'
+import { isValidEmail } from '../../lib/utils'
 
 import styles from './Login.module.scss'
-import api from '../../lib/api-client'
 
 const ResetPasswordResendConfirmationLinks = ({ email }) => {
   const handleResendConfirmation = async (e) => {
@@ -80,10 +79,6 @@ const LoginInitialStep = ({ handleInitialSubmit }) => {
               type="login"
               disabled={!isValidEmail(email) || !password || isLoading}
               loading={isLoading}
-              data-original-title={
-                email && !isValidEmail(email) ? 'Please enter a valid email address' : ''
-              }
-              data-toggle="tooltip"
               onClick={async () => {
                 setIsLoading(true)
                 const success = await handleInitialSubmit(email, password)

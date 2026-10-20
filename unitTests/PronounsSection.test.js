@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import PronounSection from '../components/profile/PronounSection'
+import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
@@ -15,8 +15,7 @@ describe('Pronoun selection dropdown', () => {
     render(<PronounSection {...properties} />)
     const element = screen.getByText('Choose pronouns or type a custom pronouns')
     expect(element).toBeInTheDocument()
-    expect(updatePronoun).toHaveBeenCalledTimes(1)
-    expect(updatePronoun).toHaveBeenCalledWith('')
+    expect(updatePronoun).not.toHaveBeenCalled()
   })
 
   test('check if pronouns dropdown renders successfully', () => {
@@ -29,7 +28,6 @@ describe('Pronoun selection dropdown', () => {
     render(<PronounSection {...properties} />)
     const element = screen.getByText('he/him')
     expect(element).toBeInTheDocument()
-    expect(updatePronoun).toHaveBeenCalledTimes(1)
-    expect(updatePronoun).toHaveBeenCalledWith('he/him')
+    expect(updatePronoun).not.toHaveBeenCalled()
   })
 })

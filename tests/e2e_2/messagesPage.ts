@@ -7,7 +7,7 @@ const loginButton = Selector('button').withText('Login to OpenReview')
 
 const testUserRole = Role(`http://localhost:${process.env.NEXT_PORT}`, async (t) => {
   await t
-    .click(Selector('a').withText('Login'))
+    .click(Selector('a').withText('Login').filterVisible())
     .typeText(emailInput, 'test@mail.com')
     .typeText(passwordInput, strongPassword)
     .wait(100)

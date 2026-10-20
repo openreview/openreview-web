@@ -6,7 +6,6 @@ const okTextColor = '#3c763d'
 
 const commonStyles = {
   icon: { display: 'none' },
-  title: { display: 'none' },
   description: {
     fontSize: '0.9375rem',
     lineHeight: '21px',
@@ -47,7 +46,7 @@ export default function usePrompt() {
   })
 
   const commonProps = {
-    message: null,
+    title: null,
     pauseOnHover: true,
     closable: canClose,
   }
@@ -62,11 +61,13 @@ export default function usePrompt() {
           description: <Markdown text={message?.toString()} />,
           duration: customDuration ?? messageDuration,
         }),
-      promptError: (message, customDuration) =>
+      promptError: (message, customDuration, disableGfm = false) =>
         api.error({
           ...commonProps,
           styles: getStyles('error'),
-          description: <Markdown text={`**Error:** ${message?.toString()}`} />,
+          description: (
+            <Markdown text={`**Error:** ${message?.toString()}`} disableGfm={disableGfm} />
+          ),
           duration: customDuration ?? errorDuration,
         }),
       promptLogin: (customDuration) =>

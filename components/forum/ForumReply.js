@@ -1,16 +1,15 @@
-/* globals promptMessage,$: false */
-
-import { useContext, useEffect, useState } from 'react'
-import Link from 'next/link'
 import copy from 'copy-to-clipboard'
-import truncate from 'lodash/truncate'
 import dayjs from 'dayjs'
+import truncate from 'lodash/truncate'
+import Link from 'next/link'
+import { useContext, useEffect, useState } from 'react'
+import { getInvitationColors } from '../../lib/forum-utils'
+import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../lib/utils'
+import Icon from '../Icon'
 import { NoteContentV2 } from '../NoteContent'
 import NoteEditor from '../NoteEditor'
 import ForumReplyContext from './ForumReplyContext'
-import Icon from '../Icon'
-import { getInvitationColors } from '../../lib/forum-utils'
-import { prettyId, prettyInvitationId, forumDate, buildNoteTitle } from '../../lib/utils'
+import ForumReplyForm from './ForumReplyForm'
 
 function scrollToNote(noteId, showEditor) {
   const el = document.querySelector(
@@ -32,7 +31,6 @@ export default function ForumReply({
   deleteOrRestoreNote,
   isDirectReplyToForum,
 }) {
-  const [activeInvitation, setActiveInvitation] = useState(null)
   const [activeEditInvitation, setActiveEditInvitation] = useState(null)
   const { displayOptionsMap, nesting, excludedInvitations, setCollapsed, setContentExpanded } =
     useContext(ForumReplyContext)
@@ -66,16 +64,6 @@ export default function ForumReply({
         invitationReaders.every((reader) => note.readers.includes(reader))
       )
     })
-  }
-
-  const openNoteEditor = (invitation, type) => {
-    if (type === 'reply') {
-      setActiveInvitation(activeInvitation ? null : invitation)
-      setActiveEditInvitation(null)
-    } else if (type === 'edit') {
-      setActiveInvitation(null)
-      setActiveEditInvitation(activeInvitation ? null : invitation)
-    }
   }
 
   useEffect(() => {
@@ -229,7 +217,7 @@ export default function ForumReply({
                       data-id={invitation.id}
                       onClick={(e) => {
                         e.preventDefault()
-                        openNoteEditor(invitation, 'edit')
+                        setActiveEditInvitation(invitation)
                       }}
                     >
                       {prettyInvitationId(invitation.id)}
@@ -360,49 +348,13 @@ export default function ForumReply({
         deleted={!!ddate}
       />
 
-      {replyInvitations.length > 0 && (
-        <div className="invitations-container mt-2">
-          <div className="invitation-buttons">
-            <span className="hint">Add:</span>
-            {replyInvitations.map((inv) => {
-              const expired = inv.expdate < Date.now()
-              return (
-                <button
-                  key={inv.id}
-                  type="button"
-                  className={`btn btn-xs ${activeInvitation?.id === inv.id ? 'active' : ''} ${expired ? 'expired' : ''}`}
-                  data-id={inv.id}
-                  onClick={() => openNoteEditor(inv, 'reply')}
-                  data-toggle="tooltip"
-                  data-placement="top"
-                  title={
-                    expired
-                      ? `${prettyInvitationId(inv.id)} expired ${dayjs(inv.expdate).fromNow()}`
-                      : ''
-                  }
-                >
-                  {prettyInvitationId(inv.id)}
-                </button>
-              )
-            })}
-          </div>
-
-          <NoteEditor
-            invitation={activeInvitation}
-            replyToNote={note}
-            className={`note-editor-reply depth-${replyDepth % 2 === 0 ? 'even' : 'odd'}`}
-            closeNoteEditor={() => {
-              setActiveInvitation(null)
-            }}
-            onNoteCreated={(newNote) => {
-              updateNote(newNote)
-              setActiveInvitation(null)
-              scrollToNote(newNote.id)
-            }}
-            isDirectReplyToForum={false} // reply to direct reply
-          />
-        </div>
-      )}
+      <ForumReplyForm
+        replyInvitations={replyInvitations}
+        replyDepth={replyDepth}
+        updateNote={updateNote}
+        replyToNote={note}
+        scrollToNote={scrollToNote}
+      />
 
       {!allRepliesHidden && (
         <NoteReplies

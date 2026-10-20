@@ -1,7 +1,7 @@
 import { screen, render, waitFor } from '@testing-library/react'
-import '@testing-library/jest-dom'
-import api from '../lib/api-client'
 import VenueRequestTab from '../app/user/moderation/(VenueRequests)/VenueRequestTab'
+import api from '../lib/api-client'
+import '@testing-library/jest-dom'
 
 let venueRequestListProps
 
@@ -20,10 +20,12 @@ beforeEach(() => {
 describe('VenueRequestTab', () => {
   test('show VenueRequestList', async () => {
     api.getCombined = jest.fn(() => Promise.resolve({ notes: [] }))
+    api.get = jest.fn(() => Promise.resolve({ notes: [] })) // journal
     render(<VenueRequestTab />)
 
     await waitFor(() => {
       expect(api.getCombined).toHaveBeenCalled()
+      expect(api.get).toHaveBeenCalled()
       expect(screen.getByText('Venue Request List')).toBeInTheDocument()
       expect(venueRequestListProps).toHaveBeenCalledWith(
         expect.objectContaining({ newRequestNotes: [] })
@@ -53,7 +55,41 @@ describe('VenueRequestTab', () => {
                 value: undefined,
               },
             },
+            invitations: ['openreview.net/Support/Venue_Request/-/Conference_Review_Workflow'],
             apiVersion: 2,
+          },
+          {
+            id: 'arr commitment not deployed',
+            content: {
+              venue_id: {
+                value: undefined,
+              },
+            },
+            invitations: ['openreview.net/Support/Venue_Request/-/ARR_Commitment_Workflow'],
+            apiVersion: 2,
+          },
+        ],
+      })
+    )
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        notes: [
+          {
+            id: 'journal deployed',
+            content: {
+              venue_id: {
+                value: 'journal',
+              },
+            },
+          },
+          {
+            id: 'journal not deployed',
+            content: {
+              venue_id: {
+                value: undefined,
+              },
+            },
+            invitations: ['openreview.net/Support/-/Journal_Request'],
           },
         ],
       })
@@ -65,7 +101,21 @@ describe('VenueRequestTab', () => {
         expect.objectContaining({
           newRequestNotes: expect.arrayContaining([
             { id: 'v1 not deployed', apiVersion: 1 },
-            { id: 'v2 not deployed', apiVersion: 2 },
+            {
+              id: 'v2 not deployed',
+              apiVersion: 2,
+              workflowLabel: 'Conference Review Workflow',
+            },
+            {
+              id: 'arr commitment not deployed',
+              apiVersion: 2,
+              workflowLabel: 'ARR Commitment Workflow',
+            },
+            {
+              id: 'journal not deployed',
+              apiVersion: 2,
+              workflowLabel: 'Journal Request',
+            },
           ]),
         })
       )

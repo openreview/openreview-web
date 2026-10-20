@@ -1,28 +1,26 @@
-/* globals promptError, promptLogin, view2, clearMessage: false */
-
-import React, { useEffect, useCallback, useReducer, useState, useContext } from 'react'
-import throttle from 'lodash/throttle'
 import { intersection, isEmpty } from 'lodash'
-import EditorComponentContext from './EditorComponentContext'
-import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
-import EditorWidget from './webfield/EditorWidget'
-import SpinnerButton from './SpinnerButton'
-import LoadingSpinner from './LoadingSpinner'
-import Signatures from './Signatures'
-import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
-import Icon from './Icon'
+import throttle from 'lodash/throttle'
+import { useEffect, useCallback, useReducer, useState, useContext } from 'react'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
+import { getNoteContentValues } from '../lib/forum-utils'
 import { getAutoStorageKey, prettyField, prettyInvitationId, classNames } from '../lib/utils'
 import { getErrorFieldName, isNonDeletableError } from '../lib/webfield-utils'
-import { getNoteContentValues } from '../lib/forum-utils'
+import EditorComponentContext from './EditorComponentContext'
+import DatePickerWidget from './EditorComponents/DatePickerWidget'
+import EditorComponentHeader from './EditorComponents/EditorComponentHeader'
+import LicenseWidget from './EditorComponents/LicenseWidget'
+import Markdown from './EditorComponents/Markdown'
+import EditSignatures from './EditSignatures'
+import Icon from './Icon'
+import LoadingSpinner from './LoadingSpinner'
+import { NewNoteReaders, NewReplyEditNoteReaders } from './NoteEditorReaders'
+import Signatures from './Signatures'
+import SpinnerButton from './SpinnerButton'
+import EditorWidget from './webfield/EditorWidget'
+import WebFieldContext from './WebFieldContext'
 
 import styles from '../styles/components/NoteEditor.module.scss'
-import LicenseWidget from './EditorComponents/LicenseWidget'
-import DatePickerWidget from './EditorComponents/DatePickerWidget'
-import EditSignatures from './EditSignatures'
-import Markdown from './EditorComponents/Markdown'
-import WebFieldContext from './WebFieldContext'
 
 const ExistingNoteReaders = NewReplyEditNoteReaders
 
@@ -348,7 +346,12 @@ const NoteEditor = ({
       }))
     }
 
-    if (fieldName === 'authors' && Array.isArray(fieldDescription?.value)) return null
+    if (
+      fieldName === 'authors' &&
+      Array.isArray(fieldDescription?.value) &&
+      fieldDescription.value.every((p) => typeof p !== 'object') // object author reorder should still show widget
+    )
+      return null
 
     return (
       <div key={fieldName} className={isHiddenField ? null : styles.fieldContainer}>
@@ -360,6 +363,7 @@ const NoteEditor = ({
             field: { [fieldName]: fieldDescription },
             onChange: setNoteEditorData,
             value: fieldValue,
+            editorValue: noteEditorData,
             isWebfield: false,
             error,
             setErrors,
@@ -554,7 +558,7 @@ const NoteEditor = ({
         noteReaderValues: await getNoteReaderValues(roleNames, invitation, noteEditorData),
         editReaderValues: await getEditReaderValues(roleNames, invitation, noteEditorData),
         editWriterValues: getEditWriterValues(),
-        ...(replyToNote && { replyto: replyToNote.id }),
+        ...(!note?.id && replyToNote && { replyto: replyToNote.id }),
         editContent: editContentData,
       }
 
@@ -563,7 +567,7 @@ const NoteEditor = ({
           formData.authors = noteEditorData.authorids.map((p) => p.authorName)
           formData.authorids = noteEditorData.authorids.map((p) => p.authorId)
         }
-      } else {
+      } else if (!noteEditorData.authors) {
         formData.authors = { delete: true }
         formData.authorids = { delete: true }
       }
@@ -592,12 +596,16 @@ const NoteEditor = ({
       if (error.errors) {
         setErrors(
           error.errors.map((p) => {
-            const fieldName = getErrorFieldName(p.details.path)
+            const { fieldName, index } = getErrorFieldName(p.details.path)
             const fieldNameInError =
               fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
             if (isNonDeletableError(p.details.invalidValue))
-              return { fieldName, message: `${fieldNameInError} is not deletable` }
-            return { fieldName, message: p.message.replace(fieldName, fieldNameInError) }
+              return { fieldName, message: `${fieldNameInError} is not deletable`, index }
+            return {
+              fieldName,
+              message: p.message.replace(fieldName, fieldNameInError),
+              index,
+            }
           })
         )
         const hasOnlyMissingFieldsError = error.errors.every(
@@ -609,7 +617,7 @@ const NoteEditor = ({
             : 'Some info submitted are invalid.'
         )
       } else if (error.details?.path) {
-        const fieldName = getErrorFieldName(error.details.path)
+        const { fieldName, index } = getErrorFieldName(error.details.path)
         const fieldNameInError =
           fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
         const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
@@ -619,6 +627,7 @@ const NoteEditor = ({
           {
             fieldName,
             message: prettyErrorMessage,
+            index,
           },
         ])
         displayError(prettyErrorMessage)

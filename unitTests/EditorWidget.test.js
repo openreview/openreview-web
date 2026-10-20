@@ -9,6 +9,9 @@ jest.mock('../components/EditorComponents/TagsWidget', () => () => <span>tags</s
 jest.mock('../components/EditorComponents/RadioButtonWidget', () => () => <span>radio</span>)
 jest.mock('../components/EditorComponents/CheckboxWidget', () => () => <span>checkbox</span>)
 jest.mock('../components/EditorComponents/DropdownWidget', () => () => <span>dropdown</span>)
+jest.mock('../components/EditorComponents/DropdownDerivedOptionsWidget', () => () => (
+  <span>dropdown-derived</span>
+))
 jest.mock('../components/EditorComponents/TextAreaWidget', () => () => <span>textarea</span>)
 jest.mock('../components/EditorComponents/CodeEditorWidget', () => () => <span>editor</span>)
 jest.mock('../components/EditorComponents/FileUploadWidget', () => () => <span>upload</span>)
@@ -200,7 +203,7 @@ describe('EditorWidget', () => {
     expect(screen.getByText('checkbox')).toBeInTheDocument()
   })
 
-  test('render DropdownWidget for input select', async () => {
+  test('render DropdownWidget for input select (not derived field)', async () => {
     const providerProps = inputProviderProps
     providerProps.value.field.field_name.value.param.input = 'select'
 
@@ -208,8 +211,17 @@ describe('EditorWidget', () => {
     expect(screen.getByText('dropdown')).toBeInTheDocument()
   })
 
+  test('render DropdownDerivedOptionsWidget for input select (derived field)', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = 'select'
+    providerProps.value.field.field_name.value.param.enum = ['${3/decision_options/value}']
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('dropdown-derived')).toBeInTheDocument()
+  })
+
   // for backward compatibility
-  test('render DropdownWidget for field without input but has enum', async () => {
+  test('render DropdownWidget for field without input but has enum (not derived)', async () => {
     const providerProps = inputProviderProps
     providerProps.value.field.field_name.value.param.input = undefined
     providerProps.value.field.field_name.value.param.type = 'string'
@@ -221,6 +233,16 @@ describe('EditorWidget', () => {
 
     renderWithEditorComponentContext(<EditorWidget />, providerProps)
     expect(screen.getByText('dropdown')).toBeInTheDocument()
+  })
+
+  test('render DropdownDerivedOptionsWidget for field without input but has enum (derived)', async () => {
+    const providerProps = inputProviderProps
+    providerProps.value.field.field_name.value.param.input = undefined
+    providerProps.value.field.field_name.value.param.type = 'string'
+    providerProps.value.field.field_name.value.param.enum = ['${3/decision_options/value}']
+
+    renderWithEditorComponentContext(<EditorWidget />, providerProps)
+    expect(screen.getByText('dropdown-derived')).toBeInTheDocument()
   })
 
   test('render TextAreaWidget for input textarea', async () => {

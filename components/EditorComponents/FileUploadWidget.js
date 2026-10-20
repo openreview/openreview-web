@@ -1,13 +1,10 @@
-/* globals promptError: false */
-
-import { useContext, useRef, useState } from 'react'
 import { nanoid } from 'nanoid'
-import EditorComponentContext from '../EditorComponentContext'
-import SpinnerButton from '../SpinnerButton'
-import { TrashButton } from '../IconButton'
-import useUser from '../../hooks/useUser'
+import { useContext, useRef, useState } from 'react'
 import api from '../../lib/api-client'
 import { prettyField } from '../../lib/utils'
+import EditorComponentContext from '../EditorComponentContext'
+import { TrashButton } from '../IconButton'
+import SpinnerButton from '../SpinnerButton'
 
 import styles from '../../styles/components/FileUploadWidget.module.scss'
 
@@ -24,46 +21,37 @@ const FileUploadWidget = () => {
   const extensions = field[fieldName].value?.param?.extensions?.map((p) => `.${p}`)
 
   const uploadSingleFileChunk = async (chunk, index, chunkCount, clientUploadId) => {
-    try {
-      const data = new FormData()
-      data.append('invitationId', invitation.id)
-      data.append('name', fieldName)
-      data.append('chunkIndex', index + 1)
-      data.append('totalChunks', chunkCount)
-      data.append('clientUploadId', clientUploadId)
-      data.append('file', chunk)
+    const data = new FormData()
+    data.append('invitationId', invitation.id)
+    data.append('name', fieldName)
+    data.append('chunkIndex', index + 1)
+    data.append('totalChunks', chunkCount)
+    data.append('clientUploadId', clientUploadId)
+    data.append('file', chunk)
 
-      const result = noteEditorPreview
-        ? await Promise.resolve({ url: 'preview url' })
-        : await api.put('/attachment/chunk', data, {
-            contentType: 'unset',
-          })
-      if (result.url) {
-        // upload is completed
-        onChange({ fieldName, value: result.url })
-        clearError?.()
-        setUploadPercentage(2)
-      } else {
-        setUploadPercentage(
-          (
-            (Object.values(result).filter((p) => p === 'completed').length * 100) /
-            Object.values(result).length
-          ).toFixed(0)
-        )
-      }
-    } catch (apiError) {
-      promptError(apiError.message)
-      fileInputRef.current.value = ''
+    const result = noteEditorPreview
+      ? await Promise.resolve({ url: 'preview url' })
+      : await api.put('/attachment/chunk', data, {
+          contentType: 'unset',
+        })
+    if (result.url) {
+      // upload is completed
+      onChange({ fieldName, value: result.url })
+      clearError?.()
+      setUploadPercentage(2)
+    } else {
+      setUploadPercentage(
+        (
+          (Object.values(result).filter((p) => p === 'completed').length * 100) /
+          Object.values(result).length
+        ).toFixed(0)
+      )
     }
   }
 
-  const handleFileSelected = async (e) => {
+  const uploadFile = async (file) => {
+    setIsLoading(true)
     try {
-      const file = e.target.files[0]
-      if (!file) return
-      if (maxSize && file.size > 1024 * 1000 * maxSize)
-        throw new Error(`File is too large. File size limit is ${maxSize} mb`)
-      setIsLoading(true)
       const chunkSize = 1024 * 1000 * 5 // 5mb
       const chunkCount = Math.ceil(file.size / chunkSize)
       const clientUploadId = nanoid()
@@ -89,8 +77,17 @@ const FileUploadWidget = () => {
       promptError(apiError.message)
       fileInputRef.current.value = ''
     }
-
     setIsLoading(false)
+  }
+
+  const handleFileSelected = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    if (maxSize && file.size > 1024 * 1000 * maxSize) {
+      promptError(`File is too large. File size limit is ${maxSize} mb`)
+      return
+    }
+    await uploadFile(file)
   }
 
   const handleDeleteFile = () => {

@@ -1,9 +1,9 @@
-import userEvent from '@testing-library/user-event'
 import { screen, waitFor } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import ProfileBidConsole from '../components/webfield/ProfileBidConsole'
+import api from '../lib/api-client'
 import { renderWithWebFieldContext } from './util'
 import '@testing-library/jest-dom'
-import api from '../lib/api-client'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../hooks/useUser', () => () => ({
@@ -511,7 +511,7 @@ describe('ProfileBidConsole', () => {
       })
     )
     api.get = getACProfiles
-    api.post = profileSearch
+    api.getAllProfilesByIds = profileSearch
 
     const providerProps = {
       value: {
@@ -533,9 +533,7 @@ describe('ProfileBidConsole', () => {
     )
 
     await waitFor(() => {
-      expect(profileSearch).toHaveBeenCalledWith(expect.anything(), {
-        ids: ['~test_id1', '~test_id2'],
-      })
+      expect(profileSearch).toHaveBeenCalledWith(['~test_id1', '~test_id2'])
       expect(profileListProps).toHaveBeenLastCalledWith(
         expect.objectContaining({
           profiles: expect.arrayContaining([

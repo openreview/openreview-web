@@ -1,13 +1,11 @@
-/* globals promptError: false, view2 */
-
 import { useState } from 'react'
+import api from '../../lib/api-client'
+import { getNoteContentValues } from '../../lib/forum-utils'
+import { prettyId } from '../../lib/utils'
 import BasicModal from '../BasicModal'
+import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
 import { NewReplyEditNoteReaders } from '../NoteEditorReaders'
 import Signatures from '../Signatures'
-import EditorComponentHeader from '../EditorComponents/EditorComponentHeader'
-import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
-import { getNoteContentValues } from '../../lib/forum-utils'
 
 export default function ConfirmDeleteModal({ note, invitation, updateNote, onClose, isEdit }) {
   const [editReaders, setEditReaders] = useState({ value: note?.readers })

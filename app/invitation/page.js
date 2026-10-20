@@ -1,17 +1,18 @@
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 import { stringify } from 'query-string'
-import { headers } from 'next/headers'
-import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
-import serverAuth from '../auth'
-import { invitationModeToggle } from '../../lib/banner-links'
 import EditBanner from '../../components/EditBanner'
-import CommonLayout from '../CommonLayout'
-import styles from './Invitation.module.scss'
-import { generateInvitationWebfieldCode, parseComponentCode } from '../../lib/webfield-utils'
-import CustomInvitation from './CustomInvitation'
-import ComponentInvitation from './ComponentInvitation'
 import ErrorDisplay from '../../components/ErrorDisplay'
+import api from '../../lib/api-client'
+import { invitationModeToggle } from '../../lib/banner-links'
+import { prettyId } from '../../lib/utils'
+import { generateInvitationWebfieldCode } from '../../lib/webfield-utils'
+import serverAuth from '../auth'
+import CommonLayout from '../CommonLayout'
+import ComponentInvitation from './ComponentInvitation'
+import CustomInvitation from './CustomInvitation'
+
+import styles from './Invitation.module.scss'
 
 export async function generateMetadata({ searchParams }) {
   const { id } = await searchParams
@@ -79,20 +80,22 @@ export default async function page({ searchParams }) {
       </CommonLayout>
     )
 
-  const componentObjP = invitation.domain
+  const domainGroupP = invitation.domain
     ? api
         .get('/groups', { id: invitation.domain }, { accessToken, remoteIpAddress })
-        .then((apiRes) => {
-          const domainGroup = apiRes.groups?.length > 0 ? apiRes.groups[0] : null
-          return parseComponentCode(invitation, domainGroup, user, query)
-        })
-        .catch((error) => parseComponentCode(invitation, null, user, query))
-    : parseComponentCode(invitation, null, user, query)
+        .then((apiRes) => (apiRes.groups?.length > 0 ? apiRes.groups[0] : null))
+        .catch(() => null)
+    : Promise.resolve(null)
 
   return (
     <CommonLayout banner={null} editBanner={editBanner}>
       <div className={styles.invitation}>
-        <ComponentInvitation componentObjP={componentObjP} />
+        <ComponentInvitation
+          invitation={invitation}
+          domainGroupP={domainGroupP}
+          user={user}
+          query={query}
+        />
       </div>
     </CommonLayout>
   )

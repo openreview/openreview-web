@@ -1,14 +1,14 @@
 'use client'
 
-/* globals promptError: false */
-
-import { useState, useEffect, useCallback, useRef } from 'react'
 import debounce from 'lodash/debounce'
 import { usePathname, useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
-import Icon from './Icon'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import api from '../lib/api-client'
-import { getTitleObjects, getTokenObjects } from '../lib/utils'
+import { getTitleObjects, getTokenObjects, highlightMatch } from '../lib/utils'
+import Icon from './Icon'
+
+import legacyNavStyles from '../styles/components/legacy-bootstrap-nav.module.scss'
 
 const AutoCompleteInput = () => {
   const [immediateSearchTerm, setImmediateSearchTerm] = useState('')
@@ -140,14 +140,14 @@ const AutoCompleteInput = () => {
 
   return (
     <>
-      <div className="form-group has-feedback">
+      <div className={legacyNavStyles.navSearchWrapper}>
         <input
           aria-label="term"
           type="text"
           name="term"
-          className="form-control"
+          className={legacyNavStyles.navSearchInput}
           value={immediateSearchTerm}
-          placeholder="Search OpenReview..."
+          placeholder="Search articles, authors and reviews..."
           autoComplete="off"
           autoCorrect="off"
           onChange={(e) => {
@@ -156,7 +156,9 @@ const AutoCompleteInput = () => {
           }}
           onKeyDown={(e) => keyDownHandler(e)}
         />
-        <Icon name="search" extraClasses="form-control-feedback" />
+        <span className={legacyNavStyles.navSearchFeedback}>
+          <Icon name="search" />
+        </span>
       </div>
 
       {autoCompleteItems.length !== 0 && (
@@ -173,15 +175,13 @@ const AutoCompleteInput = () => {
                   autoCompleteItemsRef.current[index] = element
                 }}
               >
-                <div
-                  className={`ui-menu-item-wrapper ${activeClass}`}
-                  dangerouslySetInnerHTML={{ __html: item.label }}
-                />
+                <div className={`ui-menu-item-wrapper ${activeClass}`}>
+                  {highlightMatch(item.label, [searchTerm])}
+                </div>
                 {item.subtitle && (
-                  <div
-                    className={`authlist ui-menu-item-wrapper ${activeClass}`}
-                    dangerouslySetInnerHTML={{ __html: item.subtitle }}
-                  />
+                  <div className={`authlist ui-menu-item-wrapper ${activeClass}`}>
+                    {highlightMatch(item.subtitle, [searchTerm])}
+                  </div>
                 )}
               </li>
             ) : (

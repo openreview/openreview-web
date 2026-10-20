@@ -3,7 +3,8 @@
 .container {
   display: inline-block;
   margin-top: 4px;
-  width: 500px;
+  width: 100%;
+  max-width: 500px;
   :global {
     .tooltip-inner {
       max-width: unset;
