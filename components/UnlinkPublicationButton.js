@@ -1,29 +1,21 @@
 'use client'
 
-import { useState } from 'react'
 import Icon from './Icon'
 
 const UnlinkPublicationButton = ({ noteId, linkUnlinkPublication, isUnlinked }) => {
-  const [iconType, setIconType] = useState(isUnlinked ? 'repeat' : 'minus-sign')
-  const shouldUnlink = iconType === 'minus-sign'
-  const extraClasses = shouldUnlink ? 'unlink-publication' : 'unlink-publication mirror'
-
-  const handleClick = () => {
-    setIconType(shouldUnlink ? 'repeat' : 'minus-sign')
-    linkUnlinkPublication(noteId, shouldUnlink)
-  }
+  const label = isUnlinked ? 'relink this paper' : 'unlink this paper'
 
   return (
     <span
       role="button"
       tabIndex={0}
-      onClick={handleClick}
-      aria-label={shouldUnlink ? 'unlink this paper' : 'relink this paper'}
+      onClick={() => linkUnlinkPublication(noteId, !isUnlinked)}
+      aria-label={label}
     >
       <Icon
-        name={iconType}
-        extraClasses={extraClasses}
-        tooltip={shouldUnlink ? 'unlink this paper' : 'relink this paper'}
+        name={isUnlinked ? 'repeat' : 'minus-sign'}
+        extraClasses={isUnlinked ? 'unlink-publication mirror' : 'unlink-publication'}
+        tooltip={label}
       />
     </span>
   )
