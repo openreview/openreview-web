@@ -248,7 +248,7 @@ export default async function page({ searchParams }) {
   if (!queryId && !arxivid) return <ErrorDisplay message="Forum or note ID is required" />
 
   if (arxivid) {
-    if (!/^\d{4}\.\d{4,}(?:v\d+)?$/.test(arxivid))
+    if (!/^\d{4}\.\d{4,5}(?:v\d+)?$/.test(arxivid))
       return <ErrorDisplay message={`The Note ${arxivid} was not found`} />
     return <ArxivForum id={arxivid} />
   }

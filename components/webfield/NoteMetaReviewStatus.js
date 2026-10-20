@@ -204,44 +204,49 @@ export const AreaChairConsoleNoteMetaReviewStatus = ({
           </h4>
         </>
       )}
-      {metaReviewData.customStageReviews && (
+      {metaReviewData.customStageMetaReviewReplies && (
         <div>
-          {Object.values(metaReviewData.customStageReviews).map((customStageReview, index) => {
-            if (!customStageReview.value) return null
+          {Object.values(metaReviewData.customStageMetaReviewReplies)
+            .flat()
+            .map((customStageReview, index) => {
+              if (!customStageReview.value) return null
 
-            return (
-              <div key={`${customStageReview.id}-${index}`}>
-                <strong className="custom-stage-name">{customStageReview.name}:</strong>
-                <div className="meta-review-info">
-                  <span>
-                    {customStageReview.displayField}: {customStageReview.value}
-                  </span>
+              const stageTitle = customStageReview.source
+                ? `${customStageReview.name} (${customStageReview.source})`
+                : customStageReview.name
+              return (
+                <div key={`${customStageReview.id}-${index}`}>
+                  <strong className="custom-stage-name">{stageTitle}:</strong>
+                  <div className="meta-review-info">
+                    <span>
+                      {customStageReview.displayField}: {customStageReview.value}
+                    </span>
 
-                  {customStageReview.extraDisplayFields?.length > 0 &&
-                    customStageReview.extraDisplayFields.map(({ field, value }, i) => {
-                      if (!value) return null
-                      return (
-                        <div key={`${field}-${i}`} className="meta-review-info">
-                          <span>
-                            {field}: {value}
-                          </span>
-                        </div>
-                      )
-                    })}
+                    {customStageReview.extraDisplayFields?.length > 0 &&
+                      customStageReview.extraDisplayFields.map(({ field, value }, i) => {
+                        if (!value) return null
+                        return (
+                          <div key={`${field}-${i}`} className="meta-review-info">
+                            <span>
+                              {field}: {value}
+                            </span>
+                          </div>
+                        )
+                      })}
 
-                  <div>
-                    <a
-                      href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {`Read ${customStageReview.name}`}
-                    </a>
+                    <div>
+                      <a
+                        href={`/forum?id=${customStageReview.forum}&noteId=${customStageReview.id}&referrer=${referrerUrl}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {`Read ${stageTitle}`}
+                      </a>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )
-          })}
+              )
+            })}
         </div>
       )}
     </div>

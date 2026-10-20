@@ -160,13 +160,14 @@ describe('NoteContentV2', () => {
         'arxiv:1234.5678',
         'doi:10.1000/xyz123',
         'dblp:journals/abc/12345',
+        'acl:2023.acl-long.48',
         'orcid:12345', // non-existing external id prefix as orcid use doi
       ],
     }
 
     render(<NoteContentV2 {...props} />)
 
-    expect(screen.getAllByRole('link').length).toEqual(3)
+    expect(screen.getAllByRole('link').length).toEqual(4)
     expect(screen.getByRole('link', { name: 'arxiv:1234.5678' })).toHaveAttribute(
       'href',
       'https://arxiv.org/abs/1234.5678'
@@ -178,6 +179,10 @@ describe('NoteContentV2', () => {
     expect(screen.getByRole('link', { name: 'dblp:journals/abc/12345' })).toHaveAttribute(
       'href',
       'https://dblp.org/rec/journals/abc/12345'
+    )
+    expect(screen.getByRole('link', { name: 'acl:2023.acl-long.48' })).toHaveAttribute(
+      'href',
+      'https://aclanthology.org/2023.acl-long.48/'
     )
 
     expect(screen.getByText('orcid:12345')).not.toHaveAttribute('href')

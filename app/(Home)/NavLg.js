@@ -10,7 +10,12 @@ import NavSearch from './NavSearch'
 import legacyNavStyles from '../../styles/components/legacy-bootstrap-nav.module.scss'
 import styles from '../../styles/components/nav.module.scss'
 
-export default function NavLg({ user, notificationCountSlot, dropdownOpen, setDropdownOpen }) {
+export default function NavLg({
+  user,
+  notificationStatusSlot,
+  dropdownOpen,
+  setDropdownOpen,
+}) {
   const dropdownItems = user
     ? [
         {
@@ -66,7 +71,7 @@ export default function NavLg({ user, notificationCountSlot, dropdownOpen, setDr
           <>
             <Link href="/notifications" prefetch={false} className={legacyNavStyles.navLink}>
               Notifications
-              {notificationCountSlot}
+              {notificationStatusSlot}
             </Link>
             <Link href="/activity" prefetch={false} className={legacyNavStyles.navLink}>
               Activity

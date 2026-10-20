@@ -1,6 +1,6 @@
 import { screen, render } from '@testing-library/react'
-import '@testing-library/jest-dom'
 import AreaChairConsoleMenuBar from '../components/webfield/AreaChairConsoleMenuBar'
+import '@testing-library/jest-dom'
 
 let baseMenuBarProps
 
@@ -270,5 +270,53 @@ describe('AreaChairConsoleMenuBar', () => {
         (p) => p.label === 'Meta Review Confirmation - Extra Field Two'
       )
     ).toBeTruthy()
+  })
+
+  test('custom stage sort options read both review replies and meta review replies', () => {
+    const props = {
+      reviewerName: 'Reviewers',
+      officialReviewName: 'Official_Review',
+      officialMetaReviewName: 'Official_Meta_Review',
+      submissionName: 'Submission',
+      reviewRatingName: 'rating',
+      metaReviewRecommendationName: 'recommendation',
+      areaChairName: 'Senior_Program_Committee',
+      customStageInvitations: [
+        {
+          name: 'AI_Review_Detection',
+          displayField: 'label',
+          extraDisplayFields: ['score'],
+        },
+      ],
+    }
+    render(<AreaChairConsoleMenuBar {...props} />)
+
+    const row = {
+      customStageReviewReplies: {
+        aiReviewDetection: [
+          { searchValue: 'AI', content: { score: { value: 0.9 } } },
+          { searchValue: 'Human', content: { score: { value: 0.1 } } },
+        ],
+      },
+      metaReviewData: {
+        customStageMetaReviewReplies: {
+          aiReviewDetection: [
+            { searchValue: 'Uncertain', content: { score: { value: 0.5 } } },
+          ],
+        },
+      },
+    }
+
+    const displayFieldOption = baseMenuBarProps.sortOptions.find((p) => p.label === 'Label')
+    expect(displayFieldOption.getValue(row)).toEqual('AI Human Uncertain')
+
+    const extraFieldOption = baseMenuBarProps.sortOptions.find(
+      (p) => p.label === 'AI Review Detection - Score'
+    )
+    expect(extraFieldOption.getValue(row)).toEqual('0.9 0.1 0.5')
+
+    // rows with no custom stage replies do not break sorting
+    expect(displayFieldOption.getValue({ metaReviewData: {} })).toEqual('')
+    expect(extraFieldOption.getValue({ metaReviewData: {} })).toEqual('N/A')
   })
 })
