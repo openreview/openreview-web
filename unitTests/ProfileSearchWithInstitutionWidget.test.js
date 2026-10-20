@@ -17,6 +17,77 @@ global.$ = jest.fn(() => ({
 global.promptError = jest.fn()
 
 describe('ProfileSearchWithInstitutionWidget', () => {
+  test('add current user to author list (no institution)', async () => {
+    const apiPost = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [],
+            },
+          },
+        ],
+      })
+    )
+    api.post = apiPost
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      properties: {
+                        name: { param: { type: 'string' } },
+                        domain: { param: { type: 'string' } },
+                        country: { param: { type: 'string' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => {
+      expect(onChange).toHaveBeenCalledWith(
+        expect.objectContaining({
+          value: [
+            {
+              username: '~test_id1',
+              fullname: 'Test First Test Last',
+              institutions: [],
+            },
+          ],
+        })
+      )
+    })
+  })
+
   test('add current user to author list (no current institution)', async () => {
     const apiPost = jest.fn(() =>
       Promise.resolve({
@@ -28,20 +99,20 @@ describe('ProfileSearchWithInstitutionWidget', () => {
               preferredEmail: 'test@email.com',
               history: [
                 {
-                  start: 1999,
-                  end: 1999,
-                  institution: {
-                    name: 'Test Institution',
-                    domain: 'test.edu',
-                    country: 'TC',
-                  },
-                },
-                {
                   start: 2000,
                   end: 2000,
                   institution: {
                     name: 'Another Test Institution',
                     domain: 'another.test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 1999,
+                  end: 1999,
+                  institution: {
+                    name: 'Test Institution',
+                    domain: 'test.edu',
                     country: 'TC',
                   },
                 },
@@ -99,7 +170,13 @@ describe('ProfileSearchWithInstitutionWidget', () => {
             {
               username: '~test_id1',
               fullname: 'Test First Test Last',
-              institutions: [],
+              institutions: [
+                {
+                  country: 'TC',
+                  domain: 'another.test.edu',
+                  name: 'Another Test Institution',
+                },
+              ],
             },
           ],
         })
@@ -378,6 +455,89 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     })
   })
 
+  test('show added author (no institution)', async () => {
+    const apiPost = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [],
+            },
+          },
+        ],
+      })
+    )
+    api.post = apiPost
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  username: {
+                    param: {
+                      type: 'string',
+                    },
+                  },
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      properties: {
+                        name: { param: { type: 'string' } },
+                        domain: { param: { type: 'string' } },
+                        country: { param: { type: 'string' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        value: [
+          {
+            username: '~test_id1',
+            fullname: 'Test First Test Last',
+            institutions: [],
+          },
+        ],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => {
+      // show name
+      expect(screen.getByText('Test First Test Last')).toBeInTheDocument()
+      // show tilde id as tooltip
+      expect(screen.getByText('Test First Test Last')).toHaveAttribute(
+        'data-original-title',
+        '~test_id1'
+      )
+      // show link to profile page
+      expect(screen.getByText('Test First Test Last')).toHaveAttribute(
+        'href',
+        '/profile?id=~test_id1'
+      )
+      // show remove button
+      expect(screen.getByRole('button', { name: 'remove' })).toBeInTheDocument()
+      // dropdown show no institution
+      expect(screen.getByRole('button', { name: 'No Institution' })).toBeInTheDocument()
+    })
+  })
+
   test('show added author (no current institution)', async () => {
     const apiPost = jest.fn(() =>
       Promise.resolve({
@@ -389,20 +549,20 @@ describe('ProfileSearchWithInstitutionWidget', () => {
               preferredEmail: 'test@email.com',
               history: [
                 {
-                  start: 1999,
-                  end: 1999,
-                  institution: {
-                    name: 'Test Institution',
-                    domain: 'test.edu',
-                    country: 'TC',
-                  },
-                },
-                {
                   start: 2000,
                   end: 2000,
                   institution: {
                     name: 'Another Test Institution',
                     domain: 'another.test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 1999,
+                  end: 1999,
+                  institution: {
+                    name: 'Test Institution',
+                    domain: 'test.edu',
                     country: 'TC',
                   },
                 },
@@ -475,8 +635,16 @@ describe('ProfileSearchWithInstitutionWidget', () => {
       )
       // show remove button
       expect(screen.getByRole('button', { name: 'remove' })).toBeInTheDocument()
-      // dropdown show no institution
-      expect(screen.getByRole('button', { name: 'No Active Institution' })).toBeInTheDocument()
+      // expand dropdown to show both options
+      expect(screen.getByRole('button', { name: 'Add Institution' })).toBeInTheDocument()
+      // dropdown show both institutions
+      userEvent.click(screen.getByRole('button', { name: 'Add Institution' }))
+      expect(
+        screen.getByRole('checkbox', { name: 'Test Institution (test.edu)' })
+      ).not.toBeChecked()
+      expect(
+        screen.getByRole('checkbox', { name: 'Another Test Institution (another.test.edu)' })
+      ).not.toBeChecked()
     })
   })
 
@@ -584,7 +752,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     })
   })
 
-  test('show added author (multiple current institution, selected 1)', async () => {
+  test('show added author (multiple institution, selected 1)', async () => {
     const currentYear = new Date().getFullYear()
     const apiPost = jest.fn(() =>
       Promise.resolve({
@@ -714,7 +882,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     // expand dropdown to show all options
     await userEvent.click(screen.getByRole('button', { name: '1 Institution added' }))
     await waitFor(() => {
-      expect(screen.getAllByRole('checkbox').length).toBe(4) // select all + 3 current options
+      expect(screen.getAllByRole('checkbox').length).toBe(5) // all options, current or not current
       expect(
         screen.getByRole('checkbox', { name: 'Test Institution (test.edu)' })
       ).toBeChecked()
@@ -724,6 +892,11 @@ describe('ProfileSearchWithInstitutionWidget', () => {
       expect(
         screen.getByRole('checkbox', {
           name: 'Yet Another Test Institution (yet.another.test.edu)',
+        })
+      ).not.toBeChecked()
+      expect(
+        screen.getByRole('checkbox', {
+          name: 'Non Current Institution (not.current.test.edu)',
         })
       ).not.toBeChecked()
     })
@@ -779,6 +952,11 @@ describe('ProfileSearchWithInstitutionWidget', () => {
                   country: 'TC',
                 },
                 {
+                  name: 'Non Current Institution',
+                  domain: 'not.current.test.edu',
+                  country: 'TC',
+                },
+                {
                   name: 'Yet Another Test Institution',
                   domain: 'yet.another.test.edu',
                   country: 'TC',
@@ -805,6 +983,11 @@ describe('ProfileSearchWithInstitutionWidget', () => {
                 {
                   name: 'Another Test Institution',
                   domain: 'another.test.edu',
+                  country: 'TC',
+                },
+                {
+                  name: 'Non Current Institution',
+                  domain: 'not.current.test.edu',
                   country: 'TC',
                 },
                 {
@@ -2023,7 +2206,7 @@ describe('ProfileSearchWithInstitutionWidget', () => {
       'email@author.com'
     )
     // no institution to choose for an email-only author
-    expect(screen.getByRole('button', { name: 'No Active Institution' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'No Institution' })).toBeDisabled()
   })
 
   test('load existing authors with a mix of tilde id and email', async () => {

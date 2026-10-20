@@ -485,6 +485,35 @@ describe('CheckboxWidget in context of note editor', () => {
     expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ value: defaultValue }))
   })
 
+  test('not to overwrite existing value with default value when there is no note (enum object), for exmaple, invitation editor', () => {
+    const onChange = jest.fn()
+
+    const providerProps = {
+      value: {
+        field: {
+          paper_checklist_guidelines: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string',
+                enum: [{ value: '1', description: 'I certify' }],
+                default: '1',
+              },
+            },
+          },
+        },
+        onChange,
+        // note: undefined, // invitation editor pass invitation instead of note
+        invitation: {},
+        value: '2',
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(screen.getByDisplayValue('1')).not.toBeChecked()
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
   test('update value when default value exists (items) and no value', () => {
     const onChange = jest.fn()
     const defaultValue = [1, 3]
@@ -549,6 +578,40 @@ describe('CheckboxWidget in context of note editor', () => {
     }
 
     renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
+  test('not to overwrite existing value with default value when there is no note (items)', () => {
+    const onChange = jest.fn()
+
+    const providerProps = {
+      value: {
+        field: {
+          paper_checklist_guidelines: {
+            value: {
+              param: {
+                input: 'checkbox',
+                type: 'string[]',
+                items: [
+                  { value: '1', description: 'I certify', optional: true },
+                  { value: '2', description: 'I do not certify', optional: true },
+                  { value: '3', description: 'I am not sure', optional: true },
+                ],
+                default: ['1', '3'],
+              },
+            },
+          },
+        },
+        onChange,
+        invitation: {},
+        value: ['2'],
+      },
+    }
+
+    renderWithEditorComponentContext(<CheckboxWidget />, providerProps)
+    expect(screen.getByDisplayValue('1')).not.toBeChecked()
+    expect(screen.getByDisplayValue('2')).toBeChecked()
+    expect(screen.getByDisplayValue('3')).not.toBeChecked()
     expect(onChange).not.toHaveBeenCalled()
   })
 

@@ -450,6 +450,33 @@ describe('RadioButtonWidget', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
+  test('not to overwrite existing value with default value when there is no note (enum string), for example, invitation editor', () => {
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        invitation: { id: 'some LLM_Interaction/Settings' },
+        field: {
+          llm_model: {
+            value: {
+              param: {
+                input: 'radio',
+                enum: ['claude-sonnet-4-6', 'gemini-2.5-flash'],
+                default: 'claude-sonnet-4-6',
+              },
+            },
+          },
+        },
+        onChange,
+        value: 'gemini-2.5-flash',
+      },
+    }
+
+    renderWithEditorComponentContext(<RadioButtonWidget />, providerProps)
+
+    expect(screen.getByDisplayValue('gemini-2.5-flash')).toBeChecked()
+    expect(onChange).not.toHaveBeenCalled()
+  })
+
   test('display default value as selected if there is no value (enum object)', () => {
     const onChange = jest.fn()
     const providerProps = {
