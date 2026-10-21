@@ -1401,6 +1401,10 @@
         h4 {
           margin-bottom: 0;
         }
+        // On the row's baseline like the link beside it; centring it sat a few px high.
+        .step-search {
+          width: 14rem;
+        }
       }
       .workflow-section-intro {
         margin: 0 0 0.75rem;
@@ -1451,7 +1455,7 @@
       }
 
       // An ongoing step inside its stage: no bar, just a word where the bar would be.
-      .timeline-track .track-ongoing {
+      .timeline-track .track-note {
         position: absolute;
         left: 0;
         top: 0;
@@ -1503,6 +1507,12 @@
         }
         &.default {
           color: #6b6b6b;
+        }
+        &.error {
+          color: constants.$orRed;
+        }
+        &.disabled {
+          color: #9b9b9b;
         }
       }
 
@@ -1575,13 +1585,15 @@
           min-width: 3px;
           z-index: 2;
         }
+        // A step that fires once is a dot — the timeline's event mark — where a window is a bar.
+        // Fill follows the same rule as bars: hollow until it has happened.
         .stage-moment {
           position: absolute;
-          top: 5px;
-          width: 8px;
-          height: 8px;
-          margin-left: -4px;
-          transform: rotate(45deg);
+          top: 4px;
+          width: 9px;
+          height: 9px;
+          margin-left: -4.5px;
+          border-radius: 50%;
           z-index: 2;
         }
         // A window that ends past the axis fades out at the edge instead of stopping there.
@@ -1627,6 +1639,17 @@
             border: 1px solid #6b6b6b;
           }
         }
+        // A failed run: the Bootstrap danger trio the platform already uses.
+        &.error {
+          .stage-envelope {
+            border-color: #ebccd1;
+            background: #f2dede;
+          }
+          .stage-window,
+          .stage-moment {
+            background: constants.$orRed;
+          }
+        }
       }
 
       // A step's own bar, on the same axis as its stage envelope. Fill encodes time, not status:
@@ -1641,11 +1664,12 @@
         }
         .step-moment {
           position: absolute;
-          top: 5px;
-          width: 8px;
-          height: 8px;
-          margin-left: -4px;
-          transform: rotate(45deg);
+          top: 4px;
+          width: 9px;
+          height: 9px;
+          margin-left: -4.5px;
+          border-radius: 50%;
+          box-sizing: border-box;
         }
         .step-dates {
           position: absolute;
@@ -1696,7 +1720,90 @@
             background: #7c97a0;
           }
         }
+        &.error {
+          .step-window,
+          .step-moment {
+            background: constants.$orRed;
+            border: 0;
+          }
+        }
       }
+
+      // The Activity tab: a day at a time, one line per change.
+      &.activity {
+        .activity-day {
+          margin-bottom: 1rem;
+
+          h5 {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #6b6b6b;
+            margin: 0 0 0.25rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid constants.$backgroundGray;
+          }
+        }
+        .activity-row {
+          display: grid;
+          grid-template-columns: 5rem 11rem minmax(14rem, 1fr) 2fr;
+          gap: 1rem;
+          align-items: baseline;
+          padding: 0.2rem 0;
+          font-size: 0.875rem;
+        }
+        .activity-time,
+        .activity-author {
+          color: #6b6b6b;
+          font-size: 0.8125rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .activity-via {
+          color: #6b6b6b;
+        }
+        .activity-details {
+          color: constants.$subtleGray;
+          overflow-wrap: anywhere;
+        }
+        .activity-empty {
+          font-style: italic;
+          color: #6b6b6b;
+        }
+      }
+
+      // A step's one control, disable/enable, in the column the stage glyph uses. Quiet until
+      // hovered; the glyph sits on the text line rather than Bootstrap's offset.
+      // The column is the glyph's width plus the gap before it; the toggle takes the glyph's
+      // 16px at the right, so the two line up down the page.
+      .step-control {
+        display: flex;
+        justify-content: flex-end;
+        align-self: flex-start;
+        margin-top: 0.1rem;
+      }
+      .step-toggle.ant-btn {
+        width: 16px;
+        min-width: 0;
+        padding: 0;
+        color: #9b9b9b;
+
+        &:hover {
+          color: constants.$mediumBlue;
+        }
+        .glyphicon {
+          top: 0;
+          font-size: 0.8125rem;
+        }
+      }
+      .step-status .step-run {
+        cursor: pointer;
+      }
+      .step-status.error .step-run {
+        color: constants.$orRed;
+        font-weight: 700;
+      }
+
 
       // The pre-stages workflow page (WorkflowInvitationsLegacy), for venues without
       // `workflow_stages`. These are the rules the staged timeline replaced, kept as master had
@@ -1735,6 +1842,12 @@
         }
 
         .workflow-invitation-container {
+          &.expired {
+            color: gray;
+            text-decoration: line-through;
+            opacity: 0.8;
+            background: darken(constants.$backgroundGray, 5%);
+          }
           &.section-passed {
             background-color: lighten(#c8e6c9, 10%);
           }
@@ -1752,10 +1865,6 @@
 
               .workflow-invitation-id {
                 margin-right: 0.25rem;
-              }
-              .invitation-invitee,
-              .expire-link {
-                margin-left: 0.5rem;
               }
             }
           }
@@ -1821,16 +1930,10 @@
                 top: 0.25rem;
               }
 
-              // The title always owns the first line and the invitee and actions the second, so
-              // Disable lands in the same place on every step instead of wherever the width allows.
+              // The actions sit beside the name; a long name wraps rather than clipping.
               .workflow-invitation-id {
-                flex: 0 0 100%;
                 white-space: normal;
               }
-            }
-            .invitation-invitee {
-              max-width: none;
-              white-space: normal;
             }
           }
         }
@@ -1896,11 +1999,26 @@
           background-color: #eeeeee;
         }
 
+        // A disabled step is muted rather than struck through — its status line says what it
+        // is, and the Enable link beside the name stays legible.
         &.expired {
-          color: gray;
-          text-decoration: line-through;
-          opacity: 0.8;
-          background: darken(constants.$backgroundGray, 5%);
+          .workflow-invitation-id,
+          .step-status,
+          .step-status.error,
+          .invitation-description,
+          .sub-invitation-container {
+            color: #8f8f8f;
+            font-weight: inherit;
+          }
+          // Outranks the title rule's black, which is nested four levels deep.
+          .edit-invitation-info
+            .edit-invitation-container
+            .invitation-content
+            .invitation-id-container
+            .workflow-invitation-id {
+            color: #8f8f8f;
+            font-weight: 700;
+          }
         }
 
         .invitation-cdate {
@@ -2149,6 +2267,23 @@
               font-style: italic;
               color: #6b6b6b;
               text-align: right;
+            }
+            .committee-editor-heading {
+              font-weight: 700;
+              margin-bottom: 0.5rem;
+            }
+
+            // The members page's list is a section of its own; inside a card it needs no
+            // heading or bottom margin, and it takes the card's width.
+            section.members {
+              margin-bottom: 0;
+
+              > h4 {
+                display: none;
+              }
+              .members-container {
+                width: 100%;
+              }
             }
           }
         }
