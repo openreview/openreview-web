@@ -30,4 +30,9 @@ module.exports = {
     silenceDeprecations: ['legacy-js-api'],
   },
   htmlLimitedBots: '.*',
+  experimental: {
+    serverActions: {
+      allowedOrigins: ['dev.openreview.net', 'openreview.net'],
+    },
+  },
 }
