@@ -148,7 +148,7 @@ function VenueFees({ venue, reloadFees }) {
                       <>
                         <Tag>Payment in progress</Tag>
                         <Text type="secondary">
-                          Initiated by {prettyId(fee.checkoutPayment.signatures[0])}{' '}
+                          Initiated by {prettyId(fee.checkoutPayment.signature)}{' '}
                           {dayjs(fee.checkoutPayment.cdate).fromNow()}
                         </Text>
                         <Button
@@ -190,7 +190,7 @@ function VenueFees({ venue, reloadFees }) {
                   </Tag>
                   <Text type="secondary">
                     {dayjs(fee.payment.mdate).format('MMMM D, YYYY')}
-                    {fee.status === 'paid' && ` by ${prettyId(fee.payment.signatures[0])}`}
+                    {fee.status === 'paid' && ` by ${prettyId(fee.payment.signature)}`}
                   </Text>
                 </Flex>
               </div>

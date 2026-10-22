@@ -98,7 +98,7 @@ const PaymentButton = ({ forumNoteId }) => {
   if (paymentStatus.status === 'pending') {
     return (
       <Tooltip
-        title={`Payment initiated by ${prettyId(paymentStatus.checkoutPayment.signatures[0])} ${dayjs(paymentStatus.checkoutPayment.cdate).fromNow()}`}
+        title={`Payment initiated by ${prettyId(paymentStatus.checkoutPayment.signature)} ${dayjs(paymentStatus.checkoutPayment.cdate).fromNow()}`}
       >
         <Button
           iconPlacement="end"
