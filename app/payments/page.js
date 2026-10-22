@@ -27,7 +27,9 @@ function VenueFees({ venue, reloadFees }) {
 
   const duedate = pendingFees[0]?.duedate
 
-  const selectedFees = pendingFees.filter((fee) => selectedIds.includes(fee.invitationId))
+  const selectedFees = pendingFees.filter(
+    (fee) => !fee.checkoutPayment && selectedIds.includes(fee.invitationId)
+  )
   const totalAmount = selectedFees.reduce((sum, fee) => sum + fee.amount, 0)
 
   const getCheckoutLink = async () => {
@@ -45,45 +47,53 @@ function VenueFees({ venue, reloadFees }) {
         return
       }
 
-      const { jobId } = await api.post('/payments/checkout/bulk', {
+      const { url, jobId } = await api.post('/payments/checkout/bulk', {
         payments: selectedFees.map((fee) => ({
           invitation: fee.invitationId,
           payment: { note: fee.noteId },
         })),
         cancelUrl,
       })
-      // Check the job every second while the author waits, for up to 30 seconds
-      const waitForCheckout = async (attempt) => {
-        await new Promise((resolve) => {
-          setTimeout(resolve, 1000)
-        })
-        const job = await api.get(`/payments/checkout/${jobId}`)
-        if (job.status === 'ok') return job.url
-        if (job.status === 'error') {
-          throw new Error(job.error?.message ?? 'The payment could not be started')
+
+      if (url) {
+        window.location.href = url
+      } else {
+        // api returned 202
+        const waitForCheckout = async (attempt) => {
+          await new Promise((resolve) => {
+            setTimeout(resolve, 1000)
+          })
+          const job = await api.get(`/payments/checkout/${jobId}`)
+          if (job.status === 'ok') return job.url
+          if (job.status === 'error') {
+            throw new Error(job.error?.message ?? 'The payment could not be started')
+          }
+          if (attempt >= 30) {
+            throw new Error(
+              'Starting the payment is taking longer than expected, please try again later'
+            )
+          }
+          return waitForCheckout(attempt + 1)
         }
-        if (attempt >= 30) {
-          throw new Error(
-            'Starting the payment is taking longer than expected, please try again later'
-          )
-        }
-        return waitForCheckout(attempt + 1)
+        window.location.href = await waitForCheckout(1)
       }
-      window.location.href = await waitForCheckout(1)
     } catch (apiError) {
       promptError(apiError.message)
       setIsPaying(false)
+      setSelectedIds([])
       reloadFees()
     }
   }
 
-  const cancelCheckout = async (paymentId) => {
+  const cancelCheckout = async (fee) => {
+    const paymentId = fee.checkoutPayment.id
     setCancelingId(paymentId)
     try {
       await api.post(`/payments/${paymentId}/cancel`)
     } catch (apiError) {
       promptError(apiError.message)
     }
+    setSelectedIds((ids) => ids.filter((id) => id !== fee.invitationId))
     await reloadFees()
     setCancelingId(null)
   }
@@ -127,7 +137,7 @@ function VenueFees({ venue, reloadFees }) {
             <Flex key={fee.invitationId} justify="space-between" align="start" gap="middle">
               <Flex align="start" gap="small">
                 <Checkbox
-                  checked={selectedIds.includes(fee.invitationId)}
+                  checked={selectedFees.includes(fee)}
                   disabled={Boolean(fee.checkoutPayment) || isPaying}
                   onChange={(e) => {
                     if (e.target.checked) {
@@ -154,12 +164,13 @@ function VenueFees({ venue, reloadFees }) {
                         <Button
                           type="link"
                           size="small"
+                          iconPlacement="end"
                           loading={
                             cancelingId === fee.checkoutPayment.id
                               ? { icon: <LoadingIcon /> }
                               : false
                           }
-                          onClick={() => cancelCheckout(fee.checkoutPayment.id)}
+                          onClick={() => cancelCheckout(fee)}
                         >
                           Cancel Payment
                         </Button>

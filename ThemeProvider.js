@@ -1,3 +1,5 @@
+'use client'
+
 import { AntdRegistry } from '@ant-design/nextjs-registry'
 import { ConfigProvider } from 'antd'
 
@@ -162,7 +164,14 @@ const theme = {
 
 const ThemeProvider = ({ children }) => (
   <AntdRegistry>
-    <ConfigProvider theme={theme} wave={{ disabled: true }}>
+    <ConfigProvider
+      theme={theme}
+      wave={{ disabled: true }}
+      checkbox={{
+        styles: ({ props }) =>
+          props.disabled ? { icon: { borderColor: 'var(--ant-color-border-disabled)' } } : {},
+      }}
+    >
       {children}
     </ConfigProvider>
   </AntdRegistry>
