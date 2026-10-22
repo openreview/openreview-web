@@ -1,19 +1,16 @@
-/* globals promptMessage: false */
-/* globals promptError: false */
-
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
+import { isSuperUser } from '../../lib/clientAuth'
+import ContentProcessFunctions from './ContentProcessFunctions'
+import InvitationChildInvitations, {
+  InvitationChildInvitationsV2,
+} from './InvitationChildInvitations'
+import InvitationCode, { InvitationCodeV2 } from './InvitationCode'
 import InvitationGeneral, { InvitationGeneralV2 } from './InvitationGeneral'
+import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
 import InvitationReply, {
   InvitationReplyWithPreview,
   InvitationReplyV2,
 } from './InvitationReply'
-import InvitationCode, { InvitationCodeV2 } from './InvitationCode'
-import InvitationChildInvitations, {
-  InvitationChildInvitationsV2,
-} from './InvitationChildInvitations'
-import InvitationProcessFunctionsV2 from './InvitationProcessFunctions'
-import ContentProcessFunctions from './ContentProcessFunctions'
-import { isSuperUser } from '../../lib/clientAuth'
 
 const InvitationAdminV1 = ({ invitation, user, loadInvitation }) => {
   const profileId = user?.profile?.id
@@ -67,6 +64,7 @@ export const InvitationAdminV2 = ({ invitation, isMetaInvitation, user, loadInvi
     if (invitation.edge) return 'edge'
     if (invitation.tag) return 'tag'
     if (invitation.message) return 'message'
+    if (invitation.assertion) return 'assertion'
     return 'edit'
   }
 

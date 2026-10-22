@@ -1,20 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
-import CommonLayout from '../../CommonLayout'
-import styles from '../Invitation.module.scss'
-import { prettyId } from '../../../lib/utils'
+import { useEffect, useState } from 'react'
 import EditBanner from '../../../components/EditBanner'
-import { invitationModeToggle } from '../../../lib/banner-links'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 import InvitationAdminV1, {
   InvitationAdminV2,
 } from '../../../components/invitation/InvitationAdmin'
+import LoadingSpinner from '../../../components/LoadingSpinner'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import ErrorDisplay from '../../../components/ErrorDisplay'
-import LoadingSpinner from '../../../components/LoadingSpinner'
+import { invitationModeToggle } from '../../../lib/banner-links'
+import { prettyId } from '../../../lib/utils'
+import CommonLayout from '../../CommonLayout'
+
+import styles from '../Invitation.module.scss'
 
 export default function InvitationAdmin({ id, query }) {
   const [invitation, setInvitation] = useState(null)
@@ -36,6 +37,8 @@ export default function InvitationAdmin({ id, query }) {
       type = '(Invitation of Edge)'
     } else if (invitation.tag) {
       type = '(Invitation of Tag)'
+    } else if (invitation.assertion) {
+      type = '(Invitation of Profile Assertion)'
     }
 
     return `${prettyId(invitation?.id)} ${type}`

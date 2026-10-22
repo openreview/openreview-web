@@ -187,6 +187,7 @@ const BlockModal = ({
       await api.post('/profile/moderate', {
         id: profile.id,
         decision: 'block',
+        reason: blockTag.trim(),
       })
       setBlockTag('')
     } catch (error) {

@@ -1,15 +1,13 @@
-/* globals promptError,promptMessage,view: false */
-
-import { useState, useEffect } from 'react'
 import pickBy from 'lodash/pickBy'
-import EditorSection from '../EditorSection'
-import CodeEditor from '../CodeEditor'
-import SpinnerButton from '../SpinnerButton'
-import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
+import { useState, useEffect } from 'react'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { getMetaInvitationId, prettyId } from '../../lib/utils'
+import CodeEditor from '../CodeEditor'
+import EditorSection from '../EditorSection'
 import NoteEditor from '../NoteEditor'
+import SpinnerButton from '../SpinnerButton'
+import { TabList, Tabs, Tab, TabPanels, TabPanel } from '../Tabs'
 
 // Used for both reply/edit and reply forum views
 export default function InvitationReply({
@@ -111,10 +109,11 @@ export function InvitationReplyV2({
   const isInvitaitonOfInvitation = invitation.edit?.invitation
 
   const titleMap = {
-    edge: 'Edge',
-    tag: 'Tag',
     edit: 'Edit',
+    tag: 'Tag',
+    edge: 'Edge',
     message: 'Message',
+    assertion: 'Assertion',
     replyForumViews: 'Reply Forum Views',
     content: 'Content',
   }
@@ -131,6 +130,7 @@ export function InvitationReplyV2({
       case 'tag':
       case 'edge':
       case 'message':
+      case 'assertion':
       case 'replyForumViews':
         return {
           invitation: {
