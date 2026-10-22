@@ -5,38 +5,53 @@ import { Button, Result } from 'antd'
 import { notFound, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import LoadingSpinner from '../../../components/LoadingSpinner'
+import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import { prettyId } from '../../../lib/utils'
+import { inflect, prettyId, prettyList } from '../../../lib/utils'
 
 export default function Page() {
   const params = useSearchParams()
   const sessionId = params.get('session_id')
   if (!sessionId) notFound()
-  const [sessionStatus, setSessionStatus] = useState(null)
+  const [sessionInfo, setSessionInfo] = useState(null)
+  const { isRefreshing } = useUser()
 
   const [error, setError] = useState(null)
 
   const loadSessionInfo = async () => {
     try {
-      const { domain, submissions } = await api.get('look up session status', {
-        session_id: sessionId,
+      const { payments } = await api.get('/payments', { sessionId })
+      if (!payments.length) {
+        const { exists } = await api.get('/payments/confirmation', { sessionId })
+        if (!exists) throw new Error('Payment session not found')
+        setSessionInfo({ submissions: [] })
+        return
+      }
+      const { notes } = await api.get('/notes', {
+        ids: payments.map((payment) => payment.note),
+        sort: 'number:asc',
       })
-      setSessionStatus({ domain, submissions })
-    } catch (error) {
-      setError(error.message)
+      setSessionInfo({ domain: payments[0].domain, submissions: notes })
+    } catch (apiError) {
+      setError(apiError.message)
     }
   }
 
   useEffect(() => {
+    if (isRefreshing) return
     loadSessionInfo()
-  }, [sessionId])
+  }, [sessionId, isRefreshing])
 
   if (error) notFound()
-  if (!sessionStatus) return <LoadingSpinner />
+  if (!sessionInfo) return <LoadingSpinner />
 
-  const { domain, submissions } = sessionStatus
-  const isBulkPayment = submissions.length > 1
-  const submissionNumbers = submissions.map((submission) => submission.number).join(', ')
+  const { domain, submissions } = sessionInfo
+  const submissionNumbers = prettyList(
+    submissions.map((submission) => submission.number),
+    'long',
+    'conjunction',
+    false
+  )
 
   return (
     <Result
@@ -45,24 +60,27 @@ export default function Page() {
       title="Payment Received"
       subTitle={
         <>
-          <p>
-            for{' '}
-            {`${prettyId(domain)} ${isBulkPayment ? 'Submissions' : 'Submission'} ${submissionNumbers}`}
-          </p>
+          {submissions.length > 0 && (
+            <p>
+              for{' '}
+              {`${prettyId(domain)} ${inflect(submissions.length, 'Submission', 'Submissions')} ${submissionNumbers}`}
+            </p>
+          )}
           The fee status will update once the payment is confirmed, usually within a few
           seconds. You can close this page.
         </>
       }
       extra={
-        isBulkPayment ? (
+        submissions.length > 0 &&
+        (submissions.length > 1 ? (
           <Button type="primary" href="/payments">
             Go to Payments
           </Button>
         ) : (
-          <Button type="primary" href={`/forum?id=${submissions[0].noteId}`}>
+          <Button type="primary" href={`/forum?id=${submissions[0].id}`}>
             Go to Submission
           </Button>
-        )
+        ))
       }
       styles={{
         root: {
