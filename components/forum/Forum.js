@@ -22,7 +22,6 @@ import {
   replaceFilterWildcards,
 } from '../../lib/forum-utils'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
-import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteEditor from '../NoteEditor'
 import ChatEditorForm from './ChatEditorForm'
@@ -34,6 +33,7 @@ import FilterTabs from './FilterTabs'
 import ForumNote from './ForumNote'
 import ForumReply from './ForumReply'
 import ForumReplyContext from './ForumReplyContext'
+import PaymentButton from './PaymentButton'
 
 dayjs.extend(relativeTime)
 
@@ -1062,59 +1062,60 @@ export default function Forum({
         </div>
       )}
 
-      {parentNote.replyInvitations?.length > 0 &&
-        !parentNote.ddate &&
-        layout === 'default' && (
-          <div className="invitations-container">
-            <div className="invitation-buttons top-level-invitations">
-              <span className="hint">Add:</span>
-              {parentNote.replyInvitations.map((invitation) => {
-                if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
-                const expired = invitation.expdate < Date.now()
+      {!parentNote.ddate && (
+        <div className="invitations-container">
+          <div className="top-level-actions">
+            <PaymentButton forumNoteId={id} />
+            {parentNote.replyInvitations?.length > 0 && layout === 'default' && (
+              <div className="invitation-buttons top-level-invitations">
+                <span className="hint">Add:</span>
+                {parentNote.replyInvitations.map((invitation) => {
+                  if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+                  const expired = invitation.expdate < Date.now()
 
-                return (
-                  <button
-                    key={invitation.id}
-                    type="button"
-                    className={`btn btn-xs ${
-                      activeInvitation?.id === invitation.id ? 'active' : ''
-                    } ${expired ? 'expired' : ''}`}
-                    data-id={invitation.id}
-                    onClick={() => setActiveInvitation(activeInvitation ? null : invitation)}
-                    data-toggle="tooltip"
-                    data-placement="top"
-                    title={
-                      expired
-                        ? `${prettyInvitationId(invitation.id)} expired ${dayjs(invitation.expdate).fromNow()}`
-                        : ''
-                    }
-                  >
-                    {prettyInvitationId(invitation.id)}
-                  </button>
-                )
-              })}
-            </div>
-            {activeInvitation && (
-              <NoteEditor
-                note={
-                  selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)
-                }
-                replyToNote={parentNote}
-                invitation={activeInvitation}
-                className="note-editor-reply depth-even"
-                closeNoteEditor={() => {
-                  setActiveInvitation(null)
-                }}
-                onNoteCreated={(note) => {
-                  updateNote(note)
-                  setActiveInvitation(null)
-                  scrollToElement('#forum-replies')
-                }}
-                isDirectReplyToForum={true}
-              />
+                  return (
+                    <button
+                      key={invitation.id}
+                      type="button"
+                      className={`btn btn-xs ${
+                        activeInvitation?.id === invitation.id ? 'active' : ''
+                      } ${expired ? 'expired' : ''}`}
+                      data-id={invitation.id}
+                      onClick={() => setActiveInvitation(activeInvitation ? null : invitation)}
+                      data-toggle="tooltip"
+                      data-placement="top"
+                      title={
+                        expired
+                          ? `${prettyInvitationId(invitation.id)} expired ${dayjs(invitation.expdate).fromNow()}`
+                          : ''
+                      }
+                    >
+                      {prettyInvitationId(invitation.id)}
+                    </button>
+                  )
+                })}
+              </div>
             )}
           </div>
-        )}
+          {activeInvitation && layout === 'default' && (
+            <NoteEditor
+              note={selectedNoteId && selectedInvitationId && stringToObject(prefilledValues)}
+              replyToNote={parentNote}
+              invitation={activeInvitation}
+              className="note-editor-reply depth-even"
+              closeNoteEditor={() => {
+                setActiveInvitation(null)
+              }}
+              onNoteCreated={(note) => {
+                updateNote(note)
+                setActiveInvitation(null)
+                scrollToElement('#forum-replies')
+              }}
+              isDirectReplyToForum={true}
+            />
+          )}
+        </div>
+      )}
 
       <div className={`row forum-replies-container layout-${layout}`}>
         <div className="col-xs-12">
