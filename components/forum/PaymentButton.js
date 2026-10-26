@@ -3,6 +3,7 @@ import { Button, Tag, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react'
+import useSocket from '../../hooks/useSocket'
 import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 import LoadingIcon from '../LoadingIcon'
@@ -76,14 +77,16 @@ const PaymentButton = ({ forumNoteId }) => {
     loadPaymentInvitation()
   }, [forumNoteId])
 
+  const events = useSocket(
+    paymentStatus?.status === 'pending' ? 'payment' : undefined,
+    ['payment-updated', 'connect'],
+    { id: paymentStatus?.checkoutPayment?.id }
+  )
+
   useEffect(() => {
-    if (paymentStatus?.status !== 'pending') return undefined
-    // A completed payment stays pending until the processor's confirmation reaches the API, usually within seconds
-    const timers = [5000, 10000, 30000].map((delay) =>
-      setTimeout(loadPaymentInvitation, delay)
-    )
-    return () => timers.forEach(clearTimeout)
-  }, [paymentStatus?.status])
+    if (!events) return
+    loadPaymentInvitation()
+  }, [events?.uniqueId])
 
   if (!paymentStatus) return null
 
