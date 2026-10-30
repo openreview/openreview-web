@@ -1116,7 +1116,7 @@ export default function Forum({
           </div>
         )}
 
-      <div className={`row forum-replies-container layout-${layout}`}>
+      <div className={`forum-replies-container layout-${layout}`}>
         <div id="forum-replies">
           <ForumReplyContext.Provider
             value={{
