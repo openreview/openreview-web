@@ -269,19 +269,14 @@ $gray3: rgba(0, 0, 0, 0.05);
     .forum-replies-container {
       &.layout-default {
         margin-top: 1rem;
-        .col-xs-12 {
-          @media #{constants.$phone-only} {
-            padding-left: 25px;
-            padding-right: 8px;
-          }
+        @media #{constants.$phone-only} {
+          padding-left: 10px;
         }
       }
       &.layout-chat {
-        .col-xs-12 {
-          @media #{constants.$phone-only} {
-            padding-left: 0;
-            padding-right: 0;
-          }
+        @media #{constants.$phone-only} {
+          margin-left: -15px;
+          margin-right: -15px;
         }
       }
     }
