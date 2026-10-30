@@ -1117,45 +1117,43 @@ export default function Forum({
         )}
 
       <div className={`row forum-replies-container layout-${layout}`}>
-        <div className="col-xs-12">
-          <div id="forum-replies">
-            <ForumReplyContext.Provider
-              value={{
-                forumId: id,
-                replyNoteMap,
-                displayOptionsMap,
-                layout,
-                nesting,
-                excludedInvitations: selectedFilters.excludedInvitations,
-                setCollapsed,
-                setContentExpanded,
-                setHidden,
-              }}
-            >
-              {repliesLoaded ? renderReplies() : <LoadingSpinner inline />}
-            </ForumReplyContext.Provider>
+        <div id="forum-replies">
+          <ForumReplyContext.Provider
+            value={{
+              forumId: id,
+              replyNoteMap,
+              displayOptionsMap,
+              layout,
+              nesting,
+              excludedInvitations: selectedFilters.excludedInvitations,
+              setCollapsed,
+              setContentExpanded,
+              setHidden,
+            }}
+          >
+            {repliesLoaded ? renderReplies() : <LoadingSpinner inline />}
+          </ForumReplyContext.Provider>
 
-            {repliesLoaded &&
-              cutoffIndex.current < orderedReplies.length &&
-              layout !== 'chat' && (
-                <div className="text-center">
-                  <button
-                    type="button"
-                    className="btn btn-xs btn-default"
-                    onClick={() => {
-                      const newMaxLength = maxLength + 50
-                      if (newMaxLength < numRepliesVisible.current) {
-                        setMaxLength(numRepliesVisible.current + 50)
-                      } else {
-                        setMaxLength(newMaxLength)
-                      }
-                    }}
-                  >
-                    View More Replies &rarr;
-                  </button>
-                </div>
-              )}
-          </div>
+          {repliesLoaded &&
+            cutoffIndex.current < orderedReplies.length &&
+            layout !== 'chat' && (
+              <div className="text-center">
+                <button
+                  type="button"
+                  className="btn btn-xs btn-default"
+                  onClick={() => {
+                    const newMaxLength = maxLength + 50
+                    if (newMaxLength < numRepliesVisible.current) {
+                      setMaxLength(numRepliesVisible.current + 50)
+                    } else {
+                      setMaxLength(newMaxLength)
+                    }
+                  }}
+                >
+                  View More Replies &rarr;
+                </button>
+              </div>
+            )}
         </div>
       </div>
 
