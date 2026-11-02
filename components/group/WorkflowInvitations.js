@@ -285,8 +285,26 @@ const TimelineGrid = ({ domain, showLabels }) => (
         {showLabels && <span className="timeline-month-label">{month.label}</span>}
       </div>
     ))}
-    <div className="timeline-now" style={{ left: `${domain.percentOf(Date.now())}%` }} />
+    {/* Today is marked on the axis; down the stage list it is one unbroken line (see
+        TimelineNowLine) rather than a dash per row. */}
+    {showLabels && (
+      <div className="timeline-now" style={{ left: `${domain.percentOf(Date.now())}%` }} />
+    )}
   </>
+)
+
+// One line for today through the whole stage list. The tracks are right-aligned in the list
+// (status column, then the track), so its position is measured from the right edge.
+const TimelineNowLine = ({ domain }) => (
+  <div
+    className="timeline-now-line"
+    style={{
+      right:
+        timelineStatusWidth +
+        timelineGap +
+        (timelineTrackWidth * (100 - domain.percentOf(Date.now()))) / 100,
+    }}
+  />
 )
 
 const WorkflowTimelineAxis = ({ domain }) => (
@@ -2239,78 +2257,82 @@ const WorkFlowInvitations = ({ group }) => {
 
             <div className="invitation-workflow-container">
               {workflowStages.length > 0 && (
-                <Collapse
-                  activeKey={openStageKeys}
-                  onChange={(keys) => setActiveStageKeys(keys)}
-                  bordered={false}
-                  size="small"
-                  collapsible="header"
-                  expandIcon={({ isActive }) => (
-                    <CaretRightOutlined
-                      rotate={isActive ? 90 : 0}
-                      style={{ color: token.colorLink }}
-                    />
-                  )}
-                  style={{ width: '110%' }}
-                  items={visibleWorkflowStages.map((workflowStage) => {
-                    const stageIndex = workflowStages.indexOf(workflowStage)
-                    const { workflowStageName, invitationsOfWorkflowStageName } = workflowStage
-                    const stageStatus = getStageStatus(
-                      invitationsOfWorkflowStageName,
-                      processLogs
-                    )
-                    return {
-                      key: workflowStageName,
-                      label: (
-                        <WorkflowStageHeader
-                          workflowStage={workflowStage}
-                          stageIndex={stageIndex}
-                        />
-                      ),
-                      extra: (
-                        <Flex align="center" gap={timelineGap}>
-                          {timelineDomain ? (
-                            <WorkflowStageTrack
-                              workflowStage={workflowStage}
-                              domain={timelineDomain}
-                              statusColor={stageStatus.stageStatusColor}
-                            />
-                          ) : (
-                            <WorkflowStagePeriod workflowStage={workflowStage} />
-                          )}
-                          {stageStatusFilter === 'all' ? (
-                            <StageStatusIcon status={stageStatus} />
-                          ) : (
-                            <span
-                              style={{
-                                width: timelineStatusWidth,
-                                flex: `0 0 ${timelineStatusWidth}px`,
-                              }}
-                            />
-                          )}
-                        </Flex>
-                      ),
-                      forceRender: true,
-                      styles: {
-                        header: {
-                          // Status is carried by the tag and the bar; tint only marks what is open.
-                          backgroundColor: openStageKeys.includes(workflowStageName)
-                            ? openStageBackground
-                            : 'transparent',
-                          alignItems: 'center',
-                          paddingInline: 0,
+                <div className="stage-list">
+                  {timelineDomain && <TimelineNowLine domain={timelineDomain} />}
+                  <Collapse
+                    activeKey={openStageKeys}
+                    onChange={(keys) => setActiveStageKeys(keys)}
+                    bordered={false}
+                    size="small"
+                    collapsible="header"
+                    expandIcon={({ isActive }) => (
+                      <CaretRightOutlined
+                        rotate={isActive ? 90 : 0}
+                        style={{ color: token.colorLink }}
+                      />
+                    )}
+                    items={visibleWorkflowStages.map((workflowStage) => {
+                      const stageIndex = workflowStages.indexOf(workflowStage)
+                      const { workflowStageName, invitationsOfWorkflowStageName } =
+                        workflowStage
+                      const stageStatus = getStageStatus(
+                        invitationsOfWorkflowStageName,
+                        processLogs
+                      )
+                      return {
+                        key: workflowStageName,
+                        label: (
+                          <WorkflowStageHeader
+                            workflowStage={workflowStage}
+                            stageIndex={stageIndex}
+                          />
+                        ),
+                        extra: (
+                          <Flex align="center" gap={timelineGap}>
+                            {timelineDomain ? (
+                              <WorkflowStageTrack
+                                workflowStage={workflowStage}
+                                domain={timelineDomain}
+                                statusColor={stageStatus.stageStatusColor}
+                              />
+                            ) : (
+                              <WorkflowStagePeriod workflowStage={workflowStage} />
+                            )}
+                            {stageStatusFilter === 'all' ? (
+                              <StageStatusIcon status={stageStatus} />
+                            ) : (
+                              <span
+                                style={{
+                                  width: timelineStatusWidth,
+                                  flex: `0 0 ${timelineStatusWidth}px`,
+                                }}
+                              />
+                            )}
+                          </Flex>
+                        ),
+                        forceRender: true,
+                        styles: {
+                          header: {
+                            // Status is carried by the tag and the bar; tint only marks what is open.
+                            backgroundColor: openStageKeys.includes(workflowStageName)
+                              ? openStageBackground
+                              : 'transparent',
+                            alignItems: 'center',
+                            paddingInline: 0,
+                          },
+                          body: { padding: '2px 0 10px' },
                         },
-                        body: { padding: '2px 0 10px' },
-                      },
-                      children: invitationsOfWorkflowStageName
-                        .filter(
-                          (stepObj) =>
-                            stageNameMatchesSearch(workflowStage) || stepMatchesSearch(stepObj)
-                        )
-                        .map((stepObj) => renderWorkflowInvitation(stepObj, true)),
-                    }
-                  })}
-                />
+                        children: invitationsOfWorkflowStageName
+                          .filter(
+                            (stepObj) =>
+                              stageNameMatchesSearch(workflowStage) ||
+                              stepMatchesSearch(stepObj)
+                          )
+                          .map((stepObj) => renderWorkflowInvitation(stepObj, true)),
+                      }
+                    })}
+                  />
+                </div>
               )}
               {invitationsWithoutWorkflowStage.map((stepObj) =>
                 renderWorkflowInvitation(stepObj, false)

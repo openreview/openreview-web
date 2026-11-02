@@ -1564,7 +1564,7 @@
           position: absolute;
           top: 0;
           bottom: 0;
-          border-left: 1px dashed constants.$orRed;
+          border-left: 1px dotted constants.$orRed;
           z-index: 3;
         }
 
@@ -1979,6 +1979,23 @@
         }
         .step-dates .cdate .due-date::before {
           content: '– ';
+        }
+      }
+
+      // The stage list is the box today's line is measured in: as wide as the rows it holds
+      // (110%, like them), with the line drawn once down its whole height, behind anything with
+      // a background of its own.
+      .stage-list {
+        position: relative;
+        width: 110%;
+
+        .timeline-now-line {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          border-left: 1px dotted constants.$orRed;
+          pointer-events: none;
+          z-index: 1;
         }
       }
 
