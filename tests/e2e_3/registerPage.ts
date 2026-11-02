@@ -70,6 +70,20 @@ const dismissNotifications = async (t: TestController) => {
   await t.expect(notificationSelector.exists).notOk()
 }
 
+// Register waits for a Turnstile token, so print the browser console when it never arrives
+const expectRegisterEnabled = async (t: TestController) => {
+  try {
+    await t
+      .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
+      .notOk({ timeout: 8000 })
+  } catch (error) {
+    const { error: consoleErrors, warn } = await t.getBrowserConsoleMessages()
+    // oxlint-disable-next-line no-console
+    console.log('Browser console errors:', consoleErrors, 'warnings:', warn)
+    throw error
+  }
+}
+
 fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
   ctx.superUserToken = await getToken(superUserName, strongPassword)
   return ctx
@@ -187,8 +201,8 @@ test('create new profile', async (t) => {
     .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
     .ok()
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
-    .notOk({ timeout: 8000 })
+  await expectRegisterEnabled(t)
+  await t
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
@@ -238,8 +252,8 @@ test('create another new profile', async (t) => {
     .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
     .ok()
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
-    .notOk({ timeout: 8000 })
+  await expectRegisterEnabled(t)
+  await t
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
@@ -284,8 +298,8 @@ test('create a new profile with an institutional email', async (t) => {
     .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
     .ok()
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
-    .notOk({ timeout: 8000 })
+  await expectRegisterEnabled(t)
+  await t
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
@@ -308,8 +322,8 @@ test('sign up with invalid name', async (t) => {
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
-    .notOk({ timeout: 8000 })
+  await expectRegisterEnabled(t)
+  await t
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(messageSelector.innerText)
     .eql(
@@ -327,8 +341,8 @@ test('sign up with another invalid name', async (t) => {
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
-    .notOk({ timeout: 8000 })
+  await expectRegisterEnabled(t)
+  await t
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(messageSelector.innerText)
     .eql(
@@ -360,8 +374,8 @@ test('enter valid name invalid email and change to valid email and register', as
     .typeText(confirmPasswordInputSelector, strongPassword)
     .click(signupButtonSelector)
     .click(Selector('#confirm-name-modal').find('input').withAttribute('type', 'checkbox'))
-    .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
-    .notOk({ timeout: 8000 })
+  await expectRegisterEnabled(t)
+  await t
     .click(Selector('#confirm-name-modal').find('.btn-primary'))
     .expect(Selector('h1').withText('Thank You for Signing Up').exists)
     .ok()
