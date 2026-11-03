@@ -70,24 +70,53 @@ const dismissNotifications = async (t: TestController) => {
   await t.expect(notificationSelector.exists).notOk()
 }
 
-// Register waits for a Turnstile token, so print the browser console when it never arrives
+const turnstileLogger = RequestLogger(/challenges\.cloudflare\.com/)
+
+const getTurnstileState = ClientFunction(() => ({
+  hasTurnstile: Boolean((window as any).turnstile),
+  widgetHtml: document
+    .querySelector('#confirm-name-modal .text-center')
+    ?.innerHTML.slice(0, 500),
+  hasToken: Boolean(
+    document.querySelector<HTMLInputElement>('input[name="cf-turnstile-response"]')?.value
+  ),
+  cloudflareResources: performance
+    .getEntriesByType('resource')
+    .filter((entry) => entry.name.includes('challenges.cloudflare.com'))
+    .map((entry) => `${Math.round(entry.duration)}ms ${entry.name}`),
+}))
+
+// Register waits for a Turnstile token, so print what Turnstile did when it never arrives
 const expectRegisterEnabled = async (t: TestController) => {
   try {
     await t
       .expect(Selector('#confirm-name-modal').find('.btn-primary').hasAttribute('disabled'))
       .notOk({ timeout: 8000 })
   } catch (error) {
-    const { error: consoleErrors, warn } = await t.getBrowserConsoleMessages()
+    const diagnostics = {
+      console: await t.getBrowserConsoleMessages(),
+      page: await getTurnstileState(),
+      requests: turnstileLogger.requests.map(({ request, response }) => ({
+        url: request.url,
+        status: response?.statusCode ?? 'no response',
+        ms: response ? response.timestamp - request.timestamp : null,
+      })),
+    }
     // oxlint-disable-next-line no-console
-    console.log('Browser console errors:', consoleErrors, 'warnings:', warn)
+    console.log('Turnstile diagnostics:', JSON.stringify(diagnostics, null, 2))
     throw error
   }
 }
 
-fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`.before(async (ctx) => {
-  ctx.superUserToken = await getToken(superUserName, strongPassword)
-  return ctx
-})
+fixture`Signup`.page`http://localhost:${process.env.NEXT_PORT}/signup`
+  .before(async (ctx) => {
+    ctx.superUserToken = await getToken(superUserName, strongPassword)
+    return ctx
+  })
+  .afterEach(async () => {
+    turnstileLogger.clear()
+  })
+  .requestHooks(turnstileLogger)
 
 test('create new profile', async (t) => {
   await t
