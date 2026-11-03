@@ -22,10 +22,15 @@ const InvitationEditor = ({
   onInvitationEditPosted,
   isGroupInvitation = false,
   group,
-  // A page can check the edit before it is posted: a message from validateSubmit blocks the
-  // post, and errorPrefix names where an API error came from — the server only says what went
-  // wrong, not on which step.
-  validateSubmit,
+  // Optional check before posting, given the form's values; resolve false to cancel the save.
+  confirmBeforeSubmit,
+  // Optional checks on the form's values as they change; returns [{ fieldName, message }]. Shown
+  // under each field, and Submit stays disabled while there are any.
+  validate,
+  // Optional translation of a failed save; returns { message, fieldNames } or null to show the
+  // API's own message. With fieldNames the message goes under those fields instead of the banner.
+  formatSubmitError,
+  // Optional label put in front of the API's own error messages, e.g. the step and setting being saved.
   errorPrefix,
 }) => {
   const { user, isRefreshing } = useUser()
@@ -48,11 +53,16 @@ const InvitationEditor = ({
     defaultInvitationEditorData
   )
   const [fields, setFields] = useState([])
+  const [submitErrors, setSubmitErrors] = useState([])
+  const validationErrors = validate?.(invitationEditorData) ?? []
 
   const renderField = (fieldName, fieldDescription) => {
     const isHiddenField = fieldDescription?.value?.param?.hidden
     const isContentField = fieldDescription?.value?.param?.type === 'content'
-    const error = errors.find((e) => e.fieldName === fieldName)
+    const error =
+      errors.find((e) => e.fieldName === fieldName) ??
+      validationErrors.find((e) => e.fieldName === fieldName) ??
+      submitErrors.find((e) => e.fieldName === fieldName)
 
     const fieldValue = invitationEditorData[fieldName]
 
@@ -98,6 +108,7 @@ const InvitationEditor = ({
   }
 
   const handleSubmitClick = async () => {
+    if (confirmBeforeSubmit && !(await confirmBeforeSubmit(invitationEditorData))) return
     const { content: editContentFields, group: groupFields, ...otherFields } = invitation.edit
     const editToPost = {}
 
@@ -106,11 +117,6 @@ const InvitationEditor = ({
       return field && field.param && !field.param.const
     }
 
-    const validationError = validateSubmit?.(invitationEditorData)
-    if (validationError) {
-      promptError(validationError)
-      return
-    }
     try {
       setIsSubmitting(true)
       const editContent = {}
@@ -149,16 +155,35 @@ const InvitationEditor = ({
       onInvitationEditPosted?.()
       closeInvitationEditor()
     } catch (error) {
-      promptError(errorPrefix ? `${errorPrefix}: ${error.message}` : error.message)
+      const formattedError = formatSubmitError?.(error, invitationEditorData)
+      if (formattedError?.fieldNames?.length) {
+        setSubmitErrors(
+          formattedError.fieldNames.map((fieldName) => ({
+            fieldName,
+            message: formattedError.message,
+          }))
+        )
+      } else {
+        promptError(
+          formattedError?.message ??
+            (errorPrefix ? `${errorPrefix}: ${error.message}` : error.message)
+        )
+      }
     }
     setIsSubmitting(false)
   }
 
   const handleCancelClick = () => {
     setErrors([])
+    setSubmitErrors([])
     setInvitationEditorData({ type: 'reset' })
     closeInvitationEditor()
   }
+
+  // A failed save's errors describe the values that were sent, so any change clears them
+  useEffect(() => {
+    setSubmitErrors([])
+  }, [invitationEditorData])
 
   useEffect(() => {
     if (isRefreshing || !invitation?.edit?.content) return
@@ -193,7 +218,9 @@ const InvitationEditor = ({
         <SpinnerButton
           className={styles.submitButton}
           onClick={handleSubmitClick}
-          disabled={isSubmitting || errors.length}
+          disabled={
+            isSubmitting || errors.length || validationErrors.length || submitErrors.length
+          }
           loading={isSubmitting}
         >
           Submit

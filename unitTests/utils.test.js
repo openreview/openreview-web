@@ -819,12 +819,13 @@ describe('utils', () => {
       'object[]'
     )
     expect(resultValue.props.children[0].length).toEqual(3) // 3 are displayed
-    expect(resultValue.props.children[0][0].props.children).toEqual('Program Chairs')
-    expect(resultValue.props.children[0][1].props.children).toEqual(
-      'Submission  {noteNumber} Reviewers'
-    )
-    expect(resultValue.props.children[0][2].props.children).toEqual(
+    // authors lead the list: who a release reaches matters most
+    expect(resultValue.props.children[0][0].props.children).toEqual(
       'Submission  {noteNumber} Authors'
+    )
+    expect(resultValue.props.children[0][1].props.children).toEqual('Program Chairs')
+    expect(resultValue.props.children[0][2].props.children).toEqual(
+      'Submission  {noteNumber} Reviewers'
     )
     // #endregion
 

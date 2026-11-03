@@ -89,8 +89,8 @@ describe('WorkflowInvitations', () => {
 
     render(<WorkflowInvitations group={group} />)
 
-    expect(await screen.findByText('. Running…')).toBeInTheDocument()
-    expect(screen.queryByText('. all done.')).not.toBeInTheDocument()
+    expect(await screen.findByText(/ — Running…$/)).toBeInTheDocument()
+    expect(screen.queryByText(/all done/)).not.toBeInTheDocument()
   })
 
   test('refresh only the logs of the invitation reported by the workflow event', async () => {
