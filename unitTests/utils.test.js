@@ -15,6 +15,8 @@ import {
   normalizeName,
   getDeviceFromUserAgent,
   prettyContentValue,
+  getTitleObjects,
+  getTokenObjects,
 } from '../lib/utils'
 import '@testing-library/jest-dom'
 
@@ -817,12 +819,13 @@ describe('utils', () => {
       'object[]'
     )
     expect(resultValue.props.children[0].length).toEqual(3) // 3 are displayed
-    expect(resultValue.props.children[0][0].props.children).toEqual('Program Chairs')
-    expect(resultValue.props.children[0][1].props.children).toEqual(
-      'Submission  {noteNumber} Reviewers'
-    )
-    expect(resultValue.props.children[0][2].props.children).toEqual(
+    // authors lead the list: who a release reaches matters most
+    expect(resultValue.props.children[0][0].props.children).toEqual(
       'Submission  {noteNumber} Authors'
+    )
+    expect(resultValue.props.children[0][1].props.children).toEqual('Program Chairs')
+    expect(resultValue.props.children[0][2].props.children).toEqual(
+      'Submission  {noteNumber} Reviewers'
     )
     // #endregion
 
@@ -1269,5 +1272,49 @@ describe('utils', () => {
     expect(prettyContentValue(reciprocal_reviewers, 'string')).toEqual(
       JSON.stringify(reciprocal_reviewers, undefined, 2).replace(/"/g, '')
     )
+  })
+
+  test('returns plain text label in getTitleObjects', () => {
+    const maliciousTitle = 'xss<img src=x onerror=alert(123)>test'
+    const notes = [
+      {
+        id: 'some id',
+        forum: 'some id',
+        version: 2,
+        content: {
+          title: { value: maliciousTitle },
+          authors: { value: ['<script>alert(123)</script>Attacker'] },
+          authorids: { value: ['~Attacker1'] },
+        },
+      },
+    ]
+
+    const [titleObj] = getTitleObjects(notes, 'xss')
+
+    expect(titleObj.label).toBe(maliciousTitle)
+    expect(titleObj.label).not.toMatch(/<strong/i)
+    expect(titleObj.subtitle).toBe('<script>alert(123)</script>Attacker')
+    expect(titleObj.subtitle).not.toMatch(/<strong/i)
+
+    expect(titleObj.value).toBe(maliciousTitle)
+  })
+
+  test('returns plain text label in getTokenObjects', () => {
+    const notes = [
+      {
+        id: 'some note',
+        forum: 'some note',
+        version: 2,
+        content: {
+          title: { value: 'xss<img src=x onerror=alert(123)>test' },
+          keywords: { value: ['<b>keyword</b>'] },
+          authors: { value: ['Author'] },
+          authorids: { value: ['~Author1'] },
+        },
+      },
+    ]
+
+    expect(getTokenObjects(notes, 'img').map((t) => t.label)).toEqual(['img']) // no more <
+    expect(getTokenObjects(notes, 'key').map((t) => t.label)).toEqual(['<b>keyword</b>'])
   })
 })

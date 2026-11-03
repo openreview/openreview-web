@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from 'react'
-import EditorComponentContext from '../EditorComponentContext'
 import { convertToType } from '../../lib/webfield-utils'
+import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/RadioButtonWidget.module.scss'
 
@@ -21,7 +21,8 @@ const RadioButtonWidget = () => {
         )
       )
       const defaultValue = field[fieldName].value?.param?.default
-      if (!note && defaultValue) onChange({ fieldName, value: defaultValue })
+      if (!note && value === undefined && defaultValue)
+        onChange({ fieldName, value: defaultValue })
     }
   }, [])
 

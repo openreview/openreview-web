@@ -10,7 +10,12 @@ import NavSearch from './NavSearch'
 import legacyNavStyles from '../../styles/components/legacy-bootstrap-nav.module.scss'
 import styles from '../../styles/components/nav.module.scss'
 
-export default function NavMd({ user, notificationCountSlot, dropdownOpen, setDropdownOpen }) {
+export default function NavMd({
+  user,
+  notificationStatusSlot,
+  dropdownOpen,
+  setDropdownOpen,
+}) {
   const dropdownItems = user
     ? [
         {
@@ -43,7 +48,7 @@ export default function NavMd({ user, notificationCountSlot, dropdownOpen, setDr
               className={legacyNavStyles.navDropdownItem}
             >
               Notifications
-              {notificationCountSlot}
+              {notificationStatusSlot}
             </Link>
           ),
           style: { padding: 0 },

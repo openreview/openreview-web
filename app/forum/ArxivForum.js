@@ -1,16 +1,16 @@
 'use client'
 
-/* globals $: false */
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
 import dayjs from 'dayjs'
-import useUser from '../../hooks/useUser'
-import { xpathSelect } from '../../lib/profiles'
-import api from '../../lib/api-client'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import ErrorDisplay from '../../components/ErrorDisplay'
-import CommonLayout from '../CommonLayout'
 import Forum from '../../components/forum/Forum'
 import LoadingSpinner from '../../components/LoadingSpinner'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { xpathSelect } from '../../lib/profiles'
+import { fetchArxivData } from '../arxiv/actions'
+import CommonLayout from '../CommonLayout'
 
 const entrySelector = '//atom:feed/atom:entry'
 const titleSelector = '//atom:feed/atom:entry/atom:title/text()'
@@ -27,12 +27,18 @@ const ArxivForum = ({ id }) => {
 
   const loadArvixNote = async () => {
     try {
-      const arxivUrl = `https://export.arxiv.org/api/query?id_list=${id.split('v')[0]}`
-      const xmlDoc = await $.ajax(arxivUrl)
+      let xmlDoc
+      try {
+        const xmlText = await fetchArxivData(id.split('v')[0])
+        xmlDoc = new DOMParser().parseFromString(xmlText, 'application/xml')
+      } catch {
+        throw new Error('Import failed. Please try again later.')
+      }
 
       const arxivIdWithLatestVersion = xpathSelect(idSelector, xmlDoc, true)?.[0]
         ?.nodeValue?.split('/')
         ?.pop()
+      if (!arxivIdWithLatestVersion) throw new Error(`The Note ${id} was not found`)
 
       // get all past versions of the note below arxivIdWithLatestVersion
       const arxivIdWithVersion = arxivIdWithLatestVersion.split('v')[0]
@@ -60,6 +66,7 @@ const ArxivForum = ({ id }) => {
       ) {
         // already the latest version
         setArvixNote(latestExistingVersionNote)
+        window.history.replaceState(null, '', `/forum?id=${latestExistingVersionNote.id}`)
         return
       }
 
@@ -68,9 +75,18 @@ const ArxivForum = ({ id }) => {
         ?.replace(/\n/g, ' ')
       if (!title) throw new Error(`The Note ${id} was not found`)
 
-      const authorNames = xpathSelect(authorsSelector, xmlDoc, true)?.map((author) =>
-        author.nodeValue.trim()
+      const claimedAuthors = (latestExistingVersionNote?.content?.authors?.value ?? []).filter(
+        (p) => p.username?.startsWith('~')
       )
+
+      const authors = xpathSelect(authorsSelector, xmlDoc, true)?.map((author) => {
+        const fullname = author.nodeValue.trim()
+        const matchIndex = claimedAuthors.findIndex((p) => p.fullname === fullname)
+        if (matchIndex === -1) return { fullname, username: '' }
+        const [claimedAuthor] = claimedAuthors.splice(matchIndex, 1)
+        return claimedAuthor
+      })
+
       const pdate = dayjs(xpathSelect(pdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const mdate = dayjs(xpathSelect(mdateSelector, xmlDoc, true)?.[0]?.nodeValue).valueOf()
       const rawXml = xpathSelect(entrySelector, xmlDoc, true)[0].outerHTML
@@ -90,7 +106,7 @@ const ArxivForum = ({ id }) => {
               value: title,
             },
             authors: {
-              value: authorNames,
+              value: authors,
             },
           },
           pdate,
@@ -111,7 +127,10 @@ const ArxivForum = ({ id }) => {
 
   useEffect(() => {
     if (isRefreshing) return
-    if (!user) router.replace(`/login?redirect=/forum?arxivid=${id}`)
+    if (!user) {
+      router.replace(`/login?redirect=/forum?arxivid=${id}`)
+      return
+    }
     loadArvixNote()
   }, [id, isRefreshing])
 

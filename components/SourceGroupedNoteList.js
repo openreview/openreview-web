@@ -13,6 +13,14 @@ import Note, { NoteV2 } from './Note'
 import { NoteAuthorsV2 } from './NoteAuthors'
 import NoteReaders from './NoteReaders'
 
+const importSourceInvitations = [
+  'DBLP.org/-/Record',
+  `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`,
+  `${process.env.SUPER_USER}/Public_Article/arXiv.org/-/Record`,
+  `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
+  `${process.env.SUPER_USER}/Public_Article/ACL_Anthology.org/-/Record`,
+]
+
 const MultiSourceNote = ({ notes, displayOptions }) => {
   const [noteToShow, setNoteToShow] = useState(notes[0])
   const { id, forum, content, invitations, readers, signatures } = noteToShow
@@ -20,12 +28,9 @@ const MultiSourceNote = ({ notes, displayOptions }) => {
   const authorIds = getNoteAuthorIds(noteToShow, true)
   const authors = getNoteAuthors(noteToShow, true)
 
-  const sources = [
-    'DBLP.org/-/Record',
-    `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`,
-    `${process.env.SUPER_USER}/Public_Article/arXiv.org/-/Record`,
-    `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
-  ].filter((p) => notes.some((q) => q.invitations.includes(p)))
+  const sources = importSourceInvitations.filter((p) =>
+    notes.some((q) => q.invitations.includes(p))
+  )
 
   return (
     <div className="note">
@@ -90,12 +95,7 @@ const SourceGroupedNoteList = ({ notes, displayOptions }) => {
   const groupedNotes = notes.reduce((prev, curr) => {
     if (
       curr.version !== 2 ||
-      ![
-        'DBLP.org/-/Record',
-        `${process.env.SUPER_USER}/Public_Article/ORCID.org/-/Record`,
-        `${process.env.SUPER_USER}/Public_Article/arXiv.org/-/Record`,
-        `${process.env.SUPER_USER}/Public_Article/DBLP.org/-/Record`,
-      ].some((p) => curr.invitations.includes(p))
+      !importSourceInvitations.some((p) => curr.invitations.includes(p))
     ) {
       prev[curr.id] = [curr]
       return prev

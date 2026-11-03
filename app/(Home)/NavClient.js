@@ -6,7 +6,7 @@ import NavLg from './NavLg'
 import NavMd from './NavMd'
 import NavSm from './NavSm'
 
-export default function NavClient({ user, notificationCountSlot }) {
+export default function NavClient({ user, notificationStatusSlot }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [drawerUserMenuOpen, setDrawerUserMenuOpen] = useState(false)
 
@@ -22,7 +22,7 @@ export default function NavClient({ user, notificationCountSlot }) {
     <>
       <NavSm
         user={user}
-        notificationCountSlot={notificationCountSlot}
+        notificationStatusSlot={notificationStatusSlot}
         drawerOpen={menuOpen && !isMd}
         setDrawerOpen={setMenuOpen}
         drawerUserMenuOpen={drawerUserMenuOpen}
@@ -31,13 +31,13 @@ export default function NavClient({ user, notificationCountSlot }) {
       />
       <NavMd
         user={user}
-        notificationCountSlot={notificationCountSlot}
+        notificationStatusSlot={notificationStatusSlot}
         dropdownOpen={menuOpen && isMd && !isLg}
         setDropdownOpen={setMenuOpen}
       />
       <NavLg
         user={user}
-        notificationCountSlot={notificationCountSlot}
+        notificationStatusSlot={notificationStatusSlot}
         dropdownOpen={menuOpen && isLg}
         setDropdownOpen={setMenuOpen}
       />

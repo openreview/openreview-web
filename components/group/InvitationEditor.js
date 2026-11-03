@@ -30,6 +30,8 @@ const InvitationEditor = ({
   // Optional translation of a failed save; returns { message, fieldNames } or null to show the
   // API's own message. With fieldNames the message goes under those fields instead of the banner.
   formatSubmitError,
+  // Optional label put in front of the API's own error messages, e.g. the step and setting being saved.
+  errorPrefix,
 }) => {
   const { user, isRefreshing } = useUser()
   const [errors, setErrors] = useState([])
@@ -73,6 +75,7 @@ const InvitationEditor = ({
             field: { [fieldName]: fieldDescription },
             onChange: setInvitationEditorData,
             value: fieldValue,
+            editorValue: invitationEditorData,
             isWebfield: false,
             error,
             setErrors,
@@ -161,7 +164,10 @@ const InvitationEditor = ({
           }))
         )
       } else {
-        promptError(formattedError?.message ?? error.message)
+        promptError(
+          formattedError?.message ??
+            (errorPrefix ? `${errorPrefix}: ${error.message}` : error.message)
+        )
       }
     }
     setIsSubmitting(false)

@@ -276,7 +276,7 @@ describe('AllVenuesWithSearch', () => {
   // when matching text is very long, it's possible that highlighted text is not visible
   // so need to truncate the text
   test('truncate text when matching text is in middle of long text', async () => {
-    const dummyText = 'X'.repeat(40)
+    const dummyText = 'X'.repeat(50)
     api.get = jest.fn(() =>
       Promise.resolve({
         venues: [

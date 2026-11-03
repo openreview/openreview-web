@@ -75,7 +75,7 @@ export default async function Profile({
     } catch (error) {
       apiRes = error
       // oxlint-disable-next-line no-console
-      console.error('Error in loadPublications', {
+      console.log('Error in loadPublications', {
         page: 'profile',
         component: 'Profile',
         user: user?.id,

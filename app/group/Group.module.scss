@@ -1,15 +1,15 @@
 @use '../../styles/utils/constants';
 @use '../../styles/utils/mixins';
 
-// Workflow timeline marks. A bar is grey for the part that is past, teal from today to its end,
-// and soft teal stripes if it has not started; a stage's span behind them is one plain colour.
-// A dot (a step that fires on a date) takes its step's state: grey once it ran, solid teal while
-// running, a teal ring while scheduled, red if its last run failed.
-$timelineDoneGray: #8a8a8a;
-$timelineUpcomingRing: #6f929c;
+// Workflow timeline marks. A bar is grey-blue for the part that is past, teal from today to its
+// end, and soft teal stripes if it has not started; a stage's span behind them is one plain colour.
+// A dot (a step that fires on a date) takes its step's state: grey-blue once it ran, solid teal
+// while running, a teal ring while scheduled, red if its last run failed.
+$timelineDone: #7c97a0;
+$timelineUpcomingRing: #7c97a0;
 $timelineFailed: #cf3b2f;
-$timelineFutureBorder: #8fabb3;
-$timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9 3px 8px);
+$timelineFutureBorder: #7c97a0;
+$timelineFutureStripes: repeating-linear-gradient(-45deg, #e2ebee 0 3px, #fbfcfc 3px 8px);
 
 .group {
   :global {
@@ -1310,6 +1310,10 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
       transition: transform 0.18s ease-out;
       visibility: hidden;
 
+      @media (prefers-reduced-motion: reduce) {
+        transition: none;
+      }
+
       &.visible {
         transform: none;
         visibility: visible;
@@ -1400,6 +1404,49 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
     }
 
     .workflow {
+      // The Activity tab: a day at a time, one line per change.
+      &.activity {
+        .activity-day {
+          margin-bottom: 1rem;
+
+          h5 {
+            font-size: 0.8125rem;
+            font-weight: 700;
+            color: #6b6b6b;
+            margin: 0 0 0.25rem;
+            padding-bottom: 0.25rem;
+            border-bottom: 1px solid constants.$backgroundGray;
+          }
+        }
+        .activity-row {
+          display: grid;
+          grid-template-columns: 5rem 11rem minmax(14rem, 1fr) 2fr;
+          gap: 1rem;
+          align-items: baseline;
+          padding: 0.2rem 0;
+          font-size: 0.875rem;
+        }
+        .activity-time,
+        .activity-author {
+          color: #6b6b6b;
+          font-size: 0.8125rem;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .activity-via {
+          color: #6b6b6b;
+        }
+        .activity-details {
+          color: constants.$subtleGray;
+          overflow-wrap: anywhere;
+        }
+        .activity-empty {
+          font-style: italic;
+          color: #6b6b6b;
+        }
+      }
+
       h4 {
         font-size: 1.25rem;
       }
@@ -1654,8 +1701,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           position: absolute;
           top: 0;
           bottom: 0;
-          border-left: 1px dashed constants.$orRed;
-          opacity: 0.75;
+          border-left: 1px dotted constants.$orRed;
           z-index: 3;
         }
 
@@ -1715,7 +1761,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
             color: $timelineFutureBorder;
           }
           &.past {
-            color: $timelineDoneGray;
+            color: $timelineDone;
           }
         }
 
@@ -1726,19 +1772,20 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         }
       }
 
-      // Bars: grey for the part already past, teal from today to the end, stripes before the start.
+      // Bars: grey-blue for the part already past, teal from today to the end, stripes before the
+      // start.
       .stage-window,
       .step-window,
       .legend-window {
         box-sizing: border-box;
 
         &.past {
-          background: $timelineDoneGray;
+          background: $timelineDone;
         }
         &.current {
           background: linear-gradient(
             to right,
-            $timelineDoneGray 0 var(--split),
+            $timelineDone 0 var(--split),
             constants.$mediumBlue var(--split)
           );
         }
@@ -1758,7 +1805,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         z-index: 2;
 
         &.done {
-          background: $timelineDoneGray;
+          background: $timelineDone;
         }
         &.running {
           background: constants.$mediumBlue;
@@ -1767,9 +1814,40 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           background: constants.$backgroundWhite;
           border: 1.5px solid $timelineUpcomingRing;
         }
+        // Red alone reads like teal to red-blind viewers, so a failed dot also carries a "!".
         &.failed {
+          width: 12px;
+          height: 12px;
+          margin-left: -6px;
           background: $timelineFailed;
-          border: 1px solid #8c1b13;
+          border: 1px solid constants.$orRed;
+
+          &::after {
+            content: '!';
+            display: block;
+            color: #fff;
+            font-size: 9px;
+            font-weight: 700;
+            line-height: 10px;
+            text-align: center;
+          }
+        }
+      }
+      .stage-moment.failed,
+      .step-moment.failed {
+        top: 4px;
+      }
+
+      // A stage with a failed step: base's danger pink behind it, and a dark-red edge on its bars.
+      // The pink is too faint to carry this alone; the glyph and the dot's "!" do.
+      .stage-track.error {
+        .stage-envelope {
+          border-color: #ebccd1;
+          background: #f2dede;
+        }
+        .stage-window {
+          outline: 1px solid constants.$orRed;
+          opacity: 1;
         }
       }
 
@@ -1943,6 +2021,9 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         .step-status-error-toggle {
           display: inline-block;
           margin-top: 0.125rem;
+          padding: 0;
+          border: 0;
+          vertical-align: baseline;
           font-size: 0.75rem;
           font-weight: 400;
         }
@@ -1992,11 +2073,23 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           background-color: #eeeeee;
         }
 
+        // A disabled step is muted rather than struck through: its status line and tag say what
+        // it is, and the Enable link beside the name stays legible.
         &.expired {
-          color: gray;
-          text-decoration: line-through;
-          opacity: 0.8;
-          background: darken(constants.$backgroundGray, 5%);
+          .workflow-invitation-id,
+          .step-status,
+          .invitation-description,
+          .sub-invitation-container {
+            color: #6b6b6b;
+          }
+          // Outranks the title rule's black, which is nested four levels deep.
+          .edit-invitation-info
+            .edit-invitation-container
+            .invitation-content
+            .invitation-id-container
+            .workflow-invitation-id {
+            color: #6b6b6b;
+          }
         }
 
         .invitation-cdate {
@@ -2183,6 +2276,12 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         color: $timelineFailed;
       }
 
+      // The disabled status: every step in the stage is turned off.
+      .stage-status-icon.disabled,
+      .stage-status-glyph.disabled {
+        color: #8a8a8a;
+      }
+
       .workflow-section-heading {
         flex-wrap: wrap;
         row-gap: 0.25rem;
@@ -2203,11 +2302,12 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         margin-left: auto;
         max-width: 100%;
 
+        .step-search {
+          width: 14rem;
+        }
+
         .ant-segmented-group {
           flex-wrap: wrap;
-        }
-        .committee-filter {
-          min-width: 10rem;
         }
       }
 
@@ -2225,8 +2325,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         }
         > .timeline-now-line {
           position: absolute;
-          border-left: 1px dashed constants.$orRed;
-          opacity: 0.75;
+          border-left: 1px dotted constants.$orRed;
           z-index: 3;
           pointer-events: none;
         }
@@ -2237,8 +2336,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           top: 0;
           bottom: -1px;
           left: var(--now-left);
-          border-left: 1px dashed constants.$orRed;
-          opacity: 0.75;
+          border-left: 1px dotted constants.$orRed;
         }
         &:not(.has-now-line) .phase-divider::after {
           display: none;
@@ -2383,7 +2481,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         .legend-now {
           width: 0;
           height: 12px;
-          border-left: 1px dashed constants.$orRed;
+          border-left: 1px dotted constants.$orRed;
         }
         .legend-hint {
           margin-left: auto;
@@ -2834,6 +2932,22 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
           margin-left: 0.75rem;
         }
       }
+      .rec-members-list {
+        margin-top: 0.75rem;
+        padding-top: 0.75rem;
+        border-top: 1px solid constants.$backgroundGray;
+
+        section.members {
+          margin-bottom: 0;
+
+          > h4 {
+            display: none;
+          }
+          .members-container {
+            width: 100%;
+          }
+        }
+      }
       .rec-desc {
         margin-top: 0.25rem;
         font-size: 0.875rem;
@@ -2993,7 +3107,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         z-index: 6;
         background: constants.$backgroundWhite;
       }
-      // A disabled step keeps its place: a muted, struck-through name, its bar and dots drained of
+      // A disabled step keeps its place: a muted name, its bar and dots drained of
       // colour, and a "Disabled" tag. A stage counts its disabled steps, and greys out when all are off.
       .step-disabled-tag {
         display: inline-block;
@@ -3015,12 +3129,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         .step-name,
         .overview-name-text,
         .overview-period {
-          color: #8a8a8a;
-        }
-        .overview-name-text,
-        .step-name {
-          text-decoration: line-through;
-          text-decoration-color: #b5b2ab;
+          color: #6b6b6b;
         }
         .stage-window,
         .stage-moment,
@@ -3075,7 +3184,7 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
         display: inline-flex;
         flex: 0 0 auto;
         margin-left: 0.375rem;
-        color: #d49a00;
+        color: #9a6700;
         font-size: 0.8125rem;
       }
       .overview-tracks {
@@ -3272,6 +3381,13 @@ $timelineFutureStripes: repeating-linear-gradient(-45deg, #c6d7dc 0 3px, #f4f8f9
               border-radius: 3px;
               background: #f6f5f1;
               line-height: 1.5;
+            }
+            // Anything public is the reader a PC must not miss
+            li.value-public {
+              border-color: constants.$orRed;
+              background: constants.$alertRed;
+              color: constants.$orRed;
+              font-weight: bold;
             }
             .collapse-widget,
             .collapse-widget > .collapse.in {

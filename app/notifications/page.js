@@ -1,18 +1,18 @@
 'use client'
 
-/* globals promptError: false */
+import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useEffect, useState } from 'react'
 import { useDispatch } from 'react-redux'
-import Link from 'next/link'
-import styles from './Notifications.module.scss'
-import LoadingSpinner from '../../components/LoadingSpinner'
 import ErrorAlert from '../../components/ErrorAlert'
-import api from '../../lib/api-client'
-import NotificationsTable from './NotificationsTable'
-import useUser from '../../hooks/useUser'
+import LoadingSpinner from '../../components/LoadingSpinner'
 import Table from '../../components/Table'
-import { decrementNotificationCount } from '../../notificationSlice'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { setUnreadNotification } from '../../notificationSlice'
+import NotificationsTable from './NotificationsTable'
+
+import styles from './Notifications.module.scss'
 
 function Page() {
   const { user, isRefreshing } = useUser(true)
@@ -37,7 +37,6 @@ function Page() {
         ...unviewedCounts,
         [toEmail]: unviewedCounts[toEmail] - unreadMessageIds.length,
       })
-      dispatch(decrementNotificationCount(unreadMessageIds.length))
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -50,7 +49,6 @@ function Page() {
         ...unviewedCounts,
         [toEmail]: unviewedCounts[toEmail] - 1,
       })
-      dispatch(decrementNotificationCount(1))
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -82,6 +80,11 @@ function Page() {
       setError(apiError)
     }
   }
+
+  useEffect(() => {
+    if (!unviewedCounts) return
+    dispatch(setUnreadNotification(Object.values(unviewedCounts).some((count) => count > 0)))
+  }, [unviewedCounts])
 
   useEffect(() => {
     if (isRefreshing) return

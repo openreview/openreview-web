@@ -7,11 +7,11 @@ import styles from '../../styles/components/nav.module.scss'
 
 export default async function Nav() {
   const { user } = await serverAuth()
-  const notificationCountSlot = user ? <NavNotificationCount /> : null
+  const notificationStatusSlot = user ? <NavNotificationCount /> : null
 
   return (
     <nav className={`${styles.navBar} ${legacyNavStyles.navBar}`} role="navigation">
-      <NavClient user={user ?? null} notificationCountSlot={notificationCountSlot} />
+      <NavClient user={user ?? null} notificationStatusSlot={notificationStatusSlot} />
     </nav>
   )
 }

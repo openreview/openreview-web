@@ -13,6 +13,7 @@ import GroupRelatedInvitations from '../../../components/group/GroupRelatedInvit
 import GroupRestrictGroup from '../../../components/group/GroupRestrictGroup'
 import GroupSignedNotes from '../../../components/group/GroupSignedNotes'
 import GroupMembersInfo from '../../../components/group/info/GroupMembersInfo'
+import WorkflowActivity from '../../../components/group/WorkflowActivity'
 import WorkFlowInvitations from '../../../components/group/WorkflowInvitations'
 import WorkflowInvitationsLegacy from '../../../components/group/WorkflowInvitationsLegacy'
 import Icon from '../../../components/Icon'
@@ -43,6 +44,10 @@ const groupTabsConfig = (group) => {
               : 'Workflow Step Timeline',
             sections: ['workflowInvitations'],
           },
+          // What changed and who changed it; only a staged workflow has steps to attribute.
+          ...(hasWorkflowStages(group)
+            ? [{ id: 'workflowActivity', label: 'Activity', sections: ['workflowActivity'] }]
+            : []),
         ]
       : []),
     ...(group.content && group.details.writable
@@ -166,6 +171,8 @@ const GroupWithInvitation = ({ group, reloadGroup }) => {
   const renderSection = (sectionName) => {
     let editInvitations = []
     switch (sectionName) {
+      case 'workflowActivity':
+        return <WorkflowActivity key={sectionName} group={group} />
       case 'workflowInvitations':
         return hasWorkflowStages(group) ? (
           <WorkFlowInvitations key={sectionName} group={group} />

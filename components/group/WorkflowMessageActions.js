@@ -1,6 +1,6 @@
 /* globals $,DOMPurify,promptMessage: false */
 import { Button, Select } from 'antd'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import api from '../../lib/api-client'
 import { inflect, isValidEmail, prettyField, prettyId } from '../../lib/utils'
 import BasicModal from '../BasicModal'
@@ -57,11 +57,17 @@ const getAuthorFilters = (submissions, content) => {
       reply.invitations?.some((p) => p.endsWith(`/-/${decisionName}`))
     )
     const venueid = note.content?.venueid?.value
+    // Authors are stored as profiles ({ fullname, username }) or, on older forms, as names
+    const authors = note.content?.authors?.value ?? []
     return {
       id: `${venueId}/${submissionName}${note.number}/${authorsName}`,
       label: `Paper ${note.number}: ${note.content?.title?.value ?? ''}`,
       number: note.number,
       title: note.content?.title?.value ?? '',
+      firstAuthor:
+        typeof authors[0] === 'string'
+          ? { fullname: authors[0], username: note.content?.authorids?.value?.[0] }
+          : authors[0],
       forum: note.forum,
       decision: decisionNote?.content?.[decisionField]?.value ?? null,
       isWithdrawn: venueid === withdrawnVenueId,
@@ -220,6 +226,28 @@ const MessageCommitteeModal = ({ target, venueId, content, onClose }) => {
   ]
   const fillForPaper = (text, paper) =>
     fillPlaceholders(text, getPaperPlaceholders(paper, submissionName))
+  // Previews read as the first recipient will see them: for authors, the first paper's first author
+  const sampleRecipient = recipients[0]
+  const samplePerson = isPerPaper
+    ? sampleRecipient?.firstAuthor
+    : sampleRecipient && {
+        fullname: sampleRecipient.label,
+        username: sampleRecipient.id.startsWith('~') ? sampleRecipient.id : null,
+      }
+  const fillForSample = useCallback(
+    (text) => {
+      if (!sampleRecipient) return text
+      const filled = isPerPaper ? fillForPaper(text, sampleRecipient) : text
+      if (!samplePerson?.fullname) return filled
+      return fillPlaceholders(filled, {
+        '{{fullname}}': samplePerson.fullname,
+        '{{firstname}}': samplePerson.fullname.split(' ')[0],
+        ...(samplePerson.username && { '{{username}}': samplePerson.username }),
+      })
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [sampleRecipient, isPerPaper, samplePerson?.fullname, samplePerson?.username]
+  )
 
   const sendPerPaper = async () => {
     const failed = []
@@ -355,12 +383,16 @@ const MessageCommitteeModal = ({ target, venueId, content, onClose }) => {
               {'{{fullname}}'} is replaced with each recipient&apos;s name.
               {isPerPaper &&
                 ` Each paper's authors get their own message, so you can also use ${paperPlaceholderKeys.join(', ')}.`}{' '}
-              Markdown is supported; use Preview to see how the email will look.
+              Markdown is supported. Preview shows the email as{' '}
+              {samplePerson?.fullname ?? 'the first recipient'}
+              {isPerPaper && sampleRecipient ? ` (Paper ${sampleRecipient.number})` : ''} will
+              get it.
             </p>
             <MarkdownPreviewTab
               value={message}
               onValueChanged={setMessage}
               placeholder="Message"
+              transformPreview={fillForSample}
             />
           </div>
         </>
@@ -379,16 +411,16 @@ const MessageCommitteeModal = ({ target, venueId, content, onClose }) => {
           {isPerPaper && recipients[0] && (
             <div className="message-committee-preview">
               <p>
-                <strong>{`How Paper ${recipients[0].number}'s email will read`}</strong> (
-                {'{{fullname}}'} is filled in for each author):
+                <strong>{`How Paper ${recipients[0].number}'s email will read`}</strong>
+                {samplePerson?.fullname
+                  ? ` for ${samplePerson.fullname} (each author gets their own name):`
+                  : ':'}
               </p>
               <div className="well">
                 <p>
-                  <strong>{fillForPaper(subject.trim(), recipients[0])}</strong>
+                  <strong>{fillForSample(subject.trim())}</strong>
                 </p>
-                <div className="message-committee-preview-body">
-                  {fillForPaper(message, recipients[0])}
-                </div>
+                <div className="message-committee-preview-body">{fillForSample(message)}</div>
               </div>
             </div>
           )}

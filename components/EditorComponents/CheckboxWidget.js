@@ -1,7 +1,7 @@
-import { useContext, useEffect, useState } from 'react'
 import sortBy from 'lodash/sortBy'
-import EditorComponentContext from '../EditorComponentContext'
+import { useContext, useEffect, useState } from 'react'
 import { convertToType } from '../../lib/webfield-utils'
+import EditorComponentContext from '../EditorComponentContext'
 
 import styles from '../../styles/components/CheckboxWidget.module.scss'
 
@@ -79,7 +79,8 @@ const CheckboxWidget = ({
       setCheckboxOptions(options)
       const defaultValue = field[fieldName].value?.param?.default
 
-      if (!note && defaultValue) onChange({ fieldName, value: defaultValue })
+      if (!note && value === undefined && defaultValue)
+        onChange({ fieldName, value: defaultValue })
       if (note && value) {
         // invitation may have been modified
         let filteredValue
@@ -105,7 +106,7 @@ const CheckboxWidget = ({
           optional: p.optional,
         }))
       )
-      if (!note && (defaultValues?.length || mandatoryValues?.length)) {
+      if (!note && value === undefined && (defaultValues?.length || mandatoryValues?.length)) {
         onChange({ fieldName, value: [...new Set([...defaultValues, ...mandatoryValues])] })
       }
       if (note && value) {
