@@ -874,7 +874,7 @@ test('logged-in password reset with checkbox checked invalidates other sessions'
     .expect(messageSelector.innerText)
     .eql('Your password has been updated and all other sessions have been logged out.')
     .expect(getPageUrl())
-    .notContains('/login', { timeout: 10000 })
+    .eql(`${baseUrl}/`, { timeout: 10000 })
 
   await t
     .useRole(otherSession)
