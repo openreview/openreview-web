@@ -773,6 +773,15 @@ const UserModerationQueue = ({
                     >
                       {state}
                     </Tag>
+                    {onlyModeration && profile.pastStates?.length === 2 && (
+                      <Tag
+                        color="blue"
+                        variant="solid"
+                        styles={{ root: legacyStyles.statusTag }}
+                      >
+                        U
+                      </Tag>
+                    )}
                   </Space>
                 </Col>
 
