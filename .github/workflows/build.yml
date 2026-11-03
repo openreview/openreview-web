@@ -207,14 +207,14 @@ jobs:
           cd openreview-web
           mkdir -p logs
           NODE_ENV=production SUPER_USER=openreview.net npm run start -- --keepAliveTimeout 620000 > logs/web.log 2>&1 &
-      - name: Pin Firefox Version
-        id: setup-firefox
-        uses: browser-actions/setup-firefox@v1
+      - name: Pin Chrome Version
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@v2
         with:
-          firefox-version: '143.0'
-      - name: Overwrite default firefox
+          chrome-version: '156.0.8078.80'
+      - name: Overwrite default chrome
         run: |
-          sudo ln -sf "${{ steps.setup-firefox.outputs.firefox-path }}" /usr/bin/firefox
+          sudo ln -sf "${{ steps.setup-chrome.outputs.chrome-path }}" /usr/bin/google-chrome
       - name: Run TestCafe Tests
         run: |
           cd openreview-web
