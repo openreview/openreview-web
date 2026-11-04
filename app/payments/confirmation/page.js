@@ -4,6 +4,7 @@ import { CheckCircleOutlined } from '@ant-design/icons'
 import { Button, Result } from 'antd'
 import { notFound, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 import LoadingSpinner from '../../../components/LoadingSpinner'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
@@ -23,14 +24,17 @@ export default function Page() {
       const { payments } = await api.get('/payments', { sessionId })
       if (!payments.length) {
         const { exists } = await api.get('/payments/confirmation', { sessionId })
-        if (!exists) throw new Error('Payment session not found')
+        if (!exists) throw new Error('notExist')
         setSessionInfo({ submissions: [] })
         return
       }
-      const { notes } = await api.get('/notes', {
-        ids: payments.map((payment) => payment.note),
-        sort: 'number:asc',
-      })
+      const { notes } = await api
+        .get('/notes', {
+          ids: payments.map((payment) => payment.note),
+          sort: 'number:asc',
+        })
+        .catch(() => ({ notes: [] }))
+
       setSessionInfo({ domain: payments[0].domain, submissions: notes })
     } catch (apiError) {
       setError(apiError.message)
@@ -42,7 +46,8 @@ export default function Page() {
     loadSessionInfo()
   }, [sessionId, isRefreshing])
 
-  if (error) notFound()
+  if (error === 'notExist') notFound()
+  if (error) return <ErrorDisplay message={error} withLayout={false} />
   if (!sessionInfo) return <LoadingSpinner />
 
   const { domain, submissions } = sessionInfo
@@ -57,7 +62,7 @@ export default function Page() {
     <Result
       status="success"
       icon={<CheckCircleOutlined />}
-      title="Payment Received"
+      title="Payment Submitted"
       subTitle={
         <>
           {submissions.length > 0 && (
