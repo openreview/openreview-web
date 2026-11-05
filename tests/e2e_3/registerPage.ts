@@ -471,7 +471,7 @@ test('update profile', async (t) => {
     .click(visibleOptions.nth(3))
 
     .click(nextSectiomButtonSelector) // last section expertise
-    .expect(Selector('p').withText('last updated September 24, 2024').exists)
+    .expect(Selector('p').withText('last updated November 5, 2026').exists)
     .ok()
     .click(Selector('button').withText('Register for OpenReview'))
     .expect(messageSelector.innerText)
