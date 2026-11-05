@@ -824,7 +824,7 @@ export default function ProfileEditor({
           <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
             <strong>Terms of Use</strong>
           </a>
-          , last updated September 24, 2024.
+          , last updated November 5, 2026.
         </p>
       )}
 
