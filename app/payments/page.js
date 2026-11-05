@@ -14,6 +14,7 @@ import api from '../../lib/api-client'
 import { prettyId } from '../../lib/utils'
 
 const { Text, Paragraph } = Typography
+const maxCheckoutCount = 25
 
 dayjs.extend(relativeTime)
 
@@ -141,6 +142,12 @@ function VenueFees({ venue, reloadFees }) {
                   disabled={Boolean(fee.checkoutPayment) || isPaying}
                   onChange={(e) => {
                     if (e.target.checked) {
+                      if (selectedFees.length >= maxCheckoutCount) {
+                        promptError(
+                          `You can only pay for ${maxCheckoutCount} submissions at a time`
+                        )
+                        return
+                      }
                       setSelectedIds((ids) => [...ids, fee.invitationId])
                       return
                     }
