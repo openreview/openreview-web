@@ -125,7 +125,7 @@ export default async function Profile({
             </ProfileViewSection>
 
             <ProfileViewSection title="Co-Authors">
-              <CoAuthorsList coAuthors={coAuthors} />
+              <CoAuthorsList key={profile.id} coAuthors={coAuthors} />
             </ProfileViewSection>
           </Flex>
         </Col>
