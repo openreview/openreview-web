@@ -919,8 +919,6 @@ export default function Forum({
               additionalReplyCount += 1
             }
             if (!attachedToBottom.current) {
-              // counted per tab, by its primary invitation like the tab badge and the scroll
-              // reset, which can be a .* pattern, e.g. the chat of each reviewer
               const tabKey = expandedInvitations[0]
               setNewMessageCounts((prevCounts) => ({
                 ...prevCounts,
@@ -1054,8 +1052,6 @@ export default function Forum({
             <div className="invitation-buttons top-level-invitations">
               <span className="hint">Add:</span>
               {parentNote.replyInvitations.map((invitation) => {
-                // same matching as the replies, e.g. hide the chat invitations of the members
-                // of a committee excluded with a .* pattern
                 if (
                   selectedFilters.excludedInvitations &&
                   checkExReadersMatch(selectedFilters.excludedInvitations, [invitation.id])
