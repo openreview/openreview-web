@@ -113,6 +113,32 @@ describe('FilterTabs', () => {
     expect(screen.queryByText('LLM Interaction Chat')).not.toBeInTheDocument()
   })
 
+  test('shows the new message count of a tab whose expandedInvitations is a regex pattern', () => {
+    const chatPattern = 'NeurIPS.cc/2026/Conference/Submission1/Reviewer_.*/-/LLM_Interaction'
+    const forumViews = [
+      {
+        id: 'llm_interaction',
+        label: 'LLM Interaction Chat',
+        layout: 'chat',
+        expandedInvitations: [chatPattern],
+      },
+    ]
+    const replyInvitations = [
+      { id: 'NeurIPS.cc/2026/Conference/Submission1/Reviewer_ABC123/-/LLM_Interaction' },
+    ]
+
+    render(
+      <FilterTabs
+        forumId={forumId}
+        forumViews={forumViews}
+        newMessageCounts={{ [chatPattern]: 2 }}
+        replyInvitations={replyInvitations}
+      />
+    )
+
+    expect(screen.getByText('2')).toHaveClass('badge')
+  })
+
   test('renders tab without expandedInvitations regardless of replyInvitations', () => {
     const forumViews = [
       {

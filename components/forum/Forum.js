@@ -919,9 +919,12 @@ export default function Forum({
               additionalReplyCount += 1
             }
             if (!attachedToBottom.current) {
+              // counted per tab, by its primary invitation like the tab badge and the scroll
+              // reset, which can be a .* pattern, e.g. the chat of each reviewer
+              const tabKey = expandedInvitations[0]
               setNewMessageCounts((prevCounts) => ({
                 ...prevCounts,
-                [invId]: (prevCounts[invId] ?? 0) + 1,
+                [tabKey]: (prevCounts[tabKey] ?? 0) + 1,
               }))
             }
           }
