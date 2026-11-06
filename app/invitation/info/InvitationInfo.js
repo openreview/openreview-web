@@ -1,9 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { stringify } from 'query-string'
 import { useRouter } from 'next/navigation'
+import { stringify } from 'query-string'
+import { useEffect, useState } from 'react'
+import EditBanner from '../../../components/EditBanner'
 import EditorSection from '../../../components/EditorSection'
+import ErrorDisplay from '../../../components/ErrorDisplay'
 import {
   InvitationGeneralView,
   InvitationGeneralViewV2,
@@ -11,21 +13,21 @@ import {
 import InvitationReply, {
   InvitationReplyV2,
 } from '../../../components/invitation/InvitationReply'
-import CommonLayout from '../../CommonLayout'
-import styles from '../Invitation.module.scss'
-import { prettyId } from '../../../lib/utils'
-import { invitationModeToggle } from '../../../lib/banner-links'
-import EditBanner from '../../../components/EditBanner'
+import LoadingSpinner from '../../../components/LoadingSpinner'
 import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import ErrorDisplay from '../../../components/ErrorDisplay'
-import LoadingSpinner from '../../../components/LoadingSpinner'
+import { invitationModeToggle } from '../../../lib/banner-links'
+import { prettyId } from '../../../lib/utils'
+import CommonLayout from '../../CommonLayout'
+
+import styles from '../Invitation.module.scss'
 
 const getReplyFieldByInvitationType = (invitation) => {
   if (!invitation) return 'edit'
   if (invitation.edge) return 'edge'
   if (invitation.tag) return 'tag'
   if (invitation.message) return 'message'
+  if (invitation.assertion) return 'assertion'
   return 'edit'
 }
 

@@ -193,13 +193,11 @@ describe('IdentityDocumentsSection', () => {
     })
   })
 
-  test('delete all documents when delete documents button is clicked', async () => {
+  test('call onDeleteAll when delete documents button is clicked', async () => {
     window.confirm = jest.fn(() => true)
-    const loadIdentityDocuments = jest.fn()
-    const tagAndActivateProfile = jest.fn()
-    const loadTags = jest.fn()
-    api.delete = jest.fn(() => Promise.resolve({ deletedCount: 1 }))
-    global.promptMessage = jest.fn()
+    const onDeleteAll = jest.fn()
+    const onActivateWithIdCheck = jest.fn()
+    api.delete = jest.fn()
 
     const props = {
       profileId: '~Test_Id1',
@@ -222,9 +220,8 @@ describe('IdentityDocumentsSection', () => {
         },
       ],
       isProfileActivatable: true,
-      loadIdentityDocuments,
-      tagAndActivateProfile,
-      loadTags,
+      onDeleteAll,
+      onActivateWithIdCheck,
     }
 
     render(<IdentityDocumentsSection {...props} />)
@@ -233,21 +230,17 @@ describe('IdentityDocumentsSection', () => {
     await userEvent.click(deleteButton)
 
     await waitFor(() => {
-      expect(api.delete).toHaveBeenCalledWith('/profile-documents/identity/profiles/~Test_Id1')
-      expect(global.promptMessage).toHaveBeenCalledWith('1 document has been deleted')
-      expect(loadIdentityDocuments).toHaveBeenCalled()
-      expect(tagAndActivateProfile).not.toHaveBeenCalled()
-      expect(loadTags).not.toHaveBeenCalled()
+      expect(onDeleteAll).toHaveBeenCalled()
+      expect(onActivateWithIdCheck).not.toHaveBeenCalled()
+      expect(api.delete).not.toHaveBeenCalled()
     })
   })
 
-  test('delete all documents and activate profile when activate with id check button is clicked', async () => {
+  test('call onActivateWithIdCheck when activate with id check button is clicked', async () => {
     window.confirm = jest.fn(() => true)
-    const loadIdentityDocuments = jest.fn()
-    const tagAndActivateProfile = jest.fn()
-    const loadTags = jest.fn()
-    api.delete = jest.fn(() => Promise.resolve({ deletedCount: 1 }))
-    global.promptMessage = jest.fn()
+    const onDeleteAll = jest.fn()
+    const onActivateWithIdCheck = jest.fn()
+    api.delete = jest.fn()
 
     const props = {
       profileId: '~Test_Id1',
@@ -270,9 +263,8 @@ describe('IdentityDocumentsSection', () => {
         },
       ],
       isProfileActivatable: true,
-      loadIdentityDocuments,
-      tagAndActivateProfile,
-      loadTags,
+      onDeleteAll,
+      onActivateWithIdCheck,
     }
 
     render(<IdentityDocumentsSection {...props} />)
@@ -283,12 +275,50 @@ describe('IdentityDocumentsSection', () => {
     await userEvent.click(activateWithIDCheckButton)
 
     await waitFor(() => {
-      expect(api.delete).toHaveBeenCalledWith('/profile-documents/identity/profiles/~Test_Id1')
-      expect(global.promptMessage).toHaveBeenCalledWith('1 document has been deleted')
-      expect(loadIdentityDocuments).toHaveBeenCalled()
-      expect(tagAndActivateProfile).toHaveBeenCalled()
-      expect(loadTags).toHaveBeenCalled()
+      expect(onActivateWithIdCheck).toHaveBeenCalled()
+      expect(onDeleteAll).not.toHaveBeenCalled()
+      expect(api.delete).not.toHaveBeenCalled()
     })
+  })
+
+  test('not call any action when confirm is cancelled', async () => {
+    window.confirm = jest.fn(() => false)
+    const onDeleteAll = jest.fn()
+    const onActivateWithIdCheck = jest.fn()
+
+    const props = {
+      profileId: '~Test_Id1',
+      profileDocuments: [
+        {
+          id: 'some id',
+          type: 'identity',
+          extension: 'pdf',
+          filename: 'some name',
+          size: '12345',
+          tcdate: 'test tcdate',
+        },
+        {
+          id: 'another id',
+          type: 'identity',
+          extension: 'pdf',
+          filename: 'another name',
+          size: '12345',
+          tcdate: 'test tcdate',
+        },
+      ],
+      isProfileActivatable: true,
+      onDeleteAll,
+      onActivateWithIdCheck,
+    }
+
+    render(<IdentityDocumentsSection {...props} />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Delete Documents Only' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Activate with ID check' }))
+
+    expect(window.confirm).toHaveBeenCalledTimes(2)
+    expect(onDeleteAll).not.toHaveBeenCalled()
+    expect(onActivateWithIdCheck).not.toHaveBeenCalled()
   })
 })
 
