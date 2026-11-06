@@ -27,7 +27,6 @@ export default function DocsSearch({ onNeedSupport }) {
 
   useEffect(() => {
     setQuestion(questionInputRef.current.input.value)
-    fetch('/contact/ask').catch(() => {})
   }, [])
 
   const askDocs = async (questionToAsk) => {

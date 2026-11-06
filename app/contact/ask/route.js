@@ -19,6 +19,9 @@ const ANSWER_REVALIDATE_SECONDS = 24 * 60 * 60
 export const dynamic = 'force-dynamic'
 
 const requestLog = new Map()
+let warmupPromise = null
+let lastWarmupAt = 0
+const WARMUP_COOLDOWN_MS = 60 * 60 * 1000
 
 function normalizeQuestion(question) {
   return question.trim().replace(/\s+/g, ' ')
@@ -129,6 +132,30 @@ const askDocumentation = unstable_cache(
   { revalidate: ANSWER_REVALIDATE_SECONDS }
 )
 
+export async function GET() {
+  const now = Date.now()
+  if (now - lastWarmupAt < WARMUP_COOLDOWN_MS) {
+    return Response.json({ warmed: 0 })
+  }
+
+  if (!warmupPromise) {
+    lastWarmupAt = now
+    warmupPromise = Promise.allSettled(
+      exampleQuestions.map((question) => askDocumentation(normalizeQuestion(question)))
+    ).finally(() => {
+      warmupPromise = null
+    })
+  }
+
+  const results = await warmupPromise
+  const warmed = results.reduce(
+    (count, result) => count + (result.status === 'fulfilled' ? 1 : 0),
+    0
+  )
+
+  return Response.json({ warmed })
+}
+
 export async function POST(request) {
   let question
   try {
@@ -171,17 +198,4 @@ export async function POST(request) {
       { status: 502 }
     )
   }
-}
-
-export async function GET() {
-  const results = await Promise.allSettled(
-    exampleQuestions.map((question) => askDocumentation(normalizeQuestion(question)))
-  )
-
-  const warmed = results.reduce(
-    (count, result) => count + (result.status === 'fulfilled' ? 1 : 0),
-    0
-  )
-
-  return Response.json({ warmed })
 }
