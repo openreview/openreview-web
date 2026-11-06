@@ -39,7 +39,6 @@ export default function DocsSearch({ onNeedSupport }) {
     setSearching(true)
     setError(null)
     setResult(null)
-    setHelpState(null)
     setSubmittedQuestion(trimmedQuestion)
 
     try {

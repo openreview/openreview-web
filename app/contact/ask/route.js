@@ -12,34 +12,16 @@ const ASK_URL = `${DOCS_URL}/~gitbook/mcp`
 const MAX_QUESTION_LENGTH = 500
 const MAX_SOURCES = 5
 const REQUEST_TIMEOUT_MS = 45000
-const RATE_LIMIT_WINDOW_MS = 60000
-const RATE_LIMIT_MAX_REQUESTS = 10
 const ANSWER_REVALIDATE_SECONDS = 24 * 60 * 60
 
 export const dynamic = 'force-dynamic'
 
-const requestLog = new Map()
 let warmupPromise = null
 let lastWarmupAt = 0
 const WARMUP_COOLDOWN_MS = 60 * 60 * 1000
 
 function normalizeQuestion(question) {
   return question.trim().replace(/\s+/g, ' ')
-}
-
-function isRateLimited(clientKey) {
-  const now = Date.now()
-  for (const [key, timestamps] of requestLog) {
-    const recent = timestamps.filter((at) => now - at < RATE_LIMIT_WINDOW_MS)
-    if (recent.length) requestLog.set(key, recent)
-    else requestLog.delete(key)
-  }
-
-  const timestamps = requestLog.get(clientKey) ?? []
-  if (timestamps.length >= RATE_LIMIT_MAX_REQUESTS) return true
-
-  requestLog.set(clientKey, [...timestamps, now])
-  return false
 }
 
 function parseMessages(body) {
@@ -171,17 +153,6 @@ export async function POST(request) {
     return Response.json(
       { message: `Please keep your question under ${MAX_QUESTION_LENGTH} characters.` },
       { status: 400 }
-    )
-  }
-
-  const clientKey = (request.headers.get('x-forwarded-for') ?? 'unknown').split(',')[0].trim()
-  if (isRateLimited(clientKey)) {
-    return Response.json(
-      {
-        message:
-          'Too many questions in a short time. Please wait a moment, browse the documentation, or submit a support request below.',
-      },
-      { status: 429 }
     )
   }
 
