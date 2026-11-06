@@ -1,15 +1,10 @@
 'use client'
 
+import { Alert, AutoComplete, Button, Flex, Input } from 'antd'
 import { useEffect, useReducer, useState } from 'react'
-import { CreatableDropdown } from '../../components/Dropdown'
-import ErrorAlert from '../../components/ErrorAlert'
-import { ClearButton } from '../../components/IconButton'
-import SpinnerButton from '../../components/SpinnerButton'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-
-import styles from './Contact.module.scss'
 
 const profileSubject = 'I have a question about my existing OpenReview profile'
 const submissionSubject = 'A conference I submitted to'
@@ -28,10 +23,7 @@ const subjectOptions = [
   createProfileSubject,
   profileRejectedSubject,
   accessPublicationSubject,
-].map((subject) => ({
-  label: subject,
-  value: subject,
-}))
+].map((subject) => ({ value: subject }))
 
 export default function SupportRequestForm({ prefill }) {
   const [error, setError] = useState(null)
@@ -100,8 +92,7 @@ export default function SupportRequestForm({ prefill }) {
     },
   ]
 
-  const sendFeedback = async (e) => {
-    if (e) e.preventDefault()
+  const sendFeedback = async () => {
     setSubmitting(true)
 
     try {
@@ -162,73 +153,50 @@ export default function SupportRequestForm({ prefill }) {
       setFormData({ type: 'reset' })
       promptMessage('Your feedback has been submitted. Thank you.')
     } catch (apiError) {
-      setError({ message: apiError.message })
+      setError(apiError.message)
       setSubmitting(false)
     }
   }
 
   const renderField = (field) => {
-    if (!field.showIf(formData)) return null
+    if (!field.showIf()) return null
     switch (field.type) {
       case 'input':
         return (
-          <input
+          <Input
             id={`feedback-${field.name}`}
-            type="text"
-            name={field.name}
-            className="form-control"
             placeholder={field.placeholder}
+            aria-label={field.placeholder}
             value={formData[field.name] ?? ''}
             onChange={(e) => setFormData({ type: field.name, payload: e.target.value })}
-            aria-label={field.placeholder}
           />
         )
       case 'textarea':
         return (
-          <textarea
+          <Input.TextArea
             id={`feedback-${field.name}`}
-            name={field.name}
-            className="form-control feedback-input"
-            rows="5"
+            rows={5}
             placeholder={field.placeholder}
+            aria-label={field.placeholder}
             value={formData[field.name] ?? ''}
             onChange={(e) => setFormData({ type: field.name, payload: e.target.value })}
-            aria-label={field.placeholder}
           />
         )
       case 'select':
-        return formData[field.name]?.length > 0 ? (
-          <div className="clearable-input">
-            <input
-              type="text"
-              className="form-control"
-              value={formData[field.name] ?? ''}
-              onChange={(e) => {
-                setFormData({ type: field.name, payload: e.target.value })
-              }}
-            />
-            <ClearButton
-              onClick={(e) => {
-                setFormData({ type: field.name, payload: '' })
-              }}
-            />
-          </div>
-        ) : (
-          <CreatableDropdown
-            instanceId={`feedback-${field.name}`}
+        return (
+          <AutoComplete
+            id={`feedback-${field.name}`}
             options={field.options}
-            classNamePrefix="feedback-dropdown"
-            placeholder={field.placeholder}
-            value={field.options.find((p) => p.value === formData[field.name]) ?? null}
-            onChange={(e) =>
-              setFormData({ type: field.name, payload: e ? e.value : undefined })
+            value={formData[field.name] ?? ''}
+            onChange={(value) => setFormData({ type: field.name, payload: value })}
+            allowClear
+            style={{ width: '100%' }}
+            filterOption={(input, option) =>
+              option.value.toLowerCase().includes(input.toLowerCase())
             }
-            onBlur={(e) => {
-              if (e.target.value) {
-                setFormData({ type: field.name, payload: e.target.value })
-              }
-            }}
-          />
+          >
+            <Input placeholder={field.placeholder} aria-label={field.placeholder} />
+          </AutoComplete>
         )
       default:
         return null
@@ -251,27 +219,21 @@ export default function SupportRequestForm({ prefill }) {
   }, [prefill])
 
   return (
-    <div className="d-flex">
-      {error && <ErrorAlert error={error} />}
-      <div>
-        <form className={styles.feedbackForm}>
-          {fields.map((field) => (
-            <div className="form-group" key={field.name}>
-              {renderField(field)}
-            </div>
-          ))}
-        </form>
-        <div ref={turnstileContainerRef} />
-        <SpinnerButton
-          type="primary"
-          onClick={sendFeedback}
-          loading={submitting}
-          disabled={!turnstileToken || submitting || error}
-          className="mt-2"
-        >
-          Send
-        </SpinnerButton>
-      </div>
-    </div>
+    <Flex vertical gap={12} style={{ maxWidth: 640 }}>
+      {error && <Alert type="error" showIcon message={error} />}
+      {fields.map((field) => (
+        <div key={field.name}>{renderField(field)}</div>
+      ))}
+      <div ref={turnstileContainerRef} />
+      <Button
+        type="primary"
+        loading={submitting}
+        disabled={!turnstileToken || submitting || error}
+        style={{ alignSelf: 'flex-start' }}
+        onClick={sendFeedback}
+      >
+        Send
+      </Button>
+    </Flex>
   )
 }

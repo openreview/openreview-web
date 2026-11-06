@@ -1,7 +1,14 @@
 import { unstable_cache } from 'next/cache'
 
+const exampleQuestions = [
+  'Why is my profile limited and how do I activate it?',
+  'How do I find a venue ID?',
+  'How do I withdraw my submission?',
+  'How do I recruit reviewers for my venue?',
+]
+
 const DOCS_URL = 'https://docs.openreview.net'
-const DOCS_MCP_URL = process.env.DOCS_MCP_URL || `${DOCS_URL}/~gitbook/mcp`
+const ASK_URL = `${DOCS_URL}/~gitbook/mcp`
 const MAX_QUESTION_LENGTH = 500
 const MAX_SOURCES = 5
 const REQUEST_TIMEOUT_MS = 45000
@@ -32,7 +39,15 @@ function isRateLimited(clientKey) {
   return false
 }
 
-function parseEventStream(body) {
+function parseMessages(body) {
+  if (body.trimStart().startsWith('{')) {
+    try {
+      return [JSON.parse(body)]
+    } catch {
+      return []
+    }
+  }
+
   return body
     .split('\n')
     .filter((line) => line.startsWith('data:'))
@@ -48,8 +63,7 @@ function parseEventStream(body) {
 
 function toAbsoluteDocsUrl(path) {
   if (/^https?:\/\//.test(path)) return path
-  if (path.startsWith('/')) return `${DOCS_URL}${path}`
-  return path
+  return path.startsWith('/') ? `${DOCS_URL}${path}` : path
 }
 
 function splitSources(text) {
@@ -76,7 +90,7 @@ function absolutizeMarkdownLinks(markdown) {
 
 const askDocumentation = unstable_cache(
   async (question) => {
-    const response = await fetch(DOCS_MCP_URL, {
+    const response = await fetch(ASK_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -86,10 +100,7 @@ const askDocumentation = unstable_cache(
         jsonrpc: '2.0',
         id: 1,
         method: 'tools/call',
-        params: {
-          name: 'askQuestion',
-          arguments: { question },
-        },
+        params: { name: 'askQuestion', arguments: { question } },
       }),
       cache: 'no-store',
       signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
@@ -97,17 +108,19 @@ const askDocumentation = unstable_cache(
 
     if (!response.ok) throw new Error(`Documentation search returned ${response.status}`)
 
-    const body = await response.text()
-    const message = parseEventStream(body).find((m) => m.result || m.error) ?? {}
+    const message = parseMessages(await response.text()).find((m) => m?.result || m?.error)
+    if (!message) throw new Error('Documentation search returned an unrecognized response')
 
-    if (message.error) throw new Error(message.error.message ?? 'Documentation search failed')
+    if (message.error || message.result?.isError) {
+      throw new Error(message.error?.message ?? 'Documentation search failed')
+    }
 
     const text = message.result?.content
       ?.filter((item) => item.type === 'text')
       .map((item) => item.text)
       .join('\n\n')
 
-    if (!text?.trim()) return { answer: '', sources: [] }
+    if (!text?.trim()) throw new Error('Documentation search returned no content')
 
     const { answer, sources } = splitSources(text)
     return { answer: absolutizeMarkdownLinks(answer), sources }
@@ -158,4 +171,17 @@ export async function POST(request) {
       { status: 502 }
     )
   }
+}
+
+export async function GET() {
+  const results = await Promise.allSettled(
+    exampleQuestions.map((question) => askDocumentation(normalizeQuestion(question)))
+  )
+
+  const warmed = results.reduce(
+    (count, result) => count + (result.status === 'fulfilled' ? 1 : 0),
+    0
+  )
+
+  return Response.json({ warmed })
 }

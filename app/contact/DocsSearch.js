@@ -1,12 +1,9 @@
 'use client'
 
-import { useState } from 'react'
-import ErrorAlert from '../../components/ErrorAlert'
-import Icon from '../../components/Icon'
-import SpinnerButton from '../../components/SpinnerButton'
+import { Alert, Button, Card, Flex, Input, Space, Typography } from 'antd'
+import { CloseCircleOutlined } from '@ant-design/icons'
+import { useEffect, useRef, useState } from 'react'
 import MarkdownContent from '../../components/webfield/MarkdownContent'
-
-import styles from './Contact.module.scss'
 
 const exampleQuestions = [
   'Why is my profile limited and how do I activate it?',
@@ -15,78 +12,96 @@ const exampleQuestions = [
   'How do I recruit reviewers for my venue?',
 ]
 
+const { Text, Link } = Typography
+
 export default function DocsSearch({ onNeedSupport }) {
   const [question, setQuestion] = useState('')
   const [result, setResult] = useState(null)
   const [searching, setSearching] = useState(false)
   const [searched, setSearched] = useState(false)
+  const [submittedQuestion, setSubmittedQuestion] = useState('')
   const [error, setError] = useState(null)
   const [helpState, setHelpState] = useState(null)
+  const questionInputRef = useRef(null)
+  const abortRef = useRef(null)
+
+  useEffect(() => {
+    setQuestion(questionInputRef.current.input.value)
+    fetch('/contact/ask').catch(() => {})
+  }, [])
 
   const askDocs = async (questionToAsk) => {
     const trimmedQuestion = questionToAsk.trim()
     if (!trimmedQuestion || searching) return
 
+    const abortController = new AbortController()
+    abortRef.current = abortController
+
     setSearching(true)
     setError(null)
     setResult(null)
     setHelpState(null)
+    setSubmittedQuestion(trimmedQuestion)
 
     try {
       const response = await fetch('/contact/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: trimmedQuestion }),
+        signal: abortController.signal,
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.message ?? 'Something went wrong.')
-      setResult({ ...data, question: trimmedQuestion })
-    } catch (apiError) {
-      setError({ message: apiError.message })
-    } finally {
-      setSearching(false)
+      setResult(data)
       setSearched(true)
+    } catch (apiError) {
+      if (apiError.name === 'AbortError') return
+      setError(apiError.message)
+      setSearched(true)
+    } finally {
+      if (abortRef.current === abortController) {
+        abortRef.current = null
+        setSearching(false)
+      }
     }
   }
 
-  return (
-    <div className={styles.docsSearch}>
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          askDocs(question)
-        }}
-      >
-        <div className="input-group">
-          <input
-            type="text"
-            className="form-control"
-            value={question}
-            maxLength={500}
-            placeholder="Ask a question, e.g. how do I add a program chair to my venue?"
-            aria-label="Ask a question about OpenReview"
-            onChange={(e) => setQuestion(e.target.value)}
-          />
-          <span className="input-group-btn">
-            <SpinnerButton
-              type="primary"
-              size="md"
-              loading={searching}
-              disabled={!question.trim() || searching}
-              onClick={() => askDocs(question)}
-            >
-              {searching ? 'Searching' : 'Search the docs'}
-            </SpinnerButton>
-          </span>
-        </div>
-      </form>
+  const cancelSearch = () => {
+    abortRef.current?.abort()
+    abortRef.current = null
+    setQuestion('')
+    setSearching(false)
+    setResult(null)
+    setError(null)
+    setSearched(false)
+    setHelpState(null)
+  }
 
-      <div className={styles.exampleQuestions}>
+  return (
+    <Flex vertical gap={12} style={{ marginTop: '1rem' }}>
+      <Input.Search
+        value={question}
+        maxLength={500}
+        placeholder="Ask a question, e.g. how do I add a program chair to my venue?"
+        aria-label="Ask a question about OpenReview"
+        enterButton="Search the docs"
+        loading={searching}
+        ref={questionInputRef}
+        suffix={
+          <CloseCircleOutlined
+            style={{ visibility: searching || result || error ? 'visible' : 'hidden' }}
+            onClick={cancelSearch}
+          />
+        }
+        onChange={(e) => setQuestion(e.target.value)}
+        onSearch={askDocs}
+      />
+
+      <Flex wrap gap={8}>
         {exampleQuestions.map((exampleQuestion) => (
-          <button
+          <Button
             key={exampleQuestion}
-            type="button"
-            className={styles.exampleQuestion}
+            size="small"
             disabled={searching}
             onClick={() => {
               setQuestion(exampleQuestion)
@@ -94,67 +109,67 @@ export default function DocsSearch({ onNeedSupport }) {
             }}
           >
             {exampleQuestion}
-          </button>
+          </Button>
         ))}
-      </div>
+      </Flex>
 
-      {error && <ErrorAlert error={error} />}
+      {error && <Alert type="error" showIcon title={error} />}
 
       {result && (
-        <div className={styles.answer} aria-live="polite">
+        <Card size="small" aria-live="polite">
           {result.answer ? (
             <MarkdownContent content={result.answer} />
           ) : (
-            <p>The documentation does not have an answer for that.</p>
+            <Text>The documentation does not have an answer for that.</Text>
           )}
 
           {result.sources?.length > 0 && (
             <>
-              <h4>Documentation pages</h4>
-              <ul className={styles.sources}>
+              <Text type="secondary" strong style={{ display: 'block', marginTop: '1rem' }}>
+                Documentation pages
+              </Text>
+              <Space vertical size={2} style={{ marginTop: '0.25rem' }}>
                 {result.sources.map((source) => (
-                  <li key={source.url}>
-                    <a href={source.url} target="_blank" rel="noreferrer">
-                      {source.title}
-                    </a>
-                  </li>
+                  <Link key={source.url} href={source.url} target="_blank" rel="noreferrer">
+                    {source.title}
+                  </Link>
                 ))}
-              </ul>
+              </Space>
             </>
           )}
-        </div>
+        </Card>
       )}
 
       {searched && helpState !== 'needsHelp' && (
-        <div className={styles.stillNeedHelp}>
+        <Flex align="center" gap={8}>
           {helpState === 'resolved' ? (
-            <span className={styles.helpResolved}>
-              <Icon name="ok" /> Glad that helped.
-            </span>
+            <Text type="secondary">Glad that helped.</Text>
           ) : (
             <>
-              <span>Still need help?</span>
-              <button
-                type="button"
-                className={styles.quietAction}
+              <Text type="secondary">Still need help?</Text>
+              <Button
+                type="link"
+                size="small"
+                style={{ padding: 0 }}
                 onClick={() => {
                   setHelpState('needsHelp')
-                  onNeedSupport(result?.question)
+                  onNeedSupport(submittedQuestion)
                 }}
               >
                 Yes
-              </button>
-              <button
-                type="button"
-                className={styles.quietAction}
+              </Button>
+              <Button
+                type="link"
+                size="small"
+                style={{ padding: 0 }}
                 onClick={() => setHelpState('resolved')}
               >
                 No
-              </button>
+              </Button>
             </>
           )}
-        </div>
+        </Flex>
       )}
-    </div>
+    </Flex>
   )
 }

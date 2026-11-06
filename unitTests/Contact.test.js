@@ -120,14 +120,50 @@ describe('Contact page', () => {
     expect(screen.queryByPlaceholderText('Message')).not.toBeInTheDocument()
   })
 
-  test('offer the support form even when the search itself failed', async () => {
+  test('carry the question into the form when the search failed', async () => {
     mockAsk({ message: 'The documentation search is unavailable right now.' }, false)
     render(<Contact />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
+    await userEvent.click(
+      screen.getByRole('button', { name: 'How do I withdraw my submission?' })
+    )
     await screen.findByText('The documentation search is unavailable right now.')
+    await userEvent.click(screen.getByRole('button', { name: 'Yes' }))
 
-    expect(screen.getByText('Still need help?')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Message')).toHaveValue(
+      'How do I withdraw my submission?'
+    )
+  })
+
+  test('move focus into the form when it opens', async () => {
+    render(<Contact />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
+    await screen.findByText(askResponse.answer)
+    await userEvent.click(screen.getByRole('button', { name: 'Yes' }))
+
+    expect(screen.getByPlaceholderText('Your email address')).toHaveFocus()
+  })
+
+  test('reveal the already open form again after a later search', async () => {
+    render(<Contact />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
+    await screen.findByText(askResponse.answer)
+    await userEvent.click(screen.getByRole('button', { name: 'Yes' }))
+    expect(screen.getByPlaceholderText('Message')).toHaveValue('How do I find a venue ID?')
+
+    // a second search re-offers the prompt, and accepting it updates the open form
+    await userEvent.click(
+      screen.getByRole('button', { name: 'How do I withdraw my submission?' })
+    )
+    await screen.findByText(askResponse.answer)
+    await userEvent.click(screen.getByRole('button', { name: 'Yes' }))
+
+    expect(screen.getByPlaceholderText('Message')).toHaveValue(
+      'How do I withdraw my submission?'
+    )
+    expect(screen.getByPlaceholderText('Your email address')).toHaveFocus()
   })
 
   test('answer a question from the documentation and link to its sources', async () => {
@@ -141,17 +177,45 @@ describe('Contact page', () => {
     )
     await userEvent.click(screen.getByRole('button', { name: 'Search the docs' }))
 
-    expect(global.fetch).toHaveBeenCalledWith('/contact/ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ question: 'how do I add a program chair' }),
-    })
-    expect(
-      await screen.findByText('Open the Program Chairs group and select Add to Group.')
-    ).toBeInTheDocument()
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/contact/ask',
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify({ question: 'how do I add a program chair' }),
+      })
+    )
+    expect(await screen.findByText(askResponse.answer)).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'How do I add a Program Chair to my venue?' })
     ).toHaveAttribute('href', askResponse.sources[0].url)
+  })
+
+  test('cancel the search and dismiss the answer', async () => {
+    render(<Contact />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
+    await screen.findByText(askResponse.answer)
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
+
+    expect(screen.queryByText(askResponse.answer)).not.toBeInTheDocument()
+    expect(screen.queryByText('Still need help?')).not.toBeInTheDocument()
+    // the question is left in the box so it can be edited and asked again
+    expect(
+      screen.getByPlaceholderText(
+        'Ask a question, e.g. how do I add a program chair to my venue?'
+      )
+    ).toHaveValue('How do I find a venue ID?')
+  })
+
+  test('offer the support form even when the search itself failed', async () => {
+    mockAsk({ message: 'The documentation search is unavailable right now.' }, false)
+    render(<Contact />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
+    await screen.findByText('The documentation search is unavailable right now.')
+
+    expect(screen.getByText('Still need help?')).toBeInTheDocument()
   })
 
   test('open the support form prefilled with the question', async () => {
@@ -162,7 +226,7 @@ describe('Contact page', () => {
         name: 'Why is my profile limited and how do I activate it?',
       })
     )
-    await screen.findByText('Open the Program Chairs group and select Add to Group.')
+    await screen.findByText(askResponse.answer)
 
     expect(screen.queryByPlaceholderText('Message')).not.toBeInTheDocument()
 
@@ -174,17 +238,6 @@ describe('Contact page', () => {
     )
     // the prompt is replaced by the form, not shown alongside it
     expect(screen.queryByText('Still need help?')).not.toBeInTheDocument()
-  })
-
-  test('show an error when the documentation search fails', async () => {
-    mockAsk({ message: 'The documentation search is unavailable right now.' }, false)
-    render(<Contact />)
-
-    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
-
-    expect(
-      await screen.findByText('The documentation search is unavailable right now.')
-    ).toBeInTheDocument()
   })
 
   test('show feedback form fields when user is guest', async () => {
@@ -234,39 +287,15 @@ describe('Contact page', () => {
     await userEvent.click(topicSelect)
 
     expect(
-      screen.getByRole('option', {
-        name: 'I have a question about my existing OpenReview profile',
-      })
+      screen.getByTitle('I have a question about my existing OpenReview profile')
     ).toBeInTheDocument()
+    expect(screen.getByTitle('A conference I submitted to')).toBeInTheDocument()
+    expect(screen.getByTitle('A conference I organized')).toBeInTheDocument()
+    expect(screen.getByTitle('I am a reviewer or committee member')).toBeInTheDocument()
+    expect(screen.getByTitle('I am trying to create my profile')).toBeInTheDocument()
+    expect(screen.getByTitle('I am trying to access a publication')).toBeInTheDocument()
     expect(
-      screen.getByRole('option', {
-        name: 'A conference I submitted to',
-      })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('option', {
-        name: 'A conference I organized',
-      })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('option', {
-        name: 'I am a reviewer or committee member',
-      })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('option', {
-        name: 'I am trying to create my profile',
-      })
-    ).toBeInTheDocument()
-    expect(
-      screen.getByRole('option', {
-        name: 'I am trying to access a publication',
-      })
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByRole('option', {
-        name: 'Please add my domain to your list of publishing institutions',
-      })
+      screen.queryByTitle('Please add my domain to your list of publishing institutions')
     ).not.toBeInTheDocument()
   })
 
@@ -292,9 +321,9 @@ describe('Contact page', () => {
 
     // I have a question about my existing OpenReview profile - show only profile id input
     await userEvent.click(screen.getByRole('combobox'))
-    const profileOption = screen.getByRole('option', {
-      name: 'I have a question about my existing OpenReview profile',
-    })
+    const profileOption = screen.getByTitle(
+      'I have a question about my existing OpenReview profile'
+    )
     await userEvent.click(profileOption)
     expect(screen.getByPlaceholderText('Profile ID')).toBeInTheDocument()
     expect(
@@ -312,12 +341,10 @@ describe('Contact page', () => {
     ).not.toBeInTheDocument()
 
     // a conference i submitted to - show venue id and submission id
-    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.clear(screen.getByRole('combobox'))
     await userEvent.click(screen.getByRole('combobox'))
 
-    const conferenceSubmittedToOptions = screen.getByRole('option', {
-      name: 'A conference I submitted to',
-    })
+    const conferenceSubmittedToOptions = screen.getByTitle('A conference I submitted to')
     await userEvent.click(conferenceSubmittedToOptions)
     expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
     expect(screen.getByPlaceholderText('Venue ID or Conference Name')).toBeInTheDocument()
@@ -333,12 +360,10 @@ describe('Contact page', () => {
     ).not.toBeInTheDocument()
 
     // a conference i organized - show venue id
-    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.clear(screen.getByRole('combobox'))
     await userEvent.click(screen.getByRole('combobox'))
 
-    const conferenceOrganizedOptions = screen.getByRole('option', {
-      name: 'A conference I organized',
-    })
+    const conferenceOrganizedOptions = screen.getByTitle('A conference I organized')
     await userEvent.click(conferenceOrganizedOptions)
     expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
     expect(screen.getByPlaceholderText('Venue ID or Conference Name')).toBeInTheDocument()
@@ -354,12 +379,10 @@ describe('Contact page', () => {
     ).not.toBeInTheDocument()
 
     // I am a reviewer or committee member - show venue id
-    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.clear(screen.getByRole('combobox'))
     await userEvent.click(screen.getByRole('combobox'))
 
-    const reviewerOption = screen.getByRole('option', {
-      name: 'I am a reviewer or committee member',
-    })
+    const reviewerOption = screen.getByTitle('I am a reviewer or committee member')
     await userEvent.click(reviewerOption)
     expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
     expect(screen.getByPlaceholderText('Venue ID or Conference Name')).toBeInTheDocument()
@@ -375,12 +398,10 @@ describe('Contact page', () => {
     ).not.toBeInTheDocument()
 
     // I am trying to create my profile - no extra fields
-    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.clear(screen.getByRole('combobox'))
     await userEvent.click(screen.getByRole('combobox'))
 
-    const createProfileOption = screen.getByRole('option', {
-      name: 'I am trying to create my profile',
-    })
+    const createProfileOption = screen.getByTitle('I am trying to create my profile')
     await userEvent.click(createProfileOption)
     expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
     expect(
@@ -398,12 +419,10 @@ describe('Contact page', () => {
     ).not.toBeInTheDocument()
 
     // I am trying to access a publication - show submission id
-    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.clear(screen.getByRole('combobox'))
     await userEvent.click(screen.getByRole('combobox'))
 
-    const accessPublicationOption = screen.getByRole('option', {
-      name: 'I am trying to access a publication',
-    })
+    const accessPublicationOption = screen.getByTitle('I am trying to access a publication')
     await userEvent.click(accessPublicationOption)
     expect(screen.queryByPlaceholderText('Profile ID')).not.toBeInTheDocument()
     expect(
@@ -421,7 +440,7 @@ describe('Contact page', () => {
     ).not.toBeInTheDocument()
 
     // add institution domain - show email domain, full name and website url
-    await userEvent.click(screen.getByRole('button', { name: 'remove' }))
+    await userEvent.clear(screen.getByRole('combobox'))
     await userEvent.click(screen.getByRole('combobox'))
 
     // const addInstitutionOption = screen.getByRole('option', {
@@ -455,9 +474,7 @@ describe('Contact page', () => {
     await userEvent.click(topicSelect)
     await userEvent.click(
       // profile id will be required
-      screen.getByRole('option', {
-        name: 'I have a question about my existing OpenReview profile',
-      })
+      screen.getByTitle('I have a question about my existing OpenReview profile')
     )
     await userEvent.click(screen.getByRole('button', { name: 'Send' }))
     expect(api.put).not.toHaveBeenCalled()
@@ -492,11 +509,7 @@ describe('Contact page', () => {
 
     await userEvent.type(emailInput, 'test@mail.com')
     await userEvent.click(topicSelect)
-    await userEvent.click(
-      screen.getByRole('option', {
-        name: 'A conference I organized',
-      })
-    )
+    await userEvent.click(screen.getByTitle('A conference I organized'))
     const venueInput = screen.getByPlaceholderText('Venue ID or Conference Name')
     await userEvent.type(venueInput, 'some venue')
     await userEvent.clear(messageInput)
@@ -512,10 +525,13 @@ describe('Contact page', () => {
       'Your feedback has been submitted. Thank you.'
     )
     // form should be cleared
-    expect(screen.queryByText('test@mail.com')).not.toBeInTheDocument()
-    expect(screen.queryByText('some venue')).not.toBeInTheDocument()
-    expect(screen.queryByText('A conference I organized')).not.toBeInTheDocument()
-    expect(screen.queryByText('some message')).not.toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Your email address')).toHaveValue('')
+    expect(screen.getByRole('combobox')).toHaveValue('')
+    expect(screen.getByPlaceholderText('Message')).toHaveValue('')
+    // the venue field only shows for a venue topic, so it goes away with the reset
+    expect(
+      screen.queryByPlaceholderText('Venue ID or Conference Name')
+    ).not.toBeInTheDocument()
   })
 
   test('show error when feedback cannot be sent', async () => {

@@ -1,11 +1,12 @@
 'use client'
 
+import { Card, Col, Flex, Row, Typography } from 'antd'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import DocsSearch from './DocsSearch'
 import SupportRequestForm from './SupportRequestForm'
 
-import styles from './Contact.module.scss'
+const { Paragraph, Text, Title } = Typography
 
 const docsBaseUrl = 'https://docs.openreview.net'
 
@@ -49,11 +50,20 @@ export default function Page() {
   const [showForm, setShowForm] = useState(false)
   const [prefill, setPrefill] = useState(null)
   const formRef = useRef(null)
-  const shouldScrollToForm = useRef(false)
+  const shouldRevealForm = useRef(false)
+
+  const revealForm = () => {
+    formRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+    formRef.current?.querySelector('input, textarea')?.focus({ preventScroll: true })
+  }
 
   const openForm = (message) => {
     if (message) setPrefill({ message })
-    shouldScrollToForm.current = true
+    if (showForm) {
+      revealForm()
+      return
+    }
+    shouldRevealForm.current = true
     setShowForm(true)
   }
 
@@ -74,20 +84,20 @@ export default function Page() {
   }, [])
 
   useEffect(() => {
-    if (!showForm || !shouldScrollToForm.current) return
-    shouldScrollToForm.current = false
-    formRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
+    if (!showForm || !shouldRevealForm.current) return
+    shouldRevealForm.current = false
+    revealForm()
   }, [showForm])
 
   return (
-    <div className={styles.contactContainer}>
-      <h1>Help</h1>
-      <p className="mt-3">
+    <Flex vertical style={{ maxWidth: '54rem' }}>
+      <Title level={1}>Help</Title>
+      <Paragraph style={{ marginTop: '1rem' }}>
         OpenReview currently supports numerous computer science conferences and workshops, and
         we are open to hosting journals and conferences in any field; please fill out the{' '}
         <Link href="/group?id=OpenReview.net/Support">venue request form</Link> to get started.
-      </p>
-      <p>
+      </Paragraph>
+      <Paragraph>
         To report a bug or suggest a feature to the developers,{' '}
         <a
           href="https://github.com/openreview/openreview/issues/new/choose"
@@ -97,35 +107,44 @@ export default function Page() {
           open an issue
         </a>{' '}
         in the OpenReview repository on GitHub.
-      </p>
-      <p className={styles.scopeNote}>
+      </Paragraph>
+      <Text type="secondary">
         For questions about a specific venue, use the contact address on the venue invitation.
-      </p>
+      </Text>
 
       <DocsSearch onNeedSupport={openForm} />
 
-      <h2>Browse the documentation</h2>
-      <div className={styles.docsSections}>
+      <Title level={2} style={{ marginTop: '2.5rem' }}>
+        Browse the documentation
+      </Title>
+      <Row gutter={[12, 12]}>
         {docsSections.map((section) => (
-          <a
-            key={section.path}
-            className={styles.docsSection}
-            href={`${docsBaseUrl}${section.path}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            <strong>{section.title}</strong>
-            <span>{section.description}</span>
-          </a>
+          <Col xs={24} md={12} key={section.path}>
+            <a
+              href={`${docsBaseUrl}${section.path}`}
+              target="_blank"
+              rel="noreferrer"
+              style={{ display: 'block', height: '100%' }}
+            >
+              <Card size="small" hoverable style={{ height: '100%' }}>
+                <Text strong style={{ display: 'block' }}>
+                  {section.title}
+                </Text>
+                <Text type="secondary">{section.description}</Text>
+              </Card>
+            </a>
+          </Col>
         ))}
-      </div>
+      </Row>
 
       {showForm && (
-        <div className={styles.supportRequest} ref={formRef}>
-          <h2>Send a request to support</h2>
+        <div ref={formRef} style={{ marginTop: '2.5rem', scrollMarginTop: '1rem' }}>
+          <Title level={2} style={{ marginTop: 0 }}>
+            Send a request to support
+          </Title>
           <SupportRequestForm prefill={prefill} />
         </div>
       )}
-    </div>
+    </Flex>
   )
 }
