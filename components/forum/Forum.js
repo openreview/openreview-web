@@ -1065,7 +1065,7 @@ export default function Forum({
       {!parentNote.ddate && (
         <div className="invitations-container">
           <div className="top-level-actions">
-            <PaymentButton forumNoteId={id} />
+            <PaymentButton forumNote={parentNote} />
             {parentNote.replyInvitations?.length > 0 && layout === 'default' && (
               <div className="invitation-buttons top-level-invitations">
                 <span className="hint">Add:</span>

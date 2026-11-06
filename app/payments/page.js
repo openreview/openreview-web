@@ -18,6 +18,15 @@ const maxCheckoutCount = 25
 
 dayjs.extend(relativeTime)
 
+function getNoteStatus(note, domainGroup) {
+  const venueId = note.content?.venueid?.value
+  const domainContent = domainGroup?.content
+  if (venueId === domainContent?.submission_venue_id?.value) return 'active'
+  if (venueId === domainContent?.withdrawn_venue_id?.value) return 'withdrawn'
+  if (venueId === domainContent?.desk_rejected_venue_id?.value) return 'deskRejected'
+  return null
+}
+
 function VenueFees({ venue, reloadFees }) {
   const [selectedIds, setSelectedIds] = useState([])
   const [isPaying, setIsPaying] = useState(false)
@@ -206,6 +215,8 @@ function VenueFees({ venue, reloadFees }) {
                   <Tag color="success">
                     {fee.status === 'paid' ? 'Fee paid' : 'Fee waived'}
                   </Tag>
+                  {fee.noteStatus === 'withdrawn' && <Tag>Withdrawn</Tag>}
+                  {fee.noteStatus === 'deskRejected' && <Tag>Desk rejected</Tag>}
                   <Text type="secondary">
                     {dayjs(fee.payment.mdate).format('MMMM D, YYYY')}
                     {fee.status === 'paid' && ` by ${prettyId(fee.payment.signature)}`}
@@ -237,12 +248,24 @@ export default function Page() {
         type: 'payment',
         details: 'replytoNote,repliedPayments',
       })
+      const domains = new Set(invitations.map((invitation) => invitation.domain))
+      const domainGroups = Object.fromEntries(
+        await Promise.all(
+          [...domains].map(async (domain) => [domain, await api.getGroupById(domain)])
+        )
+      )
 
       const venueMap = new Map()
       invitations.forEach((invitation) => {
         const feePayments = invitation.details.repliedPayments
         const paidPayment = feePayments.find((p) => p.status === 'paid')
         const waivedPayment = feePayments.find((p) => p.status === 'waived')
+        const checkoutPayment = feePayments.find((p) => p.status === 'pending')
+        const noteStatus = getNoteStatus(
+          invitation.details.replytoNote,
+          domainGroups[invitation.domain]
+        )
+
         const fee = {
           invitationId: invitation.id,
           noteId: invitation.edit.payment.note,
@@ -250,6 +273,7 @@ export default function Page() {
           title: invitation.details.replytoNote.content.title.value,
           duedate: invitation.duedate,
           amount: invitation.content.amount.value,
+          noteStatus,
         }
 
         if (!venueMap.has(invitation.domain)) {
@@ -264,17 +288,15 @@ export default function Page() {
           venue.settled.push({ ...fee, status: 'paid', payment: paidPayment })
         } else if (waivedPayment) {
           venue.settled.push({ ...fee, status: 'waived', payment: waivedPayment })
-        } else {
-          venue.pending.push({
-            ...fee,
-            checkoutPayment: feePayments.find((p) => p.status === 'pending'),
-          })
+        } else if (noteStatus === 'active' || checkoutPayment) {
+          // a checkout in progress stays listed so that it can be canceled
+          venue.pending.push({ ...fee, checkoutPayment })
         }
       })
 
-      const loadedVenues = [...venueMap.values()].sort(
-        (a, b) => Number(b.pending.length > 0) - Number(a.pending.length > 0)
-      )
+      const loadedVenues = [...venueMap.values()]
+        .filter((venue) => venue.pending.length || venue.settled.length)
+        .sort((a, b) => Number(b.pending.length > 0) - Number(a.pending.length > 0))
       setVenues(loadedVenues)
       if (!venues) setActiveDomain(loadedVenues.find((venue) => venue.pending.length)?.domain)
     } catch (apiError) {

@@ -10,7 +10,7 @@ import LoadingIcon from '../LoadingIcon'
 
 dayjs.extend(relativeTime)
 
-const PaymentButton = ({ forumNoteId }) => {
+const PaymentButton = ({ forumNote }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState(null)
 
@@ -20,7 +20,7 @@ const PaymentButton = ({ forumNoteId }) => {
       const { url } = await api.post('/payments/checkout', {
         invitation: paymentStatus.invitationId,
         payment: {
-          note: forumNoteId,
+          note: forumNote.id,
         },
         cancelUrl: window.location.href,
       })
@@ -34,7 +34,7 @@ const PaymentButton = ({ forumNoteId }) => {
   const loadPaymentInvitation = async () => {
     try {
       const { invitations } = await api.get('/invitations', {
-        replyForum: forumNoteId,
+        replyForum: forumNote.id,
         type: 'payment',
         details: 'repliedPayments',
       })
@@ -55,7 +55,13 @@ const PaymentButton = ({ forumNoteId }) => {
           checkoutPayment,
         })
       } else {
-        setPaymentStatus({ invitationId: paymentInvitation.id, amount, status: 'unsettled' })
+        const domainGroup = await api.getGroupById(paymentInvitation.domain)
+        const isActive =
+          forumNote.content?.venueid?.value ===
+          domainGroup?.content?.submission_venue_id?.value
+        setPaymentStatus(
+          isActive ? { invitationId: paymentInvitation.id, amount, status: 'unsettled' } : null
+        )
       }
     } catch {
       /* empty */
@@ -75,7 +81,7 @@ const PaymentButton = ({ forumNoteId }) => {
 
   useEffect(() => {
     loadPaymentInvitation()
-  }, [forumNoteId])
+  }, [forumNote.id])
 
   const events = useSocket(
     paymentStatus?.status === 'pending' ? 'payment' : undefined,
