@@ -106,6 +106,7 @@ export default function DocsSearch({ onNeedSupport }) {
           <Button
             key={exampleQuestion}
             size="small"
+            style={{ maxWidth: '100%', whiteSpace: 'normal', height: 'auto' }}
             disabled={searching}
             onClick={() => {
               setQuestion(exampleQuestion)
