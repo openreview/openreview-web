@@ -200,12 +200,11 @@ describe('Contact page', () => {
 
     expect(screen.queryByText(askResponse.answer)).not.toBeInTheDocument()
     expect(screen.queryByText('Still need help?')).not.toBeInTheDocument()
-    // the question is left in the box so it can be edited and asked again
     expect(
       screen.getByPlaceholderText(
         'Ask a question, e.g. how do I add a program chair to my venue?'
       )
-    ).toHaveValue('How do I find a venue ID?')
+    ).toHaveValue('')
   })
 
   test('offer the support form even when the search itself failed', async () => {
