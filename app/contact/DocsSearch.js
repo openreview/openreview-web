@@ -88,7 +88,11 @@ export default function DocsSearch({ onNeedSupport }) {
         loading={searching}
         ref={questionInputRef}
         suffix={
-          <CloseCircleOutlined
+          <Button
+            type="text"
+            size="small"
+            aria-label="Cancel"
+            icon={<CloseCircleOutlined />}
             style={{ visibility: searching || result || error ? 'visible' : 'hidden' }}
             onClick={cancelSearch}
           />
