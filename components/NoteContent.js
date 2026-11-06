@@ -3,7 +3,7 @@
 import { Space } from 'antd'
 import union from 'lodash/union'
 import { marked } from 'marked'
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import {
   prettyField,
   prettyContentValue,
@@ -91,6 +91,7 @@ function NoteContentField({ name, customFieldName }) {
 
 export function NoteContentValue({ content = '', enableMarkdown, className, fullMarkdown }) {
   const [sanitizedHtml, setSanitizedHtml] = useState(null)
+  const sanitizedMarkup = useMemo(() => ({ __html: sanitizedHtml }), [sanitizedHtml])
 
   const autoLinkContent = (value) => {
     // Regex based on https://gist.github.com/dperini/729294 modified to not accept FTP urls
@@ -138,12 +139,12 @@ export function NoteContentValue({ content = '', enableMarkdown, className, full
   return enableMarkdown ? (
     <div
       className={classNames('note-content-value', 'markdown-rendered', className)}
-      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+      dangerouslySetInnerHTML={sanitizedMarkup}
     />
   ) : (
     <span
       className={classNames('note-content-value', className)}
-      dangerouslySetInnerHTML={{ __html: sanitizedHtml }}
+      dangerouslySetInnerHTML={sanitizedMarkup}
     />
   )
 }
