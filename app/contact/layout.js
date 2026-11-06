@@ -5,5 +5,7 @@ export default function Layout({ children }) {
 }
 
 export const metadata = {
-  title: 'Contact | OpenReview',
+  title: 'Help & Support | OpenReview',
+  description:
+    'Search the OpenReview documentation for an answer, or send a request to the OpenReview support team.',
 }
