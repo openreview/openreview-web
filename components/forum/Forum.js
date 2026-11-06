@@ -20,6 +20,9 @@ import {
   addTagToReactionsList,
   parseFilterQuery,
   replaceFilterWildcards,
+  checkSignaturesMatch,
+  checkReadersMatch,
+  checkExReadersMatch,
 } from '../../lib/forum-utils'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import Icon from '../Icon'
@@ -36,27 +39,6 @@ import ForumReply from './ForumReply'
 import ForumReplyContext from './ForumReplyContext'
 
 dayjs.extend(relativeTime)
-
-const checkGroupMatch = (groupId, replyGroup) => {
-  if (groupId.includes('.*')) {
-    return new RegExp(groupId).test(replyGroup)
-  }
-  return groupId === replyGroup
-}
-
-const checkSignaturesMatch = (selectedSignatures, replySignature) =>
-  selectedSignatures.some((sig) => checkGroupMatch(sig, replySignature))
-
-const checkReadersMatch = (selectedReaders, replyReaders) =>
-  selectedReaders.every((reader) =>
-    replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
-  )
-
-// This function is also used for matching invitations
-const checkExReadersMatch = (selectedReaders, replyReaders) =>
-  selectedReaders.some((reader) =>
-    replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
-  )
 
 const scrollToElement = (selector) => {
   const el = document.querySelector(selector)
@@ -937,9 +919,10 @@ export default function Forum({
               additionalReplyCount += 1
             }
             if (!attachedToBottom.current) {
+              const tabKey = expandedInvitations[0]
               setNewMessageCounts((prevCounts) => ({
                 ...prevCounts,
-                [invId]: (prevCounts[invId] ?? 0) + 1,
+                [tabKey]: (prevCounts[tabKey] ?? 0) + 1,
               }))
             }
           }
@@ -1069,7 +1052,11 @@ export default function Forum({
             <div className="invitation-buttons top-level-invitations">
               <span className="hint">Add:</span>
               {parentNote.replyInvitations.map((invitation) => {
-                if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+                if (
+                  selectedFilters.excludedInvitations &&
+                  checkExReadersMatch(selectedFilters.excludedInvitations, [invitation.id])
+                )
+                  return null
                 const expired = invitation.expdate < Date.now()
 
                 return (
