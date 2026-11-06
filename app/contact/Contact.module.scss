@@ -34,7 +34,6 @@
     }
 
     .spinner-small {
-      width: unset;
       div {
         background-color: constants.$orRed;
       }
@@ -132,25 +131,21 @@
   }
 }
 
-.answerFeedback {
+.stillNeedHelp {
   align-items: center;
-  border-top: 1px solid constants.$borderGray;
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
   margin-top: 1.25rem;
-  padding-top: 1rem;
 
   span {
     color: constants.$subtleGray;
     font-size: 0.875rem;
-    margin-right: 0.25rem;
   }
 }
 
-.answerResolved {
+.helpResolved {
   color: constants.$subtleGray;
-  margin-bottom: 0;
 }
 
 .docsSections {
@@ -199,12 +194,6 @@
   h2 {
     margin-top: 0;
   }
-}
-
-.supportHint {
-  color: constants.$subtleGray;
-  font-size: 0.8125rem;
-  margin-bottom: 0;
 }
 
 .quietAction {

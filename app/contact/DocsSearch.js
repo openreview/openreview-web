@@ -15,12 +15,13 @@ const exampleQuestions = [
   'How do I recruit reviewers for my venue?',
 ]
 
-export default function DocsSearch({ onNeedSupport, onSearched }) {
+export default function DocsSearch({ onNeedSupport }) {
   const [question, setQuestion] = useState('')
   const [result, setResult] = useState(null)
   const [searching, setSearching] = useState(false)
+  const [searched, setSearched] = useState(false)
   const [error, setError] = useState(null)
-  const [feedback, setFeedback] = useState(null)
+  const [helpState, setHelpState] = useState(null)
 
   const askDocs = async (questionToAsk) => {
     const trimmedQuestion = questionToAsk.trim()
@@ -29,7 +30,7 @@ export default function DocsSearch({ onNeedSupport, onSearched }) {
     setSearching(true)
     setError(null)
     setResult(null)
-    setFeedback(null)
+    setHelpState(null)
 
     try {
       const response = await fetch('/contact/ask', {
@@ -44,7 +45,7 @@ export default function DocsSearch({ onNeedSupport, onSearched }) {
       setError({ message: apiError.message })
     } finally {
       setSearching(false)
-      onSearched()
+      setSearched(true)
     }
   }
 
@@ -104,10 +105,7 @@ export default function DocsSearch({ onNeedSupport, onSearched }) {
           {result.answer ? (
             <MarkdownContent content={result.answer} />
           ) : (
-            <p>
-              The documentation does not have an answer for that. Try rewording your question,
-              browse the documentation below, or submit a support request.
-            </p>
+            <p>The documentation does not have an answer for that.</p>
           )}
 
           {result.sources?.length > 0 && (
@@ -124,35 +122,37 @@ export default function DocsSearch({ onNeedSupport, onSearched }) {
               </ul>
             </>
           )}
+        </div>
+      )}
 
-          <div className={styles.answerFeedback}>
-            {feedback === 'helpful' ? (
-              <p className={styles.answerResolved}>
-                <Icon name="ok" /> Glad that helped.
-              </p>
-            ) : (
-              <>
-                <span>Did this answer your question?</span>
-                <button
-                  type="button"
-                  className={styles.quietAction}
-                  onClick={() => setFeedback('helpful')}
-                >
-                  Yes
-                </button>
-                <button
-                  type="button"
-                  className={styles.quietAction}
-                  onClick={() => {
-                    setFeedback('unhelpful')
-                    onNeedSupport(result.question)
-                  }}
-                >
-                  No
-                </button>
-              </>
-            )}
-          </div>
+      {searched && helpState !== 'needsHelp' && (
+        <div className={styles.stillNeedHelp}>
+          {helpState === 'resolved' ? (
+            <span className={styles.helpResolved}>
+              <Icon name="ok" /> Glad that helped.
+            </span>
+          ) : (
+            <>
+              <span>Still need help?</span>
+              <button
+                type="button"
+                className={styles.quietAction}
+                onClick={() => {
+                  setHelpState('needsHelp')
+                  onNeedSupport(result?.question)
+                }}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                className={styles.quietAction}
+                onClick={() => setHelpState('resolved')}
+              >
+                No
+              </button>
+            </>
+          )}
         </div>
       )}
     </div>

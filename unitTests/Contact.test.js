@@ -29,9 +29,7 @@ const renderWithForm = async () => {
   // the support form is only reachable after a documentation search
   await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
   await screen.findByText(askResponse.answer)
-  await userEvent.click(
-    screen.getByRole('button', { name: 'send a request to the support team' })
-  )
+  await userEvent.click(screen.getByRole('button', { name: 'Yes' }))
 }
 
 beforeEach(() => {
@@ -71,37 +69,54 @@ describe('Contact page', () => {
     // nothing offers the support form before a search has been run
     expect(screen.queryByPlaceholderText('Your email address')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Send' })).not.toBeInTheDocument()
-    expect(
-      screen.queryByRole('button', { name: 'send a request to the support team' })
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Still need help?')).not.toBeInTheDocument()
   })
 
-  test('scope the page to platform usage and point venue questions elsewhere', () => {
+  test('keep the venue request form and issue reporting at the top', () => {
+    render(<Contact />)
+
+    expect(screen.getByRole('link', { name: 'venue request form' })).toHaveAttribute(
+      'href',
+      '/group?id=OpenReview.net/Support'
+    )
+    expect(screen.getByRole('link', { name: 'open an issue' })).toHaveAttribute(
+      'href',
+      'https://github.com/openreview/openreview/issues/new/choose'
+    )
+  })
+
+  test('point venue questions to the venue', () => {
     render(<Contact />)
 
     expect(
-      screen.getByText(/documentation covers the OpenReview platform/)
+      screen.getByText(
+        'For questions about a specific venue, use the contact address on the venue invitation.'
+      )
     ).toBeInTheDocument()
-    expect(
-      screen.getByText(/Each venue sets its own deadlines, policies, review process/)
-    ).toBeInTheDocument()
-    expect(screen.getByText(/ask the organizers at the contact address/)).toBeInTheDocument()
   })
 
   test('only offer the support form once a search has been run', async () => {
     render(<Contact />)
 
-    expect(
-      screen.queryByRole('button', { name: 'send a request to the support team' })
-    ).not.toBeInTheDocument()
+    expect(screen.queryByText('Still need help?')).not.toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
     await screen.findByText(askResponse.answer)
 
-    expect(
-      screen.getByRole('button', { name: 'send a request to the support team' })
-    ).toBeInTheDocument()
+    expect(screen.getByText('Still need help?')).toBeInTheDocument()
     // still only an offer, the form itself stays closed
+    expect(screen.queryByPlaceholderText('Message')).not.toBeInTheDocument()
+  })
+
+  test('dismiss the help prompt without opening the form', async () => {
+    render(<Contact />)
+
+    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
+    await screen.findByText(askResponse.answer)
+    await userEvent.click(screen.getByRole('button', { name: 'No' }))
+
+    expect(screen.getByText('Glad that helped.')).toBeInTheDocument()
+    expect(screen.queryByText('Still need help?')).not.toBeInTheDocument()
     expect(screen.queryByPlaceholderText('Message')).not.toBeInTheDocument()
   })
 
@@ -112,9 +127,7 @@ describe('Contact page', () => {
     await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
     await screen.findByText('The documentation search is unavailable right now.')
 
-    expect(
-      screen.getByRole('button', { name: 'send a request to the support team' })
-    ).toBeInTheDocument()
+    expect(screen.getByText('Still need help?')).toBeInTheDocument()
   })
 
   test('answer a question from the documentation and link to its sources', async () => {
@@ -141,7 +154,7 @@ describe('Contact page', () => {
     ).toHaveAttribute('href', askResponse.sources[0].url)
   })
 
-  test('show the support form when the documentation answer does not help', async () => {
+  test('open the support form prefilled with the question', async () => {
     render(<Contact />)
 
     await userEvent.click(
@@ -153,12 +166,14 @@ describe('Contact page', () => {
 
     expect(screen.queryByPlaceholderText('Message')).not.toBeInTheDocument()
 
-    await userEvent.click(screen.getByRole('button', { name: 'No' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Yes' }))
 
     expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Message')).toHaveValue(
       'Why is my profile limited and how do I activate it?'
     )
+    // the prompt is replaced by the form, not shown alongside it
+    expect(screen.queryByText('Still need help?')).not.toBeInTheDocument()
   })
 
   test('show an error when the documentation search fails', async () => {
@@ -435,6 +450,7 @@ describe('Contact page', () => {
 
     // from and message are always required
     await userEvent.type(emailInput, 'test@mail.com')
+    await userEvent.clear(messageInput)
     await userEvent.type(messageInput, 'some message')
     await userEvent.click(topicSelect)
     await userEvent.click(
@@ -483,6 +499,7 @@ describe('Contact page', () => {
     )
     const venueInput = screen.getByPlaceholderText('Venue ID or Conference Name')
     await userEvent.type(venueInput, 'some venue')
+    await userEvent.clear(messageInput)
     await userEvent.type(messageInput, 'some message')
     await userEvent.click(screen.getByRole('button', { name: 'Send' }))
     expect(api.put).toHaveBeenCalledWith(expect.anything(), {

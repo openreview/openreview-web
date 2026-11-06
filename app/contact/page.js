@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import DocsSearch from './DocsSearch'
 import SupportRequestForm from './SupportRequestForm'
@@ -46,7 +47,6 @@ const docsSections = [
 
 export default function Page() {
   const [showForm, setShowForm] = useState(false)
-  const [hasSearched, setHasSearched] = useState(false)
   const [prefill, setPrefill] = useState(null)
   const formRef = useRef(null)
   const shouldScrollToForm = useRef(false)
@@ -81,15 +81,28 @@ export default function Page() {
 
   return (
     <div className={styles.contactContainer}>
-      <h1>Help &amp; Support</h1>
+      <h1>Help</h1>
+      <p className="mt-3">
+        OpenReview currently supports numerous computer science conferences and workshops, and
+        we are open to hosting journals and conferences in any field; please fill out the{' '}
+        <Link href="/group?id=OpenReview.net/Support">venue request form</Link> to get started.
+      </p>
+      <p>
+        To report a bug or suggest a feature to the developers,{' '}
+        <a
+          href="https://github.com/openreview/openreview/issues/new/choose"
+          target="_blank"
+          rel="noreferrer"
+        >
+          open an issue
+        </a>{' '}
+        in the OpenReview repository on GitHub.
+      </p>
       <p className={styles.scopeNote}>
-        The documentation covers the OpenReview platform: running a venue as a program chair,
-        and submitting, reviewing, and managing your profile as a user. Each venue sets its own
-        deadlines, policies, review process, and decisions. For those, ask the organizers at
-        the contact address on your invitation.
+        For questions about a specific venue, use the contact address on the venue invitation.
       </p>
 
-      <DocsSearch onNeedSupport={openForm} onSearched={() => setHasSearched(true)} />
+      <DocsSearch onNeedSupport={openForm} />
 
       <h2>Browse the documentation</h2>
       <div className={styles.docsSections}>
@@ -107,29 +120,12 @@ export default function Page() {
         ))}
       </div>
 
-      <div className={styles.supportRequest} ref={formRef}>
-        {showForm && (
-          <>
-            <h2>Send a request to support</h2>
-            <p>
-              Tell us which part of OpenReview your question is about. Including a profile ID,
-              venue ID or submission ID lets support resolve the request much faster. Support
-              can only help with the platform itself; for anything decided by a venue, contact
-              its organizers instead.
-            </p>
-            <SupportRequestForm prefill={prefill} />
-          </>
-        )}
-        {!showForm && hasSearched && (
-          <p className={styles.supportHint}>
-            Still stuck after checking the documentation? You can{' '}
-            <button type="button" className={styles.quietAction} onClick={() => openForm()}>
-              send a request to the support team
-            </button>
-            .
-          </p>
-        )}
-      </div>
+      {showForm && (
+        <div className={styles.supportRequest} ref={formRef}>
+          <h2>Send a request to support</h2>
+          <SupportRequestForm prefill={prefill} />
+        </div>
+      )}
     </div>
   )
 }
