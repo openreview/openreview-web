@@ -14,13 +14,9 @@ export default function Footer() {
                 <Link href="/about">About OpenReview</Link>
               </Col>
               <Col xs={12} md={8}>
-                <Link href="/contact">Help</Link>
+                <Link href="/help">Help</Link>
               </Col>
-              <Col xs={12} md={8}>
-                <a href="https://docs.openreview.net/getting-started/frequently-asked-questions">
-                  FAQ
-                </a>
-              </Col>
+              
               <Col xs={12} md={8}>
                 <Link href={`/group?id=${process.env.SUPER_USER}/Support`}>
                   Hosting a Venue
