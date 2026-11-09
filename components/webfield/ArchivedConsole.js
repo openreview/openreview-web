@@ -1,10 +1,10 @@
-import { useContext, useEffect } from 'react'
-import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import WebFieldContext from '../WebFieldContext'
-import VenueHeader from './VenueHeader'
-import MarkdownContent from './MarkdownContent'
+import { useSearchParams } from 'next/navigation'
+import { useContext, useEffect } from 'react'
 import { prettyId } from '../../lib/utils'
+import WebFieldContext from '../WebFieldContext'
+import MarkdownContent from './MarkdownContent'
+import VenueHeader from './VenueHeader'
 
 export default function ArchivedConsole({ appContext }) {
   const {
@@ -37,7 +37,6 @@ export default function ArchivedConsole({ appContext }) {
 
         <div id="notes">
           <h4 className="mt-4">This {prettyId(group.id, true)} Console has been archived.</h4>{' '}
-
           <p>
             Return to the{' '}
             <Link href={`/group?id=${venueId}`}>{prettyId(venueId)} homepage</Link>.

@@ -253,8 +253,8 @@ const EthicsChairPaperStatus = () => {
   if (paperStatusTabData.tableRowsAll?.length === 0)
     return (
       <p className="empty-message">
-        No papers have been submitted.Check back later or{' '}
-        <Link href={`/help`}>get help</Link> if you believe this to be an error.
+        No papers have been submitted.Check back later or <Link href={`/help`}>get help</Link>{' '}
+        if you believe this to be an error.
       </p>
     )
 

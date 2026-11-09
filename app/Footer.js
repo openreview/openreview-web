@@ -16,7 +16,7 @@ export default function Footer() {
               <Col xs={12} md={8}>
                 <Link href="/help">Help</Link>
               </Col>
-              
+
               <Col xs={12} md={8}>
                 <Link href={`/group?id=${process.env.SUPER_USER}/Support`}>
                   Hosting a Venue
