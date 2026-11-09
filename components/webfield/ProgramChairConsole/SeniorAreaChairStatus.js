@@ -384,7 +384,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     return (
       <p className="empty-message">
         There are no {prettyField(seniorAreaChairName)}.Check back later or{' '}
-        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
+        <Link href={`/help`}>get help</Link> if you believe this to be an error.
       </p>
     )
   if (seniorAreaChairStatusTabData.tableRows?.length === 0)

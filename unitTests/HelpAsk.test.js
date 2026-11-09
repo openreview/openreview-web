@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { POST } from '../app/contact/ask/route'
+import { POST } from '../app/help/ask/route'
 
 jest.mock('next/cache', () => ({ unstable_cache: (fn) => fn }))
 
@@ -20,7 +20,7 @@ const mockAsk = (body, ok = true) => {
 
 const postQuestion = (question) =>
   POST(
-    new Request('http://localhost/contact/ask', {
+    new Request('http://localhost/help/ask', {
       method: 'POST',
       body: JSON.stringify({ question }),
     })

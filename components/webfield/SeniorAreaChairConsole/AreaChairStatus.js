@@ -340,7 +340,7 @@ const AreaChairStatus = ({ sacConsoleData, loadSacConsoleData, user }) => {
     return (
       <p className="empty-message">
         There are no {prettyField(areaChairName).toLowerCase()}. Check back later or{' '}
-        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
+        <Link href={`/help`}>get help</Link> if you believe this to be an error.
       </p>
     )
   if (areaChairStatusTabData.tableRows?.length === 0)

@@ -45,7 +45,7 @@ export default function DocsSearch({ onNeedSupport }) {
     setSubmittedQuestion(trimmedQuestion)
 
     try {
-      const response = await fetch('/contact/ask', {
+      const response = await fetch('/help/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question: trimmedQuestion }),

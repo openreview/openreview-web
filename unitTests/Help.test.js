@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import Contact from '../app/contact/page'
+import Contact from '../app/help/page'
 import useTurnstileToken from '../hooks/useTurnstileToken'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
