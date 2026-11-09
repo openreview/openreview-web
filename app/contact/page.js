@@ -92,28 +92,15 @@ export default function Page() {
   return (
     <Flex vertical style={{ maxWidth: '54rem' }}>
       <Title level={1}>Help</Title>
-      <Paragraph style={{ marginTop: '1rem' }}>
-        OpenReview currently supports numerous computer science conferences and workshops, and
-        we are open to hosting journals and conferences in any field; please fill out the{' '}
-        <Link href="/group?id=OpenReview.net/Support">venue request form</Link> to get started.
-      </Paragraph>
-      <Paragraph>
-        To report a bug or suggest a feature to the developers,{' '}
-        <a
-          href="https://github.com/openreview/openreview/issues/new/choose"
-          target="_blank"
-          rel="noreferrer"
-        >
-          open an issue
-        </a>{' '}
-        in the OpenReview repository on GitHub.
-      </Paragraph>
-      <Text type="secondary">
-        For questions about a specific venue, use the contact address on the venue invitation.
-      </Text>
+
+
 
       <DocsSearch onNeedSupport={openForm} />
-
+      
+        <Text type="secondary" style={{ marginTop: '1rem' }}>
+        For questions about a specific venue, use the contact address on the venue invitation.
+      </Text>
+            
       <Title level={2} style={{ marginTop: '2.5rem' }}>
         Browse the documentation
       </Title>
@@ -136,6 +123,18 @@ export default function Page() {
           </Col>
         ))}
       </Row>
+
+      <Paragraph style={{ marginTop: '2rem' }}>
+        To report a bug or suggest a feature to the developers,{' '}
+        <a
+          href="https://github.com/openreview/openreview/issues/new/choose"
+          target="_blank"
+          rel="noreferrer"
+        >
+          open an issue
+        </a>{' '}
+        in the OpenReview repository on GitHub.
+      </Paragraph>
 
       {showForm && (
         <div ref={formRef} style={{ marginTop: '2.5rem', scrollMarginTop: '1rem' }}>
