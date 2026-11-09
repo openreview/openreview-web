@@ -93,14 +93,9 @@ export default function Page() {
     <Flex vertical style={{ maxWidth: '54rem' }}>
       <Title level={1}>Help</Title>
 
-
-
       <DocsSearch onNeedSupport={openForm} />
-      
-        <Text type="secondary" style={{ marginTop: '1rem' }}>
-        For questions about a specific venue, use the contact address on the venue invitation.
-      </Text>
-            
+
+
       <Title level={2} style={{ marginTop: '2.5rem' }}>
         Browse the documentation
       </Title>
