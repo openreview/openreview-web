@@ -1,4 +1,4 @@
-import { screen, render, waitFor } from '@testing-library/react'
+import { screen, render, waitFor, act } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import PaymentButton from '../components/forum/PaymentButton'
 import api from '../lib/api-client'
@@ -8,22 +8,37 @@ jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
 beforeEach(() => {
   api.get = jest.fn() // invitation+payments
-  api.getGroupById = jest.fn() // domain group
+  api.getGroupById = jest.fn(() =>
+    Promise.resolve({ content: { submission_venue_id: { value: 'Venue/2026/Submission' } } })
+  ) // domain group
   api.post = jest.fn() // cancel/checkout
+  window.location.hash = ''
 })
 
 describe('PaymentButton', () => {
   test('show nothing when there is no payment invitation', async () => {
-    const forumNote = { id: 'someForumNoteId' }
+    const forumNote = {
+      id: 'someForumNoteId',
+      content: {
+        venueid: { value: 'Venue/2026/Submission' },
+      },
+    }
     api.get = jest.fn(() => Promise.resolve({ invitations: [] }))
 
-    const { container } = render(<PaymentButton forumNote={forumNote} />)
+    const { container } = await act(async () =>
+      render(<PaymentButton forumNote={forumNote} />)
+    )
 
     expect(container).toBeEmptyDOMElement()
   })
 
   test('show nothing when invitation is expired', async () => {
-    const forumNote = { id: 'someForumNoteId' }
+    const forumNote = {
+      id: 'someForumNoteId',
+      content: {
+        venueid: { value: 'Venue/2026/Submission' },
+      },
+    }
     api.get = jest.fn(() =>
       Promise.resolve({
         invitations: [
@@ -39,9 +54,10 @@ describe('PaymentButton', () => {
       })
     )
 
-    const { container } = render(<PaymentButton forumNote={forumNote} />)
+    const { container } = await act(async () =>
+      render(<PaymentButton forumNote={forumNote} />)
+    )
 
-    await waitFor(() => expect(api.get).toHaveBeenCalled())
     expect(container).toBeEmptyDOMElement()
   })
 
@@ -66,19 +82,21 @@ describe('PaymentButton', () => {
         ],
       })
     )
-    api.getGroupById = jest.fn(() =>
-      Promise.resolve({ content: { submission_venue_id: { value: 'Venue/2026/Submission' } } })
+
+    const { container } = await act(async () =>
+      render(<PaymentButton forumNote={forumNote} />)
     )
-
-    const { container } = render(<PaymentButton forumNote={forumNote} />)
-
-    await waitFor(() => expect(api.get).toHaveBeenCalled())
 
     expect(container).toBeEmptyDOMElement()
   })
 
   test('show payment button', async () => {
-    const forumNote = { id: 'someForumNoteId' }
+    const forumNote = {
+      id: 'someForumNoteId',
+      content: {
+        venueid: { value: 'Venue/2026/Submission' },
+      },
+    }
     api.get = jest.fn(() =>
       Promise.resolve({
         invitations: [
@@ -104,7 +122,12 @@ describe('PaymentButton', () => {
   })
 
   test('get payment link when button is clicked', async () => {
-    const forumNote = { id: 'someForumNoteId' }
+    const forumNote = {
+      id: 'someForumNoteId',
+      content: {
+        venueid: { value: 'Venue/2026/Submission' },
+      },
+    }
     api.get = jest.fn(() =>
       Promise.resolve({
         invitations: [
@@ -120,22 +143,30 @@ describe('PaymentButton', () => {
       })
     )
     api.post = jest.fn(() => Promise.resolve({ url: '#checkout-url' }))
+    const forumUrl = window.location.href
 
     render(<PaymentButton forumNote={forumNote} />)
 
-    await waitFor(async () => {
-      const paymentButton = await screen.getByRole('button', {
-        name: 'Pay Submission Fee ($1.23)',
-      })
-      userEvent.click(paymentButton)
+    await userEvent.click(
+      await screen.findByRole('button', { name: 'Pay Submission Fee ($1.23)' })
+    )
 
-      expect(api.post).toHaveBeenCalled()
-      expect(window.location.href).toBe('http://localhost/#checkout-url')
+    expect(api.post).toHaveBeenCalledTimes(1)
+    expect(api.post).toHaveBeenCalledWith('/payments/checkout', {
+      invitation: 'some payment invitation',
+      payment: { note: 'someForumNoteId' },
+      cancelUrl: forumUrl,
     })
+    expect(window.location.href).toBe('http://localhost/#checkout-url')
   })
 
   test('show cancel payment button when there is a payment pending', async () => {
-    const forumNote = { id: 'someForumNoteId' }
+    const forumNote = {
+      id: 'someForumNoteId',
+      content: {
+        venueid: { value: 'Venue/2026/Submission' },
+      },
+    }
     api.get = jest.fn(() =>
       Promise.resolve({
         invitations: [
@@ -154,18 +185,49 @@ describe('PaymentButton', () => {
 
     render(<PaymentButton forumNote={forumNote} />)
 
-    await waitFor(async () => {
-      const cancelPaymentButton = await screen.getByRole('button', {
-        name: 'Cancel Payment',
-      })
-      userEvent.click(cancelPaymentButton)
+    await userEvent.click(await screen.findByRole('button', { name: 'Cancel Payment' }))
 
-      expect(api.post).toHaveBeenCalledWith('/payments/somePaymentId/cancel')
-    })
+    expect(api.post).toHaveBeenCalledTimes(1)
+    expect(api.post).toHaveBeenCalledWith('/payments/somePaymentId/cancel')
+  })
+
+  // the 24h before desk reject start
+  test('show cancel payment button when invitation is expired but a payment is pending', async () => {
+    const forumNote = {
+      id: 'someForumNoteId',
+      content: {
+        venueid: { value: 'Venue/2026/Submission' },
+      },
+    }
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        invitations: [
+          {
+            id: 'some payment invitation',
+            expdate: Date.now() - 1000,
+            content: {
+              amount: { value: 123 },
+            },
+            details: { repliedPayments: [{ id: 'somePaymentId', status: 'pending' }] },
+          },
+        ],
+      })
+    )
+
+    render(<PaymentButton forumNote={forumNote} />)
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Cancel Payment' })).toBeInTheDocument()
+    )
   })
 
   test('show paid tag when there is a settled payment', async () => {
-    const forumNote = { id: 'someForumNoteId' }
+    const forumNote = {
+      id: 'someForumNoteId',
+      content: {
+        venueid: { value: 'Venue/2026/Submission' },
+      },
+    }
     api.get = jest.fn(() =>
       Promise.resolve({
         invitations: [
@@ -189,8 +251,44 @@ describe('PaymentButton', () => {
     })
   })
 
+  // the 24h before desk reject start
+  test('show paid tag when invitation is expired but fee is paid', async () => {
+    const forumNote = {
+      id: 'someForumNoteId',
+      content: {
+        venueid: { value: 'Venue/2026/Submission' },
+      },
+    }
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        invitations: [
+          {
+            id: 'some payment invitation',
+            expdate: Date.now() - 1000,
+            content: {
+              amount: { value: 123 },
+            },
+            details: { repliedPayments: [{ id: 'somePaymentId', status: 'paid' }] },
+          },
+        ],
+      })
+    )
+
+    render(<PaymentButton forumNote={forumNote} />)
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button')).not.toBeInTheDocument()
+      expect(screen.getByText('Fee paid')).toBeInTheDocument()
+    })
+  })
+
   test('show waived tag when there is a waived payment', async () => {
-    const forumNote = { id: 'someForumNoteId' }
+    const forumNote = {
+      id: 'someForumNoteId',
+      content: {
+        venueid: { value: 'Venue/2026/Submission' },
+      },
+    }
     api.get = jest.fn(() =>
       Promise.resolve({
         invitations: [
