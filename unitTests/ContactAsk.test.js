@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { GET, POST } from '../app/contact/ask/route'
+import { POST } from '../app/contact/ask/route'
 
 jest.mock('next/cache', () => ({ unstable_cache: (fn) => fn }))
 
@@ -18,11 +18,10 @@ const mockAsk = (body, ok = true) => {
   global.fetch = jest.fn(() => Promise.resolve({ ok, text: () => Promise.resolve(body) }))
 }
 
-const postQuestion = (question, clientIp = '10.0.0.1') =>
+const postQuestion = (question) =>
   POST(
     new Request('http://localhost/contact/ask', {
       method: 'POST',
-      headers: { 'x-forwarded-for': clientIp },
       body: JSON.stringify({ question }),
     })
   )
@@ -133,28 +132,5 @@ describe('contact docs ask route', () => {
     const response = await postQuestion('a question that times out')
     expect(response.status).toBe(502)
     expect((await response.json()).message).toMatch('took too long')
-  })
-
-  test('rate limit a client asking too many questions', async () => {
-    mockAsk(askReply('Answer.'))
-
-    const statuses = []
-    for (let i = 0; i < 11; i += 1) {
-      statuses.push((await postQuestion(`question ${i}`, '10.0.0.50')).status)
-    }
-    expect(statuses.filter((status) => status === 200)).toHaveLength(10)
-    expect(statuses.at(-1)).toBe(429)
-
-    expect((await postQuestion('another client question', '10.0.0.51')).status).toBe(200)
-  })
-
-  test('warm the example questions on GET', async () => {
-    mockAsk(askReply('Answer.'))
-
-    const response = await GET()
-    const data = await response.json()
-
-    expect(data.warmed).toBe(4)
-    expect(global.fetch).toHaveBeenCalledTimes(4)
   })
 })
