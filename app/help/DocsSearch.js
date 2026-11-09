@@ -3,6 +3,7 @@
 import { CloseCircleOutlined } from '@ant-design/icons'
 import { Alert, Button, Card, Flex, Input, Space, Typography } from 'antd'
 import { useEffect, useRef, useState } from 'react'
+import LoadingIcon from '../../components/LoadingIcon'
 import MarkdownContent from '../../components/webfield/MarkdownContent'
 
 const exampleQuestions = [
@@ -80,27 +81,34 @@ export default function DocsSearch({ onNeedSupport }) {
 
   return (
     <Flex vertical gap={12} style={{ marginTop: '1rem' }}>
-      <Input.Search
-        value={question}
-        maxLength={500}
-        placeholder="Ask a question, e.g. how do I add a program chair to my venue?"
-        aria-label="Ask a question about OpenReview"
-        enterButton="Search the docs"
-        loading={searching}
-        ref={questionInputRef}
-        suffix={
-          <Button
-            type="text"
-            size="small"
-            aria-label="Cancel"
-            icon={<CloseCircleOutlined />}
-            style={{ visibility: searching || result || error ? 'visible' : 'hidden' }}
-            onClick={cancelSearch}
-          />
-        }
-        onChange={(e) => setQuestion(e.target.value)}
-        onSearch={askDocs}
-      />
+      <Space.Compact block>
+        <Input
+          value={question}
+          maxLength={500}
+          placeholder="Ask a question, e.g. how do I add a program chair to my venue?"
+          aria-label="Ask a question about OpenReview"
+          ref={questionInputRef}
+          suffix={
+            <Button
+              type="text"
+              size="small"
+              aria-label="Cancel"
+              icon={<CloseCircleOutlined />}
+              style={{ visibility: searching || result || error ? 'visible' : 'hidden' }}
+              onClick={cancelSearch}
+            />
+          }
+          onChange={(e) => setQuestion(e.target.value)}
+          onPressEnter={() => askDocs(question)}
+        />
+        <Button
+          type="primary"
+          loading={searching ? { icon: <LoadingIcon /> } : false}
+          onClick={() => askDocs(question)}
+        >
+          Search the docs
+        </Button>
+      </Space.Compact>
 
       <Flex wrap gap={8}>
         {exampleQuestions.map((exampleQuestion) => (
