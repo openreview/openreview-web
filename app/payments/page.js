@@ -247,6 +247,7 @@ export default function Page() {
         invitee: true,
         type: 'payment',
         details: 'replytoNote,repliedPayments',
+        expired: true,
       })
       const domains = new Set(invitations.map((invitation) => invitation.domain))
       const domainGroups = Object.fromEntries(
@@ -288,7 +289,10 @@ export default function Page() {
           venue.settled.push({ ...fee, status: 'paid', payment: paidPayment })
         } else if (waivedPayment) {
           venue.settled.push({ ...fee, status: 'waived', payment: waivedPayment })
-        } else if (noteStatus === 'active' || checkoutPayment) {
+        } else if (
+          (noteStatus === 'active' && !(invitation.expdate < Date.now())) ||
+          checkoutPayment
+        ) {
           // a checkout in progress stays listed so that it can be canceled
           venue.pending.push({ ...fee, checkoutPayment })
         }

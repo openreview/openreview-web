@@ -37,6 +37,7 @@ const PaymentButton = ({ forumNote }) => {
         replyForum: forumNote.id,
         type: 'payment',
         details: 'repliedPayments',
+        expired: 'true',
       })
       const paymentInvitation = invitations[0]
       if (!paymentInvitation) return
@@ -55,6 +56,11 @@ const PaymentButton = ({ forumNote }) => {
           checkoutPayment,
         })
       } else {
+        if (paymentInvitation.expdate < Date.now()) {
+          setPaymentStatus(null)
+          return
+        }
+
         const domainGroup = await api.getGroupById(paymentInvitation.domain)
         const isActive =
           forumNote.content?.venueid?.value ===
