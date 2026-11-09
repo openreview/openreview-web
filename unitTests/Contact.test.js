@@ -109,7 +109,9 @@ describe('Contact page', () => {
     await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
     await screen.findByText(askResponse.answer)
 
-    expect(screen.getByText((text) => text.includes('If you need more help, please'))).toBeInTheDocument()
+    expect(
+      screen.getByText((text) => text.includes('If you need more help, please'))
+    ).toBeInTheDocument()
     expect(screen.queryByPlaceholderText('Message')).not.toBeInTheDocument()
   })
 
