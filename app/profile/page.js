@@ -130,6 +130,23 @@ export default async function page({ searchParams }) {
     }
   }
 
+  let vouchVerifications = []
+  try {
+    const { assertions } = await api.get(
+      '/profiles/assertions',
+      { domain: process.env.SUPER_USER, signatures: profile.id },
+      { accessToken: token, remoteIpAddress }
+    )
+    vouchVerifications = assertions.filter(
+      (p) =>
+        !p.ddate &&
+        p.invitation.startsWith(`${process.env.SUPER_USER}/Support/Vouch_Request`) &&
+        p.invitation.endsWith('/-/Vouch_Verification')
+    )
+  } catch {
+    // oxlint-disable-line no-empty
+  }
+
   try {
     const result = await api.get(
       '/tags',
@@ -188,6 +205,7 @@ export default async function page({ searchParams }) {
           serviceRoles={serviceRoles}
           remoteIpAddress={remoteIpAddress}
           profileAssertions={profileAssertions}
+          vouchVerifications={vouchVerifications}
         />
       </PreferredIdUpdater>
     </CommonLayout>
