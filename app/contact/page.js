@@ -95,7 +95,6 @@ export default function Page() {
 
       <DocsSearch onNeedSupport={openForm} />
 
-
       <Title level={2} style={{ marginTop: '2.5rem' }}>
         Browse the documentation
       </Title>
