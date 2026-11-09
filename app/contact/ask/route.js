@@ -128,8 +128,8 @@ export async function POST(request) {
     return Response.json(
       {
         message: timedOut
-          ? 'The documentation search took too long to respond. Please try again or submit a support request below.'
-          : 'The documentation search is unavailable right now. Please browse the documentation or submit a support request below.',
+          ? 'The documentation search took too long to respond. Please try again or contact us below.'
+          : 'There was an error searching the documentation. Please try again or contact us below.',
       },
       { status: 502 }
     )

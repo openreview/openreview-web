@@ -152,7 +152,7 @@ export default function DocsSearch({ onNeedSupport }) {
             <Text type="secondary">Glad that helped.</Text>
           ) : (
             <>
-              <Text type="secondary">Still need help?</Text>
+              <Text type="secondary">If you need more help, please </Text>
               <Button
                 type="link"
                 size="small"
@@ -162,16 +162,9 @@ export default function DocsSearch({ onNeedSupport }) {
                   onNeedSupport(submittedQuestion)
                 }}
               >
-                Yes
+                contact us
               </Button>
-              <Button
-                type="link"
-                size="small"
-                style={{ padding: 0 }}
-                onClick={() => setHelpState('resolved')}
-              >
-                No
-              </Button>
+              <Text type="secondary">.</Text>
             </>
           )}
         </Flex>

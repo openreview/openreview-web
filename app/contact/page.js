@@ -1,12 +1,11 @@
 'use client'
 
 import { Card, Col, Flex, Row, Typography } from 'antd'
-import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import DocsSearch from './DocsSearch'
 import SupportRequestForm from './SupportRequestForm'
 
-const { Paragraph, Text, Title } = Typography
+const { Text, Title } = Typography
 
 const docsBaseUrl = 'https://docs.openreview.net'
 
@@ -78,7 +77,7 @@ export default function Page() {
         setShowForm(true)
         sessionStorage.removeItem('feedbackInstitution')
       }
-    } catch (e) {
+    } catch {
       /* empty */
     }
   }, [])
@@ -117,18 +116,6 @@ export default function Page() {
           </Col>
         ))}
       </Row>
-
-      <Paragraph style={{ marginTop: '2rem' }}>
-        To report a bug or suggest a feature to the developers,{' '}
-        <a
-          href="https://github.com/openreview/openreview/issues/new/choose"
-          target="_blank"
-          rel="noreferrer"
-        >
-          open an issue
-        </a>{' '}
-        in the OpenReview repository on GitHub.
-      </Paragraph>
 
       {showForm && (
         <div ref={formRef} style={{ marginTop: '2.5rem', scrollMarginTop: '1rem' }}>

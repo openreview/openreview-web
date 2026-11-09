@@ -93,7 +93,9 @@ describe('contact docs ask route', () => {
 
     const response = await postQuestion('a question the docs search rejects')
     expect(response.status).toBe(502)
-    expect((await response.json()).message).toMatch('unavailable right now')
+    expect((await response.json()).message).toMatch(
+      'There was an error searching the documentation'
+    )
   })
 
   test('report an error returned in place of a result', async () => {
@@ -109,7 +111,9 @@ describe('contact docs ask route', () => {
 
     const response = await postQuestion('a question whose tool errors')
     expect(response.status).toBe(502)
-    expect((await response.json()).message).toMatch('unavailable right now')
+    expect((await response.json()).message).toMatch(
+      'There was an error searching the documentation'
+    )
   })
 
   test('reject an unrecognized response body', async () => {
