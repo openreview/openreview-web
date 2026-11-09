@@ -37,7 +37,6 @@ export default function ArchivedConsole({ appContext }) {
 
         <div id="notes">
           <h4 className="mt-4">This {prettyId(group.id, true)} Console has been archived.</h4>{' '}
-          <p>
 
           <p>
             Return to the{' '}
