@@ -130,6 +130,18 @@ describe('Contact page', () => {
     )
   })
 
+  test('show contact us link when the documentation search fails', async () => {
+    mockAsk({ message: 'There was an error searching the documentation.' }, false)
+    render(<Contact />)
+
+    await userEvent.click(
+      screen.getByRole('button', { name: 'How do I withdraw my submission?' })
+    )
+
+    await screen.findByText('There was an error searching the documentation.')
+    expect(screen.getByRole('button', { name: 'contact us' })).toBeInTheDocument()
+  })
+
   test('move focus into the form when it opens', async () => {
     render(<Contact />)
 
