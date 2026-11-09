@@ -8,7 +8,7 @@ import MarkdownContent from '../../components/webfield/MarkdownContent'
 const exampleQuestions = [
   'How do I find my profile ID?',
   'How do I find a venue ID?',
-  'How do I contact a specific venue?',
+  'How do I contact the Program Chairs for a specific venue?',
   'How do I withdraw my submission?',
   'How do I recruit reviewers for my venue?',
 ]
