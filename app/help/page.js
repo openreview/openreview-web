@@ -89,14 +89,9 @@ export default function Page() {
   }, [showForm])
 
   return (
-    <Flex vertical style={{ maxWidth: '54rem' }}>
+    <Flex vertical gap={24} style={{ maxWidth: '54rem' }}>
       <Title level={1}>Help</Title>
 
-      <DocsSearch onNeedSupport={openForm} />
-
-      <Title level={2} style={{ marginTop: '2.5rem' }}>
-        Browse the documentation
-      </Title>
       <Row gutter={[12, 12]}>
         {docsSections.map((section) => (
           <Col xs={24} md={12} key={section.path}>
@@ -117,8 +112,10 @@ export default function Page() {
         ))}
       </Row>
 
+      <DocsSearch onNeedSupport={openForm} />
+
       {showForm && (
-        <div ref={formRef} style={{ marginTop: '2.5rem', scrollMarginTop: '1rem' }}>
+        <div ref={formRef} style={{ scrollMarginTop: '1rem' }}>
           <Title level={2} style={{ marginTop: 0 }}>
             Send a request to support
           </Title>

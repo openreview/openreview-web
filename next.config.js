@@ -35,4 +35,13 @@ module.exports = {
       allowedOrigins: ['dev.openreview.net', 'openreview.net'],
     },
   },
+  async redirects() {
+    return [
+      {
+        source: '/contact',
+        destination: '/help',
+        permanent: true,
+      },
+    ]
+  },
 }

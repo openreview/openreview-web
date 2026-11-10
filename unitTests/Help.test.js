@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import Contact from '../app/help/page'
+import Help from '../app/help/page'
 import useTurnstileToken from '../hooks/useTurnstileToken'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
@@ -11,25 +11,8 @@ jest.mock('../hooks/useTurnstileToken')
 jest.mock('../hooks/useUser')
 jest.mock('../lib/api-client')
 
-const askResponse = {
-  answer: 'Open the Program Chairs group and select Add to Group.',
-  sources: [
-    {
-      title: 'How do I add a Program Chair to my venue?',
-      url: 'https://docs.openreview.net/getting-started/frequently-asked-questions/how-do-i-add-a-program-chair-to-my-venue',
-    },
-  ],
-}
-
-const mockAsk = (response = askResponse, ok = true) => {
-  global.fetch = jest.fn(() => Promise.resolve({ ok, json: () => Promise.resolve(response) }))
-}
-
-const renderWithForm = async (response = askResponse, ok = true) => {
-  global.fetch = jest.fn(() => Promise.resolve({ ok, json: () => Promise.resolve(response) }))
-  render(<Contact />)
-  await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
-  await screen.findByText(response.answer ?? response.message)
+const renderWithForm = async () => {
+  render(<Help />)
   await userEvent.click(screen.getByRole('button', { name: 'contact us' }))
 }
 
@@ -58,7 +41,6 @@ beforeEach(() => {
     accessToken: 'some token',
   }))
   api.put.mockReset()
-  mockAsk()
 })
 
 global.promptError = jest.fn()
@@ -66,127 +48,43 @@ global.promptMessage = jest.fn()
 global.DOMPurify = { sanitize: (html) => html }
 global.marked = (text) => `<p>${text}</p>`
 
-describe('Contact page', () => {
-  test('lead with the documentation instead of the support form', () => {
-    render(<Contact />)
+describe('Help page', () => {
+  test('show documentation cards under the help heading', () => {
+    render(<Help />)
 
-    expect(
-      screen.getByPlaceholderText(
-        'Ask a question, e.g. how do I add a program chair to my venue?'
-      )
-    ).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Help' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /^Frequently Asked Questions/ })).toHaveAttribute(
       'href',
       'https://docs.openreview.net/getting-started/frequently-asked-questions'
     )
+    expect(
+      screen.getByRole('link', { name: /^Creating and activating a profile/ })
+    ).toHaveAttribute(
+      'href',
+      'https://docs.openreview.net/getting-started/creating-an-openreview-profile'
+    )
 
     expect(screen.queryByPlaceholderText('Your email address')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Send' })).not.toBeInTheDocument()
-    expect(
-      screen.queryByText((text) => text.includes('If you need more help, please'))
-    ).not.toBeInTheDocument()
   })
 
-  test('only offer the support form once a search has been run', async () => {
-    render(<Contact />)
-
-    expect(
-      screen.queryByText((text) => text.includes('If you need more help, please'))
-    ).not.toBeInTheDocument()
-
-    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
-    await screen.findByText(askResponse.answer)
+  test('show contact prompt at the bottom of the page', () => {
+    render(<Help />)
 
     expect(
       screen.getByText((text) => text.includes('If you need more help, please'))
     ).toBeInTheDocument()
-    expect(screen.queryByPlaceholderText('Message')).not.toBeInTheDocument()
-  })
-
-  test('dismiss the help prompt without opening the form', async () => {
-    render(<Contact />)
-
-    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
-    await screen.findByText(askResponse.answer)
-
-    expect(
-      screen.getByText((text) => text.includes('If you need more help, please'))
-    ).toBeInTheDocument()
-    expect(screen.queryByPlaceholderText('Message')).not.toBeInTheDocument()
-  })
-
-  test('carry the question into the form when the search failed', async () => {
-    mockAsk({ message: 'There was an error searching the documentation.' }, false)
-    render(<Contact />)
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'How do I withdraw my submission?' })
-    )
-    await screen.findByText('There was an error searching the documentation.')
-    await userEvent.click(screen.getByRole('button', { name: 'contact us' }))
-
-    expect(screen.getByPlaceholderText('Message')).toHaveValue(
-      'How do I withdraw my submission?'
-    )
-  })
-
-  test('show contact us link when the documentation search fails', async () => {
-    mockAsk({ message: 'There was an error searching the documentation.' }, false)
-    render(<Contact />)
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'How do I withdraw my submission?' })
-    )
-
-    await screen.findByText('There was an error searching the documentation.')
     expect(screen.getByRole('button', { name: 'contact us' })).toBeInTheDocument()
   })
 
-  test('move focus into the form when it opens', async () => {
-    render(<Contact />)
+  test('open the support form when contact us is clicked', async () => {
+    render(<Help />)
 
-    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
-    await screen.findByText(askResponse.answer)
     await userEvent.click(screen.getByRole('button', { name: 'contact us' }))
 
+    expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Your email address')).toHaveFocus()
-  })
-
-  test('reveal the already open form again after a later search', async () => {
-    render(<Contact />)
-
-    await userEvent.click(screen.getByRole('button', { name: 'How do I find a venue ID?' }))
-    await screen.findByText(askResponse.answer)
-    await userEvent.click(screen.getByRole('button', { name: 'contact us' }))
-    expect(screen.getByPlaceholderText('Message')).toHaveValue('How do I find a venue ID?')
-
-    await userEvent.click(
-      screen.getByRole('button', { name: 'How do I withdraw my submission?' })
-    )
-    await screen.findByText(askResponse.answer)
-    await userEvent.click(screen.getByRole('button', { name: 'contact us' }))
-
-    expect(screen.getByPlaceholderText('Message')).toHaveValue(
-      'How do I withdraw my submission?'
-    )
-  })
-
-  test('cancel a running search and reset the form', async () => {
-    render(<Contact />)
-
-    await userEvent.type(
-      screen.getByPlaceholderText(
-        'Ask a question, e.g. how do I add a program chair to my venue?'
-      ),
-      'submission question'
-    )
-    await userEvent.click(screen.getByRole('button', { name: 'Search the docs' }))
-    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }))
-
-    expect(screen.queryByText(askResponse.answer)).not.toBeInTheDocument()
-    expect(
-      screen.queryByText((text) => text.includes('If you need more help, please'))
-    ).not.toBeInTheDocument()
   })
 
   test('prefill email when user is logged in', async () => {
