@@ -111,18 +111,18 @@ export default function Page() {
         ))}
       </Row>
 
-      <Flex vertical gap={12}>
-        <Text type="secondary">If you need more help, please </Text>
+      <Text type="secondary" style={{ fontSize: '0.75rem' }}>
+        If you need more help, please{' '}
         <Button
           type="link"
           size="small"
-          style={{ padding: 0, alignSelf: 'flex-start' }}
+          style={{ padding: 0, fontSize: '0.75rem' }}
           onClick={() => openForm()}
         >
           contact us
         </Button>
-        <Text type="secondary">.</Text>
-      </Flex>
+        .
+      </Text>
 
       {showForm && (
         <div ref={formRef} style={{ scrollMarginTop: '1rem' }}>
