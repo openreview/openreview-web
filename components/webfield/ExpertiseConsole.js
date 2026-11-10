@@ -1,13 +1,13 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { useSearchParams } from 'next/navigation'
 import { useContext, useEffect, useReducer } from 'react'
-import { prettyId } from '../../lib/utils'
-import Markdown from '../EditorComponents/Markdown'
-import ExpertiseSelector from '../ExpertiseSelector'
+import { useSearchParams } from 'next/navigation'
 import WebFieldContext from '../WebFieldContext'
 import SubmissionButton from './SubmissionButton'
+import Markdown from '../EditorComponents/Markdown'
+import ExpertiseSelector from '../ExpertiseSelector'
+import { prettyId } from '../../lib/utils'
 
 export default function ExpertiseConsole({ appContext }) {
   const {

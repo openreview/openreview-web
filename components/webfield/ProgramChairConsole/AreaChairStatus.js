@@ -1,19 +1,19 @@
-import copy from 'copy-to-clipboard'
 /* globals promptError, promptMessage: false */
 import { sortBy } from 'lodash'
-import Link from 'next/link'
 import { useContext, useEffect, useState } from 'react'
-import api from '../../../lib/api-client'
-import { getNoteContentValues } from '../../../lib/forum-utils'
-import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
-import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
+import copy from 'copy-to-clipboard'
+import Link from 'next/link'
 import LoadingSpinner from '../../LoadingSpinner'
-import { NoteContentV2 } from '../../NoteContent'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
-import ProfileLink from '../ProfileLink'
 import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
+import { NoteContentV2 } from '../../NoteContent'
+import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
+import { getNoteContentValues } from '../../../lib/forum-utils'
+import api from '../../../lib/api-client'
+import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
+import ProfileLink from '../ProfileLink'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.areaChairProfile ?? {}
