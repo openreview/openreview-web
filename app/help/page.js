@@ -103,6 +103,9 @@ export default function Page() {
           target="_blank"
           rel="noreferrer"
           onClick={handleDocsClick}
+          onAuxClick={(event) => {
+            if (event.button === 1) handleDocsClick()
+          }}
         >
           ask a question
         </a>{' '}
@@ -118,6 +121,9 @@ export default function Page() {
               rel="noreferrer"
               style={{ display: 'block', height: '100%' }}
               onClick={handleDocsClick}
+              onAuxClick={(event) => {
+                if (event.button === 1) handleDocsClick()
+              }}
             >
               <Card size="small" hoverable style={{ height: '100%' }}>
                 <Text strong style={{ display: 'block' }}>
