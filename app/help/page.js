@@ -1,8 +1,7 @@
 'use client'
 
-import { Card, Col, Flex, Row, Typography } from 'antd'
+import { Button, Card, Col, Flex, Row, Typography } from 'antd'
 import { useEffect, useRef, useState } from 'react'
-import DocsSearch from './DocsSearch'
 import SupportRequestForm from './SupportRequestForm'
 
 const { Text, Title } = Typography
@@ -112,7 +111,18 @@ export default function Page() {
         ))}
       </Row>
 
-      <DocsSearch onNeedSupport={openForm} />
+      <Flex vertical gap={12}>
+        <Text type="secondary">If you need more help, please </Text>
+        <Button
+          type="link"
+          size="small"
+          style={{ padding: 0, alignSelf: 'flex-start' }}
+          onClick={() => openForm()}
+        >
+          contact us
+        </Button>
+        <Text type="secondary">.</Text>
+      </Flex>
 
       {showForm && (
         <div ref={formRef} style={{ scrollMarginTop: '1rem' }}>
