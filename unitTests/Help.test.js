@@ -13,6 +13,7 @@ jest.mock('../lib/api-client')
 
 const renderWithForm = async () => {
   render(<Help />)
+  await userEvent.click(screen.getByRole('link', { name: 'ask a question' }))
   await userEvent.click(screen.getByRole('button', { name: 'contact us' }))
 }
 
@@ -63,23 +64,54 @@ describe('Help page', () => {
       'href',
       'https://docs.openreview.net/getting-started/creating-an-openreview-profile'
     )
+    expect(
+      screen.getByText((text) => text.includes('Our documentation site has answers'))
+    ).toBeInTheDocument()
 
     expect(screen.queryByPlaceholderText('Your email address')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Send' })).not.toBeInTheDocument()
   })
 
-  test('show contact prompt at the bottom of the page', () => {
+  test('show ask a question link to GitBook chat', () => {
     render(<Help />)
+
+    const askLink = screen.getByRole('link', { name: 'ask a question' })
+    expect(askLink).toHaveAttribute('href', 'https://docs.openreview.net/?ask=')
+    expect(askLink).toHaveAttribute('target', '_blank')
+  })
+
+  test('hide contact prompt until a docs card is clicked', async () => {
+    render(<Help />)
+
+    expect(
+      screen.queryByText((text) => text.includes('If you need more help, please'))
+    ).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('link', { name: /^Frequently Asked Questions/ }))
 
     expect(
       screen.getByText((text) => text.includes('If you need more help, please'))
     ).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'contact us' })).toBeInTheDocument()
+  })
+
+  test('hide contact prompt until ask a question is clicked', async () => {
+    render(<Help />)
+
+    expect(
+      screen.queryByText((text) => text.includes('If you need more help, please'))
+    ).not.toBeInTheDocument()
+
+    await userEvent.click(screen.getByRole('link', { name: 'ask a question' }))
+
+    expect(
+      screen.getByText((text) => text.includes('If you need more help, please'))
+    ).toBeInTheDocument()
   })
 
   test('open the support form when contact us is clicked', async () => {
     render(<Help />)
 
+    await userEvent.click(screen.getByRole('link', { name: 'ask a question' }))
     await userEvent.click(screen.getByRole('button', { name: 'contact us' }))
 
     expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()

@@ -46,6 +46,7 @@ const docsSections = [
 
 export default function Page() {
   const [showForm, setShowForm] = useState(false)
+  const [showContactPrompt, setShowContactPrompt] = useState(false)
   const [prefill, setPrefill] = useState(null)
   const formRef = useRef(null)
   const shouldRevealForm = useRef(false)
@@ -63,6 +64,10 @@ export default function Page() {
     }
     shouldRevealForm.current = true
     setShowForm(true)
+  }
+
+  const handleDocsClick = () => {
+    setShowContactPrompt(true)
   }
 
   useEffect(() => {
@@ -91,6 +96,19 @@ export default function Page() {
     <Flex vertical gap={24} style={{ maxWidth: '54rem' }}>
       <Title level={1}>Help</Title>
 
+      <Text>
+        Our documentation site has answers to many common questions. You can{' '}
+        <a
+          href="https://docs.openreview.net/?ask="
+          target="_blank"
+          rel="noreferrer"
+          onClick={handleDocsClick}
+        >
+          ask a question
+        </a>{' '}
+        or browse the topics below to find what you need.
+      </Text>
+
       <Row gutter={[12, 12]}>
         {docsSections.map((section) => (
           <Col xs={24} md={12} key={section.path}>
@@ -99,6 +117,7 @@ export default function Page() {
               target="_blank"
               rel="noreferrer"
               style={{ display: 'block', height: '100%' }}
+              onClick={handleDocsClick}
             >
               <Card size="small" hoverable style={{ height: '100%' }}>
                 <Text strong style={{ display: 'block' }}>
@@ -111,18 +130,20 @@ export default function Page() {
         ))}
       </Row>
 
-      <Text type="secondary" style={{ fontSize: '0.75rem' }}>
-        If you need more help, please{' '}
-        <Button
-          type="link"
-          size="small"
-          style={{ padding: 0, fontSize: '0.75rem' }}
-          onClick={() => openForm()}
-        >
-          contact us
-        </Button>
-        .
-      </Text>
+      {showContactPrompt && (
+        <Text type="secondary" style={{ fontSize: '0.75rem' }}>
+          If you need more help, please{' '}
+          <Button
+            type="link"
+            size="small"
+            style={{ padding: 0, fontSize: '0.75rem' }}
+            onClick={() => openForm()}
+          >
+            contact us
+          </Button>
+          .
+        </Text>
+      )}
 
       {showForm && (
         <div ref={formRef} style={{ scrollMarginTop: '1rem' }}>
