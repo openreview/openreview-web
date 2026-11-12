@@ -17,6 +17,14 @@ const renderWithForm = async () => {
   await userEvent.click(screen.getByRole('button', { name: 'contact us' }))
 }
 
+const clearStorage = () => {
+  try {
+    localStorage.clear()
+  } catch {
+    /* empty */
+  }
+}
+
 const selectSubject = async (subject) => {
   const input = screen.getByPlaceholderText('Select a topic or type what you need help with')
   await userEvent.clear(input)
@@ -30,6 +38,7 @@ const fillField = async (placeholder, value) => {
 }
 
 beforeEach(() => {
+  clearStorage()
   useTurnstileToken.mockImplementation(() => ({
     turnstileToken: 'some token',
   }))
@@ -117,6 +126,18 @@ describe('Help page', () => {
     expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Your email address')).toHaveFocus()
+  })
+
+  test('show contact prompt and form after returning from docs', async () => {
+    localStorage.setItem('helpContactPromptShown', 'true')
+    localStorage.setItem('helpFormShown', 'true')
+
+    render(<Help />)
+
+    expect(
+      screen.getByText((text) => text.includes('If you need more help, please'))
+    ).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()
   })
 
   test('prefill email when user is logged in', async () => {

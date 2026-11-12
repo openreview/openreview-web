@@ -44,6 +44,9 @@ const docsSections = [
   },
 ]
 
+const contactPromptKey = 'helpContactPromptShown'
+const formShownKey = 'helpFormShown'
+
 export default function Page() {
   const [showForm, setShowForm] = useState(false)
   const [showContactPrompt, setShowContactPrompt] = useState(false)
@@ -56,31 +59,35 @@ export default function Page() {
     formRef.current?.querySelector('input, textarea')?.focus({ preventScroll: true })
   }
 
-  const openForm = (message) => {
-    if (message) setPrefill({ message })
+  const openForm = () => {
     if (showForm) {
       revealForm()
       return
     }
     shouldRevealForm.current = true
+    try {
+      localStorage.setItem(formShownKey, 'true')
+    } catch {
+      /* empty */
+    }
     setShowForm(true)
   }
 
   const handleDocsClick = () => {
+    try {
+      localStorage.setItem(contactPromptKey, 'true')
+    } catch {
+      /* empty */
+    }
     setShowContactPrompt(true)
   }
 
   useEffect(() => {
     try {
-      const userEmail = sessionStorage.getItem('feedbackInstitution')
-      if (userEmail) {
-        setPrefill({
-          from: userEmail,
-          subject: 'Please add my domain to your list of publishing institutions',
-        })
-        setShowForm(true)
-        sessionStorage.removeItem('feedbackInstitution')
-      }
+      const storedPrompt = localStorage.getItem(contactPromptKey)
+      const storedForm = localStorage.getItem(formShownKey)
+      if (storedPrompt === 'true') setShowContactPrompt(true)
+      if (storedForm === 'true') setShowForm(true)
     } catch {
       /* empty */
     }

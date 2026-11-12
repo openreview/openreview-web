@@ -54,6 +54,13 @@ export default function SupportRequestForm({ prefill }) {
       options: subjectOptions,
     },
     {
+      name: 'message',
+      type: 'textarea',
+      placeholder: 'Message',
+      required: () => true,
+      showIf: () => true,
+    },
+    {
       name: 'profileId',
       type: 'input',
       placeholder: 'Profile ID',
@@ -82,13 +89,6 @@ export default function SupportRequestForm({ prefill }) {
       showIf: () =>
         formData.subject === submissionSubject ||
         formData.subject === accessPublicationSubject,
-    },
-    {
-      name: 'message',
-      type: 'textarea',
-      placeholder: 'Message',
-      required: () => true,
-      showIf: () => true,
     },
   ]
 
@@ -159,7 +159,6 @@ export default function SupportRequestForm({ prefill }) {
   }
 
   const renderField = (field) => {
-    if (!field.showIf()) return null
     switch (field.type) {
       case 'input':
         return (
@@ -218,12 +217,17 @@ export default function SupportRequestForm({ prefill }) {
     setFormData({ type: 'prefill', payload: prefill })
   }, [prefill])
 
+  const visibleFields = fields.filter((field) => field.showIf())
+  const visibleFieldNames = new Set(visibleFields.map((field) => field.name))
+
   return (
     <Flex vertical gap={12} style={{ maxWidth: 640 }}>
-      {error && <Alert type="error" showIcon message={error} />}
-      {fields.map((field) => (
-        <div key={field.name}>{renderField(field)}</div>
-      ))}
+      {error && <Alert type="error" showIcon title={error} />}
+      {fields.map((field) =>
+        visibleFieldNames.has(field.name) ? (
+          <div key={field.name}>{renderField(field)}</div>
+        ) : null
+      )}
       <div ref={turnstileContainerRef} />
       <Button
         type="primary"
