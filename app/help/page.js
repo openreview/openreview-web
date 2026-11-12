@@ -116,7 +116,19 @@ export default function Page() {
         >
           ask a question
         </a>{' '}
-        or browse the topics below to find what you need.
+        or browse the topics below to find what you need. If you need to reach the
+        organizers of a specific venue, see our guide on{' '}
+        <a
+          href="https://docs.openreview.net/getting-started/frequently-asked-questions/how-do-i-find-a-venue-and-contact-the-venue-organizers"
+          target="_blank"
+          rel="noreferrer"
+          onClick={handleDocsClick}
+          onAuxClick={(event) => {
+            if (event.button === 1) handleDocsClick()
+          }}
+        >
+          how to find a venue and contact the venue organizers
+        </a>.
       </Text>
 
       <Row gutter={[12, 12]}>
