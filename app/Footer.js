@@ -38,7 +38,7 @@ export default function Footer() {
                   <strong>Donate</strong>
                 </Link>
               </Col>
-              <Col xs={0} md={8}>
+              <Col xs={12} md={8}>
                 <Link href={`/group?id=${process.env.SUPER_USER}/News&referrer=[Homepage](/)`}>
                   News
                 </Link>
