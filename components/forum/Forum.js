@@ -23,6 +23,7 @@ import {
   checkSignaturesMatch,
   checkReadersMatch,
   checkExReadersMatch,
+  expandForumViews,
 } from '../../lib/forum-utils'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import Icon from '../Icon'
@@ -134,6 +135,12 @@ export default function Forum({
         : null,
     }))
   }
+  const forumViews = expandForumViews(
+    replyForumViews,
+    parentNote.replyInvitations,
+    replyNoteMap ? Object.values(replyNoteMap) : []
+  )
+  const forumViewIds = forumViews?.map((view) => view.id).join(',')
 
   const numRepliesHidden = useMemo(() => {
     if (!displayOptionsMap) return 0
@@ -604,13 +611,13 @@ export default function Forum({
 
     const handleRouteChange = () => {
       const [_, tabId] = (window.location.hash || '').split('#')
-      if (!tabId || !replyForumViews) return
+      if (!tabId || !forumViews) return
 
-      const tab = replyForumViews.find((view) => view.id === tabId)
+      const tab = forumViews.find((view) => view.id === tabId)
       if (!tab) return
 
       const primaryInvitationId = tab.expandedInvitations?.[0]
-      if (primaryInvitationId) {
+      if (primaryInvitationId && !tab.readOnly) {
         const primaryInvitation = parentNote.replyInvitations?.find((inv) =>
           inv.id.match(primaryInvitationId)
         )
@@ -648,13 +655,13 @@ export default function Forum({
     if (window.location.hash) {
       handleRouteChange(window.location.hash)
     } else if (
-      replyForumViews?.length > 0 &&
+      forumViews?.length > 0 &&
       !selectedNoteId &&
       !selectedInvitationId &&
       !(query.filter || query.search || query.sort || query.nesting)
     ) {
       setTimeout(() => {
-        const tab = replyForumViews[0]
+        const tab = forumViews[0]
         const newActiveTab = document.querySelector(`.filter-tabs li[data-id="${tab.id}"] a`)
         if (newActiveTab) {
           newActiveTab.click()
@@ -667,7 +674,7 @@ export default function Forum({
     return () => {
       window.onhashchange = null
     }
-  }, [parentNote])
+  }, [parentNote, forumViewIds])
 
   // Load forum replies
   useEffect(() => {
@@ -998,10 +1005,10 @@ export default function Forum({
 
       {repliesLoaded && (
         <div className="filters-container mt-4">
-          {replyForumViews && (
+          {forumViews && (
             <FilterTabs
               forumId={id}
-              forumViews={replyForumViews}
+              forumViews={forumViews}
               replyInvitations={parentNote.replyInvitations}
               newMessageCounts={newMessageCounts}
             />

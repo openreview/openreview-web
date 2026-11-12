@@ -159,4 +159,29 @@ describe('FilterTabs', () => {
 
     expect(screen.getByText('Discussion')).toBeInTheDocument()
   })
+
+  test('renders a read-only tab without a reply invitation to post to', () => {
+    const forumViews = [
+      {
+        id: 'reviewer_chat-Reviewer_ABC123',
+        label: 'Reviewer AI Chat (Reviewer ABC123)',
+        layout: 'chat',
+        readOnly: true,
+        expandedInvitations: [
+          'NeurIPS.cc/2026/Conference/Submission1/Reviewer_ABC123/-/LLM_Interaction',
+        ],
+      },
+    ]
+
+    render(
+      <FilterTabs
+        forumId={forumId}
+        forumViews={forumViews}
+        newMessageCounts={{}}
+        replyInvitations={[]}
+      />
+    )
+
+    expect(screen.getByText('Reviewer AI Chat (Reviewer ABC123)')).toBeInTheDocument()
+  })
 })
