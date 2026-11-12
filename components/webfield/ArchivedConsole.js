@@ -38,9 +38,6 @@ export default function ArchivedConsole({ appContext }) {
         <div id="notes">
           <h4 className="mt-4">This {prettyId(group.id, true)} Console has been archived.</h4>{' '}
           <p>
-            To request access, please <Link href={`/contact`}>contact us</Link>.
-          </p>
-          <p>
             Return to the{' '}
             <Link href={`/group?id=${venueId}`}>{prettyId(venueId)} homepage</Link>.
           </p>

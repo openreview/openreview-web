@@ -160,7 +160,7 @@ const RejectedWithdrawnPapers = ({ consoleData, isSacConsole = false }) => {
     return (
       <p className="empty-message">
         No papers have been desk rejected or withdrawn.Check back later or{' '}
-        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
+        <Link href={`/help`}>get help</Link> if you believe this to be an error.
       </p>
     )
   if (rejectedPaperTabData.tableRows?.length === 0)
