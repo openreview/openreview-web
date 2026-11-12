@@ -31,6 +31,7 @@ const notificationCloseButton = Selector('.ant-notification-notice-close')
 const nextSectiomButtonSelector = Selector('button').withText('Next Section')
 const errorMessageLabel = Selector('.error-message') // server rendered error message
 const nameConfirmationLabel = Selector('label[for="name-confirmation"]')
+const nameConfirmationCheckbox = Selector('#name-confirmation') // disabled until hydrated
 
 const dobMonthSelect = Selector('.ant-select')
 const dobDayInput = Selector('input[placeholder="DD"]')
@@ -86,7 +87,8 @@ test('create new profile', async (t) => {
       ).exists
     )
     .ok()
-    .wait(500)
+    .expect(nameConfirmationCheckbox.hasAttribute('disabled'))
+    .notOk()
     .click(nameConfirmationLabel)
     .expect(emailAddressInputSelector.exists)
     .notOk()
@@ -212,7 +214,8 @@ test('create another new profile', async (t) => {
       ).exists
     )
     .ok()
-    .wait(500)
+    .expect(nameConfirmationCheckbox.hasAttribute('disabled'))
+    .notOk()
     .click(nameConfirmationLabel)
   await enterDob(t, 'March (3)', '5', '1985')
   await t
@@ -263,9 +266,10 @@ test('create a new profile with an institutional email', async (t) => {
       ).exists
     )
     .ok()
-    .wait(500)
+    .expect(nameConfirmationCheckbox.hasAttribute('disabled'))
+    .notOk()
     .click(nameConfirmationLabel)
-  await enterDob(t, 'July (7)', '20', '1992')
+  await enterDob(t, 'January (1)', '1', '1970')
   await t
     .typeText(emailAddressInputSelector, 'kevin@umass.edu')
     .expect(signupButtonSelector.hasAttribute('disabled'))
@@ -299,7 +303,11 @@ test('create a new profile with an institutional email', async (t) => {
 })
 
 test('sign up with invalid name', async (t) => {
-  await t.wait(100).typeText(fullNameInputSelector, '1').click(nameConfirmationLabel)
+  await t
+    .typeText(fullNameInputSelector, '1')
+    .expect(nameConfirmationCheckbox.hasAttribute('disabled'))
+    .notOk()
+    .click(nameConfirmationLabel)
   await enterDob(t)
   await t
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
@@ -318,7 +326,11 @@ test('sign up with invalid name', async (t) => {
 })
 
 test('sign up with another invalid name', async (t) => {
-  await t.typeText(fullNameInputSelector, 'abc `', { speed: 0.8 }).click(nameConfirmationLabel)
+  await t
+    .typeText(fullNameInputSelector, 'abc `')
+    .expect(nameConfirmationCheckbox.hasAttribute('disabled'))
+    .notOk()
+    .click(nameConfirmationLabel)
   await enterDob(t)
   await t
     .typeText(emailAddressInputSelector, 'testemailaaa@test.com')
@@ -341,7 +353,8 @@ test('enter valid name invalid email and change to valid email and register', as
   const email = 'testemailaab@test.com' // must be new each test run
   await t
     .typeText(fullNameInputSelector, fullName) // must be new each test run
-    .wait(500)
+    .expect(nameConfirmationCheckbox.hasAttribute('disabled'))
+    .notOk()
     .click(nameConfirmationLabel)
   await enterDob(t)
   await t
@@ -488,6 +501,8 @@ fixture`Activate`
 test('register a profile with an institutional email', async (t) => {
   await t
     .click(nextSectiomButtonSelector) // personal
+    .expect(Selector('input[placeholder="Select your date of birth"]').value)
+    .eql('1970-01-01')
     .click(nextSectiomButtonSelector) // emails
     .expect(
       Selector('p').withText(/Your email address could not be automatically verified/).exists
