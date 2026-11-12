@@ -34,7 +34,17 @@ export default function Page() {
         <Title level={2} style={{ marginTop: 0 }}>
           Upload Identity Documents
         </Title>
-        <DocumentUploadSection type="identity" token={token} />
+        <DocumentUploadSection
+          type="identity"
+          token={token}
+          successMessage={
+            <>
+              <strong>We have received your documents.</strong> We will review them, and there
+              is nothing else you need to do. If your profile is not active yet, it will be
+              given priority, and we will email you as soon as a decision is made.
+            </>
+          }
+        />
       </div>
     </CommonLayout>
   )

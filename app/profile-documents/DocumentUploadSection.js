@@ -1,4 +1,4 @@
-import { Button, Tag, Tooltip, Upload } from 'antd'
+import { Alert, Button, Tag, Tooltip, Upload } from 'antd'
 import { useState } from 'react'
 import { TrashButton } from '../../components/IconButton'
 import LoadingIcon from '../../components/LoadingIcon'
@@ -37,7 +37,8 @@ const DocumentUploadSection = ({
   maxSize = 3,
   maxFileCount = 5,
   acceptedFileTypes = ['pdf', 'jpg', 'jpeg', 'png'],
-  instructions = 'Upload any files that you think are necessary to support your profile creation request. The documents will be deleted permanently after review from our moderation team.',
+  instructions = 'Upload any files that you think are necessary to support your profile creation request. We review all documents before a profile is activated, and delete them permanently after the review.',
+  successMessage,
 }) => {
   const [documents, setDocuments] = useState([])
 
@@ -173,6 +174,9 @@ const DocumentUploadSection = ({
         >
           {pendingCount ? `Upload ${inflect(pendingCount, 'file', 'files', true)}` : 'Upload'}
         </Button>
+        {successMessage && documents.length > 0 && !pendingCount && (
+          <Alert type="success" title={successMessage} />
+        )}
       </div>
     </>
   )
