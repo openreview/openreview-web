@@ -1,6 +1,6 @@
-import '@testing-library/jest-dom'
 import { render, screen } from '@testing-library/react'
 import FilterTabs from '../components/forum/FilterTabs'
+import '@testing-library/jest-dom'
 
 const forumId = 'NeurIPS.cc/2026/Conference/Submission1'
 
