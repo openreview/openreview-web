@@ -223,7 +223,7 @@ export default function ProfileEditor({
     let invalidRecord = null
 
     // #region validate dob
-    if (!profile.dob?.value) {
+    if (profile.dob?.value === undefined) {
       promptError('Date of Birth is required. Please select your date of birth.')
       setInvalidStepKeys((current) => [...current, 'personal'])
       setProfile({ type: 'dob', data: { ...profile.dob, valid: false } })
