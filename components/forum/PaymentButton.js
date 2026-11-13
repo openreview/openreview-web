@@ -1,14 +1,18 @@
-import { CheckCircleOutlined } from '@ant-design/icons'
 import { Button, Tag, Tooltip } from 'antd'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react'
 import useSocket from '../../hooks/useSocket'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { getPaymentStatus, prettyId } from '../../lib/utils'
 import LoadingIcon from '../LoadingIcon'
 
 dayjs.extend(relativeTime)
+
+const isPaperActive = async (domain, paperVenueId) => {
+  const domainGroup = await api.getGroupById(domain)
+  return paperVenueId === domainGroup?.content?.submission_venue_id?.value
+}
 
 const PaymentButton = ({ forumNote }) => {
   const [isLoading, setIsLoading] = useState(false)
@@ -37,38 +41,15 @@ const PaymentButton = ({ forumNote }) => {
         replyForum: forumNote.id,
         type: 'payment',
         details: 'repliedPayments',
-        expired: 'true',
+        expired: true,
       })
       const paymentInvitation = invitations[0]
-      if (!paymentInvitation) return
-      const payments = paymentInvitation.details.repliedPayments
-      const amount = paymentInvitation.content.amount.value
-      const checkoutPayment = payments.find((p) => p.status === 'pending')
-      if (payments.some((p) => p.status === 'paid')) {
-        setPaymentStatus({ invitationId: paymentInvitation.id, amount, status: 'paid' })
-      } else if (payments.some((p) => p.status === 'waived')) {
-        setPaymentStatus({ invitationId: paymentInvitation.id, amount, status: 'waived' })
-      } else if (checkoutPayment) {
-        setPaymentStatus({
-          invitationId: paymentInvitation.id,
-          amount,
-          status: 'pending',
-          checkoutPayment,
-        })
-      } else {
-        if (paymentInvitation.expdate < Date.now()) {
-          setPaymentStatus(null)
-          return
-        }
-
-        const domainGroup = await api.getGroupById(paymentInvitation.domain)
-        const isActive =
-          forumNote.content?.venueid?.value ===
-          domainGroup?.content?.submission_venue_id?.value
-        setPaymentStatus(
-          isActive ? { invitationId: paymentInvitation.id, amount, status: 'unsettled' } : null
-        )
-      }
+      const result = await getPaymentStatus(
+        paymentInvitation,
+        paymentInvitation?.details?.repliedPayments,
+        () => isPaperActive(paymentInvitation.domain, forumNote.content?.venueid?.value)
+      )
+      setPaymentStatus(result)
     } catch {
       /* empty */
     }
@@ -77,7 +58,7 @@ const PaymentButton = ({ forumNote }) => {
   const cancelCheckout = async () => {
     setIsLoading(true)
     try {
-      await api.post(`/payments/${paymentStatus.checkoutPayment.id}/cancel`)
+      await api.post(`/payments/${paymentStatus.payment.id}/cancel`)
     } catch (error) {
       promptError(error.message)
     }
@@ -90,9 +71,11 @@ const PaymentButton = ({ forumNote }) => {
   }, [forumNote.id])
 
   const events = useSocket(
-    paymentStatus?.status === 'pending' ? 'payment' : undefined,
+    ['inProgressCancelable', 'inProgressNotCancelable'].includes(paymentStatus?.status)
+      ? 'payment'
+      : undefined,
     ['payment-updated', 'connect'],
-    { id: paymentStatus?.checkoutPayment?.id }
+    { id: paymentStatus?.payment?.id }
   )
 
   useEffect(() => {
@@ -102,40 +85,63 @@ const PaymentButton = ({ forumNote }) => {
 
   if (!paymentStatus) return null
 
-  if (paymentStatus.status === 'paid' || paymentStatus.status === 'waived') {
-    return (
-      <Tag color="success" icon={<CheckCircleOutlined />}>
-        {paymentStatus.status === 'paid' ? 'Fee paid' : 'Fee waived'}
-      </Tag>
-    )
-  }
-
-  if (paymentStatus.status === 'pending') {
-    return (
-      <Tooltip
-        title={`Payment initiated by ${prettyId(paymentStatus.checkoutPayment.signature)} ${dayjs(paymentStatus.checkoutPayment.cdate).fromNow()}`}
-      >
+  switch (paymentStatus.status) {
+    case 'payable':
+      return (
         <Button
+          type="primary"
           iconPlacement="end"
           loading={isLoading ? { icon: <LoadingIcon /> } : false}
-          onClick={cancelCheckout}
+          onClick={getCheckoutLink}
         >
-          Cancel Payment
+          Pay Submission Fee (${(paymentStatus.amount / 100).toFixed(2)})
         </Button>
-      </Tooltip>
-    )
+      )
+    case 'paid':
+      return (
+        <Tag color="#3e6775" variant="outlined">
+          Fee paid
+        </Tag>
+      )
+    case 'waived':
+      return (
+        <Tag color="#3e6775" variant="outlined">
+          Fee waived
+        </Tag>
+      )
+    case 'inProgressCancelable':
+      return (
+        <Tooltip
+          title={`Payment initiated by ${prettyId(paymentStatus.payment.signature)} ${dayjs(paymentStatus.payment.cdate).fromNow()}`}
+        >
+          <Button
+            iconPlacement="end"
+            loading={isLoading ? { icon: <LoadingIcon /> } : false}
+            onClick={cancelCheckout}
+          >
+            Cancel Payment
+          </Button>
+        </Tooltip>
+      )
+    case 'inProgressNotCancelable':
+      return (
+        <Tooltip
+          title={`Payment initiated by ${prettyId(paymentStatus.payment.signature)} ${dayjs(paymentStatus.payment.cdate).fromNow()}`}
+        >
+          <Button type="primary" disabled>
+            Payment in Progress
+          </Button>
+        </Tooltip>
+      )
+    case 'failed':
+      return (
+        <Button type="primary" disabled>
+          Payment Failed
+        </Button>
+      )
+    default:
+      return null
   }
-
-  return (
-    <Button
-      type="primary"
-      iconPlacement="end"
-      loading={isLoading ? { icon: <LoadingIcon /> } : false}
-      onClick={getCheckoutLink}
-    >
-      Pay Submission Fee (${(paymentStatus.amount / 100).toFixed(2)})
-    </Button>
-  )
 }
 
 export default PaymentButton
