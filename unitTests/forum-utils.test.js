@@ -1,5 +1,6 @@
 import {
   checkExReadersMatch,
+  checkFiltersMatch,
   expandForumViews,
   getUniqueInstitutions,
 } from '../lib/forum-utils'
@@ -62,6 +63,47 @@ describe('checkExReadersMatch', () => {
       checkExReadersMatch(excludedInvitations, [
         'NeurIPS.cc/2026/Conference/Submission1/-/Chat_Reaction',
       ])
+    ).toBe(false)
+  })
+})
+
+describe('checkFiltersMatch', () => {
+  const note = {
+    invitations: ['NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1/-/LLM_Interaction'],
+    signatures: ['NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1'],
+    readers: [
+      'NeurIPS.cc/2026/Conference',
+      'NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1',
+    ],
+    searchText: 'What are the main contributions?',
+  }
+
+  test('match a note without filters', () => {
+    expect(checkFiltersMatch(note, {})).toBe(true)
+  })
+
+  test('match a note against every filter', () => {
+    const filters = {
+      invitations: ['NeurIPS.cc/2026/Conference/Submission1/.*/-/LLM_Interaction'],
+      excludedInvitations: ['NeurIPS.cc/2026/Conference/Submission1/-/Official_Comment'],
+      signatures: ['NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1'],
+      keywords: ['main'],
+      readers: ['NeurIPS.cc/2026/Conference'],
+      excludedReaders: ['NeurIPS.cc/2026/Conference/Submission1/Authors'],
+    }
+    expect(checkFiltersMatch(note, filters)).toBe(true)
+    expect(checkFiltersMatch(note, { ...filters, keywords: ['ain'] })).toBe(false)
+    expect(
+      checkFiltersMatch(note, {
+        ...filters,
+        signatures: ['NeurIPS.cc/2026/Conference/AI_Review_Assistant'],
+      })
+    ).toBe(false)
+    expect(
+      checkFiltersMatch(note, {
+        ...filters,
+        excludedReaders: ['NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1'],
+      })
     ).toBe(false)
   })
 })

@@ -3,7 +3,6 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import debounce from 'lodash/debounce'
-import escapeRegExp from 'lodash/escapeRegExp'
 import groupBy from 'lodash/groupBy'
 import isEmpty from 'lodash/isEmpty'
 import truncate from 'lodash/truncate'
@@ -20,9 +19,8 @@ import {
   addTagToReactionsList,
   parseFilterQuery,
   replaceFilterWildcards,
-  checkSignaturesMatch,
-  checkReadersMatch,
   checkExReadersMatch,
+  checkFiltersMatch,
   expandForumViews,
 } from '../../lib/forum-utils'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
@@ -104,6 +102,7 @@ export default function Forum({
     false
   )
   const invitationMapRef = useRef(null)
+  const appliedTabIdRef = useRef(null)
   const signaturesMapRef = useRef(null)
   const replyNoteCount = useRef(0)
   const numRepliesVisible = useRef(0)
@@ -609,7 +608,7 @@ export default function Forum({
   useEffect(() => {
     if (!parentNote) return
 
-    const handleRouteChange = () => {
+    const handleRouteChange = (hashChangeEvent) => {
       const [_, tabId] = (window.location.hash || '').split('#')
       if (!tabId || !forumViews) return
 
@@ -628,6 +627,9 @@ export default function Forum({
           return
         }
       }
+
+      if (!hashChangeEvent && tab.id === appliedTabIdRef.current) return
+      appliedTabIdRef.current = tab.id
 
       const tabFilters = {
         invitations: null,
@@ -653,7 +655,7 @@ export default function Forum({
     }
 
     if (window.location.hash) {
-      handleRouteChange(window.location.hash)
+      handleRouteChange()
     } else if (
       forumViews?.length > 0 &&
       !selectedNoteId &&
@@ -764,21 +766,8 @@ export default function Forum({
     }
 
     Object.values(replyNoteMap).forEach((note) => {
-      const keywordRegex = selectedFilters.keywords
-        ? new RegExp(`\\b${escapeRegExp(selectedFilters.keywords[0])}`, 'mi')
-        : null
       const isVisible =
-        (!selectedFilters.invitations ||
-          checkExReadersMatch(selectedFilters.invitations, note.invitations)) &&
-        (!selectedFilters.excludedInvitations ||
-          !checkExReadersMatch(selectedFilters.excludedInvitations, note.invitations)) &&
-        (!selectedFilters.signatures ||
-          checkSignaturesMatch(selectedFilters.signatures, note.signatures[0])) &&
-        (!selectedFilters.keywords || note.searchText.match(keywordRegex)) &&
-        (!selectedFilters.readers ||
-          checkReadersMatch(selectedFilters.readers, note.readers)) &&
-        (!selectedFilters.excludedReaders ||
-          !checkExReadersMatch(selectedFilters.excludedReaders, note.readers)) &&
+        checkFiltersMatch(note, selectedFilters) &&
         (!chatReaders ||
           note.readers.includes('everyone') ||
           chatReaders.every((r) => note.readers.includes(r)))
@@ -1045,6 +1034,7 @@ export default function Forum({
                 attachedToBottom.current = true
               }}
               filterOptions={filterOptions}
+              replyNotes={Object.values(replyNoteMap)}
               numReplies={replyNoteCount.current}
               numRepliesHidden={numRepliesHidden}
             />
