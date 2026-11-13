@@ -25,7 +25,31 @@ const Signatures = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
+  const [currentUserSignature, setCurrentUserSignature] = useState(null)
   const { user } = useUser()
+
+  const getCurrentUserSignature = async () => {
+    if (user.profile.preferredId) return user.profile.preferredId
+    try {
+      const { profiles } = await api.get('/profiles', { id: user.profile.id })
+      const names = profiles?.[0]?.content?.names
+      return (
+        names?.find((p) => p.preferred && p.username)?.username ??
+        profiles?.[0]?.id ??
+        user.profile.id
+      )
+    } catch (_) {
+      return user.profile.id
+    }
+  }
+
+  const setCurrentUserSignatureValue = async () => {
+    onChange({ loading: true })
+    const signature = await getCurrentUserSignature()
+    setCurrentUserSignature(signature)
+    onChange({ value: [signature], type: 'const' })
+    onChange({ loading: false })
+  }
 
   const getRegexSignatureOptions = async () => {
     onChange({ loading: true })
@@ -100,7 +124,8 @@ const Signatures = ({
       case 'const':
         return <TagsWidget values={fieldDescription} />
       case 'currentUser':
-        return <TagsWidget values={[user.profile.id]} />
+        if (!currentUserSignature) return null
+        return <TagsWidget values={[currentUserSignature]} />
       case 'regex':
       case 'enum':
         if (!signatureOptions) return null
@@ -132,7 +157,7 @@ const Signatures = ({
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
-        onChange({ value: [user.profile.id], type: 'const' })
+        setCurrentUserSignatureValue()
       } else {
         setDescriptionType('regex')
       }

@@ -57,7 +57,7 @@ describe('Signatures', () => {
     })
   })
 
-  test('display ~.* regex signatures as tags widget and call update', () => {
+  test('display ~.* regex signatures as tags widget and call update', async () => {
     const onChange = jest.fn()
     const currentUserFieldDescription = {
       param: {
@@ -65,10 +65,61 @@ describe('Signatures', () => {
       },
     }
 
+    api.get = jest.fn(() => Promise.resolve({ profiles: [{ id: '~Test_User1' }] }))
+
     render(<Signatures fieldDescription={currentUserFieldDescription} onChange={onChange} />)
 
-    expect(screen.getByText('tags')).toBeInTheDocument()
-    expect(onChange).toHaveBeenCalledWith({ value: ['~Test_User1'], type: 'const' })
+    await waitFor(() => {
+      expect(screen.getByText('tags')).toBeInTheDocument()
+      expect(onChange).toHaveBeenCalledWith({ value: ['~Test_User1'], type: 'const' })
+    })
+  })
+
+  test('use preferred id of current user for ~.* regex signatures', async () => {
+    mockUseUserHookValue = {
+      user: {
+        profile: { id: '~Test_User1', preferredId: '~Preferred_User1' },
+        id: '~Test_User1',
+      },
+    }
+    const onChange = jest.fn()
+    api.get = jest.fn()
+
+    render(<Signatures fieldDescription={{ param: { regex: '~.*' } }} onChange={onChange} />)
+
+    await waitFor(() => {
+      expect(tagProps).toHaveBeenCalledWith({ values: ['~Preferred_User1'] })
+      expect(onChange).toHaveBeenCalledWith({ value: ['~Preferred_User1'], type: 'const' })
+      expect(onChange).not.toHaveBeenCalledWith({ value: ['~Test_User1'], type: 'const' })
+    })
+    expect(api.get).not.toHaveBeenCalled()
+  })
+
+  test('get preferred id from profile for ~.* regex signatures if not in user', async () => {
+    const onChange = jest.fn()
+    api.get = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~Test_User1',
+            content: {
+              names: [
+                { fullname: 'Test User', username: '~Test_User1' },
+                { fullname: 'Preferred User', username: '~Preferred_User1', preferred: true },
+              ],
+            },
+          },
+        ],
+      })
+    )
+
+    render(<Signatures fieldDescription={{ param: { regex: '~.*' } }} onChange={onChange} />)
+
+    await waitFor(() => {
+      expect(api.get).toHaveBeenCalledWith('/profiles', { id: '~Test_User1' })
+      expect(tagProps).toHaveBeenCalledWith({ values: ['~Preferred_User1'] })
+      expect(onChange).toHaveBeenCalledWith({ value: ['~Preferred_User1'], type: 'const' })
+    })
   })
 
   test('call v1 api if regex has pipe value', async () => {
