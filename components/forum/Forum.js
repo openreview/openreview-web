@@ -22,13 +22,16 @@ import {
   checkExReadersMatch,
   checkFiltersMatch,
   expandForumViews,
+  getLatestReplyReaders,
 } from '../../lib/forum-utils'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteEditor from '../NoteEditor'
+import MarkdownContent from '../webfield/MarkdownContent'
 import ChatEditorForm from './ChatEditorForm'
 import ChatFilterForm from './ChatFilterForm'
+import ChatReadOnlyNotice from './ChatReadOnlyNotice'
 import ChatReply from './ChatReply'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import FilterForm from './FilterForm'
@@ -88,6 +91,7 @@ export default function Forum({
     excludedReaders: null,
   })
   const [defaultFilters, setDefaultFilters] = useState(null)
+  const [tabMessage, setTabMessage] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [newMessageCounts, setNewMessageCounts] = useState({})
   const [maxLength, setMaxLength] = useState(200)
@@ -642,6 +646,7 @@ export default function Forum({
       }
       setDefaultFilters(tabFilters)
       setSelectedFilters(tabFilters)
+      setTabMessage(typeof tab.message === 'string' ? tab.message : null)
       setLayout(tab.layout || 'default')
       if (tab.layout === 'chat') {
         attachedToBottom.current = true
@@ -983,6 +988,11 @@ export default function Forum({
     loadUpdates()
   }, [events?.uniqueId])
 
+  const showChatInvitations =
+    layout === 'chat' &&
+    !parentNote.ddate &&
+    (expandedInvitations || parentNote.replyInvitations?.length > 0)
+
   return (
     <div className="forum-container">
       <ForumNote
@@ -1038,6 +1048,12 @@ export default function Forum({
               numReplies={replyNoteCount.current}
               numRepliesHidden={numRepliesHidden}
             />
+          )}
+
+          {tabMessage && (
+            <div id="tab-message" className="alert alert-warning">
+              <MarkdownContent content={tabMessage} />
+            </div>
           )}
         </div>
       )}
@@ -1141,18 +1157,23 @@ export default function Forum({
         </div>
       </div>
 
-      {layout === 'chat' && parentNote.replyInvitations?.length > 0 && !parentNote.ddate && (
+      {showChatInvitations && (
         <div className="chat-invitations-container">
           {expandedInvitations ? (
             expandedInvitations.map((invitationId) => {
-              const invitation = parentNote.replyInvitations.find((inv) =>
+              const invitation = parentNote.replyInvitations?.find((inv) =>
                 inv.id.match(invitationId)
               )
               if (!invitation) {
                 return (
-                  <p key={invitationId} className="empty-message">
-                    You do not have permission to post in this chat.
-                  </p>
+                  <ChatReadOnlyNotice
+                    key={invitationId}
+                    invitationId={invitationId}
+                    readers={getLatestReplyReaders(
+                      Object.values(replyNoteMap ?? {}),
+                      invitationId
+                    )}
+                  />
                 )
               }
 

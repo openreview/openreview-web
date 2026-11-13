@@ -2,6 +2,7 @@ import {
   checkExReadersMatch,
   checkFiltersMatch,
   expandForumViews,
+  getLatestReplyReaders,
   getUniqueInstitutions,
 } from '../lib/forum-utils'
 
@@ -105,6 +106,34 @@ describe('checkFiltersMatch', () => {
         excludedReaders: ['NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1'],
       })
     ).toBe(false)
+  })
+})
+
+describe('getLatestReplyReaders', () => {
+  const chatId = 'NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1/-/LLM_Interaction'
+  const reply = (invitationId, cdate, readers) => ({
+    invitations: [invitationId],
+    cdate,
+    readers,
+  })
+
+  test('return the readers of the latest reply of the invitation', () => {
+    const replies = [
+      reply(chatId, 2, [
+        'NeurIPS.cc/2026/Conference',
+        'NeurIPS.cc/2026/Conference/Submission1/Area_Chairs',
+      ]),
+      reply(chatId, 1, ['NeurIPS.cc/2026/Conference']),
+      reply('NeurIPS.cc/2026/Conference/Submission1/-/Official_Review', 3, ['everyone']),
+    ]
+    expect(getLatestReplyReaders(replies, chatId)).toEqual([
+      'NeurIPS.cc/2026/Conference',
+      'NeurIPS.cc/2026/Conference/Submission1/Area_Chairs',
+    ])
+  })
+
+  test('return null when the invitation has no replies', () => {
+    expect(getLatestReplyReaders([], chatId)).toBe(null)
   })
 })
 
