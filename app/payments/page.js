@@ -11,7 +11,7 @@ import LoadingIcon from '../../components/LoadingIcon'
 import LoadingSpinner from '../../components/LoadingSpinner'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId } from '../../lib/utils'
+import { getPaymentStatus, prettyId } from '../../lib/utils'
 
 const { Text, Paragraph } = Typography
 const maxCheckoutCount = 25
@@ -38,7 +38,7 @@ function VenueFees({ venue, reloadFees }) {
   const duedate = pendingFees[0]?.duedate
 
   const selectedFees = pendingFees.filter(
-    (fee) => !fee.checkoutPayment && selectedIds.includes(fee.invitationId)
+    (fee) => fee.status === 'payable' && selectedIds.includes(fee.invitationId)
   )
   const totalAmount = selectedFees.reduce((sum, fee) => sum + fee.amount, 0)
 
@@ -96,7 +96,7 @@ function VenueFees({ venue, reloadFees }) {
   }
 
   const cancelCheckout = async (fee) => {
-    const paymentId = fee.checkoutPayment.id
+    const paymentId = fee.payment.id
     setCancelingId(paymentId)
     try {
       await api.post(`/payments/${paymentId}/cancel`)
@@ -148,7 +148,7 @@ function VenueFees({ venue, reloadFees }) {
               <Flex align="start" gap="small">
                 <Checkbox
                   checked={selectedFees.includes(fee)}
-                  disabled={Boolean(fee.checkoutPayment) || isPaying}
+                  disabled={fee.status !== 'payable' || isPaying}
                   onChange={(e) => {
                     if (e.target.checked) {
                       if (selectedFees.length >= maxCheckoutCount) {
@@ -170,26 +170,31 @@ function VenueFees({ venue, reloadFees }) {
                   </Text>
                   <Flex align="center" wrap gap="small">
                     <Text type="secondary">Submission {fee.number}</Text>
-                    {fee.checkoutPayment && (
+                    {fee.status === 'failed' && <Tag>Payment failed</Tag>}
+                    {['inProgressCancelable', 'inProgressNotCancelable'].includes(
+                      fee.status
+                    ) && (
                       <>
                         <Tag>Payment in progress</Tag>
                         <Text type="secondary">
-                          Initiated by {prettyId(fee.checkoutPayment.signature)}{' '}
-                          {dayjs(fee.checkoutPayment.cdate).fromNow()}
+                          Initiated by {prettyId(fee.payment.signature)}{' '}
+                          {dayjs(fee.payment.cdate).fromNow()}
                         </Text>
-                        <Button
-                          type="link"
-                          size="small"
-                          iconPlacement="end"
-                          loading={
-                            cancelingId === fee.checkoutPayment.id
-                              ? { icon: <LoadingIcon /> }
-                              : false
-                          }
-                          onClick={() => cancelCheckout(fee)}
-                        >
-                          Cancel Payment
-                        </Button>
+                        {fee.status === 'inProgressCancelable' && (
+                          <Button
+                            type="link"
+                            size="small"
+                            iconPlacement="end"
+                            loading={
+                              cancelingId === fee.payment.id
+                                ? { icon: <LoadingIcon /> }
+                                : false
+                            }
+                            onClick={() => cancelCheckout(fee)}
+                          >
+                            Cancel Payment
+                          </Button>
+                        )}
                       </>
                     )}
                   </Flex>
@@ -212,19 +217,19 @@ function VenueFees({ venue, reloadFees }) {
                 <a href={`/forum?id=${fee.noteId}`}>{fee.title}</a>
                 <Flex align="center" wrap gap="small">
                   <Text type="secondary">Submission {fee.number}</Text>
-                  <Tag color="success">
-                    {fee.status === 'paid' ? 'Fee paid' : 'Fee waived'}
+                  <Tag color="#3e6775" variant="outlined">
+                    {fee.payment.status === 'paid' ? 'Fee paid' : 'Fee waived'}
                   </Tag>
                   {fee.noteStatus === 'withdrawn' && <Tag>Withdrawn</Tag>}
                   {fee.noteStatus === 'deskRejected' && <Tag>Desk rejected</Tag>}
                   <Text type="secondary">
                     {dayjs(fee.payment.mdate).format('MMMM D, YYYY')}
-                    {fee.status === 'paid' && ` by ${prettyId(fee.payment.signature)}`}
+                    {fee.payment.status === 'paid' && ` by ${prettyId(fee.payment.signature)}`}
                   </Text>
                 </Flex>
               </div>
               <Text type="secondary" style={{ whiteSpace: 'nowrap' }}>
-                {fee.status === 'paid' && `$${(fee.payment.amount / 100).toFixed(2)}`}
+                {fee.payment.status === 'paid' && `$${(fee.payment.amount / 100).toFixed(2)}`}
               </Text>
             </Flex>
           ))}
@@ -248,6 +253,7 @@ export default function Page() {
         type: 'payment',
         details: 'replytoNote,repliedPayments',
         expired: true,
+        trash: true,
       })
       const domains = new Set(invitations.map((invitation) => invitation.domain))
       const domainGroups = Object.fromEntries(
@@ -256,51 +262,52 @@ export default function Page() {
         )
       )
 
-      const venueMap = new Map()
-      invitations.forEach((invitation) => {
-        const feePayments = invitation.details.repliedPayments
-        const paidPayment = feePayments.find((p) => p.status === 'paid')
-        const waivedPayment = feePayments.find((p) => p.status === 'waived')
-        const checkoutPayment = feePayments.find((p) => p.status === 'pending')
-        const noteStatus = getNoteStatus(
-          invitation.details.replytoNote,
-          domainGroups[invitation.domain]
-        )
+      const fees = await Promise.all(
+        invitations.map(async (invitation) => {
+          const note = invitation.details.replytoNote
+          if (!note) return null
 
-        const fee = {
-          invitationId: invitation.id,
-          noteId: invitation.edit.payment.note,
-          number: invitation.details.replytoNote.number,
-          title: invitation.details.replytoNote.content.title.value,
-          duedate: invitation.duedate,
-          amount: invitation.content.amount.value,
-          noteStatus,
-        }
+          const noteStatus = getNoteStatus(note, domainGroups[invitation.domain])
+          const paymentStatus = await getPaymentStatus(
+            invitation,
+            invitation.details.repliedPayments,
+            () => noteStatus === 'active'
+          )
+          if (!paymentStatus) return null
 
-        if (!venueMap.has(invitation.domain)) {
-          venueMap.set(invitation.domain, {
+          return {
+            ...paymentStatus,
             domain: invitation.domain,
-            pending: [],
-            settled: [],
-          })
+            noteId: invitation.edit.payment.note,
+            number: note.number,
+            title: note.content.title.value,
+            duedate: invitation.duedate,
+            noteStatus,
+          }
+        })
+      )
+
+      const venueMap = new Map()
+      fees.forEach((fee) => {
+        if (!fee) return
+        if (!venueMap.has(fee.domain)) {
+          venueMap.set(fee.domain, { domain: fee.domain, pending: [], settled: [] })
         }
-        const venue = venueMap.get(invitation.domain)
-        if (paidPayment) {
-          venue.settled.push({ ...fee, status: 'paid', payment: paidPayment })
-        } else if (waivedPayment) {
-          venue.settled.push({ ...fee, status: 'waived', payment: waivedPayment })
-        } else if (
-          (noteStatus === 'active' && !(invitation.expdate < Date.now())) ||
-          checkoutPayment
+        const venue = venueMap.get(fee.domain)
+        if (
+          ['paid', 'waived', 'paidInvitationDeleted', 'waivedInvitationDeleted'].includes(
+            fee.status
+          )
         ) {
-          // a checkout in progress stays listed so that it can be canceled
-          venue.pending.push({ ...fee, checkoutPayment })
+          venue.settled.push(fee)
+        } else {
+          venue.pending.push(fee)
         }
       })
 
-      const loadedVenues = [...venueMap.values()]
-        .filter((venue) => venue.pending.length || venue.settled.length)
-        .sort((a, b) => Number(b.pending.length > 0) - Number(a.pending.length > 0))
+      const loadedVenues = [...venueMap.values()].sort(
+        (a, b) => Number(b.pending.length > 0) - Number(a.pending.length > 0)
+      )
       setVenues(loadedVenues)
       if (!venues) setActiveDomain(loadedVenues.find((venue) => venue.pending.length)?.domain)
     } catch (apiError) {
@@ -336,6 +343,7 @@ export default function Page() {
           destroyOnHidden
           activeKey={activeDomain}
           onChange={(keys) => setActiveDomain(keys[0])}
+          styles={{ header: { paddingInline: 0 }, body: { paddingInline: 0 } }}
           items={venues.map((venue) => ({
             key: venue.domain,
             label: (
