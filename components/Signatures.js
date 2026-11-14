@@ -103,7 +103,7 @@ const Signatures = ({
       case 'const':
         return <TagsWidget values={fieldDescription} />
       case 'currentUser':
-        return <TagsWidget values={[user.profile.preferredId ?? user.profile.id]} />
+        return <TagsWidget values={[user.profile.preferredId]} />
       case 'regex':
       case 'enum':
         if (!signatureOptions) return null
