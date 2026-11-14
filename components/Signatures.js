@@ -135,7 +135,7 @@ const Signatures = ({
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
-        onChange({ value: [user.profile.preferredId ?? user.profile.id], type: 'const' })
+        onChange({ value: [user.profile.preferredId], type: 'const' })
       } else {
         setDescriptionType('regex')
       }
