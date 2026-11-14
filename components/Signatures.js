@@ -25,31 +25,7 @@ const Signatures = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
-  const [currentUserSignature, setCurrentUserSignature] = useState(null)
-  const { user } = useUser()
-
-  const getCurrentUserSignature = async () => {
-    if (user.profile.preferredId) return user.profile.preferredId
-    try {
-      const { profiles } = await api.get('/profiles', { id: user.profile.id })
-      const names = profiles?.[0]?.content?.names
-      return (
-        names?.find((p) => p.preferred && p.username)?.username ??
-        profiles?.[0]?.id ??
-        user.profile.id
-      )
-    } catch (_) {
-      return user.profile.id
-    }
-  }
-
-  const setCurrentUserSignatureValue = async () => {
-    onChange({ loading: true })
-    const signature = await getCurrentUserSignature()
-    setCurrentUserSignature(signature)
-    onChange({ value: [signature], type: 'const' })
-    onChange({ loading: false })
-  }
+  const { user } = useUser(true)
 
   const getRegexSignatureOptions = async () => {
     onChange({ loading: true })
@@ -58,7 +34,10 @@ const Signatures = ({
       const regexContainsPipe = regexExpression.includes('|')
       const regexGroupResult = await api.get(
         '/groups',
-        { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression, signatory: user?.id },
+        {
+          [regexContainsPipe ? 'regex' : 'prefix']: regexExpression,
+          signatory: user?.profile?.id,
+        },
         { version: regexContainsPipe ? 1 : 2 }
       )
       if (!regexGroupResult.groups?.length) {
@@ -96,8 +75,8 @@ const Signatures = ({
 
       const optionsP = options.map((p) => {
         const params = p.prefix
-          ? { prefix: p.prefix, signatory: user?.id }
-          : { id: p.value, signatory: user?.id }
+          ? { prefix: p.prefix, signatory: user?.profile?.id }
+          : { id: p.value, signatory: user?.profile?.id }
         return api.get('/groups', params).then((result) => result.groups ?? [])
       })
       const groupResults = await Promise.all(optionsP)
@@ -124,8 +103,7 @@ const Signatures = ({
       case 'const':
         return <TagsWidget values={fieldDescription} />
       case 'currentUser':
-        if (!currentUserSignature) return null
-        return <TagsWidget values={[currentUserSignature]} />
+        return <TagsWidget values={[user.profile.preferredId ?? user.profile.id]} />
       case 'regex':
       case 'enum':
         if (!signatureOptions) return null
@@ -157,7 +135,7 @@ const Signatures = ({
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
-        setCurrentUserSignatureValue()
+        onChange({ value: [user.profile.preferredId ?? user.profile.id], type: 'const' })
       } else {
         setDescriptionType('regex')
       }
