@@ -25,7 +25,7 @@ const Signatures = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
-  const { user } = useUser()
+  const { user } = useUser(true)
 
   const getRegexSignatureOptions = async () => {
     onChange({ loading: true })
@@ -34,7 +34,10 @@ const Signatures = ({
       const regexContainsPipe = regexExpression.includes('|')
       const regexGroupResult = await api.get(
         '/groups',
-        { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression, signatory: user?.id },
+        {
+          [regexContainsPipe ? 'regex' : 'prefix']: regexExpression,
+          signatory: user?.profile?.id,
+        },
         { version: regexContainsPipe ? 1 : 2 }
       )
       if (!regexGroupResult.groups?.length) {
@@ -72,8 +75,8 @@ const Signatures = ({
 
       const optionsP = options.map((p) => {
         const params = p.prefix
-          ? { prefix: p.prefix, signatory: user?.id }
-          : { id: p.value, signatory: user?.id }
+          ? { prefix: p.prefix, signatory: user?.profile?.id }
+          : { id: p.value, signatory: user?.profile?.id }
         return api.get('/groups', params).then((result) => result.groups ?? [])
       })
       const groupResults = await Promise.all(optionsP)
@@ -100,7 +103,7 @@ const Signatures = ({
       case 'const':
         return <TagsWidget values={fieldDescription} />
       case 'currentUser':
-        return <TagsWidget values={[user.profile.id]} />
+        return <TagsWidget values={[user.profile.preferredId]} />
       case 'regex':
       case 'enum':
         if (!signatureOptions) return null
@@ -132,7 +135,7 @@ const Signatures = ({
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
-        onChange({ value: [user.profile.id], type: 'const' })
+        onChange({ value: [user.profile.preferredId], type: 'const' })
       } else {
         setDescriptionType('regex')
       }

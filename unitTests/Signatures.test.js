@@ -5,10 +5,11 @@ import Signatures from '../components/Signatures'
 import api from '../lib/api-client'
 
 let mockUseUserHookValue
+let mockUseUserHook
 let tagProps
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
-jest.mock('../hooks/useUser', () => () => mockUseUserHookValue)
+jest.mock('../hooks/useUser', () => (...args) => mockUseUserHook(...args))
 jest.mock('../lib/api-client')
 jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
   tagProps(props)
@@ -20,6 +21,7 @@ beforeEach(() => {
     user: { profile: { id: '~Test_User1' }, id: '~Test_User1' },
     accessToken: 'some token',
   }
+  mockUseUserHook = jest.fn(() => mockUseUserHookValue)
   tagProps = jest.fn()
 })
 
@@ -57,6 +59,12 @@ describe('Signatures', () => {
     })
   })
 
+  test('call useUser with true to get full profile', () => {
+    render(<Signatures fieldDescription={['${3/signatures}']} onChange={jest.fn()} />)
+
+    expect(mockUseUserHook).toHaveBeenCalledWith(true)
+  })
+
   test('display ~.* regex signatures as tags widget and call update', () => {
     const onChange = jest.fn()
     const currentUserFieldDescription = {
@@ -69,6 +77,20 @@ describe('Signatures', () => {
 
     expect(screen.getByText('tags')).toBeInTheDocument()
     expect(onChange).toHaveBeenCalledWith({ value: ['~Test_User1'], type: 'const' })
+  })
+
+  test('use preferred id of current user for ~.* regex signatures', () => {
+    mockUseUserHookValue = {
+      user: { profile: { id: '~Test_User1', preferredId: '~Preferred_User1' } },
+    }
+    const onChange = jest.fn()
+
+    render(<Signatures fieldDescription={{ param: { regex: '~.*' } }} onChange={onChange} />)
+
+    expect(mockUseUserHook).toHaveBeenCalledWith(true)
+    expect(tagProps).toHaveBeenCalledWith({ values: ['~Preferred_User1'] })
+    expect(onChange).toHaveBeenCalledWith({ value: ['~Preferred_User1'], type: 'const' })
+    expect(onChange).not.toHaveBeenCalledWith({ value: ['~Test_User1'], type: 'const' })
   })
 
   test('call v1 api if regex has pipe value', async () => {
