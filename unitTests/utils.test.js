@@ -17,6 +17,7 @@ import {
   prettyContentValue,
   getTitleObjects,
   getTokenObjects,
+  getPaymentStatus,
 } from '../lib/utils'
 import '@testing-library/jest-dom'
 
@@ -1315,5 +1316,220 @@ describe('utils', () => {
 
     expect(getTokenObjects(notes, 'img').map((t) => t.label)).toEqual(['img']) // no more <
     expect(getTokenObjects(notes, 'key').map((t) => t.label)).toEqual(['<b>keyword</b>'])
+  })
+
+  test('return payment status in getPaymentStatus', async () => {
+    let paymentInvitation, payments, isPaperActive, expectedValue, resultValue
+
+    // #region no payment invitation
+    paymentInvitation = null
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = null
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region deleted payment invitation + paid
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+      ddate: new Date().getTime(),
+    }
+    payments = [{ status: 'paid' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'paidInvitationDeleted',
+      payment: { status: 'paid' },
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region deleted payment invitation + waived
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+      ddate: new Date().getTime(),
+    }
+    payments = [{ status: 'waived' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'waivedInvitationDeleted',
+      payment: { status: 'waived' },
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region expired payment invitation + no payment
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+      expdate: new Date().getTime() - 1,
+    }
+    payments = []
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = null
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region expired payment invitation + paid
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+      expdate: new Date().getTime() - 1,
+    }
+    payments = [{ status: 'paid' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'paid',
+      payment: { status: 'paid' },
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region expired payment invitation + waived
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+      expdate: new Date().getTime() - 1,
+    }
+    payments = [{ status: 'waived' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'waived',
+      payment: { status: 'waived' },
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region expired payment invitation + pending
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+      expdate: new Date().getTime() - 1,
+    }
+    payments = [{ status: 'pending' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'inProgressNotCancelable',
+      payment: { status: 'pending' },
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region expired payment invitation + disputed
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+      expdate: new Date().getTime() - 1,
+    }
+    payments = [{ status: 'disputed' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'failed',
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region active payment invitation + no payment + active paper
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+    }
+    payments = []
+    isPaperActive = () => true
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'payable',
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region active payment invitation + no payment + inactive paper
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+    }
+    payments = []
+    isPaperActive = () => false
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = null
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region active payment invitation + paid
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+    }
+    payments = [{ status: 'paid' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'paid',
+      payment: { status: 'paid' },
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region active payment invitation + waived
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+    }
+    payments = [{ status: 'waived' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'waived',
+      payment: { status: 'waived' },
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region active payment invitation + pending
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+    }
+    payments = [{ status: 'pending' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'inProgressCancelable',
+      payment: { status: 'pending' },
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region active payment invitation + failed
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+    }
+    payments = [{ status: 'disputed' }]
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'failed',
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
   })
 })
