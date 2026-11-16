@@ -25,7 +25,7 @@ const Signatures = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
-  const { user } = useUser(true)
+  const { user, isRefreshing } = useUser(true)
 
   const getRegexSignatureOptions = async () => {
     onChange({ loading: true })
@@ -126,16 +126,20 @@ const Signatures = ({
   }
 
   useEffect(() => {
-    if (!fieldDescription || !user) return
+    if (!fieldDescription) return
+    if (!user) {
+      onChange({ loading: !!isRefreshing })
+      return
+    }
     if (!fieldDescription.param) {
       setDescriptionType('const')
-      onChange({ value: fieldDescription, type: 'const' })
+      onChange({ value: fieldDescription, type: 'const', loading: false })
       return
     }
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
-        onChange({ value: [user.profile.preferredId], type: 'const' })
+        onChange({ value: [user.profile.preferredId], type: 'const', loading: false })
       } else {
         setDescriptionType('regex')
       }
@@ -144,7 +148,7 @@ const Signatures = ({
     if (fieldDescription.param?.enum || fieldDescription.param?.items) {
       setDescriptionType('enum')
     }
-  }, [fieldDescription, user])
+  }, [fieldDescription, user, isRefreshing])
 
   useEffect(() => {
     if (descriptionType === 'regex') {
