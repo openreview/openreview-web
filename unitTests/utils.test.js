@@ -1319,10 +1319,12 @@ describe('utils', () => {
   })
 
   test('return payment status in getPaymentStatus', async () => {
+    // isPaperActive is undefined where getPaymentStatus must not call it
     let paymentInvitation, payments, isPaperActive, expectedValue, resultValue
 
     // #region no payment invitation
     paymentInvitation = null
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = null
     expect(expectedValue).toEqual(resultValue)
@@ -1335,6 +1337,7 @@ describe('utils', () => {
       ddate: new Date().getTime(),
     }
     payments = [{ status: 'paid' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
@@ -1352,6 +1355,7 @@ describe('utils', () => {
       ddate: new Date().getTime(),
     }
     payments = [{ status: 'waived' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
@@ -1369,6 +1373,7 @@ describe('utils', () => {
       expdate: new Date().getTime() - 1,
     }
     payments = []
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = null
     expect(expectedValue).toEqual(resultValue)
@@ -1381,6 +1386,7 @@ describe('utils', () => {
       expdate: new Date().getTime() - 1,
     }
     payments = [{ status: 'paid' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
@@ -1398,6 +1404,7 @@ describe('utils', () => {
       expdate: new Date().getTime() - 1,
     }
     payments = [{ status: 'waived' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
@@ -1415,6 +1422,7 @@ describe('utils', () => {
       expdate: new Date().getTime() - 1,
     }
     payments = [{ status: 'pending' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
@@ -1432,6 +1440,7 @@ describe('utils', () => {
       expdate: new Date().getTime() - 1,
     }
     payments = [{ status: 'disputed' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
@@ -1445,6 +1454,23 @@ describe('utils', () => {
     paymentInvitation = {
       id: 'somePaymentInvitaitonId',
       content: { amount: { value: '123' } },
+    }
+    payments = []
+    isPaperActive = () => true
+    resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
+    expectedValue = {
+      invitationId: 'somePaymentInvitaitonId',
+      amount: '123',
+      status: 'payable',
+    }
+    expect(expectedValue).toEqual(resultValue)
+    // #endregion
+
+    // #region active payment invitation with future expdate + no payment + active paper
+    paymentInvitation = {
+      id: 'somePaymentInvitaitonId',
+      content: { amount: { value: '123' } },
+      expdate: new Date().getTime() + 10000,
     }
     payments = []
     isPaperActive = () => true
@@ -1475,6 +1501,7 @@ describe('utils', () => {
       content: { amount: { value: '123' } },
     }
     payments = [{ status: 'paid' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
@@ -1491,6 +1518,7 @@ describe('utils', () => {
       content: { amount: { value: '123' } },
     }
     payments = [{ status: 'waived' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
@@ -1507,6 +1535,7 @@ describe('utils', () => {
       content: { amount: { value: '123' } },
     }
     payments = [{ status: 'pending' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
@@ -1523,6 +1552,7 @@ describe('utils', () => {
       content: { amount: { value: '123' } },
     }
     payments = [{ status: 'disputed' }]
+    isPaperActive = undefined
     resultValue = await getPaymentStatus(paymentInvitation, payments, isPaperActive)
     expectedValue = {
       invitationId: 'somePaymentInvitaitonId',
