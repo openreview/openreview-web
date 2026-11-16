@@ -118,22 +118,24 @@ export default function Page() {
   return (
     <Flex vertical gap={16} style={{ maxWidth: '54rem' }}>
       <div>
-        <h1 style={{ marginBottom: 0 }}>Help</h1>
-        <Text style={{ marginTop: 8 }}>
-          Our documentation site has answers to many common questions. You can{' '}
-          <a
-            href="https://docs.openreview.net/?ask="
-            target="_blank"
-            rel="noreferrer"
-            onClick={handleDocsClick}
-            onAuxClick={(event) => {
-              if (event.button === 1) handleDocsClick()
-            }}
-          >
-            ask a question
-          </a>{' '}
-          or browse the topics below to find what you need.
-        </Text>
+        <h1>Help</h1>
+        <p className="mt-3">
+          <Text>
+            Our documentation site has answers to many common questions. You can{' '}
+            <a
+              href="https://docs.openreview.net/?ask="
+              target="_blank"
+              rel="noreferrer"
+              onClick={handleDocsClick}
+              onAuxClick={(event) => {
+                if (event.button === 1) handleDocsClick()
+              }}
+            >
+              ask a question
+            </a>{' '}
+            or browse the topics below to find what you need.
+          </Text>
+        </p>
       </div>
 
       <div className="help-docs">
