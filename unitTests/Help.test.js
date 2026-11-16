@@ -90,6 +90,11 @@ describe('Help page', () => {
   })
 
   test('hide contact prompt until a docs card is clicked', async () => {
+    localStorage.setItem(
+      'helpContactPromptShown',
+      JSON.stringify({ timestamp: Date.now() - 25 * 60 * 60 * 1000 })
+    )
+
     render(<Help />)
 
     expect(
@@ -129,8 +134,11 @@ describe('Help page', () => {
   })
 
   test('show contact prompt and form after returning from docs', async () => {
-    localStorage.setItem('helpContactPromptShown', 'true')
-    localStorage.setItem('helpFormShown', 'true')
+    localStorage.setItem(
+      'helpContactPromptShown',
+      JSON.stringify({ timestamp: Date.now() })
+    )
+    localStorage.setItem('helpFormShown', JSON.stringify({ timestamp: Date.now() }))
 
     render(<Help />)
 
@@ -138,6 +146,24 @@ describe('Help page', () => {
       screen.getByText((text) => text.includes('If you need more help, please'))
     ).toBeInTheDocument()
     expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()
+  })
+
+  test('ignore expired localStorage flags', async () => {
+    localStorage.setItem(
+      'helpContactPromptShown',
+      JSON.stringify({ timestamp: Date.now() - 31 * 60 * 1000 })
+    )
+    localStorage.setItem(
+      'helpFormShown',
+      JSON.stringify({ timestamp: Date.now() - 31 * 60 * 1000 })
+    )
+
+    render(<Help />)
+
+    expect(
+      screen.queryByText((text) => text.includes('If you need more help, please'))
+    ).not.toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Your email address')).not.toBeInTheDocument()
   })
 
   test('prefill email when user is logged in', async () => {

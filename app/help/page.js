@@ -15,6 +15,11 @@ const docsSections = [
     path: '/getting-started/frequently-asked-questions',
   },
   {
+    title: 'Find a venue and contact organizers',
+    description: 'How to locate a venue and reach the organizers with questions.',
+    path: '/getting-started/frequently-asked-questions/how-do-i-find-a-venue-and-contact-the-venue-organizers',
+  },
+  {
     title: 'Creating and activating a profile',
     description:
       'Signing up, activating a limited profile, institutional emails, DBLP and Semantic Scholar imports.',
@@ -46,6 +51,25 @@ const docsSections = [
 
 const contactPromptKey = 'helpContactPromptShown'
 const formShownKey = 'helpFormShown'
+const thirtyMinutesMs = 30 * 60 * 1000
+
+const isStoredFlagValid = (value) => {
+  if (!value) return false
+  try {
+    const parsed = JSON.parse(value)
+    return typeof parsed.timestamp === 'number' && Date.now() - parsed.timestamp < thirtyMinutesMs
+  } catch {
+    return value === 'true'
+  }
+}
+
+const storeFlag = (key) => {
+  try {
+    localStorage.setItem(key, JSON.stringify({ timestamp: Date.now() }))
+  } catch {
+    /* empty */
+  }
+}
 
 export default function Page() {
   const [showForm, setShowForm] = useState(false)
@@ -65,20 +89,12 @@ export default function Page() {
       return
     }
     shouldRevealForm.current = true
-    try {
-      localStorage.setItem(formShownKey, 'true')
-    } catch {
-      /* empty */
-    }
+    storeFlag(formShownKey)
     setShowForm(true)
   }
 
   const handleDocsClick = () => {
-    try {
-      localStorage.setItem(contactPromptKey, 'true')
-    } catch {
-      /* empty */
-    }
+    storeFlag(contactPromptKey)
     setShowContactPrompt(true)
   }
 
@@ -86,8 +102,8 @@ export default function Page() {
     try {
       const storedPrompt = localStorage.getItem(contactPromptKey)
       const storedForm = localStorage.getItem(formShownKey)
-      if (storedPrompt === 'true') setShowContactPrompt(true)
-      if (storedForm === 'true') setShowForm(true)
+      if (isStoredFlagValid(storedPrompt)) setShowContactPrompt(true)
+      if (isStoredFlagValid(storedForm)) setShowForm(true)
     } catch {
       /* empty */
     }
@@ -100,68 +116,70 @@ export default function Page() {
   }, [showForm])
 
   return (
-    <Flex vertical gap={24} style={{ maxWidth: '54rem' }}>
-      <Title level={1}>Help</Title>
+    <Flex vertical gap={16} style={{ maxWidth: '54rem' }}>
+      <div>
+        <h1 style={{ marginBottom: 0 }}>Help</h1>
+        <Text style={{ marginTop: 8 }}>
+          Our documentation site has answers to many common questions. You can{' '}
+          <a
+            href="https://docs.openreview.net/?ask="
+            target="_blank"
+            rel="noreferrer"
+            onClick={handleDocsClick}
+            onAuxClick={(event) => {
+              if (event.button === 1) handleDocsClick()
+            }}
+          >
+            ask a question
+          </a>{' '}
+          or browse the topics below to find what you need.
+        </Text>
+      </div>
 
-      <Text>
-        Our documentation site has answers to many common questions. You can{' '}
-        <a
-          href="https://docs.openreview.net/?ask="
-          target="_blank"
-          rel="noreferrer"
-          onClick={handleDocsClick}
-          onAuxClick={(event) => {
-            if (event.button === 1) handleDocsClick()
-          }}
-        >
-          ask a question
-        </a>{' '}
-        or browse the topics below to find what you need. If you need to reach the
-        organizers of a specific venue, see our guide on{' '}
-        <a
-          href="https://docs.openreview.net/getting-started/frequently-asked-questions/how-do-i-find-a-venue-and-contact-the-venue-organizers"
-          target="_blank"
-          rel="noreferrer"
-          onClick={handleDocsClick}
-          onAuxClick={(event) => {
-            if (event.button === 1) handleDocsClick()
-          }}
-        >
-          how to find a venue and contact the venue organizers
-        </a>.
-      </Text>
-
-      <Row gutter={[12, 12]}>
-        {docsSections.map((section) => (
-          <Col xs={24} md={12} key={section.path}>
-            <a
-              href={`${docsBaseUrl}${section.path}`}
-              target="_blank"
-              rel="noreferrer"
-              style={{ display: 'block', height: '100%' }}
-              onClick={handleDocsClick}
-              onAuxClick={(event) => {
-                if (event.button === 1) handleDocsClick()
-              }}
-            >
-              <Card size="small" hoverable style={{ height: '100%' }}>
-                <Text strong style={{ display: 'block' }}>
-                  {section.title}
-                </Text>
-                <Text type="secondary">{section.description}</Text>
-              </Card>
-            </a>
-          </Col>
-        ))}
-      </Row>
+      <div className="help-docs">
+        <Row gutter={[12, 12]}>
+          {docsSections.map((section) => (
+            <Col xs={24} md={12} key={section.path}>
+              <a
+                href={`${docsBaseUrl}${section.path}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ display: 'block', height: '100%' }}
+                onClick={handleDocsClick}
+                onAuxClick={(event) => {
+                  if (event.button === 1) handleDocsClick()
+                }}
+              >
+                <Card
+                  size="small"
+                  hoverable
+                  styles={{
+                    body: { padding: '12px 16px' },
+                  }}
+                  style={{ height: '100%', borderColor: '#d9d9d9' }}
+                >
+                  <Text strong style={{ display: 'block', color: '#3e6775' }}>
+                    {section.title}
+                  </Text>
+                  <Text type="secondary">{section.description}</Text>
+                </Card>
+              </a>
+            </Col>
+          ))}
+        </Row>
+        <style jsx>{`
+          .help-docs :global(.ant-card-hoverable:hover) {
+            box-shadow: none;
+          }
+        `}</style>
+      </div>
 
       {showContactPrompt && (
-        <Text type="secondary" style={{ fontSize: '0.75rem' }}>
+        <Text>
           If you need more help, please{' '}
           <Button
             type="link"
-            size="small"
-            style={{ padding: 0, fontSize: '0.75rem' }}
+            style={{ padding: 0, height: 'auto', lineHeight: 'inherit' }}
             onClick={() => openForm()}
           >
             contact us
