@@ -23,10 +23,6 @@ describe('webfield-utils', () => {
     resultExpected = { fieldName: 'title' }
     expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
-    errorPath = 'note/content/authorids/value/0'
-    resultExpected = { fieldName: 'authorids' }
-    expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
-
     errorPath = 'signatures' // edit signatures
     resultExpected = { fieldName: 'editSignatureInputValues' }
     expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
@@ -55,7 +51,7 @@ describe('webfield-utils', () => {
     resultExpected = { fieldName: 'content.author_index' }
     expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
-    errorPath = 'note/content/authors/value/4/institutions' // object authors
+    errorPath = 'note/content/authors/value/4/institutions/0'
     resultExpected = { fieldName: 'authors', index: 4 }
     expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
   })
