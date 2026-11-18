@@ -602,7 +602,7 @@ const NoteEditor = ({
       if (error.errors) {
         const fieldErrors = uniqBy(
           error.errors.map((p) => {
-            const { fieldName, index } = getErrorFieldName(p.details.path)
+            const { fieldName, index, isInstitutionError } = getErrorFieldName(p.details.path)
             const fieldNameInError =
               fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
             if (isNonDeletableError(p.details.invalidValue))
@@ -611,6 +611,7 @@ const NoteEditor = ({
               fieldName,
               message: p.message.replace(fieldName, fieldNameInError),
               index,
+              isInstitutionError,
             }
           }),
           'fieldName'
@@ -626,7 +627,7 @@ const NoteEditor = ({
             : `${fieldErrors[fieldErrors.length - 1].message}${otherErrorCount ? ` (and ${inflect(otherErrorCount, 'other error', 'other errors', true)})` : ''}`
         )
       } else if (error.details?.path) {
-        const { fieldName, index } = getErrorFieldName(error.details.path)
+        const { fieldName, index, isInstitutionError } = getErrorFieldName(error.details.path)
         const fieldNameInError =
           fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
         const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
@@ -637,6 +638,7 @@ const NoteEditor = ({
             fieldName,
             message: prettyErrorMessage,
             index,
+            isInstitutionError,
           },
         ])
         displayError(prettyErrorMessage)

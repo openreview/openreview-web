@@ -52,7 +52,7 @@ describe('webfield-utils', () => {
     expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
 
     errorPath = 'note/content/authors/value/4/institutions/0'
-    resultExpected = { fieldName: 'authors', index: 4 }
+    resultExpected = { fieldName: 'authors', index: 4, isInstitutionError: true }
     expect(getErrorFieldName(errorPath)).toEqual(resultExpected)
   })
 

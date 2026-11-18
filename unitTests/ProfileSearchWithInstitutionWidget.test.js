@@ -1003,6 +1003,295 @@ describe('ProfileSearchWithInstitutionWidget', () => {
     })
   })
 
+  test('show added author (multiple institution, not matching profile)', async () => {
+    const apiPost = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Test Institution',
+                    domain: 'test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Another Test Institution',
+                    domain: 'another.test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 1999,
+                  end: null,
+                  institution: {
+                    name: 'Yet Another Test Institution',
+                    domain: 'yet.another.test.edu',
+                    country: 'TC',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      })
+    )
+    api.post = apiPost
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: { param: { type: 'string' } },
+                  username: { param: { type: 'string' } },
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      properties: {
+                        name: { param: { type: 'string' } },
+                        domain: { param: { type: 'string' } },
+                        country: { param: { type: 'string' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        value: [
+          {
+            username: '~test_id1',
+            fullname: 'Test First Test Last',
+            institutions: [
+              // name changed in profile
+              { name: 'Old Test Institution', domain: 'test.edu', country: 'TC' },
+              // country added in profile
+              { name: 'Another Test Institution', domain: 'another.test.edu' },
+              // removed from profile
+              { name: 'Non existing Institution', domain: 'non.existing', country: 'TC' },
+              {
+                name: 'Yet Another Test Institution',
+                domain: 'yet.another.test.edu',
+                country: 'TC',
+              },
+            ],
+          },
+        ],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '4 Institutions added' })).toBeInTheDocument()
+    })
+    await userEvent.click(screen.getByRole('button', { name: '4 Institutions added' }))
+
+    // institutions which do not match profile are still selected and are shown in red
+    expect(screen.getAllByRole('checkbox').length).toBe(7)
+    expect(
+      screen.getByRole('checkbox', { name: 'Old Test Institution (test.edu)' })
+    ).toBeChecked()
+    expect(screen.getByText('Old Test Institution (test.edu)')).toHaveClass('invalidValue')
+    expect(
+      screen.getByRole('checkbox', { name: 'Non existing Institution (non.existing)' })
+    ).toBeChecked()
+    expect(screen.getByText('Non existing Institution (non.existing)')).toHaveClass(
+      'invalidValue'
+    )
+    // same name and domain as the institution in profile
+    const anotherInstitutionOptions = screen.getAllByRole('checkbox', {
+      name: 'Another Test Institution (another.test.edu)',
+    })
+    const anotherInstitutionLabels = screen.getAllByText(
+      'Another Test Institution (another.test.edu)'
+    )
+    expect(anotherInstitutionOptions[0]).toBeChecked()
+    expect(anotherInstitutionLabels[0]).toHaveClass('invalidValue')
+    expect(anotherInstitutionOptions[1]).not.toBeChecked()
+    expect(anotherInstitutionLabels[1]).not.toHaveClass('invalidValue')
+    // institutions in profile
+    expect(
+      screen.getByRole('checkbox', { name: 'Test Institution (test.edu)' })
+    ).not.toBeChecked()
+    expect(screen.getByText('Test Institution (test.edu)')).not.toHaveClass('invalidValue')
+    expect(
+      screen.getByRole('checkbox', {
+        name: 'Yet Another Test Institution (yet.another.test.edu)',
+      })
+    ).toBeChecked()
+    expect(
+      screen.getByText('Yet Another Test Institution (yet.another.test.edu)')
+    ).not.toHaveClass('invalidValue')
+
+    // replace the renamed institution with the one in profile
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Old Test Institution (test.edu)' })
+    )
+    await userEvent.click(
+      screen.getByRole('checkbox', { name: 'Test Institution (test.edu)' })
+    )
+    await waitFor(() => {
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          value: [
+            {
+              username: '~test_id1',
+              fullname: 'Test First Test Last',
+              institutions: [
+                { name: 'Another Test Institution', domain: 'another.test.edu' },
+                { name: 'Non existing Institution', domain: 'non.existing', country: 'TC' },
+                { name: 'Test Institution', domain: 'test.edu', country: 'TC' },
+                {
+                  name: 'Yet Another Test Institution',
+                  domain: 'yet.another.test.edu',
+                  country: 'TC',
+                },
+              ],
+            },
+          ],
+        })
+      )
+    })
+  })
+
+  test('show added author (1 institution, matching profile history)', async () => {
+    const apiPost = jest.fn(() =>
+      Promise.resolve({
+        profiles: [
+          {
+            id: '~test_id1',
+            content: {
+              names: [{ fullname: 'Test First Test Last', username: '~test_id1' }],
+              preferredEmail: 'test@email.com',
+              history: [
+                {
+                  start: 2000,
+                  end: null,
+                  institution: {
+                    name: 'Test Institution',
+                    domain: 'test.edu',
+                    country: 'TC',
+                  },
+                },
+                {
+                  start: 1999,
+                  end: 2000,
+                  institution: {
+                    name: 'Test Institution',
+                    domain: 'test.edu',
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      })
+    )
+    api.post = apiPost
+    const onChange = jest.fn()
+    const providerProps = {
+      value: {
+        field: {
+          authors: {
+            value: {
+              param: {
+                type: 'author{}',
+                properties: {
+                  fullname: { param: { type: 'string' } },
+                  username: { param: { type: 'string' } },
+                  institutions: {
+                    param: {
+                      type: 'object{}',
+                      properties: {
+                        name: { param: { type: 'string' } },
+                        domain: { param: { type: 'string' } },
+                        country: { param: { type: 'string' } },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        value: [
+          {
+            username: '~test_id1',
+            fullname: 'Test First Test Last',
+            // matches the second history of profile
+            institutions: [{ name: 'Test Institution', domain: 'test.edu' }],
+          },
+          {
+            // profile is not returned
+            username: '~test_id2',
+            fullname: 'Another First Another Last',
+            institutions: [
+              { name: 'Another User Institution', domain: 'another.edu', country: 'TC' },
+            ],
+          },
+        ],
+        onChange,
+      },
+    }
+
+    renderWithEditorComponentContext(<ProfileSearchWithInstitutionWidget />, providerProps)
+
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: '1 Institution added' }).length).toBe(2)
+    })
+
+    // no institution is shown in red
+    expect(screen.getAllByRole('checkbox').length).toBe(4)
+    expect(screen.getByRole('checkbox', { name: 'Test Institution (test.edu)' })).toBeChecked()
+    expect(screen.getByText('Test Institution (test.edu)')).not.toHaveClass('invalidValue')
+    expect(
+      screen.getByRole('checkbox', { name: 'Another User Institution (another.edu)' })
+    ).toBeChecked()
+    expect(screen.getByText('Another User Institution (another.edu)')).not.toHaveClass(
+      'invalidValue'
+    )
+
+    // institutions are not changed when authors are reordered
+    await userEvent.click(screen.getByRole('button', { name: 'arrow-right' }))
+    await waitFor(() => {
+      expect(onChange).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          value: [
+            {
+              username: '~test_id2',
+              fullname: 'Another First Another Last',
+              institutions: [
+                { name: 'Another User Institution', domain: 'another.edu', country: 'TC' },
+              ],
+            },
+            {
+              username: '~test_id1',
+              fullname: 'Test First Test Last',
+              institutions: [{ name: 'Test Institution', domain: 'test.edu' }],
+            },
+          ],
+        })
+      )
+    })
+  })
+
   test('show added author (multiple current institution but invitation does not request institution)', async () => {
     const currentYear = new Date().getFullYear()
     const apiPost = jest.fn(() =>
