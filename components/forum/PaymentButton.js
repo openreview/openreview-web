@@ -3,6 +3,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import { useEffect, useState } from 'react'
 import useSocket from '../../hooks/useSocket'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import { getPaymentStatus, prettyId } from '../../lib/utils'
 import LoadingIcon from '../LoadingIcon'
@@ -17,6 +18,7 @@ const isPaperActive = async (domain, paperVenueId) => {
 const PaymentButton = ({ forumNote }) => {
   const [isLoading, setIsLoading] = useState(false)
   const [paymentStatus, setPaymentStatus] = useState(null)
+  const { user, isRefreshing } = useUser()
 
   const getCheckoutLink = async () => {
     setIsLoading(true)
@@ -31,6 +33,7 @@ const PaymentButton = ({ forumNote }) => {
       window.location.href = url
     } catch (error) {
       promptError(error.message)
+      await loadPaymentInvitation()
       setIsLoading(false)
     }
   }
@@ -66,9 +69,29 @@ const PaymentButton = ({ forumNote }) => {
     setIsLoading(false)
   }
 
+  const cancelAndGetNewCheckoutLink = async () => {
+    setIsLoading(true)
+    try {
+      await api.post(`/payments/${paymentStatus.payment.id}/cancel`)
+      const { url } = await api.post('/payments/checkout', {
+        invitation: paymentStatus.invitationId,
+        payment: {
+          note: forumNote.id,
+        },
+        cancelUrl: window.location.href,
+      })
+      window.location.href = url
+    } catch (error) {
+      promptError(error.message)
+      await loadPaymentInvitation()
+      setIsLoading(false)
+    }
+  }
+
   useEffect(() => {
+    if (isRefreshing) return
     loadPaymentInvitation()
-  }, [forumNote.id])
+  }, [forumNote.id, isRefreshing])
 
   const events = useSocket(
     ['inProgressCancelable', 'inProgressNotCancelable'].includes(paymentStatus?.status)
@@ -79,7 +102,7 @@ const PaymentButton = ({ forumNote }) => {
   )
 
   useEffect(() => {
-    if (!events) return
+    if (!events || isLoading) return
     loadPaymentInvitation()
   }, [events?.uniqueId])
 
@@ -110,7 +133,16 @@ const PaymentButton = ({ forumNote }) => {
         </Tag>
       )
     case 'inProgressCancelable':
-      return (
+      return paymentStatus.payment.signature === user?.profile?.id ? (
+        <Button
+          type="primary"
+          iconPlacement="end"
+          loading={isLoading ? { icon: <LoadingIcon /> } : false}
+          onClick={cancelAndGetNewCheckoutLink}
+        >
+          Continue Payment
+        </Button>
+      ) : (
         <Tooltip
           title={`Payment initiated by ${prettyId(paymentStatus.payment.signature)} ${dayjs(paymentStatus.payment.cdate).fromNow()}`}
         >
