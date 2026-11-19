@@ -1,7 +1,8 @@
 import { screen, render, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import dayjs from 'dayjs'
 import BasicProfileView from '../components/profile/BasicProfileView'
-import { formatDateTime } from '../lib/utils'
+import { formatDateTime, prettyId } from '../lib/utils'
 import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -46,10 +47,37 @@ describe('Names Section', () => {
     await userEvent.hover(checkmark)
     const popover = await screen.findByRole('tooltip')
     expect(within(popover).getByText('Some Moderator')).toBeInTheDocument()
+    expect(within(popover).getByRole('link', { name: 'Some Moderator' })).toHaveAttribute(
+      'href',
+      '/profile?id=~Some_Moderator1'
+    )
     expect(
       within(popover).getByText(formatDateTime(profileEditCreationDate))
     ).toBeInTheDocument()
     expect(within(popover).getByText('Student ID')).toBeInTheDocument()
+  })
+
+  test('show a group signature in the badge popover without a profile link', async () => {
+    render(
+      <BasicProfileView
+        profile={{ names: [{ fullname: 'Test Name' }] }}
+        serviceRoles={[]}
+        contentToShow={['names']}
+        profileAssertions={[
+          {
+            profile: { content: { names: { value: { add: [{ fullname: 'Test Name' }] } } } },
+            content: { source: { value: 'Student ID' } },
+            signatures: ['openreview.net/Support'],
+            tcdate: new Date('2023-01-01T00:00:00Z').getTime(),
+          },
+        ]}
+      />
+    )
+
+    await userEvent.hover(screen.getByRole('img', { name: 'safety-certificate' }))
+    const popover = await screen.findByRole('tooltip')
+    expect(within(popover).getByText(prettyId('openreview.net/Support'))).toBeInTheDocument()
+    expect(within(popover).queryByRole('link')).not.toBeInTheDocument()
   })
 
   test('render names confirmed by edit but removed by user', async () => {
@@ -213,6 +241,37 @@ describe('DOB Section', () => {
 })
 
 describe('History Section', () => {
+  test('badge every history entry of an assertion that confirms several', () => {
+    const independent = {
+      position: 'Independent Researcher',
+      start: 2023,
+      institution: { name: 'Independent Researcher', domain: 'independent-researcher.org' },
+    }
+    const postdoc = {
+      position: 'Postdoc',
+      start: 2019,
+      end: 2022,
+      institution: { name: 'UMass', domain: 'umass.edu' },
+    }
+    render(
+      <BasicProfileView
+        profile={{ names: [], history: [independent, postdoc] }}
+        serviceRoles={[]}
+        contentToShow={['history']}
+        profileAssertions={[
+          {
+            invitation: 'openreview.net/Support/Vouch_Request2/-/Vouch_Verification',
+            profile: { content: { history: { value: { add: [independent, postdoc] } } } },
+            signatures: ['~Elena_Rossi1'],
+            tcdate: new Date('2026-11-04T00:00:00Z').getTime(),
+          },
+        ]}
+      />
+    )
+
+    expect(screen.getAllByRole('img', { name: 'safety-certificate' })).toHaveLength(2)
+  })
+
   test('render history confirmed by edit', async () => {
     const profileEditCreationDate = new Date('2023-01-01T00:00:00Z').getTime()
     const props = {
@@ -492,5 +551,91 @@ describe('Relations Section', () => {
 
     expect(screen.getByText('No relations added')).toBeInTheDocument()
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
+  })
+})
+
+describe('Vouch Verifications Section', () => {
+  test('list the profiles this user vouched for, newest first', () => {
+    const vouchVerifications = [
+      {
+        id: 'assertion 1',
+        invitation: 'openreview.net/Support/Vouch_Request1/-/Vouch_Verification',
+        tcdate: new Date('2026-03-02T12:00:00Z').getTime(),
+        profile: {
+          id: '~Daniel_Okafor1',
+          content: {
+            names: {
+              value: { add: [{ fullname: 'Daniel Okafor', username: '~Daniel_Okafor1' }] },
+            },
+            history: {
+              value: {
+                add: [
+                  {
+                    position: 'Research Engineer',
+                    institution: { domain: 'smalllab.org', name: 'Small Lab' },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+      {
+        id: 'assertion 2',
+        invitation: 'openreview.net/Support/Vouch_Request2/-/Vouch_Verification',
+        tcdate: new Date('2026-05-10T12:00:00Z').getTime(),
+        profile: {
+          id: '~Lena_Fischer1',
+          content: {
+            names: {
+              value: { add: [{ fullname: 'Lena Fischer', username: '~Lena_Fischer1' }] },
+            },
+            history: {
+              value: {
+                add: [
+                  {
+                    position: 'Independent Researcher',
+                    institution: {
+                      domain: 'independent-researcher.org',
+                      name: 'Independent Researcher',
+                    },
+                  },
+                  {
+                    position: 'PhD Student',
+                    institution: { domain: 'smalllab.org', name: 'Small Lab' },
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    ]
+
+    render(
+      <BasicProfileView
+        profile={{ names: [] }}
+        serviceRoles={[]}
+        contentToShow={[]}
+        vouchVerifications={vouchVerifications}
+      />
+    )
+
+    expect(screen.getByText('Vouch Verifications')).toBeInTheDocument()
+    const links = screen.getAllByRole('link')
+    expect(links.map((link) => link.textContent)).toEqual(['Lena Fischer', 'Daniel Okafor'])
+    expect(links[1]).toHaveAttribute('href', '/profile?id=~Daniel_Okafor1')
+    expect(screen.getByText('Research Engineer, Small Lab')).toBeInTheDocument()
+    expect(screen.getByText('Independent Researcher')).toBeInTheDocument()
+    expect(screen.getByText('PhD Student, Small Lab')).toBeInTheDocument()
+    expect(
+      screen.getByText(dayjs(vouchVerifications[0].tcdate).format('MMM D, YYYY'))
+    ).toBeInTheDocument()
+  })
+
+  test('hide the section when the user has not vouched for anyone', () => {
+    render(<BasicProfileView profile={{ names: [] }} serviceRoles={[]} contentToShow={[]} />)
+
+    expect(screen.queryByText('Vouch Verifications')).not.toBeInTheDocument()
   })
 })

@@ -136,17 +136,18 @@ const renderProfileAssertion = (assertion, actions) => {
       )
     }
     default: {
-      const { names, dob, history, relations } = assertion.profile.content ?? {}
+      const { names, dob, history, relations, homepage } = assertion.profile.content ?? {}
       const { source, comment } = assertion.content ?? {}
       return (
         <BasicProfileAssertionInfo
           assertion={assertion}
           actions={actions}
           popover={renderDetails([
-            ['Name', names?.value?.add?.[0]?.fullname],
+            ['Name', names?.value?.add?.map((name) => name.fullname).join(', ')],
             ['Date of birth', dob && formatDateOfBirth(dob.value)],
-            ['History', history && formatHistory(history.value.add[0])],
-            ['Relation', relations && formatRelation(relations.value.add[0])],
+            ['Homepage', homepage?.value],
+            ['History', history?.value?.add?.map(formatHistory).join('\n')],
+            ['Relation', relations?.value?.add?.map(formatRelation).join('\n')],
             ['Document', source?.value],
             ['Comment', comment?.value],
           ])}
