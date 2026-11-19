@@ -39,6 +39,19 @@ export default function NavLg({
           ),
           style: { padding: 0 },
         },
+        {
+          key: 'payments',
+          label: (
+            <Link
+              href="/payments"
+              prefetch={false}
+              className={legacyNavStyles.navDropdownItem}
+            >
+              Payments
+            </Link>
+          ),
+          style: { padding: 0 },
+        },
         { type: 'divider' },
         ...(user.impersonator
           ? [
