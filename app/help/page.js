@@ -1,7 +1,7 @@
 'use client'
 
 import { Button, Card, Col, Flex, Row, Typography } from 'antd'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import SupportRequestForm from './SupportRequestForm'
 
 const { Text, Title } = Typography
@@ -50,7 +50,7 @@ const docsSections = [
 ]
 
 const contactPromptKey = 'helpContactPromptShown'
-const formShownKey = 'helpFormShown'
+const showContactFormKey = 'helpShowContactForm'
 const thirtyMinutesMs = 30 * 60 * 1000
 
 const isStoredFlagValid = (value) => {
@@ -63,9 +63,9 @@ const isStoredFlagValid = (value) => {
   }
 }
 
-const storeFlag = (key) => {
+const storeFlag = () => {
   try {
-    localStorage.setItem(key, JSON.stringify({ timestamp: Date.now() }))
+    localStorage.setItem(contactPromptKey, JSON.stringify({ timestamp: Date.now() }))
   } catch {
     /* empty */
   }
@@ -74,46 +74,24 @@ const storeFlag = (key) => {
 export default function Page() {
   const [showForm, setShowForm] = useState(false)
   const [showContactPrompt, setShowContactPrompt] = useState(false)
-  const [prefill, setPrefill] = useState(null)
-  const formRef = useRef(null)
-  const shouldRevealForm = useRef(false)
-
-  const revealForm = () => {
-    formRef.current?.scrollIntoView?.({ behavior: 'smooth', block: 'start' })
-    formRef.current?.querySelector('input, textarea')?.focus({ preventScroll: true })
-  }
-
-  const openForm = () => {
-    if (showForm) {
-      revealForm()
-      return
-    }
-    shouldRevealForm.current = true
-    storeFlag(formShownKey)
-    setShowForm(true)
-  }
 
   const handleDocsClick = () => {
-    storeFlag(contactPromptKey)
+    storeFlag()
     setShowContactPrompt(true)
   }
 
   useEffect(() => {
     try {
       const storedPrompt = localStorage.getItem(contactPromptKey)
-      const storedForm = localStorage.getItem(formShownKey)
       if (isStoredFlagValid(storedPrompt)) setShowContactPrompt(true)
-      if (isStoredFlagValid(storedForm)) setShowForm(true)
+      if (sessionStorage.getItem(showContactFormKey) === '1') {
+        sessionStorage.removeItem(showContactFormKey)
+        setShowForm(true)
+      }
     } catch {
       /* empty */
     }
   }, [])
-
-  useEffect(() => {
-    if (!showForm || !shouldRevealForm.current) return
-    shouldRevealForm.current = false
-    revealForm()
-  }, [showForm])
 
   return (
     <Flex vertical gap={16} style={{ maxWidth: '54rem' }}>
@@ -154,7 +132,6 @@ export default function Page() {
               >
                 <Card
                   size="small"
-                  hoverable
                   styles={{
                     body: { padding: '12px 16px' },
                   }}
@@ -169,11 +146,6 @@ export default function Page() {
             </Col>
           ))}
         </Row>
-        <style jsx>{`
-          .help-docs :global(.ant-card-hoverable:hover) {
-            box-shadow: none;
-          }
-        `}</style>
       </div>
 
       {showContactPrompt && (
@@ -182,7 +154,7 @@ export default function Page() {
           <Button
             type="link"
             style={{ padding: 0, height: 'auto', lineHeight: 'inherit' }}
-            onClick={() => openForm()}
+            onClick={() => setShowForm(true)}
           >
             contact us
           </Button>
@@ -191,11 +163,11 @@ export default function Page() {
       )}
 
       {showForm && (
-        <div ref={formRef} style={{ scrollMarginTop: '1rem' }}>
+        <div>
           <Title level={2} style={{ marginTop: 0 }}>
             Send a request to support
           </Title>
-          <SupportRequestForm prefill={prefill} />
+          <SupportRequestForm />
         </div>
       )}
     </Flex>

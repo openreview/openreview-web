@@ -6,6 +6,8 @@ import VenueHeader from './VenueHeader'
 import MarkdownContent from './MarkdownContent'
 import { prettyId } from '../../lib/utils'
 
+const showContactFormKey = 'helpShowContactForm'
+
 export default function ArchivedConsole({ appContext }) {
   const {
     entity: group,
@@ -37,6 +39,22 @@ export default function ArchivedConsole({ appContext }) {
 
         <div id="notes">
           <h4 className="mt-4">This {prettyId(group.id, true)} Console has been archived.</h4>{' '}
+          <p>
+            To request access, please{' '}
+            <Link
+              href="/help"
+              onClick={() => {
+                try {
+                  sessionStorage.setItem(showContactFormKey, '1')
+                } catch {
+                  /* empty */
+                }
+              }}
+            >
+              contact us
+            </Link>
+            .
+          </p>
           <p>
             Return to the{' '}
             <Link href={`/group?id=${venueId}`}>{prettyId(venueId)} homepage</Link>.

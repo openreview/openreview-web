@@ -54,13 +54,6 @@ export default function SupportRequestForm({ prefill }) {
       options: subjectOptions,
     },
     {
-      name: 'message',
-      type: 'textarea',
-      placeholder: 'Message',
-      required: () => true,
-      showIf: () => true,
-    },
-    {
       name: 'profileId',
       type: 'input',
       placeholder: 'Profile ID',
@@ -89,6 +82,13 @@ export default function SupportRequestForm({ prefill }) {
       showIf: () =>
         formData.subject === submissionSubject ||
         formData.subject === accessPublicationSubject,
+    },
+    {
+      name: 'message',
+      type: 'textarea',
+      placeholder: 'Message',
+      required: () => true,
+      showIf: () => true,
     },
   ]
 

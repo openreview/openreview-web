@@ -20,6 +20,7 @@ const renderWithForm = async () => {
 const clearStorage = () => {
   try {
     localStorage.clear()
+    sessionStorage.clear()
   } catch {
     /* empty */
   }
@@ -130,31 +131,36 @@ describe('Help page', () => {
 
     expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Send' })).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Your email address')).toHaveFocus()
   })
 
-  test('show contact prompt and form after returning from docs', async () => {
+  test('show contact prompt after returning from docs', async () => {
     localStorage.setItem(
       'helpContactPromptShown',
       JSON.stringify({ timestamp: Date.now() })
     )
-    localStorage.setItem('helpFormShown', JSON.stringify({ timestamp: Date.now() }))
 
     render(<Help />)
 
     expect(
       screen.getByText((text) => text.includes('If you need more help, please'))
     ).toBeInTheDocument()
-    expect(screen.getByPlaceholderText('Your email address')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('Your email address')).not.toBeInTheDocument()
   })
 
-  test('ignore expired localStorage flags', async () => {
+  test('open support form when navigated from archived console', async () => {
+    sessionStorage.setItem('helpShowContactForm', '1')
+
+    render(<Help />)
+
+    expect(
+      await screen.findByPlaceholderText('Your email address')
+    ).toBeInTheDocument()
+    expect(sessionStorage.getItem('helpShowContactForm')).toBeNull()
+  })
+
+  test('ignore expired localStorage flag', async () => {
     localStorage.setItem(
       'helpContactPromptShown',
-      JSON.stringify({ timestamp: Date.now() - 31 * 60 * 1000 })
-    )
-    localStorage.setItem(
-      'helpFormShown',
       JSON.stringify({ timestamp: Date.now() - 31 * 60 * 1000 })
     )
 
