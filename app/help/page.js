@@ -51,21 +51,10 @@ const docsSections = [
 
 const contactPromptKey = 'helpContactPromptShown'
 const showContactFormKey = 'helpShowContactForm'
-const thirtyMinutesMs = 30 * 60 * 1000
-
-const isStoredFlagValid = (value) => {
-  if (!value) return false
-  try {
-    const parsed = JSON.parse(value)
-    return typeof parsed.timestamp === 'number' && Date.now() - parsed.timestamp < thirtyMinutesMs
-  } catch {
-    return value === 'true'
-  }
-}
 
 const storeFlag = () => {
   try {
-    localStorage.setItem(contactPromptKey, JSON.stringify({ timestamp: Date.now() }))
+    localStorage.setItem(contactPromptKey, 'true')
   } catch {
     /* empty */
   }
@@ -82,8 +71,7 @@ export default function Page() {
 
   useEffect(() => {
     try {
-      const storedPrompt = localStorage.getItem(contactPromptKey)
-      if (isStoredFlagValid(storedPrompt)) setShowContactPrompt(true)
+      if (localStorage.getItem(contactPromptKey) === 'true') setShowContactPrompt(true)
       if (sessionStorage.getItem(showContactFormKey) === '1') {
         sessionStorage.removeItem(showContactFormKey)
         setShowForm(true)
