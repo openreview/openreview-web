@@ -269,7 +269,7 @@ test('create a new profile with an institutional email', async (t) => {
     .expect(nameConfirmationCheckbox.hasAttribute('disabled'))
     .notOk()
     .click(nameConfirmationLabel)
-  await enterDob(t, 'July (7)', '20', '1992')
+  await enterDob(t, 'January (1)', '1', '1970')
   await t
     .typeText(emailAddressInputSelector, 'kevin@umass.edu')
     .expect(signupButtonSelector.hasAttribute('disabled'))
@@ -501,6 +501,8 @@ fixture`Activate`
 test('register a profile with an institutional email', async (t) => {
   await t
     .click(nextSectiomButtonSelector) // personal
+    .expect(Selector('input[placeholder="Select your date of birth"]').value)
+    .eql('1970-01-01')
     .click(nextSectiomButtonSelector) // emails
     .expect(
       Selector('p').withText(/Your email address could not be automatically verified/).exists
