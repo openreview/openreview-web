@@ -1,8 +1,7 @@
-/* oxlint-disable one-var */
-import '@testing-library/jest-dom'
 import { render, screen, waitFor } from '@testing-library/react'
 import ConsoleTaskList from '../components/webfield/ConsoleTaskList'
 import api from '../lib/api-client'
+import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 jest.mock('../lib/api-client')
@@ -14,7 +13,7 @@ let authorConsoleReferrer,
   reviewerConsoleReferrer,
   areaChairConsoleReferrer,
   seniorAreaChairConsoleReferrer
-let noteInvitations, edgeInvitations, tagInvitations
+let noteInvitations, edgeInvitations, tagInvitations, paymentInvitations
 let oneDay, fourDays
 
 beforeAll(() => {
@@ -42,6 +41,7 @@ beforeAll(() => {
 })
 
 beforeEach(() => {
+  paymentInvitations = []
   api.getAll = jest.fn((_, body) => {
     switch (body.type) {
       case 'note':
@@ -53,6 +53,8 @@ beforeEach(() => {
       case 'tag':
       case 'tags':
         return tagInvitations
+      case 'payment':
+        return paymentInvitations
       default:
         return null
     }
@@ -642,6 +644,98 @@ describe('ConsoleTaskList', () => {
 
       // #endregion
     })
+  })
+
+  test('show submission fee tasks of authors', async () => {
+    const now = Date.now()
+    noteInvitations = []
+    edgeInvitations = []
+    tagInvitations = []
+    paymentInvitations = [
+      {
+        id: `${venueId}/${submissionName}5/-/Submission_Fee_Payment`, // not paid
+        domain: venueId,
+        duedate: now + fourDays,
+        content: { amount: { value: 2000 } },
+        edit: { payment: { note: 'paper5Id' } },
+        invitees: [venueId, `${venueId}/${submissionName}5/${authorName}`],
+        details: { repliedPayments: [] },
+      },
+      {
+        id: `${venueId}/${submissionName}6/-/Submission_Fee_Payment`, // paid
+        domain: venueId,
+        duedate: now + fourDays,
+        content: { amount: { value: 2000 } },
+        edit: { payment: { note: 'paper6Id' } },
+        invitees: [venueId, `${venueId}/${submissionName}6/${authorName}`],
+        details: { repliedPayments: [{ id: 'paper6PaymentId', status: 'paid' }] },
+      },
+      {
+        id: `${venueId}/${submissionName}7/-/Submission_Fee_Payment`, // waived
+        domain: venueId,
+        duedate: now + fourDays,
+        content: { amount: { value: 2000 } },
+        edit: { payment: { note: 'paper7Id' } },
+        invitees: [venueId, `${venueId}/${submissionName}7/${authorName}`],
+        details: { repliedPayments: [{ id: 'paper7PaymentId', status: 'waived' }] },
+      },
+    ]
+
+    render(
+      <ConsoleTaskList
+        venueId={venueId}
+        roleName={authorName}
+        referrer={authorConsoleReferrer}
+        filterAssignedInvitation={true}
+        submissionName={submissionName}
+      />
+    )
+
+    await waitFor(() => {
+      const paper5FeeLink = screen.getByText('Submission5 Submission Fee Payment')
+      const paper6FeeLink = screen.getByText('Submission6 Submission Fee Payment')
+      const paper7FeeLink = screen.getByText('Submission7 Submission Fee Payment')
+
+      expect(paper5FeeLink).toHaveAttribute(
+        'href',
+        `/forum?id=paper5Id&referrer=${authorConsoleReferrer}`
+      )
+      expect(paper5FeeLink.parentElement.parentElement).not.toHaveClass('completed')
+      expect(paper5FeeLink.nextElementSibling).toHaveClass('duedate', { exact: true })
+
+      expect(paper6FeeLink.parentElement.parentElement).toHaveClass('completed')
+      expect(paper7FeeLink.parentElement.parentElement).toHaveClass('completed')
+    })
+  })
+
+  test('do not show submission fee tasks to reviewers', async () => {
+    noteInvitations = []
+    edgeInvitations = []
+    tagInvitations = []
+    paymentInvitations = [
+      {
+        id: `${venueId}/${submissionName}5/-/Submission_Fee_Payment`,
+        domain: venueId,
+        duedate: Date.now() + fourDays,
+        content: { amount: { value: 2000 } },
+        edit: { payment: { note: 'paper5Id' } },
+        invitees: [venueId, `${venueId}/${submissionName}5/${authorName}`],
+        details: { repliedPayments: [] },
+      },
+    ]
+
+    render(
+      <ConsoleTaskList
+        venueId={venueId}
+        roleName={reviewerName}
+        referrer={reviewerConsoleReferrer}
+        filterAssignedInvitation={true}
+        submissionName={submissionName}
+        submissionNumbers={[5]}
+      />
+    )
+
+    expect(await screen.findByText('No outstanding tasks for this conference')).toBeVisible()
   })
 
   test('show tasks of reviewers (v2 venue)', async () => {

@@ -324,41 +324,47 @@ export default function Page() {
     loadPayments()
   }, [isRefreshing])
 
-  if (error) return <ErrorAlert error={error} />
-  if (!venues) return <LoadingSpinner />
-
   return (
     <>
       <header>
         <h1>Submission Fees</h1>
       </header>
-      <Paragraph type="secondary">
-        Each submission&apos;s fee only needs to be settled once, by any one of its authors.
-      </Paragraph>
+      {error && <ErrorAlert error={error} />}
+      {!venues && !error && <LoadingSpinner />}
+      {venues && !error && (
+        <>
+          <Paragraph type="secondary">
+            Each submission&apos;s fee only needs to be settled once, by any one of its
+            authors.
+          </Paragraph>
 
-      {venues.length ? (
-        <Collapse
-          accordion
-          ghost
-          destroyOnHidden
-          activeKey={activeDomain}
-          onChange={(keys) => setActiveDomain(keys[0])}
-          styles={{ header: { paddingInline: 0 }, body: { paddingInline: 0 } }}
-          items={venues.map((venue) => ({
-            key: venue.domain,
-            label: (
-              <Flex align="baseline" wrap gap="small">
-                <h3 style={{ margin: 0 }}>{prettyId(venue.domain)}</h3>
-                <Text type="secondary">
-                  {venue.pending.length ? `${venue.pending.length} pending` : 'All settled'}
-                </Text>
-              </Flex>
-            ),
-            children: <VenueFees venue={venue} reloadFees={loadPayments} />,
-          }))}
-        />
-      ) : (
-        <p className="empty-message">No submission fees for papers you are an author of</p>
+          {venues.length ? (
+            <Collapse
+              accordion
+              ghost
+              destroyOnHidden
+              activeKey={activeDomain}
+              onChange={(keys) => setActiveDomain(keys[0])}
+              styles={{ header: { paddingInline: 0 }, body: { paddingInline: 0 } }}
+              items={venues.map((venue) => ({
+                key: venue.domain,
+                label: (
+                  <Flex align="baseline" wrap gap="small">
+                    <h3 style={{ margin: 0 }}>{prettyId(venue.domain)}</h3>
+                    <Text type="secondary">
+                      {venue.pending.length
+                        ? `${venue.pending.length} pending`
+                        : 'All settled'}
+                    </Text>
+                  </Flex>
+                ),
+                children: <VenueFees venue={venue} reloadFees={loadPayments} />,
+              }))}
+            />
+          ) : (
+            <p className="empty-message">No submission fees for papers you are an author of</p>
+          )}
+        </>
       )}
     </>
   )
