@@ -12,7 +12,7 @@ beforeAll(() => {
 })
 
 describe('rejectProfile', () => {
-  test('fill the vouch request link with a guest token signed with the invitation secret', async () => {
+  test('fill the vouch request link and its lifetime from the invitation', async () => {
     api.get = jest.fn((path) =>
       Promise.resolve(
         path === '/profiles'
@@ -29,7 +29,7 @@ describe('rejectProfile', () => {
                 {
                   id: invitationId,
                   secret,
-                  content: { linkExpirationDays: { value: 30 } },
+                  content: { linkExpirationDays: { value: 14 } },
                 },
               ],
             }
@@ -39,7 +39,7 @@ describe('rejectProfile', () => {
 
     await rejectProfile(
       '~Sofia_Moreno1',
-      'Ask a colleague to vouch for you:\n\n{{vouchRequestLink}}',
+      'Ask a colleague to vouch for you:\n\n{{vouchRequestLink}}\n\nYou have {{vouchRequestLinkExpirationDays}} days to request a vouch with this link.',
       ['Request supervisor or coauthor to vouch']
     )
 
@@ -49,7 +49,9 @@ describe('rejectProfile', () => {
     expect(decision).toBe('reject')
     expect(labels).toEqual(['Request supervisor or coauthor to vouch'])
 
-    const link = new URL(reason.split('\n\n')[1])
+    const [, linkText, expiryText] = reason.split('\n\n')
+    expect(expiryText).toBe('You have 14 days to request a vouch with this link.')
+    const link = new URL(linkText)
     expect(link.origin).toBe(window.location.origin)
     expect(link.pathname).toBe('/invitation')
     expect(link.searchParams.get('id')).toBe(invitationId)
@@ -63,9 +65,9 @@ describe('rejectProfile', () => {
     const claims = JSON.parse(Buffer.from(payload, 'base64url').toString())
     expect(claims.group).toBe('~Sofia_Moreno1')
     expect(claims.invitation).toBe(invitationId)
-    const thirtyDays = 30 * 24 * 60 * 60
-    expect(claims.exp).toBeGreaterThan(Date.now() / 1000 + thirtyDays - 60)
-    expect(claims.exp).toBeLessThanOrEqual(Date.now() / 1000 + thirtyDays)
+    const fourteenDays = 14 * 24 * 60 * 60
+    expect(claims.exp).toBeGreaterThan(Date.now() / 1000 + fourteenDays - 60)
+    expect(claims.exp).toBeLessThanOrEqual(Date.now() / 1000 + fourteenDays)
   })
 
   test('leave the message alone when it has no vouch request placeholder', async () => {

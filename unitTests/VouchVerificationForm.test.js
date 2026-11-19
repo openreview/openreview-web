@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { cloneDeep } from 'lodash'
 import VouchVerificationForm from '../components/webfield/VouchVerificationForm'
 import api from '../lib/api-client'
+import { formatDateTime } from '../lib/utils'
+import { vouchExpiryDateOptions } from '../lib/vouch'
 import { renderWithWebFieldContext } from './util'
 import '@testing-library/jest-dom'
 
@@ -81,6 +83,7 @@ const providerProps = (entity) => ({
     entity,
     instructions: 'Vouch for a colleague',
     vouchedMessage: 'You vouched for this profile',
+    declinedMessage: 'You did not vouch for this profile',
   },
 })
 
@@ -99,6 +102,9 @@ describe('VouchVerificationForm', () => {
       expect(screen.getByText('Vouch for a colleague')).toBeInTheDocument()
     })
     expect(api.get).toHaveBeenCalledWith('/profiles/assertions', { invitation: invitation.id })
+    expect(
+      screen.getByText(/This request expires on/).querySelector('strong')
+    ).toHaveTextContent(formatDateTime(invitation.expdate, vouchExpiryDateOptions))
     expect(screen.getByText('Jane Doe')).toBeInTheDocument()
     expect(
       screen.getByText(
@@ -159,6 +165,30 @@ describe('VouchVerificationForm', () => {
     })
     expect(screen.queryByText('You vouched for this profile')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Vouch for Jane Doe' })).toBeEnabled()
+  })
+
+  test('post nothing when the voucher does not vouch, and let them go back', async () => {
+    api.get = jest.fn(() => Promise.resolve({ assertions: [] }))
+    api.post = jest.fn()
+
+    renderWithWebFieldContext(<VouchVerificationForm />, providerProps(invitation))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: "Don't vouch" })).toBeEnabled()
+    })
+    await userEvent.type(screen.getByLabelText("Jane Doe's email address"), 'jane@example.com')
+    await userEvent.click(screen.getByRole('button', { name: "Don't vouch" }))
+
+    expect(screen.getByText('You did not vouch for this profile')).toBeInTheDocument()
+    expect(
+      screen.getByText(/If you change your mind/).querySelector('strong')
+    ).toHaveTextContent(formatDateTime(invitation.expdate, vouchExpiryDateOptions))
+    expect(screen.queryByLabelText("Jane Doe's email address")).not.toBeInTheDocument()
+    expect(api.post).not.toHaveBeenCalled()
+
+    await userEvent.click(screen.getByRole('button', { name: 'Back to the request' }))
+    expect(screen.getByLabelText("Jane Doe's email address")).toHaveValue('jane@example.com')
+    expect(screen.getByRole('button', { name: 'Vouch for Jane Doe' })).toBeDisabled()
   })
 
   test('hide the homepage when the profile had none at request time', async () => {

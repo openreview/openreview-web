@@ -1,18 +1,25 @@
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
 import api from '../../lib/api-client'
-import { isValidEmail, prettyId } from '../../lib/utils'
-import { formatVouchPosition } from '../../lib/vouch'
+import { formatDateTime, isValidEmail, prettyId } from '../../lib/utils'
+import { formatVouchPosition, vouchExpiryDateOptions } from '../../lib/vouch'
 import Markdown from '../EditorComponents/Markdown'
 import LoadingSpinner from '../LoadingSpinner'
 import SpinnerButton from '../SpinnerButton'
 import WebFieldContext from '../WebFieldContext'
+import VouchStatements from './VouchStatements'
 
 const VouchVerificationForm = () => {
-  const { entity: invitation, instructions, vouchedMessage } = useContext(WebFieldContext)
+  const {
+    entity: invitation,
+    instructions,
+    vouchedMessage,
+    declinedMessage,
+  } = useContext(WebFieldContext)
   const [email, setEmail] = useState('')
   const [isSaving, setIsSaving] = useState(false)
   const [isVouched, setIsVouched] = useState(null)
+  const [isDeclined, setIsDeclined] = useState(false)
   const [checked, setChecked] = useState([])
 
   const profileId = invitation.assertion.profile.id
@@ -24,6 +31,9 @@ const VouchVerificationForm = () => {
     typeof homepageValue === 'string' && !homepageValue.includes('${') ? homepageValue : null
   const statements = invitation.assertion.content?.confirmations?.value?.param?.enum ?? []
   const fullname = names[0]?.fullname ?? prettyId(profileId)
+  const expiryDate = invitation.expdate
+    ? formatDateTime(invitation.expdate, vouchExpiryDateOptions)
+    : null
 
   useEffect(() => {
     api
@@ -69,9 +79,31 @@ const VouchVerificationForm = () => {
     )
   }
 
+  if (isDeclined) {
+    return (
+      <div className="note_editor">
+        <Markdown text={declinedMessage} />
+        {expiryDate && (
+          <p>
+            If you change your mind, you can vouch from this link until{' '}
+            <strong>{expiryDate}</strong>.
+          </p>
+        )}
+        <SpinnerButton type="default" onClick={() => setIsDeclined(false)}>
+          Back to the request
+        </SpinnerButton>
+      </div>
+    )
+  }
+
   return (
     <div className="note_editor">
       <Markdown text={instructions} />
+      {expiryDate && (
+        <p>
+          This request expires on <strong>{expiryDate}</strong>.
+        </p>
+      )}
       <p>
         <strong>Name:</strong> {fullname}
       </p>
@@ -102,26 +134,7 @@ const VouchVerificationForm = () => {
           onChange={(e) => setEmail(e.target.value)}
         />
       </div>
-      <div className="form-group">
-        {statements.map((statement) => (
-          <div className="checkbox" key={statement}>
-            <label>
-              <input
-                type="checkbox"
-                checked={checked.includes(statement)}
-                onChange={(e) =>
-                  setChecked((existing) =>
-                    e.target.checked
-                      ? [...existing, statement]
-                      : existing.filter((p) => p !== statement)
-                  )
-                }
-              />{' '}
-              {statement}
-            </label>
-          </div>
-        ))}
-      </div>
+      <VouchStatements statements={statements} checked={checked} setChecked={setChecked} />
       <SpinnerButton
         type="primary"
         onClick={vouch}
@@ -131,6 +144,9 @@ const VouchVerificationForm = () => {
         }
       >
         {`Vouch for ${fullname}`}
+      </SpinnerButton>{' '}
+      <SpinnerButton type="default" onClick={() => setIsDeclined(true)} disabled={isSaving}>
+        Don&apos;t vouch
       </SpinnerButton>
     </div>
   )

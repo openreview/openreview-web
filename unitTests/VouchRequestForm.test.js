@@ -2,6 +2,8 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import VouchRequestForm from '../components/webfield/VouchRequestForm'
 import api from '../lib/api-client'
+import { formatDateTime } from '../lib/utils'
+import { vouchExpiryDateOptions } from '../lib/vouch'
 import { renderWithWebFieldContext } from './util'
 import '@testing-library/jest-dom'
 
@@ -16,13 +18,30 @@ global.view2 = {
   constructEdit: jest.fn(() => ({ invitation: 'openreview.net/Support/-/Vouch_Request' })),
 }
 
+const statements = [
+  "The vouch will be public on my profile and on my colleague's profile.",
+  'I cannot remove the vouch from my profile after my colleague posts it.',
+]
+
+const checkAllStatements = async () => {
+  for (const statement of statements) {
+    await userEvent.click(screen.getByLabelText(statement))
+  }
+}
+
 const invitation = {
   id: 'openreview.net/Support/-/Vouch_Request',
   apiVersion: 2,
   guestPosting: true,
+  content: { requestExpirationDays: { value: 30 } },
   edit: {
     note: {
-      content: { voucher: { value: { param: { type: 'string', regex: '^~\\S+\\d+$' } } } },
+      content: {
+        voucher: { value: { param: { type: 'string', regex: '^~\\S+\\d+$' } } },
+        confirmations: {
+          value: { param: { type: 'string[]', input: 'checkbox', enum: statements } },
+        },
+      },
     },
   },
 }
@@ -49,6 +68,11 @@ const voucheeProfile = {
   },
 }
 
+const voucherProfile = {
+  id: '~Ana_Lee1',
+  content: { names: [{ fullname: 'Ana Lee', username: '~Ana_Lee1', preferred: true }] },
+}
+
 const providerProps = (args) => ({
   value: {
     entity: invitation,
@@ -62,7 +86,11 @@ const providerProps = (args) => ({
 beforeEach(() => {
   global.promptError.mockClear()
   global.view2.constructEdit.mockClear()
-  api.get = jest.fn(() => Promise.resolve({ profiles: [voucheeProfile] }))
+  api.get = jest.fn((path, { id }) => {
+    if (id === '~Jane_Doe1') return Promise.resolve({ profiles: [voucheeProfile] })
+    if (id === '~Ana_Lee1') return Promise.resolve({ profiles: [voucherProfile] })
+    return Promise.reject(new Error('Profile Not Found'))
+  })
 })
 
 describe('VouchRequestForm', () => {
@@ -76,7 +104,7 @@ describe('VouchRequestForm', () => {
     expect(screen.queryByRole('button', { name: 'Request a vouch' })).not.toBeInTheDocument()
   })
 
-  test('post the request with the guest token without looking up the colleague', async () => {
+  test('post the request with the guest token after the colleague profile is found', async () => {
     api.post = jest.fn(() =>
       Promise.resolve({ id: 'edit id', note: { id: 'note id', number: 7 } })
     )
@@ -112,6 +140,17 @@ describe('VouchRequestForm', () => {
     expect(
       screen.queryByText('Enter a profile ID such as ~Jane_Doe1.')
     ).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('link', { name: 'Ana Lee' })).toHaveAttribute(
+        'href',
+        '/profile?id=~Ana_Lee1'
+      )
+    })
+    expect(screen.getByText(/Profile found/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Request a vouch' })).toBeDisabled()
+    await userEvent.click(screen.getByLabelText(statements[0]))
+    expect(screen.getByRole('button', { name: 'Request a vouch' })).toBeDisabled()
+    await userEvent.click(screen.getByLabelText(statements[1]))
     await userEvent.click(screen.getByRole('button', { name: 'Request a vouch' }))
 
     await waitFor(() => {
@@ -120,13 +159,20 @@ describe('VouchRequestForm', () => {
     expect(screen.getByLabelText('Link for Ana Lee')).toHaveValue(
       `${window.location.origin}/invitation?id=openreview.net/Support/Vouch_Request7/-/Vouch_Verification`
     )
+    expect(
+      screen.getByText(/The request expires on/).querySelector('strong')
+    ).toHaveTextContent(
+      formatDateTime(Date.now() + 30 * 24 * 60 * 60 * 1000, vouchExpiryDateOptions)
+    )
     await userEvent.click(screen.getByRole('button', { name: 'Copy link' }))
     expect(global.promptMessage).toHaveBeenCalledWith('Link copied')
-    expect(api.get).toHaveBeenCalledTimes(1)
+    expect(api.get).toHaveBeenCalledTimes(2)
     expect(api.get).toHaveBeenCalledWith('/profiles', { id: '~Jane_Doe1' })
+    expect(api.get).toHaveBeenCalledWith('/profiles', { id: '~Ana_Lee1' })
     expect(global.view2.constructEdit).toHaveBeenCalledWith({
       formData: {
         voucher: '~Ana_Lee1',
+        confirmations: statements,
         editSignatureInputValues: ['~Jane_Doe1'],
       },
       invitationObj: invitation,
@@ -151,9 +197,46 @@ describe('VouchRequestForm', () => {
       'ana.lee@umass.edu'
     )
 
+    await checkAllStatements()
+
     expect(screen.getByText('Enter a profile ID such as ~Jane_Doe1.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Request a vouch' })).toBeDisabled()
+    expect(api.get).toHaveBeenCalledTimes(1)
     expect(api.post).not.toHaveBeenCalled()
+  })
+
+  test('let the request go out when the colleague profile cannot be confirmed', async () => {
+    api.post = jest.fn(() =>
+      Promise.resolve({ id: 'edit id', note: { id: 'note id', number: 8 } })
+    )
+
+    renderWithWebFieldContext(
+      <VouchRequestForm />,
+      providerProps({ id: invitation.id, user: '~Jane_Doe1', key: 'some key' })
+    )
+
+    await userEvent.type(
+      screen.getByLabelText("Your colleague's profile ID"),
+      '~Hidden_Person1'
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByText(/We couldn't confirm that this profile exists/)
+      ).toBeInTheDocument()
+    })
+    expect(screen.queryByText(/Profile found/)).not.toBeInTheDocument()
+    expect(api.get).toHaveBeenCalledWith('/profiles', { id: '~Hidden_Person1' })
+
+    await checkAllStatements()
+    await userEvent.click(screen.getByRole('button', { name: 'Request a vouch' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Your vouch request was created')).toBeInTheDocument()
+    })
+    expect(screen.getByLabelText('Link for Hidden Person')).toHaveValue(
+      `${window.location.origin}/invitation?id=openreview.net/Support/Vouch_Request8/-/Vouch_Verification`
+    )
   })
 
   test('show the API error when the request is refused', async () => {
@@ -167,6 +250,7 @@ describe('VouchRequestForm', () => {
     await waitFor(() => expect(screen.getByText('Name: Jane Doe')).toBeInTheDocument())
     expect(screen.queryByText(/^Email:/)).not.toBeInTheDocument()
     await userEvent.type(screen.getByLabelText("Your colleague's profile ID"), '~Jane_Doe2')
+    await checkAllStatements()
     await userEvent.click(screen.getByRole('button', { name: 'Request a vouch' }))
 
     await waitFor(() => {
