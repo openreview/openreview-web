@@ -624,7 +624,7 @@ const NoteEditor = ({
         displayError(
           hasOnlyMissingFieldsError
             ? 'Required field values are missing.'
-            : `${fieldErrors[fieldErrors.length - 1].message}${otherErrorCount ? ` (and ${inflect(otherErrorCount, 'other error', 'other errors', true)})` : ''}`
+            : `${fieldErrors[fieldErrors.length - 1].message}${otherErrorCount ? ` (and ${inflect(otherErrorCount, 'other field has an error', 'other fields have errors', true)})` : ''}`
         )
       } else if (error.details?.path) {
         const { fieldName, index, isInstitutionError } = getErrorFieldName(error.details.path)
