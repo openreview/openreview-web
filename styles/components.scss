@@ -1555,20 +1555,33 @@ header,
     }
   }
   textarea {
-    width: 100% !important;
+    min-width: 100%;
+    max-width: 100%;
     min-height: 250px;
-  }
-  .tab-pane {
-    padding: 0;
-  }
-  .nav-tabs {
-    font-size: 0.75rem;
   }
   div.preview {
     @include mixins.markdown-content-styles;
     height: 250px;
     overflow-y: scroll;
     padding: 0.375rem 0.75rem;
+  }
+  &--split-view {
+    .markdown-preview__panes {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      width: max-content;
+      min-width: 100%;
+    }
+    .markdown-preview__textarea {
+      display: contents;
+    }
+    textarea {
+      resize: both;
+    }
+    div.preview {
+      height: auto;
+      contain: size;
+    }
   }
 }
 
@@ -1634,7 +1647,6 @@ header,
     display: flex;
     .markdown-preview {
       flex-grow: 1;
-      margin-top: 0;
     }
   }
 

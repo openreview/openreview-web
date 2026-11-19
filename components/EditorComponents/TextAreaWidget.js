@@ -123,7 +123,7 @@ const TextAreaWidget = () => {
               const updatedValue = e?.trim() === '' ? undefined : e
               onTextUpdated(updatedValue)
             }}
-            fieldName={`${replyToNote?.id}${fieldName}`}
+            enableSplitView={!isWebfield}
           />
         ) : (
           <textarea
