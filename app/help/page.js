@@ -64,6 +64,8 @@ export default function Page() {
   const [showForm, setShowForm] = useState(false)
   const [showContactPrompt, setShowContactPrompt] = useState(false)
 
+  const openForm = () => setShowForm(true)
+
   const handleDocsClick = () => {
     storeFlag()
     setShowContactPrompt(true)
@@ -142,7 +144,7 @@ export default function Page() {
           <Button
             type="link"
             style={{ padding: 0, height: 'auto', lineHeight: 'inherit' }}
-            onClick={() => setShowForm(true)}
+            onClick={openForm}
           >
             contact us
           </Button>

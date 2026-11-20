@@ -1,18 +1,18 @@
+import copy from 'copy-to-clipboard'
 /* globals promptError, promptMessage: false */
 import { sortBy } from 'lodash'
-import { useContext, useEffect, useState } from 'react'
-import copy from 'copy-to-clipboard'
 import Link from 'next/link'
+import { useContext, useEffect, useState } from 'react'
+import api from '../../../lib/api-client'
+import { getNoteContentValues } from '../../../lib/forum-utils'
+import { pluralizeString, prettyField, getRoleHashFragment } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
-import AreaChairStatusMenuBar from '../ProgramChairConsole/AreaChairStatusMenuBar'
-import { getNoteContentValues } from '../../../lib/forum-utils'
-import { pluralizeString, prettyField, getRoleHashFragment } from '../../../lib/utils'
-import api from '../../../lib/api-client'
-import SelectAllCheckBox from '../SelectAllCheckbox'
 import ProfileLink from '../ProfileLink'
+import AreaChairStatusMenuBar from '../ProgramChairConsole/AreaChairStatusMenuBar'
+import SelectAllCheckBox from '../SelectAllCheckbox'
 
 const CommitteeSummary = ({ rowData }) => {
   const { id, preferredName, title } = rowData.areaChairProfile ?? {}

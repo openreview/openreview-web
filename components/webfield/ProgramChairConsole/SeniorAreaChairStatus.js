@@ -1,17 +1,17 @@
-/* globals promptError, promptMessage: false */
-import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
 import Link from 'next/link'
+/* globals promptError, promptMessage: false */
+import { useContext, useEffect, useState } from 'react'
+import api from '../../../lib/api-client'
+import { getNoteContentValues } from '../../../lib/forum-utils'
 import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
-import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
-import api from '../../../lib/api-client'
 import WebFieldContext from '../../WebFieldContext'
-import { getNoteContentValues } from '../../../lib/forum-utils'
 import ProfileLink from '../ProfileLink'
+import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
   const { id, preferredName, title } = profile ?? {}

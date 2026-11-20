@@ -144,9 +144,7 @@ describe('Help page', () => {
 
     render(<Help />)
 
-    expect(
-      await screen.findByPlaceholderText('Your email address')
-    ).toBeInTheDocument()
+    expect(await screen.findByPlaceholderText('Your email address')).toBeInTheDocument()
     expect(sessionStorage.getItem('helpShowContactForm')).toBeNull()
   })
 
