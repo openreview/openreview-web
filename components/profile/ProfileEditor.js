@@ -583,6 +583,12 @@ export default function ProfileEditor({
                 This information is crucial for deduplicating users and ensuring that you see
                 your reviewing assignments. OpenReview will only send messages to the address
                 marked as “Preferred”.
+                <div className="mt-2">
+                  Your email addresses are private: they are hidden from other users and are
+                  not shown on your profile page. We recommend adding an alternate email
+                  address so you can recover your account if you lose access to your preferred
+                  email.
+                </div>
               </>
             }
           >
