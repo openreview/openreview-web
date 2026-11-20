@@ -3,7 +3,6 @@
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import debounce from 'lodash/debounce'
-import escapeRegExp from 'lodash/escapeRegExp'
 import groupBy from 'lodash/groupBy'
 import isEmpty from 'lodash/isEmpty'
 import truncate from 'lodash/truncate'
@@ -20,13 +19,19 @@ import {
   addTagToReactionsList,
   parseFilterQuery,
   replaceFilterWildcards,
+  checkExReadersMatch,
+  checkFiltersMatch,
+  expandForumViews,
+  getLatestReplyReaders,
 } from '../../lib/forum-utils'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
 import Icon from '../Icon'
 import LoadingSpinner from '../LoadingSpinner'
 import NoteEditor from '../NoteEditor'
+import MarkdownContent from '../webfield/MarkdownContent'
 import ChatEditorForm from './ChatEditorForm'
 import ChatFilterForm from './ChatFilterForm'
+import ChatReadOnlyNotice from './ChatReadOnlyNotice'
 import ChatReply from './ChatReply'
 import ConfirmDeleteModal from './ConfirmDeleteModal'
 import FilterForm from './FilterForm'
@@ -36,27 +41,6 @@ import ForumReply from './ForumReply'
 import ForumReplyContext from './ForumReplyContext'
 
 dayjs.extend(relativeTime)
-
-const checkGroupMatch = (groupId, replyGroup) => {
-  if (groupId.includes('.*')) {
-    return new RegExp(groupId).test(replyGroup)
-  }
-  return groupId === replyGroup
-}
-
-const checkSignaturesMatch = (selectedSignatures, replySignature) =>
-  selectedSignatures.some((sig) => checkGroupMatch(sig, replySignature))
-
-const checkReadersMatch = (selectedReaders, replyReaders) =>
-  selectedReaders.every((reader) =>
-    replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
-  )
-
-// This function is also used for matching invitations
-const checkExReadersMatch = (selectedReaders, replyReaders) =>
-  selectedReaders.some((reader) =>
-    replyReaders.some((replyReader) => checkGroupMatch(reader, replyReader))
-  )
 
 const scrollToElement = (selector) => {
   const el = document.querySelector(selector)
@@ -107,6 +91,7 @@ export default function Forum({
     excludedReaders: null,
   })
   const [defaultFilters, setDefaultFilters] = useState(null)
+  const [tabMessage, setTabMessage] = useState(null)
   const [activeInvitation, setActiveInvitation] = useState(null)
   const [newMessageCounts, setNewMessageCounts] = useState({})
   const [maxLength, setMaxLength] = useState(200)
@@ -121,6 +106,7 @@ export default function Forum({
     false
   )
   const invitationMapRef = useRef(null)
+  const appliedTabIdRef = useRef(null)
   const signaturesMapRef = useRef(null)
   const replyNoteCount = useRef(0)
   const numRepliesVisible = useRef(0)
@@ -152,6 +138,12 @@ export default function Forum({
         : null,
     }))
   }
+  const forumViews = expandForumViews(
+    replyForumViews,
+    parentNote.replyInvitations,
+    replyNoteMap ? Object.values(replyNoteMap) : []
+  )
+  const forumViewIds = forumViews?.map((view) => view.id).join(',')
 
   const numRepliesHidden = useMemo(() => {
     if (!displayOptionsMap) return 0
@@ -620,15 +612,15 @@ export default function Forum({
   useEffect(() => {
     if (!parentNote) return
 
-    const handleRouteChange = () => {
+    const handleRouteChange = (hashChangeEvent) => {
       const [_, tabId] = (window.location.hash || '').split('#')
-      if (!tabId || !replyForumViews) return
+      if (!tabId || !forumViews) return
 
-      const tab = replyForumViews.find((view) => view.id === tabId)
+      const tab = forumViews.find((view) => view.id === tabId)
       if (!tab) return
 
       const primaryInvitationId = tab.expandedInvitations?.[0]
-      if (primaryInvitationId) {
+      if (primaryInvitationId && !tab.readOnly) {
         const primaryInvitation = parentNote.replyInvitations?.find((inv) =>
           inv.id.match(primaryInvitationId)
         )
@@ -639,6 +631,9 @@ export default function Forum({
           return
         }
       }
+
+      if (!hashChangeEvent && tab.id === appliedTabIdRef.current) return
+      appliedTabIdRef.current = tab.id
 
       const tabFilters = {
         invitations: null,
@@ -651,6 +646,7 @@ export default function Forum({
       }
       setDefaultFilters(tabFilters)
       setSelectedFilters(tabFilters)
+      setTabMessage(typeof tab.message === 'string' ? tab.message : null)
       setLayout(tab.layout || 'default')
       if (tab.layout === 'chat') {
         attachedToBottom.current = true
@@ -664,15 +660,15 @@ export default function Forum({
     }
 
     if (window.location.hash) {
-      handleRouteChange(window.location.hash)
+      handleRouteChange()
     } else if (
-      replyForumViews?.length > 0 &&
+      forumViews?.length > 0 &&
       !selectedNoteId &&
       !selectedInvitationId &&
       !(query.filter || query.search || query.sort || query.nesting)
     ) {
       setTimeout(() => {
-        const tab = replyForumViews[0]
+        const tab = forumViews[0]
         const newActiveTab = document.querySelector(`.filter-tabs li[data-id="${tab.id}"] a`)
         if (newActiveTab) {
           newActiveTab.click()
@@ -685,7 +681,7 @@ export default function Forum({
     return () => {
       window.onhashchange = null
     }
-  }, [parentNote])
+  }, [parentNote, forumViewIds])
 
   // Load forum replies
   useEffect(() => {
@@ -775,21 +771,8 @@ export default function Forum({
     }
 
     Object.values(replyNoteMap).forEach((note) => {
-      const keywordRegex = selectedFilters.keywords
-        ? new RegExp(`\\b${escapeRegExp(selectedFilters.keywords[0])}`, 'mi')
-        : null
       const isVisible =
-        (!selectedFilters.invitations ||
-          checkExReadersMatch(selectedFilters.invitations, note.invitations)) &&
-        (!selectedFilters.excludedInvitations ||
-          !checkExReadersMatch(selectedFilters.excludedInvitations, note.invitations)) &&
-        (!selectedFilters.signatures ||
-          checkSignaturesMatch(selectedFilters.signatures, note.signatures[0])) &&
-        (!selectedFilters.keywords || note.searchText.match(keywordRegex)) &&
-        (!selectedFilters.readers ||
-          checkReadersMatch(selectedFilters.readers, note.readers)) &&
-        (!selectedFilters.excludedReaders ||
-          !checkExReadersMatch(selectedFilters.excludedReaders, note.readers)) &&
+        checkFiltersMatch(note, selectedFilters) &&
         (!chatReaders ||
           note.readers.includes('everyone') ||
           chatReaders.every((r) => note.readers.includes(r)))
@@ -937,9 +920,10 @@ export default function Forum({
               additionalReplyCount += 1
             }
             if (!attachedToBottom.current) {
+              const tabKey = expandedInvitations[0]
               setNewMessageCounts((prevCounts) => ({
                 ...prevCounts,
-                [invId]: (prevCounts[invId] ?? 0) + 1,
+                [tabKey]: (prevCounts[tabKey] ?? 0) + 1,
               }))
             }
           }
@@ -1004,6 +988,11 @@ export default function Forum({
     loadUpdates()
   }, [events?.uniqueId])
 
+  const showChatInvitations =
+    layout === 'chat' &&
+    !parentNote.ddate &&
+    (expandedInvitations || parentNote.replyInvitations?.length > 0)
+
   return (
     <div className="forum-container">
       <ForumNote
@@ -1015,10 +1004,10 @@ export default function Forum({
 
       {repliesLoaded && (
         <div className="filters-container mt-4">
-          {replyForumViews && (
+          {forumViews && (
             <FilterTabs
               forumId={id}
-              forumViews={replyForumViews}
+              forumViews={forumViews}
               replyInvitations={parentNote.replyInvitations}
               newMessageCounts={newMessageCounts}
             />
@@ -1055,9 +1044,16 @@ export default function Forum({
                 attachedToBottom.current = true
               }}
               filterOptions={filterOptions}
+              replyNotes={Object.values(replyNoteMap)}
               numReplies={replyNoteCount.current}
               numRepliesHidden={numRepliesHidden}
             />
+          )}
+
+          {tabMessage && (
+            <div id="tab-message" className="alert alert-warning">
+              <MarkdownContent content={tabMessage} />
+            </div>
           )}
         </div>
       )}
@@ -1069,7 +1065,11 @@ export default function Forum({
             <div className="invitation-buttons top-level-invitations">
               <span className="hint">Add:</span>
               {parentNote.replyInvitations.map((invitation) => {
-                if (selectedFilters.excludedInvitations?.includes(invitation.id)) return null
+                if (
+                  selectedFilters.excludedInvitations &&
+                  checkExReadersMatch(selectedFilters.excludedInvitations, [invitation.id])
+                )
+                  return null
                 const expired = invitation.expdate < Date.now()
 
                 return (
@@ -1157,18 +1157,23 @@ export default function Forum({
         </div>
       </div>
 
-      {layout === 'chat' && parentNote.replyInvitations?.length > 0 && !parentNote.ddate && (
+      {showChatInvitations && (
         <div className="chat-invitations-container">
           {expandedInvitations ? (
             expandedInvitations.map((invitationId) => {
-              const invitation = parentNote.replyInvitations.find((inv) =>
+              const invitation = parentNote.replyInvitations?.find((inv) =>
                 inv.id.match(invitationId)
               )
               if (!invitation) {
                 return (
-                  <p key={invitationId} className="empty-message">
-                    You do not have permission to post in this chat.
-                  </p>
+                  <ChatReadOnlyNotice
+                    key={invitationId}
+                    invitationId={invitationId}
+                    readers={getLatestReplyReaders(
+                      Object.values(replyNoteMap ?? {}),
+                      invitationId
+                    )}
+                  />
                 )
               }
 
