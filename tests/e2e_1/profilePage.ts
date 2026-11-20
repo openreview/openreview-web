@@ -783,9 +783,13 @@ const editEmailInputSelector = Selector('input:not([readonly]).email')
 const emailConfirmButtons = Selector('section').find('button').withText('Confirm')
 const emailRemoveButtons = Selector('section').find('button').withText('Remove')
 const pageHeader = Selector('h1').nth(0)
-const profileViewEmail = Selector('section')
-  .withText('Emails')
-  .find('div.section-content span')
+const profileViewEmailSection = Selector('section h4').withExactText('Emails')
+const profileEditEmailRow = (email: string) =>
+  Selector('div.container.emails')
+    .child('div.row')
+    .filter((row) => row.querySelector<HTMLInputElement>('input.email')?.value === email, {
+      email,
+    })
 const addDBLPPaperToProfileButton = Selector('button.personal-links__adddblpbtn')
 const persistentUrlInput = Selector('div.persistent-url-input').find('input')
 const showPapersButton = Selector('div.persistent-url-input')
@@ -1480,13 +1484,10 @@ test('profile should be auto merged', async (t) => {
   // email should have been added to hasTaskUser's profile
   await t
     .useRole(userARole)
-    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('span').withText(userF.email).exists)
-    .ok()
-    .expect(
-      Selector('span').withText(userF.email).parent().find('small').withText('Confirmed')
-        .exists
-    )
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step2Emails)
+    .expect(profileEditEmailRow(userF.email).find('div.emails__confirmed-text').exists)
     .ok()
 })
 
@@ -1518,8 +1519,8 @@ test('open profile of other user by id', async (t) => {
     .notOk()
     .expect(pageHeader.innerText)
     .eql(hasTaskUser.fullname)
-    .expect(profileViewEmail.innerText)
-    .contains('****')
+    .expect(profileViewEmailSection.exists)
+    .notOk()
 })
 
 fixture`ORCID import`.requestHooks(orcidMock)
@@ -1597,10 +1598,15 @@ test('#83 email status is missing', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('section').withText('Emails').find('div.section-content').innerText)
-    .contains('Confirmed') // not sure how the status will be added so selector may need to be updated
-    .expect(Selector('section').withText('Emails').find('div.section-content').innerText)
-    .contains('Preferred')
+    .expect(profileViewEmailSection.exists)
+    .notOk()
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step2Emails)
+    .expect(Selector('div.emails__confirmed-text').withText('(Confirmed)').exists)
+    .ok()
+    .expect(Selector('div.emails__preferred-text').withText('(Preferred Email)').exists)
+    .ok()
 })
 test('#85 confirm profile email message', async (t) => {
   await t
@@ -1711,16 +1717,10 @@ test('confirm an email with a numeric token', async (t) => {
     .click(saveProfileButton)
     .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
-    .click(cancelButton)
-    .expect(Selector('span').withText('aaa@alternate.com').exists)
-    .ok()
-    .expect(
-      Selector('span')
-        .withText('aaa@alternate.com')
-        .parent()
-        .find('small')
-        .withText('Confirmed').exists
-    )
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step2Emails)
+    .expect(profileEditEmailRow('aaa@alternate.com').find('div.emails__confirmed-text').exists)
     .ok()
 })
 test('check if a user can add multiple emails without entering verification token', async (t) => {
@@ -1767,17 +1767,13 @@ test('check if a user can add multiple emails without entering verification toke
     .click(saveProfileButton)
     .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
-    .click(cancelButton)
-    .expect(Selector('span').withText('aab@alternate.com').exists)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step2Emails)
+    .expect(profileEditEmailRow('aab@alternate.com').find('div.emails__confirmed-text').exists)
     .ok()
-    .expect(
-      Selector('span')
-        .withText('aab@alternate.com')
-        .parent()
-        .find('small')
-        .withText('Confirmed').exists
-    )
+    .expect(profileEditEmailRow('aac@alternate.com').find('button.confirm-button').exists)
     .ok()
-    .expect(Selector('span').withText('aac@alternate.com').parent().textContent)
-    .notContains('Confirmed')
+    .expect(profileEditEmailRow('aac@alternate.com').find('div.emails__confirmed-text').exists)
+    .notOk()
 })

@@ -2,11 +2,12 @@
 /* globals promptError: false */
 /* globals promptMessage: false */
 
-import { nanoid } from 'nanoid'
-import React, { useContext } from 'react'
 import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
+import { nanoid } from 'nanoid'
 import { useSearchParams } from 'next/navigation'
+import React, { useContext } from 'react'
+import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
 import {
   getInterpolatedValues,
@@ -17,11 +18,10 @@ import {
 } from '../../lib/edge-utils'
 import EdgeBrowserContext from './EdgeBrowserContext'
 import EditEdgeDropdown from './EditEdgeDropdown'
+import EditEdgeTextbox from './EditEdgeTextbox'
 import EditEdgeToggle from './EditEdgeToggle'
 import EditEdgeTwoDropdowns from './EditEdgeTwoDropdowns'
 import ScoresList from './ScoresList'
-import EditEdgeTextbox from './EditEdgeTextbox'
-import useUser from '../../hooks/useUser'
 
 export default function ProfileEntity(props) {
   const {
@@ -478,7 +478,7 @@ export default function ProfileEntity(props) {
         </h3>
         <p>{content.title}</p>
         <h3>
-          {!preferredEmailInvitationId && <span>({content.email})</span>}
+          {!preferredEmailInvitationId && content.email && <span>({content.email})</span>}
           {preferredEmailInvitationId && !content.isDummyProfile && (
             <span
               onClick={(e) => {

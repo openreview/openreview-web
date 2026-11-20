@@ -266,11 +266,6 @@ const ProfileSearchResultRow = ({
         </div>
         <div className={styles.authorTitle}>{getTitle(profile)}</div>
       </div>
-      <div className={styles.authorEmails}>
-        {profile.content?.emailsConfirmed?.map((email, index) => (
-          <span key={index}>{email}</span>
-        ))}
-      </div>
       <div className={styles.addButton}>
         <IconButton
           name="plus"
@@ -344,7 +339,7 @@ const ProfileSearchFormAndResults = ({
         { accessToken }
       )
       setTotalCount(results.count > 200 ? 200 : results.count)
-      setProfileSearchResults(results.profiles.filter((p) => p.content.emails?.length))
+      setProfileSearchResults(results.profiles)
     } catch (apiError) {
       promptError(apiError.message)
     }
