@@ -1,17 +1,17 @@
-/* globals promptError, promptMessage: false */
-import { useContext, useEffect, useState } from 'react'
 import copy from 'copy-to-clipboard'
 import { sortBy } from 'lodash'
 import Link from 'next/link'
+/* globals promptError, promptMessage: false */
+import { useContext, useEffect, useState } from 'react'
+import api from '../../../lib/api-client'
+import { getNoteContentValues } from '../../../lib/forum-utils'
 import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
-import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
-import api from '../../../lib/api-client'
 import WebFieldContext from '../../WebFieldContext'
-import { getNoteContentValues } from '../../../lib/forum-utils'
 import ProfileLink from '../ProfileLink'
+import SeniorAreaChairStatusMenuBar from './SeniorAreaChairStatusMenuBar'
 
 const BasicProfileSummary = ({ profile, profileId }) => {
   const { id, preferredName, title } = profile ?? {}
@@ -384,7 +384,7 @@ const SeniorAreaChairStatus = ({ pcConsoleData, loadSacAcInfo, loadReviewMetaRev
     return (
       <p className="empty-message">
         There are no {prettyField(seniorAreaChairName)}.Check back later or{' '}
-        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
+        <Link href={`/help`}>get help</Link> if you believe this to be an error.
       </p>
     )
   if (seniorAreaChairStatusTabData.tableRows?.length === 0)

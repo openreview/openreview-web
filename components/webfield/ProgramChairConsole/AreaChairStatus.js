@@ -1,19 +1,19 @@
+import copy from 'copy-to-clipboard'
 /* globals promptError, promptMessage: false */
 import { sortBy } from 'lodash'
-import { useContext, useEffect, useState } from 'react'
-import copy from 'copy-to-clipboard'
 import Link from 'next/link'
+import { useContext, useEffect, useState } from 'react'
+import api from '../../../lib/api-client'
+import { getNoteContentValues } from '../../../lib/forum-utils'
+import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
+import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
 import LoadingSpinner from '../../LoadingSpinner'
+import { NoteContentV2 } from '../../NoteContent'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
-import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
-import { NoteContentV2 } from '../../NoteContent'
-import { buildEdgeBrowserUrl } from '../../../lib/webfield-utils'
-import { getNoteContentValues } from '../../../lib/forum-utils'
-import api from '../../../lib/api-client'
-import { prettyField, pluralizeString, getRoleHashFragment } from '../../../lib/utils'
 import ProfileLink from '../ProfileLink'
+import AreaChairStatusMenuBar from './AreaChairStatusMenuBar'
 
 const CommitteeSummary = ({ rowData, bidEnabled, recommendationEnabled, invitations }) => {
   const { id, preferredName, registrationNotes, title } = rowData.areaChairProfile ?? {}
@@ -504,7 +504,7 @@ const AreaChairStatus = ({
     return (
       <p className="empty-message">
         There are no {prettyField(areaChairName)}. Check back later or{' '}
-        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
+        <Link href={`/help`}>get help</Link> if you believe this to be an error.
       </p>
     )
   if (areaChairStatusTabData.tableRows?.length === 0)
