@@ -83,6 +83,7 @@ const Author = ({
   onChange,
   clearError,
   hasError,
+  hasInstitutionError,
 }) => {
   const { listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: username,
@@ -196,9 +197,9 @@ const Author = ({
               !profile.institutionOptions.length ||
               (!allowInstitutionChange && !profile.selectedInstitutions.length)
             }
-            extraClass={styles.authorInstitutionDropdown}
+            extraClass={`${styles.authorInstitutionDropdown} ${hasInstitutionError ? styles.invalidValue : ''}`}
             options={profile.institutionOptions}
-            selectedValues={profile.selectedInstitutions?.map((p) => p.domain)}
+            selectedValues={profile.selectedInstitutions?.map((p) => p.value ?? p.domain)}
             setSelectedValues={handleInstitutionChange}
             displayTextFn={(selectedValues) => {
               if (!profile.institutionOptions.length) return 'No Institution'
@@ -553,7 +554,7 @@ const ProfileSearchWithInstitutionWidget = () => {
     onChange,
     value,
     error,
-    error: { index: errorIndex } = {},
+    error: { index: errorIndex, isInstitutionError } = {},
     clearError,
   } = useContext(EditorComponentContext)
 
@@ -658,26 +659,38 @@ const ProfileSearchWithInstitutionWidget = () => {
         p.content.names.find((q) => q.username === author.username)
       )
       const institutionOptionsFromProfile = getInstitutionOptionsFromProfile(profile)
-      const institutionOptionsFromValue = (author.institutions ?? []).flatMap(
-        (institution) => {
-          if (institutionOptionsFromProfile.find((p) => p.domain === institution.domain))
-            // institution selected before still exist in profile
-            return []
-          return {
-            label: `${institution.name} (${institution.domain})`,
-            value: institution.domain,
-            name: institution.name,
-            domain: institution.domain,
-            country: institution.country,
-          }
+      const selectedInstitutions = (author.institutions ?? []).map((institution) => {
+        if (
+          profile?.content.history?.some(
+            (p) =>
+              p.institution.name === institution.name &&
+              p.institution.domain === institution.domain &&
+              p.institution.country === institution.country
+          )
+        )
+          // institution selected before still exist in profile
+          return institution
+        return {
+          label: (
+            <span className={profile ? styles.invalidValue : undefined}>
+              {institution.name} ({institution.domain})
+            </span>
+          ),
+          value: `${institution.name}|${institution.domain}|${institution.country}`,
+          name: institution.name,
+          domain: institution.domain,
+          country: institution.country,
         }
-      )
+      })
 
       return {
         username: author.username,
         fullname: author.fullname,
-        selectedInstitutions: author.institutions ?? [],
-        institutionOptions: [...institutionOptionsFromValue, ...institutionOptionsFromProfile],
+        selectedInstitutions,
+        institutionOptions: [
+          ...selectedInstitutions.filter((p) => p.value),
+          ...institutionOptionsFromProfile,
+        ],
       }
     })
     setDisplayAuthors(authors)
@@ -731,6 +744,7 @@ const ProfileSearchWithInstitutionWidget = () => {
                   onChange={onChange}
                   clearError={clearError}
                   hasError={hasError}
+                  hasInstitutionError={hasError && isInstitutionError}
                 />
               )
             })}
