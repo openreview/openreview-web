@@ -250,7 +250,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     })
   })
 
-  test('show profile search results with emails', async () => {
+  test('show profile search results with name and active institutions', async () => {
     const initialGetProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -264,6 +264,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         ],
       })
     )
+    // the API does not return the emails of other users' profiles
     const searchProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [
@@ -278,7 +279,20 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
                   preferred: true,
                 },
               ],
-              emails: ['test1@email.com', 'anothertest1@email.com'],
+              history: [
+                {
+                  position: 'PhD Student',
+                  institution: { name: 'University One', domain: 'one.edu' },
+                  start: 2020,
+                  end: null,
+                },
+                {
+                  position: 'Intern',
+                  institution: { name: 'Past Company', domain: 'past.com' },
+                  start: 2015,
+                  end: 2016,
+                },
+              ],
             },
             active: true,
           },
@@ -293,7 +307,6 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
                   preferred: false,
                 },
               ],
-              emails: ['test2@email.com', 'anothertest2@email.com'],
             },
             active: false,
           },
@@ -301,11 +314,10 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
             id: '~search_result3',
             content: {
               names: [{ fullname: 'Result three Result three', username: '~search_result3' }],
-              emails: [],
             },
           },
         ],
-        count: 2,
+        count: 3,
       })
     )
     api.post = initialGetProfile
@@ -339,7 +351,7 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(searchButton).not.toHaveAttribute('disabled')
 
     await userEvent.click(searchButton)
-    expect(screen.getAllByText('~', { exact: false })).toHaveLength(2)
+    expect(screen.getAllByText('~', { exact: false })).toHaveLength(3)
     expect(screen.getAllByText('~', { exact: false })[0].parentElement.textContent).toEqual(
       '~search_result_preferred1'
     )
@@ -352,6 +364,13 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
     expect(
       screen.getAllByText('~', { exact: false })[1].parentElement.nextSibling
     ).toHaveAttribute('class', expect.stringContaining('glyphicon-remove-sign'))
+    expect(screen.getAllByText('~', { exact: false })[2].parentElement.textContent).toEqual(
+      '~search_result3'
+    )
+
+    expect(screen.getByText('PhD Student at University One (one.edu)')).toBeInTheDocument()
+    expect(screen.queryByText('Past Company', { exact: false })).not.toBeInTheDocument()
+    expect(screen.queryByText('@', { exact: false })).not.toBeInTheDocument()
   })
 
   test('search by email should fail', async () => {

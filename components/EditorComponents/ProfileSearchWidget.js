@@ -198,15 +198,6 @@ const ProfileSearchResultRow = ({
         </div>
         <div className={styles.authorTitle}>{getTitle(profile, isEditor)}</div>
       </div>
-      <div className={styles.authorEmails}>
-        {isEditor ? (
-          profile.content?.emailsConfirmed?.map((email, index) => (
-            <span key={index}>{email}</span>
-          ))
-        ) : (
-          <span>{profile.content?.preferredEmail}</span>
-        )}
-      </div>
       <div className={styles.addButton}>
         <IconButton
           name="plus"
@@ -326,11 +317,7 @@ const ProfileSearchFormAndResults = ({
         )
       )
       setTotalCount(results.count > 200 ? 200 : results.count)
-      setProfileSearchResults(
-        isEditor === false
-          ? results.profiles
-          : results.profiles.filter((p) => p.content.emails?.length)
-      )
+      setProfileSearchResults(results.profiles)
     } catch (apiError) {
       promptError(apiError.message)
     }
@@ -715,7 +702,7 @@ const ProfileSearchWidget = ({
               const authorProfile = selectedAuthorProfiles.find(
                 (p) =>
                   p.content.names.find((q) => q.username === authorId) ||
-                  p.content.emails.find((r) => r === authorId)
+                  p.content.emails?.includes(authorId)
               ) ?? {
                 noProfile: true,
                 authorId,

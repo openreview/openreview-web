@@ -783,9 +783,8 @@ const editEmailInputSelector = Selector('input:not([readonly]).email')
 const emailConfirmButtons = Selector('section').find('button').withText('Confirm')
 const emailRemoveButtons = Selector('section').find('button').withText('Remove')
 const pageHeader = Selector('h1').nth(0)
-const profileViewEmail = Selector('section')
-  .withText('Emails')
-  .find('div.section-content span')
+// the profile view never shows the emails, they are only shown in the edit mode
+const profileViewEmailSection = Selector('section h4').withExactText('Emails')
 const addDBLPPaperToProfileButton = Selector('button.personal-links__adddblpbtn')
 const persistentUrlInput = Selector('div.persistent-url-input').find('input')
 const showPapersButton = Selector('div.persistent-url-input')
@@ -1518,8 +1517,8 @@ test('open profile of other user by id', async (t) => {
     .notOk()
     .expect(pageHeader.innerText)
     .eql(hasTaskUser.fullname)
-    .expect(profileViewEmail.innerText)
-    .contains('****')
+    .expect(profileViewEmailSection.exists)
+    .notOk()
 })
 
 fixture`ORCID import`.requestHooks(orcidMock)
@@ -1597,10 +1596,15 @@ test('#83 email status is missing', async (t) => {
   await t
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
-    .expect(Selector('section').withText('Emails').find('div.section-content').innerText)
-    .contains('Confirmed') // not sure how the status will be added so selector may need to be updated
-    .expect(Selector('section').withText('Emails').find('div.section-content').innerText)
-    .contains('Preferred')
+    .expect(profileViewEmailSection.exists)
+    .notOk() // the owner sees the emails only in the edit mode
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
+    .wait(100)
+    .click(step2Emails)
+    .expect(Selector('div.emails__confirmed-text').withText('(Confirmed)').exists)
+    .ok()
+    .expect(Selector('div.emails__preferred-text').withText('(Preferred Email)').exists)
+    .ok()
 })
 test('#85 confirm profile email message', async (t) => {
   await t

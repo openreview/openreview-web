@@ -1,7 +1,7 @@
 <div class="note" data-id="{{id}}">
   {{#if name}}
     <h4><a href="/profile?id={{id}}" target="_blank">{{name}}</a></h4>
-    <p class="text-muted">({{email}})</p>
+    {{#if email}}<p class="text-muted">({{email}})</p>{{/if}}
   {{else}}
     <h4><a href="/profile?email={{email}}" target="_blank">{{email}}</a></h4>
   {{/if}}

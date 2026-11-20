@@ -41,7 +41,7 @@
     <table class="table table-condensed table-minimal">
       <tbody>
         <tr>
-          <td style="width: {{#if tableWidth}}{{tableWidth}}{{else}}320px;{{/if}}">{{seniorAreaChair.name}} <span class="text-muted">({{seniorAreaChair.email}})</span></td>
+          <td style="width: {{#if tableWidth}}{{tableWidth}}{{else}}320px;{{/if}}">{{seniorAreaChair.name}}{{#if seniorAreaChair.email}} <span class="text-muted">({{seniorAreaChair.email}})</span>{{/if}}</td>
         </tr>
       </tbody>
     </table>

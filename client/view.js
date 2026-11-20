@@ -2620,9 +2620,10 @@ module.exports = (function () {
   // Format essential profile data for display
   var formatProfileContent = function (profileContent) {
     var name = _.find(profileContent.names, ['preferred', true]) || profileContent.names[0]
-    var email = profileContent.preferredEmail || profileContent.emails[0]
 
-    var title
+    // Emails are not read from the profile: the API only returns them to the profile owner and
+    // privileged users. Use the preferred email edges to get the email of a user.
+    var title = ''
     if (profileContent.history && profileContent.history.length) {
       var position = _.upperFirst(_.get(profileContent.history, '[0].position', '')).trim()
       var institutionName = _.get(profileContent.history, '[0].institution.name', '').trim()
@@ -2636,8 +2637,6 @@ module.exports = (function () {
         : institutionName
       var separator = position && institution ? ' at ' : ''
       title = position + separator + institution
-    } else {
-      title = _.last(email.split('@'))
     }
 
     var expertise = _.flatMap(profileContent.expertise, function (entry) {
@@ -2646,7 +2645,6 @@ module.exports = (function () {
 
     return {
       name: name,
-      email: email,
       title: title,
       expertise: expertise,
     }

@@ -128,7 +128,6 @@ const TrackStatus = () => {
       const allProfiles = (profileResults.profiles ?? []).map((profile) => ({
         ...profile,
         preferredName: getProfileName(profile),
-        preferredEmail: profile.content.preferredEmail ?? profile.content.emails[0],
       }))
       // #endregion
 

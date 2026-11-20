@@ -665,7 +665,9 @@ module.exports = (function () {
 
         // Show step 2
         var namesHtml = _.flatMap(userCounts, function (obj) {
-          var text = obj.name + ' <span>&lt;' + obj.email + '&gt;</span>'
+          var text = obj.email
+            ? obj.name + ' <span>&lt;' + obj.email + '&gt;</span>'
+            : obj.name
           if (obj.count > 1) {
             text += ' (&times;' + obj.count + ')'
           }
@@ -1382,8 +1384,6 @@ module.exports = (function () {
                   }),
                   'username'
                 ),
-                email: profile.content.preferredEmail || profile.content.emailsConfirmed[0],
-                allEmails: profile.content.emailsConfirmed,
                 affiliation: profile.content.history && profile.content.history[0],
               }
             }
@@ -1432,9 +1432,8 @@ module.exports = (function () {
                     }),
                     'username'
                   ),
-                  email: profile.content.preferredEmail || profile.content.emailsConfirmed[0],
-                  allEmails: profile.content.emailsConfirmed,
                   affiliation: profile.content.history && profile.content.history[0],
+                  hasVerifiedInstitution: _.some(profile.content.history, 'verified'),
                 }
               } else {
                 return {
