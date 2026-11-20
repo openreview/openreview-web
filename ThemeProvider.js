@@ -1,3 +1,5 @@
+'use client'
+
 import { AntdRegistry } from '@ant-design/nextjs-registry'
 import { ConfigProvider } from 'antd'
 
@@ -151,12 +153,25 @@ const theme = {
       trackMinWidth: 46,
       handleSize: 20,
     },
+    Result: {
+      colorTextHeading: '#2c3a4a',
+      colorSuccess: '#3c763d',
+      iconFontSize: 48,
+      extraMargin: '3.5rem 0 0 0',
+    },
   },
 }
 
 const ThemeProvider = ({ children }) => (
   <AntdRegistry>
-    <ConfigProvider theme={theme} wave={{ disabled: true }}>
+    <ConfigProvider
+      theme={theme}
+      wave={{ disabled: true }}
+      checkbox={{
+        styles: ({ props }) =>
+          props.disabled ? { icon: { borderColor: 'var(--ant-color-border-disabled)' } } : {},
+      }}
+    >
       {children}
     </ConfigProvider>
   </AntdRegistry>

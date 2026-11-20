@@ -40,6 +40,19 @@ export default function NavMd({
           style: { padding: 0 },
         },
         {
+          key: 'payments',
+          label: (
+            <Link
+              href="/payments"
+              prefetch={false}
+              className={legacyNavStyles.navDropdownItem}
+            >
+              Payments
+            </Link>
+          ),
+          style: { padding: 0 },
+        },
+        {
           key: 'notifications',
           label: (
             <Link

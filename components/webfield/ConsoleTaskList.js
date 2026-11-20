@@ -1,10 +1,9 @@
-/* globals promptError: false */
 import { useEffect, useState } from 'react'
-import TaskList from '../TaskList'
 import api from '../../lib/api-client'
-import { formatTasksData } from '../../lib/utils'
+import { formatTasksData, getPaymentStatus } from '../../lib/utils'
 import { filterAssignedInvitations } from '../../lib/webfield-utils'
 import LoadingSpinner from '../LoadingSpinner'
+import TaskList from '../TaskList'
 
 const ConsoleTaskList = ({
   venueId,
@@ -41,11 +40,31 @@ const ConsoleTaskList = ({
           type: 'tag',
           details: 'repliedTags',
         }),
-      ]).then(([noteInvitations, edgeInvitations, tagInvitations]) =>
+        api.getAll('/invitations', {
+          domain: venueId,
+          invitee: true,
+          duedate: true,
+          type: 'payment',
+          details: 'repliedPayments',
+        }),
+      ]).then(async ([noteInvitations, edgeInvitations, tagInvitations, paymentInvitations]) =>
         noteInvitations
           .map((inv) => ({ ...inv, noteInvitation: true }))
           .concat(edgeInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
           .concat(tagInvitations.map((inv) => ({ ...inv, tagInvitation: true })))
+          .concat(
+            (
+              await Promise.all(
+                paymentInvitations.map(async (inv) => ({
+                  ...inv,
+                  paymentInvitation: true,
+                  paymentStatus: (
+                    await getPaymentStatus(inv, inv.details.repliedPayments, () => true)
+                  )?.status,
+                }))
+              )
+            ).filter((inv) => inv.paymentStatus)
+          )
       )
 
       allInvitations = allInvitations.filter((p) =>

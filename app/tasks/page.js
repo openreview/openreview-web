@@ -1,18 +1,18 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-
-import { useRouter } from 'next/navigation'
 import { intersection } from 'lodash'
-import LoadingSpinner from '../../components/LoadingSpinner'
-import api from '../../lib/api-client'
-import styles from './Tasks.module.scss'
-import { formatTasksData } from '../../lib/utils'
-import useUser from '../../hooks/useUser'
-import ErrorAlert from '../../components/ErrorAlert'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
 import Accordion from '../../components/Accordion'
-import HeadingLink from './HeadingLink'
+import ErrorAlert from '../../components/ErrorAlert'
+import LoadingSpinner from '../../components/LoadingSpinner'
 import TaskList from '../../components/TaskList'
+import useUser from '../../hooks/useUser'
+import api from '../../lib/api-client'
+import { formatTasksData, getPaymentStatus } from '../../lib/utils'
+import HeadingLink from './HeadingLink'
+
+import styles from './Tasks.module.scss'
 
 export default function Page() {
   const { user, isRefreshing } = useUser()
@@ -53,6 +53,15 @@ export default function Page() {
             .get('/invitations', { ...commonParams, type: 'edge', details: 'repliedEdges' })
             .then(addPropertyToInvitations('tagInvitation'))
         : Promise.resolve([]),
+      types.includes('payment')
+        ? api
+            .get('/invitations', {
+              ...commonParams,
+              type: 'payment',
+              details: 'repliedPayments',
+            })
+            .then(addPropertyToInvitations('paymentInvitation'))
+        : Promise.resolve([]),
     ]
     await Promise.all(invitationPromises)
       .then(async (allInvitations) => {
@@ -83,6 +92,15 @@ export default function Page() {
             },
           }
         })
+        allInvitations[3] = (
+          await Promise.all(
+            allInvitations[3].map(async (p) => ({
+              ...p,
+              paymentStatus: (await getPaymentStatus(p, p.details.repliedPayments, () => true))
+                ?.status,
+            }))
+          )
+        ).filter((p) => p.paymentStatus)
         const formattedTasksData = formatTasksData(allInvitations)
         setDomainTasksMap((tasks) => {
           const updatedTasks = new Map(tasks)
@@ -120,6 +138,14 @@ export default function Page() {
           type: 'edge',
         })
         .then((result) => result.invitations),
+      api
+        .get('/invitations', {
+          invitee: true,
+          duedate: true,
+          select: 'domain,invitees',
+          type: 'payment',
+        })
+        .then((result) => result.invitations),
     ]
     const domainResult = await Promise.all(invitationPromises).catch((apiError) => {
       setError(apiError)
@@ -145,11 +171,11 @@ export default function Page() {
         }
       })
     }
+
     domainResult.forEach((invitations, index) => {
-      const type = ['note', 'tag', 'edge'][index]
+      const type = ['note', 'tag', 'edge', 'payment'][index]
       processDomainResults(invitations, type)
     })
-
     setDomainTypeMap(uniqueDomainsTypeMap)
   }
 
@@ -167,6 +193,7 @@ export default function Page() {
 
   if (!domainTypeMap.size)
     return <p className="empty-message">No current pending or completed tasks</p>
+
   return (
     <div className={styles.tasks}>
       <div className="tasks-container">

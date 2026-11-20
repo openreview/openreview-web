@@ -109,6 +109,14 @@ export default function NavSm({
                 >
                   Security settings
                 </Link>
+                <Link
+                  href="/payments"
+                  prefetch={false}
+                  className={legacyNavStyles.navDrawerSubLink}
+                  onClick={closeDrawer}
+                >
+                  Payments
+                </Link>
               </>
             )}
             <hr className={legacyNavStyles.navDrawerDivider} />
