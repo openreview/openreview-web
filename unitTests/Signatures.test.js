@@ -1,15 +1,14 @@
 import { screen, render, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import '@testing-library/jest-dom'
 import Signatures from '../components/Signatures'
 import api from '../lib/api-client'
+import '@testing-library/jest-dom'
 
 let mockUseUserHookValue
-let mockUseUserHook
 let tagProps
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
-jest.mock('../hooks/useUser', () => (...args) => mockUseUserHook(...args))
+jest.mock('../hooks/useUser', () => () => mockUseUserHookValue)
 jest.mock('../lib/api-client')
 jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
   tagProps(props)
@@ -18,10 +17,9 @@ jest.mock('../components/EditorComponents/TagsWidget', () => (props) => {
 
 beforeEach(() => {
   mockUseUserHookValue = {
-    user: { profile: { id: '~Test_User1' }, id: '~Test_User1' },
+    user: { profile: { id: '~Test_User1', preferredId: '~Test_User1' }, id: '~Test_User1' },
     accessToken: 'some token',
   }
-  mockUseUserHook = jest.fn(() => mockUseUserHookValue)
   tagProps = jest.fn()
 })
 
@@ -56,14 +54,7 @@ describe('Signatures', () => {
     expect(onChange).toHaveBeenCalledWith({
       type: 'const',
       value: constSignaturesFieldDescription,
-      loading: false,
     })
-  })
-
-  test('call useUser with true to get full profile', () => {
-    render(<Signatures fieldDescription={['${3/signatures}']} onChange={jest.fn()} />)
-
-    expect(mockUseUserHook).toHaveBeenCalledWith(true)
   })
 
   test('display ~.* regex signatures as tags widget and call update', () => {
@@ -77,41 +68,22 @@ describe('Signatures', () => {
     render(<Signatures fieldDescription={currentUserFieldDescription} onChange={onChange} />)
 
     expect(screen.getByText('tags')).toBeInTheDocument()
-    expect(onChange).toHaveBeenCalledWith({
-      value: ['~Test_User1'],
-      type: 'const',
-      loading: false,
-    })
+    expect(onChange).toHaveBeenCalledWith({ value: ['~Test_User1'], type: 'const' })
   })
 
   test('use preferred id of current user for ~.* regex signatures', () => {
     mockUseUserHookValue = {
-      user: { profile: { id: '~Test_User1', preferredId: '~Preferred_User1' } },
+      user: { profile: { id: '~Test_User1', preferredId: '~Preferred_User1' } }, // preferred id is different from id
     }
     const onChange = jest.fn()
 
     render(<Signatures fieldDescription={{ param: { regex: '~.*' } }} onChange={onChange} />)
 
-    expect(mockUseUserHook).toHaveBeenCalledWith(true)
     expect(tagProps).toHaveBeenCalledWith({ values: ['~Preferred_User1'] })
-    expect(onChange).toHaveBeenCalledWith({
-      value: ['~Preferred_User1'],
-      type: 'const',
-      loading: false,
-    })
+    expect(onChange).toHaveBeenCalledWith({ value: ['~Preferred_User1'], type: 'const' })
     expect(onChange).not.toHaveBeenCalledWith(
       expect.objectContaining({ value: ['~Test_User1'] })
     )
-  })
-
-  test('report loading state while user profile is being fetched', () => {
-    mockUseUserHookValue = { user: null, isRefreshing: true }
-    const onChange = jest.fn()
-
-    render(<Signatures fieldDescription={{ param: { regex: '~.*' } }} onChange={onChange} />)
-
-    expect(onChange).toHaveBeenCalledWith({ loading: true })
-    expect(screen.queryByText('tags')).not.toBeInTheDocument()
   })
 
   test('call v1 api if regex has pipe value', async () => {

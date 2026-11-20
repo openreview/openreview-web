@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
-import uniqBy from 'lodash/uniqBy'
 import flatten from 'lodash/flatten'
-import Dropdown from './Dropdown'
-import TagsWidget from './EditorComponents/TagsWidget'
+import uniqBy from 'lodash/uniqBy'
+import { useEffect, useState } from 'react'
+import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
-import useUser from '../hooks/useUser'
+import Dropdown from './Dropdown'
+import TagsWidget from './EditorComponents/TagsWidget'
 
 const prettyGroupIdWithMember = (group) => {
   let label = prettyId(group.id)
@@ -25,7 +25,7 @@ const Signatures = ({
 }) => {
   const [descriptionType, setDescriptionType] = useState(null)
   const [signatureOptions, setSignatureOptions] = useState(null)
-  const { user, isRefreshing } = useUser(true)
+  const { user } = useUser()
 
   const getRegexSignatureOptions = async () => {
     onChange({ loading: true })
@@ -34,10 +34,7 @@ const Signatures = ({
       const regexContainsPipe = regexExpression.includes('|')
       const regexGroupResult = await api.get(
         '/groups',
-        {
-          [regexContainsPipe ? 'regex' : 'prefix']: regexExpression,
-          signatory: user?.profile?.id,
-        },
+        { [regexContainsPipe ? 'regex' : 'prefix']: regexExpression, signatory: user?.id },
         { version: regexContainsPipe ? 1 : 2 }
       )
       if (!regexGroupResult.groups?.length) {
@@ -75,8 +72,8 @@ const Signatures = ({
 
       const optionsP = options.map((p) => {
         const params = p.prefix
-          ? { prefix: p.prefix, signatory: user?.profile?.id }
-          : { id: p.value, signatory: user?.profile?.id }
+          ? { prefix: p.prefix, signatory: user?.id }
+          : { id: p.value, signatory: user?.id }
         return api.get('/groups', params).then((result) => result.groups ?? [])
       })
       const groupResults = await Promise.all(optionsP)
@@ -126,20 +123,16 @@ const Signatures = ({
   }
 
   useEffect(() => {
-    if (!fieldDescription) return
-    if (!user) {
-      onChange({ loading: !!isRefreshing })
-      return
-    }
+    if (!fieldDescription || !user) return
     if (!fieldDescription.param) {
       setDescriptionType('const')
-      onChange({ value: fieldDescription, type: 'const', loading: false })
+      onChange({ value: fieldDescription, type: 'const' })
       return
     }
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
-        onChange({ value: [user.profile.preferredId], type: 'const', loading: false })
+        onChange({ value: [user.profile.preferredId], type: 'const' })
       } else {
         setDescriptionType('regex')
       }
@@ -148,7 +141,7 @@ const Signatures = ({
     if (fieldDescription.param?.enum || fieldDescription.param?.items) {
       setDescriptionType('enum')
     }
-  }, [fieldDescription, user, isRefreshing])
+  }, [fieldDescription, user])
 
   useEffect(() => {
     if (descriptionType === 'regex') {
