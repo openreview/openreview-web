@@ -1579,7 +1579,7 @@ header,
       resize: both;
     }
     div.preview {
-      height: auto;
+      height: auto !important;
       contain: size;
     }
   }
