@@ -264,7 +264,6 @@ describe('ProfileSearchWidget for authors+authorids field', () => {
         ],
       })
     )
-    // the API does not return the emails of other users' profiles
     const searchProfile = jest.fn(() =>
       Promise.resolve({
         profiles: [

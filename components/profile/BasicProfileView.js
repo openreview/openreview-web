@@ -105,7 +105,6 @@ const ProfileLink = ({ link, showLinkText }) => {
   )
 }
 
-// history.verified is derived by the API: the profile has a confirmed email of this institution
 const VerifiedInstitutionBadge = () => (
   <Tooltip title="Verified with a confirmed institutional email">
     <SafetyCertificateOutlined
@@ -271,8 +270,6 @@ const BasicProfileView = ({
   moderation = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
 }) => {
-  // The profile page never shows the emails, so they don't look public; the owner sees them in
-  // the profile edit mode and moderators in the moderation view
   const showEmails = contentToShow.includes('emails') && moderation
 
   const uniqueNames = profile.names.filter((name) => !name.duplicate)

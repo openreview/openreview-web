@@ -2621,8 +2621,6 @@ module.exports = (function () {
   var formatProfileContent = function (profileContent) {
     var name = _.find(profileContent.names, ['preferred', true]) || profileContent.names[0]
 
-    // Emails are not read from the profile: the API only returns them to the profile owner and
-    // privileged users. Use the preferred email edges to get the email of a user.
     var title = ''
     if (profileContent.history && profileContent.history.length) {
       var position = _.upperFirst(_.get(profileContent.history, '[0].position', '')).trim()

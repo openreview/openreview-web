@@ -783,9 +783,7 @@ const editEmailInputSelector = Selector('input:not([readonly]).email')
 const emailConfirmButtons = Selector('section').find('button').withText('Confirm')
 const emailRemoveButtons = Selector('section').find('button').withText('Remove')
 const pageHeader = Selector('h1').nth(0)
-// the profile view never shows the emails, they are only shown in the edit mode
 const profileViewEmailSection = Selector('section h4').withExactText('Emails')
-// the row of an email in the edit mode emails section, the email is the value of its input
 const profileEditEmailRow = (email: string) =>
   Selector('div.container.emails')
     .child('div.row')
@@ -1483,7 +1481,7 @@ test('profile should be auto merged', async (t) => {
     )
   await t.expect(messages[0].content.text).contains('Verification Token')
 
-  // email should have been added to hasTaskUser's profile, the emails are only shown in the edit mode
+  // email should have been added to hasTaskUser's profile
   await t
     .useRole(userARole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
@@ -1601,7 +1599,7 @@ test('#83 email status is missing', async (t) => {
     .useRole(userBRole)
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile`)
     .expect(profileViewEmailSection.exists)
-    .notOk() // the owner sees the emails only in the edit mode
+    .notOk()
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .wait(100)
     .click(step2Emails)
@@ -1719,7 +1717,6 @@ test('confirm an email with a numeric token', async (t) => {
     .click(saveProfileButton)
     .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
-    // reload the edit mode to check the saved emails, the profile view doesn't show them
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .wait(100)
     .click(step2Emails)
@@ -1770,13 +1767,11 @@ test('check if a user can add multiple emails without entering verification toke
     .click(saveProfileButton)
     .expect(saveProfileButton.hasClass('ant-btn-loading'))
     .notOk({ timeout: 15000 })
-    // reload the edit mode to check the saved emails, the profile view doesn't show them
     .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile/edit`)
     .wait(100)
     .click(step2Emails)
     .expect(profileEditEmailRow('aab@alternate.com').find('div.emails__confirmed-text').exists)
     .ok()
-    // the unconfirmed email is saved and can still be confirmed
     .expect(profileEditEmailRow('aac@alternate.com').find('button.confirm-button').exists)
     .ok()
     .expect(profileEditEmailRow('aac@alternate.com').find('div.emails__confirmed-text').exists)
