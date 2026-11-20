@@ -1,12 +1,12 @@
 import { useContext, useEffect, useState } from 'react'
-import EditorComponentContext from '../EditorComponentContext'
-import WebFieldContext from '../WebFieldContext'
-import MarkdownPreviewTab from '../MarkdownPreviewTab'
 import useUser from '../../hooks/useUser'
 import { getAutoStorageKey } from '../../lib/utils'
+import { convertToString } from '../../lib/webfield-utils'
+import EditorComponentContext from '../EditorComponentContext'
+import MarkdownPreviewTab from '../MarkdownPreviewTab'
+import WebFieldContext from '../WebFieldContext'
 
 import styles from '../../styles/components/TextareaWidget.module.scss'
-import { convertToString } from '../../lib/webfield-utils'
 
 const CharCounter = ({ minLength = 0, maxLength = 0, contentLength }) => {
   const charsRemaining = maxLength - contentLength
@@ -123,7 +123,7 @@ const TextAreaWidget = () => {
               const updatedValue = e?.trim() === '' ? undefined : e
               onTextUpdated(updatedValue)
             }}
-            fieldName={`${replyToNote?.id}${fieldName}`}
+            enableSplitView={!isWebfield}
           />
         ) : (
           <textarea
