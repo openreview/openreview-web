@@ -1,10 +1,16 @@
-import { intersection, isEmpty } from 'lodash'
+import { intersection, isEmpty, uniqBy } from 'lodash'
 import throttle from 'lodash/throttle'
 import { useEffect, useCallback, useReducer, useState, useContext } from 'react'
 import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { getNoteContentValues } from '../lib/forum-utils'
-import { getAutoStorageKey, prettyField, prettyInvitationId, classNames } from '../lib/utils'
+import {
+  getAutoStorageKey,
+  prettyField,
+  prettyInvitationId,
+  classNames,
+  inflect,
+} from '../lib/utils'
 import { getErrorFieldName, isNonDeletableError } from '../lib/webfield-utils'
 import EditorComponentContext from './EditorComponentContext'
 import DatePickerWidget from './EditorComponents/DatePickerWidget'
@@ -594,9 +600,9 @@ const NoteEditor = ({
       onNoteCreated(createdNote)
     } catch (error) {
       if (error.errors) {
-        setErrors(
+        const fieldErrors = uniqBy(
           error.errors.map((p) => {
-            const { fieldName, index } = getErrorFieldName(p.details.path)
+            const { fieldName, index, isInstitutionError } = getErrorFieldName(p.details.path)
             const fieldNameInError =
               fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
             if (isNonDeletableError(p.details.invalidValue))
@@ -605,19 +611,23 @@ const NoteEditor = ({
               fieldName,
               message: p.message.replace(fieldName, fieldNameInError),
               index,
+              isInstitutionError,
             }
-          })
+          }),
+          'fieldName'
         )
+        setErrors(fieldErrors)
         const hasOnlyMissingFieldsError = error.errors.every(
           (p) => p.name === 'MissingRequiredError'
         )
+        const otherErrorCount = fieldErrors.length - 1
         displayError(
           hasOnlyMissingFieldsError
             ? 'Required field values are missing.'
-            : 'Some info submitted are invalid.'
+            : `${fieldErrors[fieldErrors.length - 1].message}${otherErrorCount ? ` (and ${inflect(otherErrorCount, 'other field has an error', 'other fields have errors', true)})` : ''}`
         )
       } else if (error.details?.path) {
-        const { fieldName, index } = getErrorFieldName(error.details.path)
+        const { fieldName, index, isInstitutionError } = getErrorFieldName(error.details.path)
         const fieldNameInError =
           fieldName === 'notePDateValue' ? 'Publication Date' : prettyField(fieldName)
         const prettyErrorMessage = isNonDeletableError(error.details.invalidValue)
@@ -628,6 +638,7 @@ const NoteEditor = ({
             fieldName,
             message: prettyErrorMessage,
             index,
+            isInstitutionError,
           },
         ])
         displayError(prettyErrorMessage)

@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react'
-import uniqBy from 'lodash/uniqBy'
 import flatten from 'lodash/flatten'
-import Dropdown from './Dropdown'
-import TagsWidget from './EditorComponents/TagsWidget'
+import uniqBy from 'lodash/uniqBy'
+import { useEffect, useState } from 'react'
+import useUser from '../hooks/useUser'
 import api from '../lib/api-client'
 import { prettyId } from '../lib/utils'
-import useUser from '../hooks/useUser'
+import Dropdown from './Dropdown'
+import TagsWidget from './EditorComponents/TagsWidget'
 
 const prettyGroupIdWithMember = (group) => {
   let label = prettyId(group.id)
@@ -100,7 +100,7 @@ const Signatures = ({
       case 'const':
         return <TagsWidget values={fieldDescription} />
       case 'currentUser':
-        return <TagsWidget values={[user.profile.id]} />
+        return <TagsWidget values={[user.profile.preferredId]} />
       case 'regex':
       case 'enum':
         if (!signatureOptions) return null
@@ -132,7 +132,7 @@ const Signatures = ({
     if (fieldDescription.param?.regex) {
       if (fieldDescription.param.regex === '~.*') {
         setDescriptionType('currentUser')
-        onChange({ value: [user.profile.id], type: 'const' })
+        onChange({ value: [user.profile.preferredId], type: 'const' })
       } else {
         setDescriptionType('regex')
       }
