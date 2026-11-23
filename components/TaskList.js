@@ -20,10 +20,17 @@ export default function TaskList({ invitations, emptyMessage, referrer }) {
 }
 
 function Invitation({ invitation, referrer }) {
-  const { tagInvitation, noteInvitation, dueDateStatus, dueDateStr, apiVersion } = invitation
+  const {
+    tagInvitation,
+    noteInvitation,
+    paymentInvitation,
+    dueDateStatus,
+    dueDateStr,
+    apiVersion,
+  } = invitation
   const replyToTitle = invitation.details.replytoNote?.content?.title?.value
 
-  if (!noteInvitation && !tagInvitation) return null
+  if (!noteInvitation && !tagInvitation && !paymentInvitation) return null
 
   return (
     <>
@@ -79,6 +86,13 @@ function InvitationLink({ invitation, referrer }) {
       <Link href={`/invitation?id=${id}&referrer=${referrer}`}>{prettifiedInvitationId}</Link>
     ) : (
       <Link href={`/group?id=${groupId}&referrer=${referrer}`}>{prettifiedInvitationId}</Link>
+    )
+  }
+  if (invitation.paymentInvitation) {
+    return (
+      <Link href={`/forum?id=${invitation.edit.payment.note}&referrer=${referrer}`}>
+        {prettifiedInvitationId}
+      </Link>
     )
   }
   return null
