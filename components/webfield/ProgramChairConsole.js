@@ -27,6 +27,7 @@ import WebFieldContext from '../WebFieldContext'
 import BasicHeader from './BasicHeader'
 import ConsoleTabs from './ConsoleTabs'
 import AreaChairStatus from './ProgramChairConsole/AreaChairStatus'
+import CustomTable from './ProgramChairConsole/CustomTable'
 import Overview from './ProgramChairConsole/Overview'
 import PaperStatus from './ProgramChairConsole/PaperStatus'
 import RejectedWithdrawnPapers from './ProgramChairConsole/RejectedWithdrawnPapers'
@@ -103,6 +104,7 @@ import SeniorAreaChairStatus from './ProgramChairConsole/SeniorAreaChairStatus'
  * @property {string} ethicsReviewersName optional
  * @property {string} ethicsChairsName optional
  * @property {Object} domainContent optional
+ * @property {Object[]} customTables optional
  */
 
 /**
@@ -850,6 +852,35 @@ reasonFields: Object that contains content fields that may be in any of the note
  *   }
  * }
  */
+
+/**
+ * @name ProgramChairConsoleConfig.customTables
+ * @description Adds one tab per entry, showing a table of the console data with the entry's rows, columns, filters and sort.
+ * "rows" is "submission" or the name of a stage: the official review, the meta review, the decision, a custom stage invitation or the meta review agreement.
+ * A column is a key, or { "key", "label" } to rename it: "submission:number", "submission.<field>", "submission:reviewers" (also area_chairs, secondary_area_chairs, senior_area_chairs), "<Stage>:count", "<Stage>:signed_by", "<Stage>.<field>", "<Stage>.<field>:avg" (also min, max, spread).
+ * A filter is text to find, or a comparison that starts with ==, !=, >, <, >= or <=.
+ * @type {Object[]}
+ * @default no default value
+ * @example
+ * {
+ *   "customTables": [
+ *     {
+ *       "title": "Decision Overview",
+ *       "rows": "submission",
+ *       "columns": [
+ *         { "key": "submission:number", "label": "#" },
+ *         "submission.title",
+ *         "submission:area_chairs",
+ *         { "key": "Official_Review.preliminary_recommendation:avg", "label": "Prelim Avg" },
+ *         "Meta_Review.recommendation",
+ *         "Decision.decision"
+ *       ],
+ *       "filters": { "Official_Review.preliminary_recommendation:avg": "> 3" },
+ *       "sort": { "key": "submission:number", "order": "ascend" }
+ *     }
+ *   ]
+ * }
+ */
 // #endregion
 
 const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
@@ -919,6 +950,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
     ethicsReviewersName = 'Ethics_Reviewers',
     ethicsChairsName = 'Ethics_Chairs',
     domainContent = {},
+    customTables,
   } = useContext(WebFieldContext)
   const { setBannerContent } = appContext ?? {}
   const { user, isRefreshing } = useUser()
@@ -1374,6 +1406,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
             officialReviews.push({
               content: reply.content,
               id: reply.id,
+              invitations: reply.invitations,
               signatures: reply.signatures,
               forum: reply.forum,
               anonId: getIndentifierFromGroup(anonymousGroupId, anonReviewerName),
@@ -1384,6 +1417,7 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
               id: reply.id,
               forum: reply.forum,
               content: reply.content,
+              invitations: reply.invitations,
               signatures: reply.signatures,
               anonId: getIndentifierFromGroup(reply.signatures[0], anonAreaChairName),
             })
@@ -2237,6 +2271,23 @@ const ProgramChairConsole = ({ appContext, extraTabs = [] }) => {
                 content: tabAttrs.renderTab(),
                 visible: true,
               }))
+            : []),
+          ...(customTables
+            ? [
+                ...customTables.map((table, index) => ({
+                  id: `custom-table-${index + 1}`,
+                  label: table.title,
+                  content: <CustomTable table={table} pcConsoleData={pcConsoleData} />,
+                  visible: true,
+                })),
+                {
+                  id: 'table-builder',
+                  label: 'Table Builder',
+                  content: <CustomTable pcConsoleData={pcConsoleData} />,
+                  visible: true,
+                  alwaysMount: true,
+                },
+              ]
             : []),
         ]}
       />

@@ -1,5 +1,4 @@
-/* globals promptError: false */
-import { useState } from 'react'
+import { Button } from 'antd'
 
 const ExportFile = ({
   records,
@@ -9,8 +8,6 @@ const ExportFile = ({
   customTransformFn,
   exportType = 'text/csv',
 }) => {
-  const [href, setHref] = useState(null)
-
   const handleExportClick = () => {
     const headerRow =
       exportType === 'text/csv' && `${exportColumns?.map((p) => p.header).join(',')}\n`
@@ -41,18 +38,20 @@ const ExportFile = ({
         : new Blob([new Uint8Array([0xef, 0xbb, 0xbf]), ...dataRows], {
             type: exportType,
           })
-      const url = window.URL || window.webkitURL
-      setHref(url.createObjectURL(blob))
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = fileName
+      link.click()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
     } catch (error) {
       promptError(error.message)
     }
   }
   return (
-    <button className="btn btn-export-data">
-      <a download={fileName} href={href} onClick={handleExportClick}>
-        {buttonText}
-      </a>
-    </button>
+    <Button type="primary" onClick={handleExportClick}>
+      {buttonText}
+    </Button>
   )
 }
 
