@@ -195,6 +195,19 @@ button.invalidValue {
         box-shadow: none;
         padding-left: 0;
       }
+
+      &.invalidValue button {
+        border: 2px solid constants.$orRed;
+        padding-left: 0.25rem;
+      }
+
+      .invalidValue {
+        color: constants.$orRed;
+      }
+
+      label:has(.invalidValue) input {
+        accent-color: constants.$orRed;
+      }
     }
   }
 }
