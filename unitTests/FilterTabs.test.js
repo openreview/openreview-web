@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react'
 import FilterTabs from '../components/forum/FilterTabs'
 import '@testing-library/jest-dom'
 
+jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
+
 const forumId = 'NeurIPS.cc/2026/Conference/Submission1'
 
 describe('FilterTabs', () => {
@@ -111,6 +113,29 @@ describe('FilterTabs', () => {
     )
 
     expect(screen.queryByText('LLM Interaction Chat')).not.toBeInTheDocument()
+  })
+
+  test('hides tab when an exact invitation id is only a prefix of a reply invitation id', () => {
+    const forumViews = [
+      {
+        id: 'chat-Chat_A',
+        label: 'Chat (Chat A)',
+        layout: 'chat',
+        expandedInvitations: ['NeurIPS.cc/2026/Conference/Submission1/-/Chat_A'],
+      },
+    ]
+    const replyInvitations = [{ id: 'NeurIPS.cc/2026/Conference/Submission1/-/Chat_AB' }]
+
+    render(
+      <FilterTabs
+        forumId={forumId}
+        forumViews={forumViews}
+        newMessageCounts={{}}
+        replyInvitations={replyInvitations}
+      />
+    )
+
+    expect(screen.queryByText('Chat (Chat A)')).not.toBeInTheDocument()
   })
 
   test('shows the new message count of a tab whose expandedInvitations is a regex pattern', () => {

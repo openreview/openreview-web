@@ -206,7 +206,7 @@ describe('expandForumViews', () => {
     expect(expandForumViews([chatView], [], [])).toEqual([])
   })
 
-  test('use the full invitation id for invitations of the same group', () => {
+  test('name the tabs after the invitation segments matched by wildcards', () => {
     const pattern = `${submission}/-/Chat_.*`
     const view = {
       ...chatView,
@@ -219,37 +219,52 @@ describe('expandForumViews', () => {
       [{ id: 'note_b', invitations: [`${submission}/-/Chat_B`] }]
     )
     expect(views.map((tab) => [tab.id, tab.label, tab.readOnly])).toEqual([
-      [`reviewer_chat-${submission}/-/Chat_A`, 'Reviewer AI Chat (Chat A)', false],
-      [`reviewer_chat-${submission}/-/Chat_B`, 'Reviewer AI Chat (Chat B)', true],
+      ['reviewer_chat-Chat_A', 'Reviewer AI Chat (Chat A)', false],
+      ['reviewer_chat-Chat_B', 'Reviewer AI Chat (Chat B)', true],
     ])
   })
 
-  test('keep the short id of the invitations whose group is not shared', () => {
-    const pattern = `${submission}/.*/-/Chat.*`
+  test('keep the tab id of a chat when another chat of its group is found', () => {
+    const pattern = `${submission}/Reviewer_.*/-/Chat_.*`
     const view = {
       ...chatView,
       filter: `invitations:${pattern}`,
       expandedInvitations: [pattern],
     }
+    const chatA = { id: 'note_a', invitations: [`${submission}/Reviewer_ABC/-/Chat_A`] }
+    const chatB = { id: 'note_b', invitations: [`${submission}/Reviewer_ABC/-/Chat_B`] }
+
+    expect(expandForumViews([view], [], [chatA]).map((tab) => tab.id)).toEqual([
+      'reviewer_chat-Reviewer_ABC/Chat_A',
+    ])
+    expect(
+      expandForumViews([view], [], [chatA, chatB]).map((tab) => [tab.id, tab.label])
+    ).toEqual([
+      ['reviewer_chat-Reviewer_ABC/Chat_A', 'Reviewer AI Chat (Reviewer ABC Chat A)'],
+      ['reviewer_chat-Reviewer_ABC/Chat_B', 'Reviewer AI Chat (Reviewer ABC Chat B)'],
+    ])
+  })
+
+  test('use the full invitation id when other segments differ from the primary invitation', () => {
     const views = expandForumViews(
-      [view],
+      [chatView],
       [],
       [
-        { id: 'note_a', invitations: [`${submission}/Reviewer_ABC/-/Chat_A`] },
-        { id: 'note_b', invitations: [`${submission}/Reviewer_ABC/-/Chat_B`] },
-        { id: 'note_c', invitations: [`${submission}/Reviewer_XYZ/-/Chat_A`] },
+        message('ABC'),
+        { id: 'reaction', invitations: [`${chatId('ABC')}_Reaction`] },
+        { id: 'nested', invitations: [`${submission}/Reviewer_ABC/Extra/-/LLM_Interaction`] },
       ]
     )
     expect(views.map((tab) => [tab.id, tab.label])).toEqual([
+      ['reviewer_chat-Reviewer_ABC', 'Reviewer AI Chat (Reviewer ABC)'],
       [
-        `reviewer_chat-${submission}/Reviewer_ABC/-/Chat_A`,
-        'Reviewer AI Chat (Reviewer ABC Chat A)',
+        `reviewer_chat-${submission}/Reviewer_ABC/-/LLM_Interaction_Reaction`,
+        'Reviewer AI Chat (Reviewer ABC LLM Interaction Reaction)',
       ],
       [
-        `reviewer_chat-${submission}/Reviewer_ABC/-/Chat_B`,
-        'Reviewer AI Chat (Reviewer ABC Chat B)',
+        `reviewer_chat-${submission}/Reviewer_ABC/Extra/-/LLM_Interaction`,
+        'Reviewer AI Chat (Reviewer ABC Extra LLM Interaction)',
       ],
-      ['reviewer_chat-Reviewer_XYZ', 'Reviewer AI Chat (Reviewer XYZ)'],
     ])
   })
 

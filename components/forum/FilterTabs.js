@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { checkGroupMatch } from '../../lib/forum-utils'
 
 export default function FilterTabs({
   forumId,
@@ -18,7 +19,7 @@ export default function FilterTabs({
         const primaryInvitationId = view.expandedInvitations?.[0]
         if (primaryInvitationId && !view.readOnly) {
           const primaryInvitation = replyInvitations.find((inv) =>
-            inv.id.match(primaryInvitationId)
+            checkGroupMatch(primaryInvitationId, inv.id)
           )
           if (
             !primaryInvitation ||

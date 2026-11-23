@@ -21,6 +21,7 @@ import {
   replaceFilterWildcards,
   checkExReadersMatch,
   checkFiltersMatch,
+  checkGroupMatch,
   expandForumViews,
   findExpandedForumView,
   getLatestReplyReaders,
@@ -627,7 +628,7 @@ export default function Forum({
       const primaryInvitationId = tab.expandedInvitations?.[0]
       if (primaryInvitationId && !tab.readOnly) {
         const primaryInvitation = parentNote.replyInvitations?.find((inv) =>
-          inv.id.match(primaryInvitationId)
+          checkGroupMatch(primaryInvitationId, inv.id)
         )
         if (
           !primaryInvitation ||
@@ -664,6 +665,10 @@ export default function Forum({
             })
           : tabFilters
       )
+      // The note to reply to belongs to the conversation of the tab where it was selected
+      if (!isSameConversation) {
+        setChatReplyNote(null)
+      }
       setTabMessage(typeof tab.message === 'string' ? tab.message : null)
       setLayout(tab.layout || 'default')
       if (tab.layout === 'chat' && !isSameConversation) {
@@ -783,7 +788,7 @@ export default function Forum({
     let chatReaders = null
     if (expandedInvitations?.length > 0) {
       const primaryInv = parentNote.replyInvitations.find((inv) =>
-        inv.id.match(expandedInvitations[0])
+        checkGroupMatch(expandedInvitations[0], inv.id)
       )
       chatReaders = primaryInv ? primaryInv.edit.note.readers : null
     }
@@ -925,7 +930,7 @@ export default function Forum({
           // Track details of new notes for chat notifications
           if (
             isNewNote &&
-            expandedInvitations?.some((pattern) => invId.match(pattern)) &&
+            expandedInvitations?.some((pattern) => checkGroupMatch(pattern, invId)) &&
             !note.ddate
           ) {
             if (!newMessageAuthor) {
@@ -1180,7 +1185,7 @@ export default function Forum({
           {expandedInvitations ? (
             expandedInvitations.map((invitationId) => {
               const invitation = parentNote.replyInvitations?.find((inv) =>
-                inv.id.match(invitationId)
+                checkGroupMatch(invitationId, inv.id)
               )
               if (!invitation) {
                 return (
