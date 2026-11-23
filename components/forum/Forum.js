@@ -22,6 +22,7 @@ import {
   checkExReadersMatch,
   checkFiltersMatch,
   expandForumViews,
+  findExpandedForumView,
   getLatestReplyReaders,
 } from '../../lib/forum-utils'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
@@ -475,7 +476,7 @@ export default function Forum({
     // update the invitation and the parent note
     if (isNewNote || existingNote.ddate !== note.ddate) {
       const invObj = allInvitations.find((i) => i.id === note.invitations[0])
-      if (invObj.maxReplies) {
+      if (invObj?.maxReplies) {
         const increment = isNewNote || !note.ddate ? 1 : -1
         const prevRepliesAvailable = invObj.details.repliesAvailable ?? 1
         const remainingReplies = prevRepliesAvailable - increment
@@ -616,7 +617,11 @@ export default function Forum({
       const [_, tabId] = (window.location.hash || '').split('#')
       if (!tabId || !forumViews) return
 
-      const tab = forumViews.find((view) => view.id === tabId)
+      // An open page or a bookmark can have the id of a view that was split into one tab per
+      // invitation after a second chat became readable, so move it to the tab of its conversation
+      const tab =
+        forumViews.find((view) => view.id === tabId) ??
+        findExpandedForumView(forumViews, tabId)
       if (!tab) return
 
       const primaryInvitationId = tab.expandedInvitations?.[0]
@@ -633,7 +638,12 @@ export default function Forum({
       }
 
       if (!hashChangeEvent && tab.id === appliedTabIdRef.current) return
+      // The applied view continues in its new tab, keeping the filters the user selected
+      const isSameConversation = tab.id !== tabId && appliedTabIdRef.current === tabId
       appliedTabIdRef.current = tab.id
+      if (tab.id !== tabId) {
+        window.history.replaceState(window.history.state, '', `#${tab.id}`)
+      }
 
       const tabFilters = {
         invitations: null,
@@ -645,10 +655,18 @@ export default function Forum({
         ...parseFilterQuery(tab.filter, tab.keywords),
       }
       setDefaultFilters(tabFilters)
-      setSelectedFilters(tabFilters)
+      setSelectedFilters(
+        isSameConversation
+          ? (prevFilters) => ({
+              ...tabFilters,
+              keywords: prevFilters.keywords,
+              signatures: prevFilters.signatures,
+            })
+          : tabFilters
+      )
       setTabMessage(typeof tab.message === 'string' ? tab.message : null)
       setLayout(tab.layout || 'default')
-      if (tab.layout === 'chat') {
+      if (tab.layout === 'chat' && !isSameConversation) {
         attachedToBottom.current = true
       }
       setNesting(tab.nesting || 2)
