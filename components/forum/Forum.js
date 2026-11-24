@@ -23,7 +23,7 @@ import {
   checkFiltersMatch,
   checkGroupMatch,
   expandForumViews,
-  findExpandedForumView,
+  findForumView,
   getLatestReplyReaders,
 } from '../../lib/forum-utils'
 import { prettyId, prettyInvitationId, stringToObject } from '../../lib/utils'
@@ -618,11 +618,9 @@ export default function Forum({
       const [_, tabId] = (window.location.hash || '').split('#')
       if (!tabId || !forumViews) return
 
-      // An open page or a bookmark can have the id of a view that was split into one tab per
-      // invitation after a second chat became readable, so move it to the tab of its conversation
-      const tab =
-        forumViews.find((view) => view.id === tabId) ??
-        findExpandedForumView(forumViews, tabId)
+      // The hash can be a link shared by another user or have the id of a view that was split into
+      // one tab per invitation after a second chat became readable, so move it to its conversation
+      const tab = findForumView(forumViews, tabId)
       if (!tab) return
 
       const primaryInvitationId = tab.expandedInvitations?.[0]
@@ -1200,9 +1198,11 @@ export default function Forum({
                 )
               }
 
+              // Keyed by the invitation it posts to, which stays the same when the view is split
+              // into one tab per invitation, so the composer keeps an unsent message
               return (
                 <ChatEditorForm
-                  key={invitationId}
+                  key={invitation.id}
                   forumId={id}
                   invitation={invitation}
                   replyToNote={chatReplyNote}

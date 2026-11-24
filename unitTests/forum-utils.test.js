@@ -3,6 +3,7 @@ import {
   checkFiltersMatch,
   expandForumViews,
   findExpandedForumView,
+  findForumView,
   getLatestReplyReaders,
   getUniqueInstitutions,
 } from '../lib/forum-utils'
@@ -154,7 +155,7 @@ describe('expandForumViews', () => {
 
   test('keep the view of a user who can post to a single matching invitation', () => {
     const views = expandForumViews([chatView], [{ id: chatId('ABC') }], [message('ABC')])
-    expect(views).toEqual([chatView])
+    expect(views).toEqual([{ ...chatView, aliasId: 'reviewer_chat-Reviewer_ABC' }])
   })
 
   test('make one read-only tab per invitation of the replies the user can read', () => {
@@ -345,5 +346,53 @@ describe('findExpandedForumView', () => {
     expect(findExpandedForumView(views, 'discussion')).toBe(null)
     expect(findExpandedForumView(views, 'unknown')).toBe(null)
     expect(findExpandedForumView(null, 'reviewer_chat')).toBe(null)
+  })
+})
+
+describe('findForumView', () => {
+  const submission = 'NeurIPS.cc/2026/Conference/Submission1'
+  const chatPattern = `${submission}/Reviewer_.*/-/LLM_Interaction`
+  const chatView = {
+    id: 'reviewer_chat',
+    label: 'Reviewer AI Chat',
+    filter: `invitations:${chatPattern}`,
+    layout: 'chat',
+    tabPerInvitation: true,
+    expandedInvitations: [chatPattern],
+  }
+  const chatId = (anonId) => `${submission}/Reviewer_${anonId}/-/LLM_Interaction`
+  const message = (anonId) => ({ id: `note_${anonId}`, invitations: [chatId(anonId)] })
+  const discussionView = { id: 'discussion', label: 'Discussion' }
+
+  test('find a view by its id', () => {
+    const views = expandForumViews([chatView, discussionView], [], [message('ABC')])
+    expect(findForumView(views, 'discussion')).toBe(views[1])
+    expect(findForumView(views, 'reviewer_chat-Reviewer_ABC')).toBe(views[0])
+  })
+
+  test('find the chat of a reviewer with the link of the read-only tab of an area chair', () => {
+    const areaChairViews = expandForumViews([chatView], [], [message('ABC'), message('XYZ')])
+    const reviewerViews = expandForumViews(
+      [chatView],
+      [{ id: chatId('ABC') }],
+      [message('ABC')]
+    )
+    const sharedTabId = areaChairViews[0].id
+    expect(sharedTabId).toBe('reviewer_chat-Reviewer_ABC')
+    expect(findForumView(reviewerViews, sharedTabId)).toBe(reviewerViews[0])
+    expect(reviewerViews[0].id).toBe('reviewer_chat')
+    expect(findForumView(reviewerViews, 'reviewer_chat-Reviewer_XYZ')).toBe(null)
+  })
+
+  test('find the tab of the chat the user can post to by the id of the view it was split from', () => {
+    const views = expandForumViews([chatView], [{ id: chatId('XYZ') }], [message('ABC')])
+    expect(findForumView(views, 'reviewer_chat').id).toBe('reviewer_chat-Reviewer_XYZ')
+  })
+
+  test('find no view for an unknown id', () => {
+    const views = expandForumViews([chatView, discussionView], [], [message('ABC')])
+    expect(findForumView(views, 'unknown')).toBe(null)
+    expect(findForumView(views, '')).toBe(null)
+    expect(findForumView(null, 'discussion')).toBe(null)
   })
 })
