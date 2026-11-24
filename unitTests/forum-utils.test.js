@@ -224,6 +224,22 @@ describe('expandForumViews', () => {
     ])
   })
 
+  test('encode the tab id like browsers encode the url hash', () => {
+    const pattern = `${submission}/-/Chat_.*`
+    const view = {
+      ...chatView,
+      filter: `invitations:${pattern}`,
+      expandedInvitations: [pattern],
+    }
+    const [tab] = expandForumViews(
+      [view],
+      [],
+      [{ id: 'note', invitations: [`${submission}/-/Chat_提交`] }]
+    )
+    expect(tab.id).toBe('reviewer_chat-Chat_%E6%8F%90%E4%BA%A4')
+    expect(tab.label).toBe('Reviewer AI Chat (Chat 提交)')
+  })
+
   test('keep the tab id of a chat when another chat of its group is found', () => {
     const pattern = `${submission}/Reviewer_.*/-/Chat_.*`
     const view = {
@@ -235,13 +251,13 @@ describe('expandForumViews', () => {
     const chatB = { id: 'note_b', invitations: [`${submission}/Reviewer_ABC/-/Chat_B`] }
 
     expect(expandForumViews([view], [], [chatA]).map((tab) => tab.id)).toEqual([
-      'reviewer_chat-Reviewer_ABC/Chat_A',
+      'reviewer_chat-Reviewer_ABC%2FChat_A',
     ])
     expect(
       expandForumViews([view], [], [chatA, chatB]).map((tab) => [tab.id, tab.label])
     ).toEqual([
-      ['reviewer_chat-Reviewer_ABC/Chat_A', 'Reviewer AI Chat (Reviewer ABC Chat A)'],
-      ['reviewer_chat-Reviewer_ABC/Chat_B', 'Reviewer AI Chat (Reviewer ABC Chat B)'],
+      ['reviewer_chat-Reviewer_ABC%2FChat_A', 'Reviewer AI Chat (Reviewer ABC Chat A)'],
+      ['reviewer_chat-Reviewer_ABC%2FChat_B', 'Reviewer AI Chat (Reviewer ABC Chat B)'],
     ])
   })
 
@@ -258,11 +274,11 @@ describe('expandForumViews', () => {
     expect(views.map((tab) => [tab.id, tab.label])).toEqual([
       ['reviewer_chat-Reviewer_ABC', 'Reviewer AI Chat (Reviewer ABC)'],
       [
-        `reviewer_chat-${submission}/Reviewer_ABC/-/LLM_Interaction_Reaction`,
+        'reviewer_chat-NeurIPS.cc%2F2026%2FConference%2FSubmission1%2FReviewer_ABC%2F-%2FLLM_Interaction_Reaction',
         'Reviewer AI Chat (Reviewer ABC LLM Interaction Reaction)',
       ],
       [
-        `reviewer_chat-${submission}/Reviewer_ABC/Extra/-/LLM_Interaction`,
+        'reviewer_chat-NeurIPS.cc%2F2026%2FConference%2FSubmission1%2FReviewer_ABC%2FExtra%2F-%2FLLM_Interaction',
         'Reviewer AI Chat (Reviewer ABC Extra LLM Interaction)',
       ],
     ])

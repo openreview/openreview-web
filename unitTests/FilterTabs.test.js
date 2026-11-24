@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import FilterTabs from '../components/forum/FilterTabs'
+import { expandForumViews } from '../lib/forum-utils'
 import '@testing-library/jest-dom'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
@@ -208,5 +209,37 @@ describe('FilterTabs', () => {
     )
 
     expect(screen.getByText('Reviewer AI Chat (Reviewer ABC123)')).toBeInTheDocument()
+  })
+
+  test('highlights the tab of a chat whose invitation id is percent-encoded in the url hash', () => {
+    const pattern = 'NeurIPS.cc/2026/Conference/Submission1/-/Chat_.*'
+    const forumViews = expandForumViews(
+      [
+        {
+          id: 'chat',
+          label: 'Chat',
+          layout: 'chat',
+          tabPerInvitation: true,
+          filter: `invitations:${pattern}`,
+          expandedInvitations: [pattern],
+        },
+      ],
+      [],
+      [{ id: 'note', invitations: ['NeurIPS.cc/2026/Conference/Submission1/-/Chat_提交'] }]
+    )
+    window.location.hash = 'chat-Chat_提交'
+
+    render(
+      <FilterTabs
+        forumId={forumId}
+        forumViews={forumViews}
+        newMessageCounts={{}}
+        replyInvitations={[]}
+      />
+    )
+
+    expect(window.location.hash).toBe('#chat-Chat_%E6%8F%90%E4%BA%A4')
+    expect(screen.getByText('Chat (Chat 提交)').closest('li')).toHaveClass('active')
+    window.location.hash = ''
   })
 })
