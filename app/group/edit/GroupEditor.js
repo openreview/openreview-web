@@ -1,19 +1,21 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { stringify } from 'query-string'
-import CommonLayout from '../../CommonLayout'
-import styles from '../Group.module.scss'
-import { prettyId } from '../../../lib/utils'
+import { useEffect, useState } from 'react'
+import Banner from '../../../components/Banner'
 import EditBanner from '../../../components/EditBanner'
-import { groupModeToggle } from '../../../lib/banner-links'
-import useUser from '../../../hooks/useUser'
-import LoadingSpinner from '../../../components/LoadingSpinner'
 import ErrorDisplay from '../../../components/ErrorDisplay'
+import LoadingSpinner from '../../../components/LoadingSpinner'
+import useUser from '../../../hooks/useUser'
 import api from '../../../lib/api-client'
-import GroupWithInvitation from './GroupWithInvitation'
+import { groupModeToggle, referrerLink } from '../../../lib/banner-links'
+import { prettyId } from '../../../lib/utils'
+import CommonLayout from '../../CommonLayout'
 import GroupAdmin from '../admin/GroupAdmin'
+import GroupWithInvitation from './GroupWithInvitation'
+
+import styles from '../Group.module.scss'
 
 export default function GroupEditor({ id, query }) {
   const [group, setGroup] = useState(null)
@@ -78,8 +80,10 @@ export default function GroupEditor({ id, query }) {
     return <GroupAdmin id={id} query={query} />
 
   const editBanner = <EditBanner>{groupModeToggle('edit', group.id)}</EditBanner>
+  // A page that sent the user here (the venue's workflow configuration) gets a way back.
+  const banner = query.referrer ? <Banner>{referrerLink(query.referrer)}</Banner> : null
   return (
-    <CommonLayout banner={null} editBanner={editBanner}>
+    <CommonLayout banner={banner} editBanner={editBanner}>
       <div className={styles.group}>
         <div id="header">
           <h1>{prettyId(group.id)}</h1>

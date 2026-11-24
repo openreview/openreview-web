@@ -13,6 +13,7 @@ const theme = {
   token: {
     borderRadius: 2,
     colorLink: primaryColor,
+    colorError: orRed,
     fontFamily: 'Noto Sans, sans-serif',
   },
   components: {

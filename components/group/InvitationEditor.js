@@ -22,6 +22,11 @@ const InvitationEditor = ({
   onInvitationEditPosted,
   isGroupInvitation = false,
   group,
+  // A page can check the edit before it is posted: a message from validateSubmit blocks the
+  // post, and errorPrefix names where an API error came from — the server only says what went
+  // wrong, not on which step.
+  validateSubmit,
+  errorPrefix,
 }) => {
   const { user, isRefreshing } = useUser()
   const [errors, setErrors] = useState([])
@@ -101,6 +106,11 @@ const InvitationEditor = ({
       return field && field.param && !field.param.const
     }
 
+    const validationError = validateSubmit?.(invitationEditorData)
+    if (validationError) {
+      promptError(validationError)
+      return
+    }
     try {
       setIsSubmitting(true)
       const editContent = {}
@@ -117,7 +127,12 @@ const InvitationEditor = ({
         }
       })
       Object.entries(editContentFields).forEach(([field, value]) => {
-        editContent[field] = { value: invitationEditorData[field] }
+        editContent[field] = {
+          value:
+            invitationEditorData[field] === undefined
+              ? { delete: true }
+              : invitationEditorData[field],
+        }
       })
       editToPost.content = editContent
 
@@ -134,7 +149,7 @@ const InvitationEditor = ({
       onInvitationEditPosted?.()
       closeInvitationEditor()
     } catch (error) {
-      promptError(error.message)
+      promptError(errorPrefix ? `${errorPrefix}: ${error.message}` : error.message)
     }
     setIsSubmitting(false)
   }
