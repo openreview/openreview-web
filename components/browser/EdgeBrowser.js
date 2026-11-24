@@ -88,8 +88,7 @@ export default class EdgeBrowser extends React.Component {
     const requestParams = {
       ...invReplyObj?.query,
       ...(invReplyObj.type === 'profile' && {
-        select:
-          'id,content.names,content.preferredEmail,content.emailsConfirmed,content.history,content.expertise',
+        select: 'id,content.names,content.history,content.expertise',
       }),
     } // avoid polluting invReplyObj which is used for compare
     const localQuery = invReplyObj?.localQuery
@@ -128,8 +127,7 @@ export default class EdgeBrowser extends React.Component {
         startRequestParams.invitation = startInv.query.invitation
       }
       if (startInv.type === 'profile') {
-        startRequestParams.select =
-          'id,content.names,content.preferredEmail,content.emailsConfirmed,content.history,content.expertise'
+        startRequestParams.select = 'id,content.names,content.history,content.expertise'
       }
       startResultsP = api.getAll(apiUrlMap[startInv.type], startRequestParams, {
         version: this.version,

@@ -105,6 +105,20 @@ const ProfileLink = ({ link, showLinkText }) => {
   )
 }
 
+const VerifiedInstitutionBadge = () => (
+  <Tooltip title="Verified with a confirmed institutional email">
+    <SafetyCertificateOutlined
+      aria-label="Verified institution"
+      style={{
+        fontSize: '0.85rem',
+        marginLeft: '0.35rem',
+        verticalAlign: 'middle',
+        color: colors.mediumDarkBlue,
+      }}
+    />
+  </Tooltip>
+)
+
 const ProfileHistory = ({ history }) => (
   <Row align="top" gutter={[15, 15]}>
     <Col xs={24} sm={6}>
@@ -140,6 +154,7 @@ const ProfileHistory = ({ history }) => (
           </>
         )}
       </span>
+      {history.verified && <VerifiedInstitutionBadge />}
     </Col>
     <Col xs={24} sm={4}>
       <em>
@@ -255,6 +270,8 @@ const BasicProfileView = ({
   moderation = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
 }) => {
+  const showEmails = contentToShow.includes('emails') && moderation
+
   const uniqueNames = profile.names.filter((name) => !name.duplicate)
   const sortedNames = [
     ...uniqueNames.filter((p) => p.preferred),
@@ -279,7 +296,7 @@ const BasicProfileView = ({
         </ProfileViewSection>
       )}
 
-      {contentToShow.includes('emails') && (
+      {showEmails && (
         <ProfileViewSection title="Emails">
           <Space separator={<span>{`,\u00a0`}</span>} wrap={true} size={0}>
             {profile.emails
