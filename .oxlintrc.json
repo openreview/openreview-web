@@ -28,6 +28,9 @@
     "promptLogin": "readonly",
     "promptRefresh": "readonly",
     "clearMessage": "readonly",
-    "$": "readonly"
+    "$": "readonly",
+    "DOMPurify": "readonly",
+    "marked": "readonly",
+    "MathJax": "readonly"
   }
 }

@@ -70,5 +70,11 @@ export function TabPanel({ id, className, children }) {
 }
 
 export function AntdTabs({ items, styles, ...props }) {
-  return <ATabs {...props} items={items} styles={{ ...ORStyles, ...styles }} />
+  return (
+    <ATabs
+      {...props}
+      items={items}
+      styles={{ ...styles, item: { ...ORStyles.item, ...styles?.item } }}
+    />
+  )
 }
