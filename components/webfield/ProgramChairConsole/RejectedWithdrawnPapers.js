@@ -1,14 +1,14 @@
+import Link from 'next/link'
 /* globals promptError: false */
 import { useContext, useEffect, useState } from 'react'
-import Link from 'next/link'
 import api from '../../../lib/api-client'
+import { getNumberFromGroup, prettyField } from '../../../lib/utils'
 import LoadingSpinner from '../../LoadingSpinner'
 import PaginationLinks from '../../PaginationLinks'
 import Table from '../../Table'
 import WebFieldContext from '../../WebFieldContext'
 import NoteSummary from '../NoteSummary'
 import RejectedWithdrawnPapersMenuBar from './RejectedWithdrawnPapersMenuBar'
-import { getNumberFromGroup, prettyField } from '../../../lib/utils'
 
 const RejectedWithdrawnPaperRow = ({ rowData, referrerUrl }) => {
   const { number, note, reason } = rowData
@@ -160,7 +160,7 @@ const RejectedWithdrawnPapers = ({ consoleData, isSacConsole = false }) => {
     return (
       <p className="empty-message">
         No papers have been desk rejected or withdrawn.Check back later or{' '}
-        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
+        <Link href={`/help`}>get help</Link> if you believe this to be an error.
       </p>
     )
   if (rejectedPaperTabData.tableRows?.length === 0)

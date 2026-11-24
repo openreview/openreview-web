@@ -173,7 +173,7 @@ const PaperStatus = ({ sacConsoleData }) => {
     return (
       <p className="empty-message">
         No {submissionName.toLowerCase()} have been submitted.Check back later or{' '}
-        <Link href={`/contact`}>contact us</Link> if you believe this to be an error.
+        <Link href={`/help`}>get help</Link> if you believe this to be an error.
       </p>
     )
   if (paperStatusTabData.tableRows?.length === 0)
