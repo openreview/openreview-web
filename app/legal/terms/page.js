@@ -12,7 +12,7 @@ export default function Page() {
       </div>
       <div className="row">
         <div className="col-xs-12 col-md-10 col-md-offset-1">
-          <p className="text-muted">Last updated: September 24, 2024</p>
+          <p className="text-muted">Last updated: November 5, 2026</p>
           <p>
             These Terms of Use are a contract between you and OpenReview. OpenReview operates
             OpenReview.net and provides data, software and services, with the objective of
@@ -395,10 +395,10 @@ export default function Page() {
               information (other than food allergies or medical contact information), (d) data
               concerning a natural person&rsquo;s sex life or sexual orientation, (e) national
               insurance, social security numbers, or similar ids or numbers used in various
-              countries, (f) passport numbers or other government issued ID numbers, (g) date
-              of birth, (h) financial account information (other than payment information
-              processed securely), (i) other data which can be reasonably recognised as being
-              highly sensitive.
+              countries, (f) passport numbers or other government issued ID numbers, (g)
+              financial account information (other than payment information processed
+              securely), (h) other data which can be reasonably recognised as being highly
+              sensitive.
             </li>
             <li>
               Other capitalized phrases below (such as Data Controller, Data Processor,
@@ -414,10 +414,12 @@ export default function Page() {
           </p>
           <p>
             You acknowledge and agree that OpenReview and OpenReview Staff are a Data
-            Controller only for Works for which &ldquo;OpenReview.net&rdquo; is the Solicitor.
-            With respect to all other Works, OpenReview is a Data Processor but not a Data
-            Controller; in this case the Data Controller is the Work&rsquo;s Solicitor (for
-            example, the Venue inviting the Submissions).
+            Controller for registration and Account information, including date of birth, that
+            OpenReview collects for its own purposes, and for Works for which
+            &ldquo;OpenReview.net&rdquo; is the Solicitor. With respect to all other Works,
+            OpenReview is a Data Processor but not a Data Controller; in this case the Data
+            Controller is the Work&rsquo;s Solicitor (for example, the Venue inviting the
+            Submissions).
           </p>
           <p>
             Solicitors acknowledge that they are a Data Controller in respect of any Personal
@@ -435,6 +437,12 @@ export default function Page() {
             for use of the OpenReview System and that you shall be solely responsible for any
             such use, and therefore OpenReview and OpenReview Staff shall not be liable for the
             same.
+          </p>
+          <p>
+            OpenReview may share whether a User meets a Venue&rsquo;s age requirement with the
+            Venue Organizers of a Venue that has an age requirement. Venue Organizers may use
+            it only to determine eligibility for that Venue, must keep it confidential, and may
+            not disclose it to anyone else except as required by law.
           </p>
           <p>
             You shall indemnify OpenReview and OpenReview Staff against all liabilities, costs,
@@ -523,6 +531,7 @@ export default function Page() {
             user id is created automatically from your name. We will then send an email to you
             in order to confirm the email address for your account. This email will include a
             link inviting you to complete the registration by entering required additional
+            information, including your date of birth (which is not displayed publicly), and
             Profile information such as your organization and homepage URL, and other optional
             information such as your profile URLs on other scientific publishing services (e.g.
             Google Scholar and ORCHID), and additional information that will aid Venues in

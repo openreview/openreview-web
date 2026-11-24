@@ -12,7 +12,7 @@ export default function Page() {
       </div>
       <div className="row">
         <div className="col-xs-12 col-md-10 col-md-offset-1">
-          <p className="text-muted">Last updated: September 24, 2024</p>
+          <p className="text-muted">Last updated: November 5, 2026</p>
           <p>
             This Privacy Policy describes the manner in which OpenReview collects, uses,
             maintains and discloses information collected from its users.
@@ -119,6 +119,12 @@ export default function Page() {
             expertise, while also avoiding conflicts of interest.
           </p>
           <p>
+            Date of birth. When you register, we also ask for your date of birth. We use it to
+            determine whether you meet age requirements, including requirements set by Venues,
+            and to administer your Account. It is not part of your public Profile and is not
+            displayed publicly.
+          </p>
+          <p>
             Some Profiles are pre-created by aggregating information publicly available on the
             web, such as publication databases (e.g. from DBLP), grant databases (e.g. from
             NSF), directories (e.g. universities&rsquo; public faculty directories), home pages
@@ -145,7 +151,7 @@ export default function Page() {
           </p>
           <p>
             All “Profile” information can be viewed publicly on your OpenReview profile page,
-            with two exceptions:{' '}
+            with three exceptions:{' '}
           </p>
           <ol>
             <li>
@@ -159,6 +165,11 @@ export default function Page() {
               Selected conflicts-of-interest and other relations may be hidden by the Profile
               owner from all but a designated list of readers. For example, designated readers
               may include certain Venue Organizers selected by the Profile owner.
+            </li>
+            <li>
+              Your date of birth is not displayed publicly. It is visible only to OpenReview.
+              As described below, we may share whether you meet a Venue&rsquo;s age requirement
+              with Venue Organizers of Venues with age requirements.
             </li>
           </ol>
           <p>
@@ -222,10 +233,11 @@ export default function Page() {
             reviewers to Submissions. The Venue Organizers and other Solicitors determine when,
             to whom, and how much of your information in Works they solicit is shared with
             others. More specifically, OpenReview and OpenReview Staff are a Data Controller
-            (in the GDPR sense) only for Works for which “OpenReview.net” is the Solicitor.
-            With respect to all other Works, OpenReview is a Data Processor but not a Data
-            Controller; in this case the Data Controller is the Work&rsquo;s Solicitor (for
-            example, the Venue soliciting the Article Submissions).
+            (in the GDPR sense) for registration and Account information, including date of
+            birth, that OpenReview collects for its own purposes, and for Works for which
+            “OpenReview.net” is the Solicitor. With respect to all other Works, OpenReview is a
+            Data Processor but not a Data Controller; in this case the Data Controller is the
+            Work&rsquo;s Solicitor (for example, the Venue soliciting the Article Submissions).
           </p>
           <p>
             If you choose to submit an Article or any other Work, it is important that you
@@ -252,7 +264,9 @@ export default function Page() {
             Work may also be invited to modify the Work, including its “readers” and
             “nonreaders” fields. Typically the Venue or other Solicitor publicly discloses its
             intended workflow, and Submitters can thus know in advance the schedule and extent
-            of information sharing planned.
+            of information sharing planned. When a Venue has an age requirement, we may share
+            whether you meet the requirement with that Venue&rsquo;s Venue Organizers, who may
+            use it only to determine eligibility and may not further disclose it.
           </p>
           <p>
             <strong>Service Providers.</strong> We use third party service providers to help us
@@ -327,7 +341,7 @@ export default function Page() {
               Legitimate Interests. We will process your information when it is in our
               legitimate business interests to do so, such as analyzing use of the services,
               communicating with you, enhancing the services, and for other internal business
-              operations.
+              operations, including determining age eligibility.
             </li>
             <li>
               Performance of a contract. We will process your information where it is necessary
@@ -395,7 +409,9 @@ export default function Page() {
           <p>
             Use of OpenReview is intended for adults at least eighteen (18) years of age and we
             do not knowingly collect personally-identifying information from children under the
-            age of thirteen (13).
+            age of thirteen (13). We ask for your date of birth at registration. If it shows
+            that you are under 13, we will not create your Account and will delete the
+            information we collected.
           </p>
 
           <h3>Changes to this Document</h3>

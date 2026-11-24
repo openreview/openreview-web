@@ -64,7 +64,7 @@ test(`redirection to /profile/activate is skipped`, async (t) => {
 fixture`miscellaneous issues`
 test('terms and conditions date should be updated', async (t) => {
   // terms page, privacy page, login page and signup page
-  const lastUpdatedDate = 'September 24, 2024'
+  const lastUpdatedDate = 'November 5, 2026'
   await t
     .navigateTo(`${homepageUrl}/legal/terms`)
     .expect(Selector('p').withText(lastUpdatedDate).exists)

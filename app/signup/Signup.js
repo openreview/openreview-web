@@ -53,6 +53,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
   const [dobDD, setDobDD] = useState(null)
   const [dobYYYY, setDobYYYY] = useState(null)
   const lastDobError = useRef(null)
+  const fullNameInputRef = useRef(null)
 
   const registerUser = async (email, password) => {
     const dob = dayjs
@@ -95,6 +96,10 @@ const SignupForm = ({ setSignupConfirmation }) => {
     lastDobError.current = error
   }, [dobYYYY, dobMM, dobDD])
 
+  useEffect(() => {
+    setFullName(fullNameInputRef.current.input.value)
+  }, [])
+
   const handleDobBlur = (e) => {
     if (e.currentTarget.contains(e.relatedTarget)) return
     if (!dobMM && !dobDD && !dobYYYY) return
@@ -115,6 +120,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
           value={fullName}
           onInput={(e) => setIsComposing(e.nativeEvent.isComposing)}
           onCompositionEnd={() => setIsComposing(false)}
+          ref={fullNameInputRef}
           onChange={(e) => {
             setFullName(e.target.value)
           }}
@@ -143,7 +149,7 @@ const SignupForm = ({ setSignupConfirmation }) => {
         <>
           <hr className="spacer" />
           <Flex vertical gap="small">
-            <label htmlFor="dob-input" className={styles.titleText}>
+            <label className={styles.titleText}>
               Enter your date of birth{' '}
               <Tooltip
                 title={
@@ -349,7 +355,7 @@ const NewProfileForm = ({ registerUser, nameConfirmed }) => {
               >
                 <InfoCircleFilled
                   tabIndex={0}
-                  aria-label="Why we ask for your date of birth"
+                  aria-label="Password requirements"
                   style={{ cursor: 'help', color: '#3e6775', fontSize: '1rem' }}
                 />
               </Tooltip>

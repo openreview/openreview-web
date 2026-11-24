@@ -95,19 +95,17 @@ const CustomProfileSearchForm = ({
           }
         }}
       />
-      <Tooltip title="Search relation by name or OpenReview profile ID">
-        <Button
-          type="primary"
-          icon={<SearchOutlined />}
-          onClick={(e) => {
-            e.preventDefault()
-            setShowCustomAuthorForm(false)
-            searchProfiles(searchTerm, 1)
-            setPageNumber(null)
-          }}
-          disabled={!searchTerm?.trim()}
-        />
-      </Tooltip>
+      <Button
+        type="primary"
+        icon={<SearchOutlined />}
+        onClick={(e) => {
+          e.preventDefault()
+          setShowCustomAuthorForm(false)
+          searchProfiles(searchTerm, 1)
+          setPageNumber(null)
+        }}
+        disabled={!searchTerm?.trim()}
+      />
     </Space.Compact>
   </div>
 )

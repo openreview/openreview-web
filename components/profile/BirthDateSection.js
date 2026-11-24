@@ -11,9 +11,11 @@ const BirthDateSection = ({ profileDateOfBirth, updateDateOfBirth }) => (
       disabledDate={(date) =>
         date.isAfter(dayjs()) || date.isBefore(dayjs().subtract(100, 'year'))
       }
-      defaultPickerValue={profileDateOfBirth?.value ? null : dayjs().subtract(20, 'year')}
+      defaultPickerValue={
+        profileDateOfBirth?.value !== undefined ? null : dayjs().subtract(20, 'year')
+      }
       existingValue={
-        profileDateOfBirth?.value
+        profileDateOfBirth?.value !== undefined
           ? dayjs.utc(profileDateOfBirth.value).format('YYYY-MM-DD')
           : null
       }

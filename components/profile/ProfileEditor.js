@@ -223,7 +223,7 @@ export default function ProfileEditor({
     let invalidRecord = null
 
     // #region validate dob
-    if (!profile.dob?.value) {
+    if (profile.dob?.value === undefined) {
       promptError('Date of Birth is required. Please select your date of birth.')
       setInvalidStepKeys((current) => [...current, 'personal'])
       setProfile({ type: 'dob', data: { ...profile.dob, valid: false } })
@@ -824,7 +824,7 @@ export default function ProfileEditor({
           <a href="/legal/terms" target="_blank" rel="noopener noreferrer">
             <strong>Terms of Use</strong>
           </a>
-          , last updated September 24, 2024.
+          , last updated November 5, 2026.
         </p>
       )}
 

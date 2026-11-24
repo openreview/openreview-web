@@ -1367,6 +1367,23 @@ test('reimport unlinked paper and import all', async (t) => {
     .gt(0)
 })
 
+test('co-authors update when switching profile client side', async (t) => {
+  const coAuthors = Selector('section').withText('Co-Authors').find('ul.list-unstyled li')
+  await t
+    .useRole(userBRole)
+    .navigateTo(`http://localhost:${process.env.NEXT_PORT}/profile?id=${hasTaskUser.tildeId}`)
+    .expect(pageHeader.innerText)
+    .eql(hasTaskUser.fullname)
+    .wait(1000)
+    // nav link only changes search params so the page stays mounted
+    .click(Selector('#user-menu').filterVisible())
+    .click(Selector('a').withExactText('Profile').filterVisible())
+    .expect(Selector('#edit-banner').find('a').innerText)
+    .eql('Edit Profile')
+    .expect(coAuthors.withText('Panos Nasiopoulos').exists)
+    .ok()
+})
+
 test('validate current history', async (t) => {
   // add past end date
   await t
