@@ -1,4 +1,12 @@
-import { getUniqueInstitutions } from '../lib/forum-utils'
+import {
+  checkExReadersMatch,
+  checkFiltersMatch,
+  expandForumViews,
+  findExpandedForumView,
+  findForumView,
+  getLatestReplyReaders,
+  getUniqueInstitutions,
+} from '../lib/forum-utils'
 
 jest.mock('nanoid', () => ({ nanoid: () => 'some id' }))
 
@@ -24,5 +32,367 @@ describe('getUniqueInstitutions', () => {
   test('return empty list for missing or string authors', () => {
     expect(getUniqueInstitutions(undefined)).toEqual([])
     expect(getUniqueInstitutions(['First Last'])).toEqual([])
+  })
+})
+
+describe('checkExReadersMatch', () => {
+  test('match invitation ids against an excluded .* pattern', () => {
+    const excludedInvitations = ['NeurIPS.cc/2026/Conference/Submission1/.*/-/LLM_Interaction']
+    expect(
+      checkExReadersMatch(excludedInvitations, [
+        'NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1/-/LLM_Interaction',
+      ])
+    ).toBe(true)
+    expect(
+      checkExReadersMatch(excludedInvitations, [
+        'NeurIPS.cc/2026/Conference/Submission1/Area_Chair_xyz2/-/LLM_Interaction',
+      ])
+    ).toBe(true)
+    expect(
+      checkExReadersMatch(excludedInvitations, [
+        'NeurIPS.cc/2026/Conference/Submission1/-/Official_Comment',
+      ])
+    ).toBe(false)
+  })
+
+  test('match ids without .* exactly', () => {
+    const excludedInvitations = ['NeurIPS.cc/2026/Conference/Submission1/-/Chat']
+    expect(
+      checkExReadersMatch(excludedInvitations, [
+        'NeurIPS.cc/2026/Conference/Submission1/-/Chat',
+      ])
+    ).toBe(true)
+    expect(
+      checkExReadersMatch(excludedInvitations, [
+        'NeurIPS.cc/2026/Conference/Submission1/-/Chat_Reaction',
+      ])
+    ).toBe(false)
+  })
+})
+
+describe('checkFiltersMatch', () => {
+  const note = {
+    invitations: ['NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1/-/LLM_Interaction'],
+    signatures: ['NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1'],
+    readers: [
+      'NeurIPS.cc/2026/Conference',
+      'NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1',
+    ],
+    searchText: 'What are the main contributions?',
+  }
+
+  test('match a note without filters', () => {
+    expect(checkFiltersMatch(note, {})).toBe(true)
+  })
+
+  test('match a note against every filter', () => {
+    const filters = {
+      invitations: ['NeurIPS.cc/2026/Conference/Submission1/.*/-/LLM_Interaction'],
+      excludedInvitations: ['NeurIPS.cc/2026/Conference/Submission1/-/Official_Comment'],
+      signatures: ['NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1'],
+      keywords: ['main'],
+      readers: ['NeurIPS.cc/2026/Conference'],
+      excludedReaders: ['NeurIPS.cc/2026/Conference/Submission1/Authors'],
+    }
+    expect(checkFiltersMatch(note, filters)).toBe(true)
+    expect(checkFiltersMatch(note, { ...filters, keywords: ['ain'] })).toBe(false)
+    expect(
+      checkFiltersMatch(note, {
+        ...filters,
+        signatures: ['NeurIPS.cc/2026/Conference/AI_Review_Assistant'],
+      })
+    ).toBe(false)
+    expect(
+      checkFiltersMatch(note, {
+        ...filters,
+        excludedReaders: ['NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1'],
+      })
+    ).toBe(false)
+  })
+})
+
+describe('getLatestReplyReaders', () => {
+  const chatId = 'NeurIPS.cc/2026/Conference/Submission1/Reviewer_abc1/-/LLM_Interaction'
+  const reply = (invitationId, cdate, readers) => ({
+    invitations: [invitationId],
+    cdate,
+    readers,
+  })
+
+  test('return the readers of the latest reply of the invitation', () => {
+    const replies = [
+      reply(chatId, 2, [
+        'NeurIPS.cc/2026/Conference',
+        'NeurIPS.cc/2026/Conference/Submission1/Area_Chairs',
+      ]),
+      reply(chatId, 1, ['NeurIPS.cc/2026/Conference']),
+      reply('NeurIPS.cc/2026/Conference/Submission1/-/Official_Review', 3, ['everyone']),
+    ]
+    expect(getLatestReplyReaders(replies, chatId)).toEqual([
+      'NeurIPS.cc/2026/Conference',
+      'NeurIPS.cc/2026/Conference/Submission1/Area_Chairs',
+    ])
+  })
+
+  test('return null when the invitation has no replies', () => {
+    expect(getLatestReplyReaders([], chatId)).toBe(null)
+  })
+})
+
+describe('expandForumViews', () => {
+  const submission = 'NeurIPS.cc/2026/Conference/Submission1'
+  const chatPattern = `${submission}/Reviewer_.*/-/LLM_Interaction`
+  const chatView = {
+    id: 'reviewer_chat',
+    label: 'Reviewer AI Chat',
+    filter: `invitations:${chatPattern}`,
+    layout: 'chat',
+    tabPerInvitation: true,
+    expandedInvitations: [chatPattern],
+  }
+  const chatId = (anonId) => `${submission}/Reviewer_${anonId}/-/LLM_Interaction`
+  const message = (anonId) => ({ id: `note_${anonId}`, invitations: [chatId(anonId)] })
+
+  test('keep the view of a user who can post to a single matching invitation', () => {
+    const views = expandForumViews([chatView], [{ id: chatId('ABC') }], [message('ABC')])
+    expect(views).toEqual([{ ...chatView, aliasId: 'reviewer_chat-Reviewer_ABC' }])
+  })
+
+  test('make one read-only tab per invitation of the replies the user can read', () => {
+    const views = expandForumViews(
+      [chatView],
+      [{ id: `${submission}/-/Official_Comment` }],
+      [
+        message('XYZ'),
+        message('ABC'),
+        message('ABC'),
+        { id: 'review', invitations: [`${submission}/-/Official_Review`] },
+      ]
+    )
+    expect(views).toEqual([
+      {
+        ...chatView,
+        id: 'reviewer_chat-Reviewer_ABC',
+        label: 'Reviewer AI Chat (Reviewer ABC)',
+        filter: `invitations:${chatId('ABC')}`,
+        expandedInvitations: [chatId('ABC')],
+        readOnly: true,
+        sourceViewId: 'reviewer_chat',
+      },
+      {
+        ...chatView,
+        id: 'reviewer_chat-Reviewer_XYZ',
+        label: 'Reviewer AI Chat (Reviewer XYZ)',
+        filter: `invitations:${chatId('XYZ')}`,
+        expandedInvitations: [chatId('XYZ')],
+        readOnly: true,
+        sourceViewId: 'reviewer_chat',
+      },
+    ])
+  })
+
+  test('make one tab per invitation the user can post to, without replies yet', () => {
+    const views = expandForumViews(
+      [chatView],
+      [{ id: chatId('ABC') }, { id: chatId('XYZ') }],
+      []
+    )
+    expect(views.map((view) => [view.id, view.readOnly])).toEqual([
+      ['reviewer_chat-Reviewer_ABC', false],
+      ['reviewer_chat-Reviewer_XYZ', false],
+    ])
+  })
+
+  test('make no tab when the user can neither post to nor read a matching invitation', () => {
+    expect(expandForumViews([chatView], [], [])).toEqual([])
+  })
+
+  test('name the tabs after the invitation segments matched by wildcards', () => {
+    const pattern = `${submission}/-/Chat_.*`
+    const view = {
+      ...chatView,
+      filter: `invitations:${pattern}`,
+      expandedInvitations: [pattern],
+    }
+    const views = expandForumViews(
+      [view],
+      [{ id: `${submission}/-/Chat_A` }],
+      [{ id: 'note_b', invitations: [`${submission}/-/Chat_B`] }]
+    )
+    expect(views.map((tab) => [tab.id, tab.label, tab.readOnly])).toEqual([
+      ['reviewer_chat-Chat_A', 'Reviewer AI Chat (Chat A)', false],
+      ['reviewer_chat-Chat_B', 'Reviewer AI Chat (Chat B)', true],
+    ])
+  })
+
+  test('encode the tab id like browsers encode the url hash', () => {
+    const pattern = `${submission}/-/Chat_.*`
+    const view = {
+      ...chatView,
+      filter: `invitations:${pattern}`,
+      expandedInvitations: [pattern],
+    }
+    const [tab] = expandForumViews(
+      [view],
+      [],
+      [{ id: 'note', invitations: [`${submission}/-/Chat_提交`] }]
+    )
+    expect(tab.id).toBe('reviewer_chat-Chat_%E6%8F%90%E4%BA%A4')
+    expect(tab.label).toBe('Reviewer AI Chat (Chat 提交)')
+  })
+
+  test('keep the tab id of a chat when another chat of its group is found', () => {
+    const pattern = `${submission}/Reviewer_.*/-/Chat_.*`
+    const view = {
+      ...chatView,
+      filter: `invitations:${pattern}`,
+      expandedInvitations: [pattern],
+    }
+    const chatA = { id: 'note_a', invitations: [`${submission}/Reviewer_ABC/-/Chat_A`] }
+    const chatB = { id: 'note_b', invitations: [`${submission}/Reviewer_ABC/-/Chat_B`] }
+
+    expect(expandForumViews([view], [], [chatA]).map((tab) => tab.id)).toEqual([
+      'reviewer_chat-Reviewer_ABC%2FChat_A',
+    ])
+    expect(
+      expandForumViews([view], [], [chatA, chatB]).map((tab) => [tab.id, tab.label])
+    ).toEqual([
+      ['reviewer_chat-Reviewer_ABC%2FChat_A', 'Reviewer AI Chat (Reviewer ABC Chat A)'],
+      ['reviewer_chat-Reviewer_ABC%2FChat_B', 'Reviewer AI Chat (Reviewer ABC Chat B)'],
+    ])
+  })
+
+  test('use the full invitation id when other segments differ from the primary invitation', () => {
+    const views = expandForumViews(
+      [chatView],
+      [],
+      [
+        message('ABC'),
+        { id: 'reaction', invitations: [`${chatId('ABC')}_Reaction`] },
+        { id: 'nested', invitations: [`${submission}/Reviewer_ABC/Extra/-/LLM_Interaction`] },
+      ]
+    )
+    expect(views.map((tab) => [tab.id, tab.label])).toEqual([
+      ['reviewer_chat-Reviewer_ABC', 'Reviewer AI Chat (Reviewer ABC)'],
+      [
+        'reviewer_chat-NeurIPS.cc%2F2026%2FConference%2FSubmission1%2FReviewer_ABC%2F-%2FLLM_Interaction_Reaction',
+        'Reviewer AI Chat (Reviewer ABC LLM Interaction Reaction)',
+      ],
+      [
+        'reviewer_chat-NeurIPS.cc%2F2026%2FConference%2FSubmission1%2FReviewer_ABC%2FExtra%2F-%2FLLM_Interaction',
+        'Reviewer AI Chat (Reviewer ABC Extra LLM Interaction)',
+      ],
+    ])
+  })
+
+  test('keep the other filters of the view', () => {
+    const view = {
+      ...chatView,
+      filter: `invitations:${chatPattern} -readers:${submission}/Authors`,
+    }
+    const [tab] = expandForumViews([view], [], [message('ABC')])
+    expect(tab.filter).toBe(`invitations:${chatId('ABC')} -readers:${submission}/Authors`)
+  })
+
+  test('keep the views without tabPerInvitation', () => {
+    const views = [
+      { ...chatView, tabPerInvitation: undefined },
+      { id: 'discussion', label: 'Discussion' },
+    ]
+    expect(expandForumViews(views, [], [message('ABC'), message('XYZ')])).toEqual(views)
+    expect(expandForumViews(null, [], [])).toBe(null)
+  })
+})
+
+describe('findExpandedForumView', () => {
+  const submission = 'NeurIPS.cc/2026/Conference/Submission1'
+  const chatPattern = `${submission}/Reviewer_.*/-/LLM_Interaction`
+  const chatView = {
+    id: 'reviewer_chat',
+    label: 'Reviewer AI Chat',
+    filter: `invitations:${chatPattern}`,
+    layout: 'chat',
+    tabPerInvitation: true,
+    expandedInvitations: [chatPattern],
+  }
+  const chatId = (anonId) => `${submission}/Reviewer_${anonId}/-/LLM_Interaction`
+  const message = (anonId) => ({ id: `note_${anonId}`, invitations: [chatId(anonId)] })
+
+  test('find the tab of the chat the user can post to when a second chat becomes readable', () => {
+    const views = expandForumViews(
+      [chatView],
+      [{ id: chatId('XYZ') }],
+      [message('ABC'), message('XYZ')]
+    )
+    expect(views.map((view) => view.id)).toEqual([
+      'reviewer_chat-Reviewer_ABC',
+      'reviewer_chat-Reviewer_XYZ',
+    ])
+    expect(findExpandedForumView(views, 'reviewer_chat').id).toBe('reviewer_chat-Reviewer_XYZ')
+  })
+
+  test('find the first tab when the user can only read the chats', () => {
+    const views = expandForumViews([chatView], [], [message('XYZ'), message('ABC')])
+    expect(findExpandedForumView(views, 'reviewer_chat').id).toBe('reviewer_chat-Reviewer_ABC')
+  })
+
+  test('find no tab for a view that was not split or does not exist', () => {
+    const views = expandForumViews(
+      [chatView, { id: 'discussion', label: 'Discussion' }],
+      [{ id: chatId('ABC') }],
+      [message('ABC')]
+    )
+    expect(findExpandedForumView(views, 'reviewer_chat')).toBe(null)
+    expect(findExpandedForumView(views, 'discussion')).toBe(null)
+    expect(findExpandedForumView(views, 'unknown')).toBe(null)
+    expect(findExpandedForumView(null, 'reviewer_chat')).toBe(null)
+  })
+})
+
+describe('findForumView', () => {
+  const submission = 'NeurIPS.cc/2026/Conference/Submission1'
+  const chatPattern = `${submission}/Reviewer_.*/-/LLM_Interaction`
+  const chatView = {
+    id: 'reviewer_chat',
+    label: 'Reviewer AI Chat',
+    filter: `invitations:${chatPattern}`,
+    layout: 'chat',
+    tabPerInvitation: true,
+    expandedInvitations: [chatPattern],
+  }
+  const chatId = (anonId) => `${submission}/Reviewer_${anonId}/-/LLM_Interaction`
+  const message = (anonId) => ({ id: `note_${anonId}`, invitations: [chatId(anonId)] })
+  const discussionView = { id: 'discussion', label: 'Discussion' }
+
+  test('find a view by its id', () => {
+    const views = expandForumViews([chatView, discussionView], [], [message('ABC')])
+    expect(findForumView(views, 'discussion')).toBe(views[1])
+    expect(findForumView(views, 'reviewer_chat-Reviewer_ABC')).toBe(views[0])
+  })
+
+  test('find the chat of a reviewer with the link of the read-only tab of an area chair', () => {
+    const areaChairViews = expandForumViews([chatView], [], [message('ABC'), message('XYZ')])
+    const reviewerViews = expandForumViews(
+      [chatView],
+      [{ id: chatId('ABC') }],
+      [message('ABC')]
+    )
+    const sharedTabId = areaChairViews[0].id
+    expect(sharedTabId).toBe('reviewer_chat-Reviewer_ABC')
+    expect(findForumView(reviewerViews, sharedTabId)).toBe(reviewerViews[0])
+    expect(reviewerViews[0].id).toBe('reviewer_chat')
+    expect(findForumView(reviewerViews, 'reviewer_chat-Reviewer_XYZ')).toBe(null)
+  })
+
+  test('find the tab of the chat the user can post to by the id of the view it was split from', () => {
+    const views = expandForumViews([chatView], [{ id: chatId('XYZ') }], [message('ABC')])
+    expect(findForumView(views, 'reviewer_chat').id).toBe('reviewer_chat-Reviewer_XYZ')
+  })
+
+  test('find no view for an unknown id', () => {
+    const views = expandForumViews([chatView, discussionView], [], [message('ABC')])
+    expect(findForumView(views, 'unknown')).toBe(null)
+    expect(findForumView(views, '')).toBe(null)
+    expect(findForumView(null, 'discussion')).toBe(null)
   })
 })

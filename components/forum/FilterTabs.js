@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { checkGroupMatch } from '../../lib/forum-utils'
 
 export default function FilterTabs({
   forumId,
@@ -16,9 +17,9 @@ export default function FilterTabs({
         // Tab should only be visible if the user has permission to post to the primary invitation,
         // (which by convention is the first item in the expandedInvitations array)
         const primaryInvitationId = view.expandedInvitations?.[0]
-        if (primaryInvitationId) {
+        if (primaryInvitationId && !view.readOnly) {
           const primaryInvitation = replyInvitations.find((inv) =>
-            inv.id.match(primaryInvitationId)
+            checkGroupMatch(primaryInvitationId, inv.id)
           )
           if (
             !primaryInvitation ||

@@ -1,6 +1,8 @@
+import { useState } from 'react'
+import { checkFiltersMatch } from '../../lib/forum-utils'
+import { prettyId, prettyInvitationId } from '../../lib/utils'
 import Dropdown from '../Dropdown'
 import Icon from '../Icon'
-import { prettyId, prettyInvitationId } from '../../lib/utils'
 
 import styles from '../../styles/components/ChatFilterForm.module.scss'
 
@@ -9,7 +11,19 @@ export default function ChatFilterForm({
   selectedFilters,
   setSelectedFilters,
   filterOptions,
+  replyNotes = [],
 }) {
+  const selectedKeywords = selectedFilters.keywords?.[0] ?? ''
+  const [keywords, setKeywords] = useState(selectedKeywords)
+  const [prevSelectedKeywords, setPrevSelectedKeywords] = useState(selectedKeywords)
+
+  if (selectedKeywords !== prevSelectedKeywords) {
+    setPrevSelectedKeywords(selectedKeywords)
+    if (keywords.toLowerCase().trim() !== selectedKeywords) {
+      setKeywords(selectedKeywords)
+    }
+  }
+
   // Options for dropdowns
   const invDropdownFilterOptions = [
     { value: 'all', label: 'All Message Types', type: 'invitation' },
@@ -19,7 +33,12 @@ export default function ChatFilterForm({
       type: 'invitation',
     })),
   ]
-  const sigDropdownFilterOptions = filterOptions.signatures.map((groupId) => ({
+  const tabSignatures = new Set(
+    replyNotes
+      .filter((note) => checkFiltersMatch(note, defaultFilters ?? {}))
+      .flatMap((note) => note.signatures)
+  )
+  const sigDropdownFilterOptions = [...tabSignatures].map((groupId) => ({
     value: groupId,
     label: prettyId(groupId, true),
     type: 'signature',
@@ -48,11 +67,6 @@ export default function ChatFilterForm({
       ...selectedFilters,
       ...modifiedFilters,
     })
-
-    const activeTab = document.querySelector('.filter-tabs li.active')
-    if (activeTab) {
-      activeTab.classList.remove('active')
-    }
   }
 
   return (
@@ -67,36 +81,39 @@ export default function ChatFilterForm({
             className="form-control"
             id="keyword-input"
             placeholder="Search keywords..."
-            defaultValue={selectedFilters.keywords ? selectedFilters.keywords[0] : ''}
+            value={keywords}
             maxLength={100}
             onChange={(e) => {
+              setKeywords(e.target.value)
               updateFilters({
                 keywords: e.target.value ? [e.target.value.toLowerCase().trim()] : null,
               })
             }}
           />
         </div>
-        <div className="form-group expand">
-          <Dropdown
-            name="filter-invitations"
-            className="replies-filter invitations-filter"
-            options={invDropdownFilterOptions}
-            value={selectedInvitationOptions}
-            isDisabled={!filterOptions}
-            onChange={(selectedOption) => {
-              if (!selectedOption) return
+        {defaultFilters?.invitations?.length > 1 && (
+          <div className="form-group expand">
+            <Dropdown
+              name="filter-invitations"
+              className="replies-filter invitations-filter"
+              options={invDropdownFilterOptions}
+              value={selectedInvitationOptions}
+              isDisabled={!filterOptions}
+              onChange={(selectedOption) => {
+                if (!selectedOption) return
 
-              if (selectedOption.value === 'all') {
-                updateFilters({ invitations: defaultFilters?.invitations })
-              } else {
-                updateFilters({ invitations: [selectedOption.value] })
-              }
-            }}
-            placeholder="Filter by reply type..."
-            instanceId="invitations-filter"
-            height={32}
-          />
-        </div>
+                if (selectedOption.value === 'all') {
+                  updateFilters({ invitations: defaultFilters?.invitations })
+                } else {
+                  updateFilters({ invitations: [selectedOption.value] })
+                }
+              }}
+              placeholder="Filter by reply type..."
+              instanceId="invitations-filter"
+              height={32}
+            />
+          </div>
+        )}
 
         <div className="form-group expand">
           <Dropdown
