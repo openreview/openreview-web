@@ -53,7 +53,13 @@ const AssertionPopover = ({
           </>
         )}
         <span>By:</span>
-        <span>{prettyId(signatures[0])}</span>
+        <span>
+          {signatures[0]?.startsWith('~') ? (
+            <Link href={`/profile?id=${signatures[0]}`}>{prettyId(signatures[0])}</Link>
+          ) : (
+            prettyId(signatures[0])
+          )}
+        </span>
         <span>Date</span>
         <span>{formatDateTime(tcdate)}</span>
         {comment && (
@@ -122,21 +128,23 @@ const ProfileName = ({ name, badge }) => (
 const NamesSection = ({ names, profileAssertions }) => {
   const normalizedProfileNames = names.map((p) => normalizeName(p.fullname))
   const namesAsserted = orderBy(
-    profileAssertions.flatMap((p) => {
-      const profileAssertionFullName = p.profile.content?.names?.value?.add?.[0]?.fullname
-      if (!profileAssertionFullName) return []
-      const normalizedValue = normalizeName(profileAssertionFullName)
-      return {
-        value: profileAssertionFullName,
-        source: p.content?.source?.value,
-        comment: p.content?.comment?.value,
-        signatures: p.signatures,
-        tcdate: p.tcdate,
-        normalizedValue,
-        existInProfile:
-          normalizedProfileNames.find((q) => q === normalizedValue) !== undefined,
-      }
-    }),
+    profileAssertions.flatMap((p) =>
+      (p.profile.content?.names?.value?.add ?? [])
+        .filter((name) => name?.fullname)
+        .map(({ fullname }) => {
+          const normalizedValue = normalizeName(fullname)
+          return {
+            value: fullname,
+            source: p.content?.source?.value,
+            comment: p.content?.comment?.value,
+            signatures: p.signatures,
+            tcdate: p.tcdate,
+            normalizedValue,
+            existInProfile:
+              normalizedProfileNames.find((q) => q === normalizedValue) !== undefined,
+          }
+        })
+    ),
     ['tcdate'],
     ['desc']
   )
@@ -331,22 +339,22 @@ const correspondingRecord = (records, asserted) => {
 const HistorySection = ({ history, profileAssertions }) => {
   const records = history ?? []
   const historyAsserted = orderBy(
-    profileAssertions.flatMap((p) => {
-      const value = p.profile.content?.history?.value?.add?.[0]
-      if (!value) return []
-      const identity = historyIdentity(value)
-      const existInProfile = records.some((record) => historyIdentity(record) === identity)
-      return {
-        value,
-        source: p.content?.source?.value,
-        comment: p.content?.comment?.value,
-        signatures: p.signatures,
-        tcdate: p.tcdate,
-        identity,
-        existInProfile,
-        contradicts: existInProfile ? undefined : correspondingRecord(records, value),
-      }
-    }),
+    profileAssertions.flatMap((p) =>
+      (p.profile.content?.history?.value?.add ?? []).filter(Boolean).map((value) => {
+        const identity = historyIdentity(value)
+        const existInProfile = records.some((record) => historyIdentity(record) === identity)
+        return {
+          value,
+          source: p.content?.source?.value,
+          comment: p.content?.comment?.value,
+          signatures: p.signatures,
+          tcdate: p.tcdate,
+          identity,
+          existInProfile,
+          contradicts: existInProfile ? undefined : correspondingRecord(records, value),
+        }
+      })
+    ),
     ['tcdate'],
     ['desc']
   )
@@ -475,6 +483,46 @@ const RelationsSection = ({ relations, parentalConsents }) => {
   )
 }
 
+const formatVouchedPosition = ({ position, institution }) =>
+  [
+    position,
+    position === 'Independent Researcher'
+      ? undefined
+      : (institution?.name ?? institution?.domain),
+  ]
+    .filter(Boolean)
+    .join(', ')
+
+const VouchVerificationsSection = ({ vouchVerifications }) => (
+  <Flex vertical gap="small">
+    {orderBy(vouchVerifications, ['tcdate'], ['desc']).map((assertion) => {
+      const { names, history } = assertion.profile.content ?? {}
+      const fullname = names?.value?.add?.[0]?.fullname ?? prettyId(assertion.profile.id)
+      const positions = (history?.value?.add ?? []).filter(Boolean)
+      return (
+        <Row key={assertion.id} align="top" gutter={[15, 15]}>
+          <Col xs={12} sm={20}>
+            <Flex vertical>
+              <Link href={`/profile?id=${assertion.profile.id}`}>{fullname}</Link>
+              {positions.map((entry) => (
+                <span
+                  key={`${entry.position}-${entry.institution?.domain}-${entry.start}`}
+                  style={{ color: colors.subtleGray }}
+                >
+                  {formatVouchedPosition(entry)}
+                </span>
+              ))}
+            </Flex>
+          </Col>
+          <Col xs={12} sm={4}>
+            <em>{dayjs(assertion.tcdate).format('MMM D, YYYY')}</em>
+          </Col>
+        </Row>
+      )
+    })}
+  </Flex>
+)
+
 const ProfileExpertise = ({ expertise }) => (
   <Row align="top" gutter={[15, 15]}>
     <Col xs={12} sm={20} style={{ overflowWrap: 'anywhere' }}>
@@ -582,6 +630,7 @@ const BasicProfileView = ({
   moderation = false,
   contentToShow = ['names', 'emails', 'links', 'history', 'relations', 'expertise'],
   profileAssertions = [],
+  vouchVerifications = [],
 }) => {
   const activeProfileAssertions = profileAssertions.filter((p) => !p.ddate)
   const parentalConsents = activeProfileAssertions.filter(
@@ -670,6 +719,11 @@ const BasicProfileView = ({
       {serviceRoles?.length > 0 && (
         <ProfileViewSection title="Service Roles">
           <ServiceRoles serviceRoles={serviceRoles} />
+        </ProfileViewSection>
+      )}
+      {vouchVerifications.length > 0 && (
+        <ProfileViewSection title="Vouch Verifications">
+          <VouchVerificationsSection vouchVerifications={vouchVerifications} />
         </ProfileViewSection>
       )}
     </Flex>
