@@ -667,7 +667,7 @@ export default function Forum({
       if (!isSameConversation) {
         setChatReplyNote(null)
       }
-      setTabMessage(typeof tab.message === 'string' ? tab.message : null)
+      setTabMessage(tab.message ?? null)
       setLayout(tab.layout || 'default')
       if (tab.layout === 'chat' && !isSameConversation) {
         attachedToBottom.current = true
