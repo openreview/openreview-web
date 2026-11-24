@@ -52,14 +52,6 @@ const docsSections = [
 const contactPromptKey = 'helpContactPromptShown'
 const showContactFormKey = 'helpShowContactForm'
 
-const storeFlag = () => {
-  try {
-    localStorage.setItem(contactPromptKey, 'true')
-  } catch {
-    /* empty */
-  }
-}
-
 export default function Page() {
   const [showForm, setShowForm] = useState(false)
   const [showContactPrompt, setShowContactPrompt] = useState(false)
@@ -67,7 +59,11 @@ export default function Page() {
   const openForm = () => setShowForm(true)
 
   const handleDocsClick = () => {
-    storeFlag()
+    try {
+      localStorage.setItem(contactPromptKey, 'true')
+    } catch {
+      /* empty */
+    }
     setShowContactPrompt(true)
   }
 
@@ -91,7 +87,7 @@ export default function Page() {
           <Text>
             Our documentation site has answers to many common questions. You can{' '}
             <a
-              href="https://docs.openreview.net/?ask="
+              href={`${docsBaseUrl}/?ask=`}
               target="_blank"
               rel="noreferrer"
               onClick={handleDocsClick}
@@ -106,7 +102,7 @@ export default function Page() {
         </p>
       </div>
 
-      <div className="help-docs">
+      <div>
         <Row gutter={[12, 12]}>
           {docsSections.map((section) => (
             <Col xs={24} md={12} key={section.path}>

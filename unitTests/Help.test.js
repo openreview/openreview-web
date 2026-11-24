@@ -54,10 +54,7 @@ beforeEach(() => {
   api.put.mockReset()
 })
 
-global.promptError = jest.fn()
 global.promptMessage = jest.fn()
-global.DOMPurify = { sanitize: (html) => html }
-global.marked = (text) => `<p>${text}</p>`
 
 describe('Help page', () => {
   test('show documentation cards under the help heading', () => {

@@ -2,6 +2,7 @@
 
 import { Alert, AutoComplete, Button, Flex, Input } from 'antd'
 import { useEffect, useReducer, useState } from 'react'
+import LoadingIcon from '../../components/LoadingIcon'
 import useTurnstileToken from '../../hooks/useTurnstileToken'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
@@ -25,13 +26,12 @@ const subjectOptions = [
   accessPublicationSubject,
 ].map((subject) => ({ value: subject }))
 
-export default function SupportRequestForm({ prefill }) {
+export default function SupportRequestForm() {
   const [error, setError] = useState(null)
   const [submitting, setSubmitting] = useState(false)
   const [formData, setFormData] = useReducer((state, action) => {
     setError(null)
     if (action.type === 'reset') return {}
-    if (action.type === 'prefill') return { ...state, ...action.payload }
     return { ...state, [action.type]: action.payload }
   }, {})
   const { turnstileToken, turnstileContainerRef } = useTurnstileToken('feedback')
@@ -190,9 +190,7 @@ export default function SupportRequestForm({ prefill }) {
             onChange={(value) => setFormData({ type: field.name, payload: value })}
             allowClear
             style={{ width: '100%' }}
-            filterOption={(input, option) =>
-              option.value.toLowerCase().includes(input.toLowerCase())
-            }
+            showSearch={{ filterOption: true }}
           >
             <Input placeholder={field.placeholder} aria-label={field.placeholder} />
           </AutoComplete>
@@ -204,18 +202,8 @@ export default function SupportRequestForm({ prefill }) {
 
   useEffect(() => {
     if (isRefreshing || !user) return
-    setFormData({
-      type: 'prefill',
-      payload: {
-        from: user.profile.preferredEmail,
-      },
-    })
+    setFormData({ type: 'from', payload: user.profile.preferredEmail })
   }, [isRefreshing])
-
-  useEffect(() => {
-    if (!prefill) return
-    setFormData({ type: 'prefill', payload: prefill })
-  }, [prefill])
 
   const visibleFields = fields.filter((field) => field.showIf())
   const visibleFieldNames = new Set(visibleFields.map((field) => field.name))
@@ -231,7 +219,8 @@ export default function SupportRequestForm({ prefill }) {
       <div ref={turnstileContainerRef} />
       <Button
         type="primary"
-        loading={submitting}
+        iconPlacement="end"
+        loading={submitting ? { icon: <LoadingIcon /> } : false}
         disabled={!turnstileToken || submitting || error}
         style={{ alignSelf: 'flex-start' }}
         onClick={sendFeedback}
