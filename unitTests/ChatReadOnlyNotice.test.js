@@ -25,10 +25,23 @@ describe('ChatReadOnlyNotice', () => {
       screen.getByText('You do not have permission to post in this chat.')
     ).toBeInTheDocument()
     expect(screen.getByText(/LLM Interaction replies are only visible to/)).toHaveTextContent(
-      'Submission2 Senior Area Chairs'
+      'LLM Interaction replies are only visible to Conference, Senior Area Chairs, Area Chairs, AI Review Assistant and Reviewer orCc'
     )
+  })
+
+  test('join two readers without a comma', () => {
+    render(
+      <ChatReadOnlyNotice
+        invitationId={invitationId}
+        readers={[
+          'CVPR.cc/2027/Conference/Submission2/Area_Chairs',
+          'CVPR.cc/2027/Conference/Submission2/Reviewer_orCc',
+        ]}
+      />
+    )
+
     expect(screen.getByText(/LLM Interaction replies are only visible to/)).toHaveTextContent(
-      'Submission2 Reviewer orCc'
+      'LLM Interaction replies are only visible to Area Chairs and Reviewer orCc'
     )
   })
 

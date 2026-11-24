@@ -1,5 +1,4 @@
-import { readersList } from '../../lib/forum-utils'
-import { prettyInvitationId } from '../../lib/utils'
+import { prettyInvitationId, prettyList } from '../../lib/utils'
 import Icon from '../Icon'
 
 export default function ChatReadOnlyNotice({ invitationId, readers }) {
@@ -11,7 +10,7 @@ export default function ChatReadOnlyNotice({ invitationId, readers }) {
           <Icon name="eye-open" extraClasses="pr-1" />{' '}
           <em>
             {prettyInvitationId(invitationId)} replies are only visible to{' '}
-            {readersList(readers)}
+            {prettyList(readers, 'short')}
           </em>
         </p>
       )}
