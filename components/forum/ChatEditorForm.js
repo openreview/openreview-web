@@ -1,15 +1,15 @@
 /* globals promptError,DOMPurify,marked,MathJax: false */
 
+import flatten from 'lodash/flatten'
+import uniqBy from 'lodash/uniqBy'
 import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
-import uniqBy from 'lodash/uniqBy'
-import flatten from 'lodash/flatten'
-import Dropdown from '../Dropdown'
-import Icon from '../Icon'
 import useUser from '../../hooks/useUser'
 import api from '../../lib/api-client'
-import { prettyId, prettyInvitationId } from '../../lib/utils'
-import { readersList, getSignatureColors, getReplySnippet } from '../../lib/forum-utils'
+import { getSignatureColors, getReplySnippet } from '../../lib/forum-utils'
+import { prettyId, prettyInvitationId, prettyList } from '../../lib/utils'
+import Dropdown from '../Dropdown'
+import Icon from '../Icon'
 
 import styles from '../../styles/components/ChatEditorForm.module.scss'
 
@@ -259,7 +259,7 @@ export default function ChatEditorForm({
               <Icon name="eye-open" extraClasses="pr-1" />{' '}
               <em>
                 {invitationShortName} replies are only visible to{' '}
-                {readersList(invitation.edit.note.readers)}
+                {prettyList(invitation.edit.note.readers, 'short')}
               </em>
             </p>
           )}
