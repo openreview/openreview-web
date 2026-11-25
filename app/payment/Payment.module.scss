@@ -1,0 +1,54 @@
+@use '../../styles/utils/constants';
+
+.payment {
+  width: 80%;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.paymentHeader {
+  margin-bottom: 2rem;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+  }
+
+  p {
+    color: #666;
+    font-size: 0.875rem;
+  }
+}
+
+.paymentForm {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.paymentButton {
+  margin-top: 1rem;
+}
+
+.message {
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 2rem;
+  text-align: center;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  &.success {
+    border-left: 4px solid #4caf50;
+  }
+
+  &.error {
+    border-left: 4px solid #f44336;
+  }
+}
